@@ -28,10 +28,9 @@ import { createTetrioStatsCard } from './tetrio-stats-card.js';
 import { createTetrioPlaystyleGraph } from './tetrio-playstyle-graph.js';
 
 const customEmojis = {
-  seahorse: '<:seahorse:1509923801415291023>',
+  seahorse: '<:seahorse:1509925255026577474>',
 };
 const { DISCORD_TOKEN } = process.env;
-const seahorseEmoji = '<:seahorse:1509925255026577474>';
 const geminiApiKeys = getUniqueValues([
   ...(parseCommaSeparatedValues(process.env.GEMINI_API_KEYS) ?? []),
   ...(parseCommaSeparatedValues(process.env.GEMMA_API_KEYS) ?? []),
@@ -560,14 +559,8 @@ async function handleGeminiFallbackMessage(message) {
   if (!prompt) {
     return false;
   }
-  const localEmojiAnswer = getLocalEmojiAnswer(prompt);
-  if (localEmojiAnswer) {
-    await message.reply({
-      content: localEmojiAnswer,
-      allowedMentions: { parse: [], repliedUser: false },
-    });
-    return true;
-  }
+ 
+  
   if (isUnsupportedEmojiPrompt(prompt)) {
   await message.reply({
     content: '먀... 다시 말해줄 수 있냥?',
@@ -620,33 +613,6 @@ async function handleGeminiFallbackMessage(message) {
   }
 
   return true;
-}
-
-function getLocalEmojiAnswer(prompt) {
-  const text = String(prompt ?? '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  const asksSeahorse =
-    /해마/.test(text) ||
-    /seahorse/.test(text);
-
-  const asksEmoji =
-    /(이모지|이모티콘|임티|emoji|emote|출력|보여|보내|써줘|쳐줘)/i.test(text);
-
-  if (!asksSeahorse || !asksEmoji) {
-    return null;
-  }
-
-  const wantsOnlyEmoji =
-    /(출력|보여|보내|써줘|쳐줘|그려줘|달라|줘)/i.test(text);
-
-  if (wantsOnlyEmoji) {
-    return seahorseEmoji;
-  }
-
-  return `해마 이모지는 ${seahorseEmoji} 이거말이냥?`;
 }
 
 function isUnsupportedEmojiPrompt(prompt) {
