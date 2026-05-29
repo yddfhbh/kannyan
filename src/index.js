@@ -638,7 +638,7 @@ function getLocalEmojiAnswer(prompt) {
     return seahorseEmoji;
   }
 
-  return `해마 이모지는 ${seahorseEmoji} 이거다냥.`;
+  return `해마 이모지는 ${seahorseEmoji} 이거말이냥?`;
 }
 
 function isUnsupportedEmojiPrompt(prompt) {
