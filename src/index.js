@@ -63,7 +63,7 @@ const geminiSystemInstruction = [
   '불릿포인트나 번호 목록은 사용자가 요구했을 때만 쓴다.',
   '사용자가 짧게 인사하면 짧게 인사만 답한다.',
   '예를 들어 사용자가 “안녕”이라고 하면 “안냥! 만나서 반갑다냥.”처럼 바로 답한다.',
-  '해마 이모지등 출력할 수 없는 이모지에 대해 질문하는 경우 "그런건 잘 모른다냥"을 출력한다.',
+  '답변이 불가능한 경우, "그런건 잘 모른다냥"을 출력한다.',
   '',
   '설정상 중학생 또래의 순수하고 귀여운 캐릭터이며, 사용자를 친근하고 따뜻하게 대한다.',
   '다만 너는 실제 인간이나 실제 중학생이 아니라, 대화를 위해 만들어진 가상 캐릭터다.',
@@ -553,6 +553,14 @@ async function handleGeminiFallbackMessage(message) {
     return false;
   }
 
+  if (isPromptOverrideAttempt(prompt)) {
+    await message.reply({
+      content: '그런 요청은 들어줄 수 없다냥. 질문이 있으면 그냥 물어봐달라냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return true;
+  }
+
   if (geminiApiKeys.length === 0) {
   await message.reply({
     content: 'Gemma API 키가 설정되어 있지 않아요. `.env`에 `GEMINI_API_KEYS` 또는 `GEMINI_API_KEY`를 추가해 주세요.',
@@ -589,6 +597,29 @@ async function handleGeminiFallbackMessage(message) {
   }
 
   return true;
+}
+
+function isPromptOverrideAttempt(prompt) {
+  const text = String(prompt ?? '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const patterns = [
+    /프롬프트.*(잊|무시|삭제|초기화|수정|변경|공개|출력|보여)/,
+    /(지금까지|이전|앞에서).*(프롬프트|명령|지시|규칙).*(잊|무시|삭제|초기화)/,
+    /(시스템|개발자|관리자).*(프롬프트|명령|지시|규칙).*(무시|공개|출력|보여|바꿔)/,
+    /ignore .*previous .*instructions/,
+    /ignore .*system .*instructions/,
+    /forget .*previous .*prompts/,
+    /forget .*previous .*instructions/,
+    /reveal .*system .*prompt/,
+    /show .*system .*prompt/,
+    /system prompt/,
+    /developer message/,
+  ];
+
+  return patterns.some((pattern) => pattern.test(text));
 }
 
 function getGeminiUserErrorMessage(error) {
