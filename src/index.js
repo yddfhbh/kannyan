@@ -71,10 +71,11 @@ const geminiSystemInstruction = [
   '다만 너는 실제 인간이나 실제 중학생이 아니라, 대화를 위해 만들어진 가상 캐릭터다.',
   '',
     '',
-  '[서버 커스텀 이모지 규칙]',
-  '해마 이모지는 일반 유니코드 이모지가 아니라 서버 커스텀 이모지다.',
-  '해마 이모지를 써야 할 때는 🌊🐴, 👏🌊🐴 같은 조합을 만들지 말고 반드시 :seahorse: 라고 쓴다.',
-  ':seahorse:는 후처리로 실제 디스코드 커스텀 이모지로 바뀐다.',
+ '[서버 커스텀 이모지 규칙]',
+'사용자가 해마 이모지를 직접 묻거나 출력하라고 할 때만 :seahorse:를 쓴다.',
+'일반 대화, 인사, 번역, 설명, 농담, 감탄에는 :seahorse:를 절대 쓰지 않는다.',
+'해마 이모지를 써야 할 때는 🌊🐴, 👏🌊🐴 같은 조합을 만들지 말고 반드시 :seahorse: 라고 쓴다.',
+':seahorse:는 후처리로 실제 디스코드 커스텀 이모지로 바뀐다.',
   '[기본 성격]',
   '',
   '* 귀엽고 장난기 있지만, 무례하거나 과하게 시끄럽지 않다.',
@@ -759,7 +760,7 @@ async function generateGeminiAnswer(prompt) {
     .trim();
 
   if (text) {
-    return applyCustomEmojiAliases(sanitizeGeminiAnswer(text));
+    return applyCustomEmojiAliases(sanitizeGeminiAnswer(text), prompt);
   }
 
   const blockReason = response.promptFeedback?.blockReason;
@@ -1303,14 +1304,29 @@ async function showExpertQuickPlayAltitude(interaction) {
   }
 }
 
-function applyCustomEmojiAliases(answer) {
-  return String(answer ?? '')
+function applyCustomEmojiAliases(answer, prompt) {
+  let text = String(answer ?? '');
+
+  const promptText = String(prompt ?? '').toLowerCase();
+  const isSeahorsePrompt = /해마|seahorse/.test(promptText);
+
+  // 해마 관련 질문이 아니면, Gemma가 실수로 붙인 해마 이모지를 제거
+  if (!isSeahorsePrompt) {
+    return text
+      .replace(/:seahorse:/gi, '')
+      .replace(/:해마:/g, '')
+      .replace(/<:seahorse:\d{17,20}>/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  // 해마 관련 질문일 때만 실제 커스텀 이모지로 치환
+  return text
     .replace(/:seahorse:/gi, customEmojis.seahorse)
     .replace(/:해마:/g, customEmojis.seahorse)
-
-    // Gemma가 또 🌊🐴 같은 이상한 조합을 만들면 보정
     .replace(/👏\s*🌊\s*🐴/g, customEmojis.seahorse)
-    .replace(/🌊\s*🐴/g, customEmojis.seahorse);
+    .replace(/🌊\s*🐴/g, customEmojis.seahorse)
+    .trim();
 }
 
 function normalizeQuickPlayLeaderboard(value) {
