@@ -28,7 +28,7 @@ import { createTetrioStatsCard } from './tetrio-stats-card.js';
 import { createTetrioPlaystyleGraph } from './tetrio-playstyle-graph.js';
 
 const { DISCORD_TOKEN } = process.env;
-const seahorseEmoji = '<:seahorse:1509923801415291023>';
+const seahorseEmoji = '<:seahorse:1509925255026577474>';
 const geminiApiKeys = getUniqueValues([
   ...(parseCommaSeparatedValues(process.env.GEMINI_API_KEYS) ?? []),
   ...(parseCommaSeparatedValues(process.env.GEMMA_API_KEYS) ?? []),
