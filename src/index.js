@@ -28,7 +28,13 @@ import { createTetrioStatsCard } from './tetrio-stats-card.js';
 import { createTetrioPlaystyleGraph } from './tetrio-playstyle-graph.js';
 
 const { DISCORD_TOKEN } = process.env;
-const GEMMA_API_KEY = process.env.GEMMA_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim();
+
+const geminiApiKeys = getUniqueValues([
+  ...(parseCommaSeparatedValues(process.env.GEMINI_API_KEYS) ?? []),
+  ...(parseCommaSeparatedValues(process.env.GEMMA_API_KEYS) ?? []),
+  process.env.GEMINI_API_KEY,
+  process.env.GEMMA_API_KEY,
+]);
 const port = Number(process.env.PORT) || 8080;
 const chessComBaseUrl = 'https://api.chess.com/pub/player';
 const lichessBaseUrl = 'https://lichess.org/api/user';
@@ -546,13 +552,13 @@ async function handleGeminiFallbackMessage(message) {
     return false;
   }
 
-  if (!GEMMA_API_KEY) {
-    await message.reply({
-      content: 'Gemini API 키가 설정되어 있지 않아요. `.env`에 `GEMINI_API_KEY`를 추가해 주세요.',
-      allowedMentions: { parse: [], repliedUser: false },
-    });
-    return true;
-  }
+  if (geminiApiKeys.length === 0) {
+  await message.reply({
+    content: 'Gemma API 키가 설정되어 있지 않아요. `.env`에 `GEMINI_API_KEYS` 또는 `GEMINI_API_KEY`를 추가해 주세요.',
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+  return true;
+}
 
   try {
     await message.channel.sendTyping();
@@ -703,34 +709,53 @@ async function generateGeminiAnswer(prompt) {
 async function fetchGeminiGenerateContent(payload) {
   let lastError = null;
 
-  for (const modelName of geminiModels) {
-    for (let attempt = 1; attempt <= geminiMaxAttemptsPerModel; attempt += 1) {
-      try {
-        return await requestGeminiGenerateContent(modelName, payload);
-      } catch (error) {
-        lastError = error;
-        const canRetry = shouldRetryGeminiRequest(error) && attempt < geminiMaxAttemptsPerModel;
+  for (let keyIndex = 0; keyIndex < geminiApiKeys.length; keyIndex += 1) {
+    const apiKey = geminiApiKeys[keyIndex];
+    const keyLabel = `key#${keyIndex + 1}`;
 
-        if (canRetry) {
-          await wait(getGeminiRetryDelayMs(attempt));
-          continue;
+    for (const modelName of geminiModels) {
+      for (let attempt = 1; attempt <= geminiMaxAttemptsPerModel; attempt += 1) {
+        try {
+          return await requestGeminiGenerateContent(modelName, payload, apiKey);
+        } catch (error) {
+          lastError = error;
+
+          const canRetry = shouldRetryGeminiRequest(error)
+            && attempt < geminiMaxAttemptsPerModel;
+
+          if (canRetry) {
+            await wait(getGeminiRetryDelayMs(attempt));
+            continue;
+          }
+
+          break;
         }
-
-        break;
       }
+
+      if (shouldTryNextGeminiModel(lastError)) {
+        console.warn(
+          `Gemma model ${modelName} failed with status ${lastError.status ?? lastError.name} using ${keyLabel}; trying next model if available.`
+        );
+        continue;
+      }
+
+      break;
     }
 
-    if (!shouldTryNextGeminiModel(lastError)) {
-      throw lastError;
+    if (shouldTryNextGeminiApiKey(lastError) && keyIndex < geminiApiKeys.length - 1) {
+      console.warn(
+        `Gemma API ${keyLabel} failed with status ${lastError.status ?? lastError.name}; trying next API key.`
+      );
+      continue;
     }
 
-    console.warn(`Gemini model ${modelName} failed with status ${lastError.status ?? lastError.name}; trying next model if available.`);
+    throw lastError;
   }
 
-  throw lastError ?? new Error('Gemini API request failed.');
+  throw lastError ?? new Error('Gemma API request failed.');
 }
 
-async function requestGeminiGenerateContent(modelName, payload) {
+async function requestGeminiGenerateContent(modelName, payload, apiKey) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), geminiRequestTimeoutMs);
   const normalizedModelName = modelName.replace(/^models\//, '');
@@ -740,7 +765,7 @@ async function requestGeminiGenerateContent(modelName, payload) {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-goog-api-key': GEMMA_API_KEY,
+        'x-goog-api-key': apiKey,
       },
       body: JSON.stringify(payload),
       signal: controller.signal,
@@ -770,6 +795,10 @@ function shouldRetryGeminiRequest(error) {
 
 function shouldTryNextGeminiModel(error) {
   return geminiFallbackStatusCodes.has(error?.status) || error?.name === 'AbortError';
+}
+
+function shouldTryNextGeminiApiKey(error) {
+  return [400, 401, 403, 429].includes(error?.status);
 }
 
 function chunkDiscordMessage(content) {
