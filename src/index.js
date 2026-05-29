@@ -28,7 +28,7 @@ import { createTetrioStatsCard } from './tetrio-stats-card.js';
 import { createTetrioPlaystyleGraph } from './tetrio-playstyle-graph.js';
 
 const { DISCORD_TOKEN } = process.env;
-
+const seahorseEmoji = '<:seahorse:1509923801415291023>';
 const geminiApiKeys = getUniqueValues([
   ...(parseCommaSeparatedValues(process.env.GEMINI_API_KEYS) ?? []),
   ...(parseCommaSeparatedValues(process.env.GEMMA_API_KEYS) ?? []),
@@ -552,7 +552,14 @@ async function handleGeminiFallbackMessage(message) {
   if (!prompt) {
     return false;
   }
-
+  const localEmojiAnswer = getLocalEmojiAnswer(prompt);
+  if (localEmojiAnswer) {
+    await message.reply({
+      content: localEmojiAnswer,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return true;
+  }
   if (isUnsupportedEmojiPrompt(prompt)) {
   await message.reply({
     content: '먀... 다시 말해줄 수 있냥?',
@@ -607,7 +614,32 @@ async function handleGeminiFallbackMessage(message) {
   return true;
 }
 
+function getLocalEmojiAnswer(prompt) {
+  const text = String(prompt ?? '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
 
+  const asksSeahorse =
+    /해마/.test(text) ||
+    /seahorse/.test(text);
+
+  const asksEmoji =
+    /(이모지|이모티콘|임티|emoji|emote|출력|보여|보내|써줘|쳐줘)/i.test(text);
+
+  if (!asksSeahorse || !asksEmoji) {
+    return null;
+  }
+
+  const wantsOnlyEmoji =
+    /(출력|보여|보내|써줘|쳐줘|그려줘|달라|줘)/i.test(text);
+
+  if (wantsOnlyEmoji) {
+    return seahorseEmoji;
+  }
+
+  return `해마 이모지는 ${seahorseEmoji} 이거다냥.`;
+}
 
 function isUnsupportedEmojiPrompt(prompt) {
   const text = String(prompt ?? '').trim();
@@ -740,6 +772,8 @@ async function generateGeminiAnswer(prompt) {
     ],
     generationConfig: {
       maxOutputTokens: geminiMaxOutputTokens,
+      temperature: 0.2,
+      topP: 0.8,
     },
   });
 
@@ -763,7 +797,7 @@ async function generateGeminiAnswer(prompt) {
 }
 
 function sanitizeGeminiAnswer(answer) {
-  const text = String(answer ?? '').trim();
+  let text = String(answer ?? '').trim();
 
   const leakedAnalysisPatterns = [
     /User Input/i,
@@ -777,9 +811,38 @@ function sanitizeGeminiAnswer(answer) {
     /Drafting the response/i,
     /Sentence \d/i,
     /Tone:/i,
+
+    // 한국어 메타/자기검열/해설 누출
+    /프롬프트/i,
+    /시스템 지시/i,
+    /규칙을 따르/i,
+    /분석/i,
+    /판단/i,
+    /후보 답변/i,
+    /정확한.*답변/i,
+    /사용자.*입력/i,
+    /챗봇.*답변/i,
+    /봇.*정체성/i,
+
+    // 스샷처럼 괄호 안에 자기 생각 흘리는 패턴
+    /^\s*[（(].*(앗|사실|미안|정확|유니코드|모양|테스트|출력).*[）)]\s*$/m,
   ];
 
   if (leakedAnalysisPatterns.some((pattern) => pattern.test(text))) {
+    return '먀... 다시 말해줄 수 있냥?';
+  }
+
+  // 괄호로 된 메타 문장 제거
+  text = text
+    .split('\n')
+    .filter((line) => {
+      const trimmed = line.trim();
+      return !/^[（(].*[）)]$/.test(trimmed);
+    })
+    .join('\n')
+    .trim();
+
+  if (!text) {
     return '먀... 다시 말해줄 수 있냥?';
   }
 
