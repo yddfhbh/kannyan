@@ -554,12 +554,12 @@ async function handleGeminiFallbackMessage(message) {
   }
 
   if (isUnsupportedEmojiPrompt(prompt)) {
-    await message.reply({
-      content: '그런건 잘 모른다냥.',
-      allowedMentions: { parse: [], repliedUser: false },
-    });
-    return true;
-  }
+  await message.reply({
+    content: '먀... 다시 말해줄 수 있냥?',
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+  return true;
+}
 
   if (isPromptOverrideAttempt(prompt)) {
     await message.reply({
@@ -606,6 +606,8 @@ async function handleGeminiFallbackMessage(message) {
 
   return true;
 }
+
+
 
 function isUnsupportedEmojiPrompt(prompt) {
   const text = String(prompt ?? '').trim();
