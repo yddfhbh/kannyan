@@ -1,0 +1,23 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "A starter Discord bot using discord.js.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "register": "node src/deploy-commands.js",
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "discord.js"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.19.3",
+    "dotenv": "^16.5.0",
+    "sharp": "^0.34.5"
+  }
+}

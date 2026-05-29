@@ -1,0 +1,616 @@
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
+
+const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
+const tetrioGameBaseUrl = 'https://tetr.io';
+const tetrioHunFontUrl = `${tetrioGameBaseUrl}/res/font/hun2.ttf?v=6`;
+const tetrioHeaders = {
+  'User-Agent': 'discord-bot/1.0 TETR.IO quick play altitude',
+  'X-Session-ID': 'discord-bot-tetrio-quickplay',
+};
+const tetrioRecordPageSize = 100;
+const quickPlayFontFamily = '"HUN", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const tetrioQuickPlayModes = {
+  zenith: {
+    code: 'zenith',
+    notFoundMessage: 'No quick play record found for the requested position',
+    unavailableMessage: 'Quick play altitude is unavailable',
+  },
+  zenithex: {
+    code: 'zenithex',
+    notFoundMessage: 'No expert quick play record found for the requested position',
+    unavailableMessage: 'Expert quick play altitude is unavailable',
+  },
+};
+const quickPlayFloorNames = [
+  'Hall of Beginnings',
+  'The Hotel',
+  'The Casino',
+  'The Arena',
+  'The Museum',
+  'Abondoned Office',
+  'The Laboratory',
+  'The Core',
+  'Corruption',
+  'Platform of the Gods',
+];
+const localQuickPlayModIconPaths = {
+  allspin: fileURLToPath(new URL('../assets/zenith-mods/allspin.png', import.meta.url)),
+  allspin_reversed: fileURLToPath(new URL('../assets/zenith-mods/allspin_reversed.png', import.meta.url)),
+  doublehole: fileURLToPath(new URL('../assets/zenith-mods/doublehole.png', import.meta.url)),
+  doublehole_reversed: fileURLToPath(new URL('../assets/zenith-mods/doublehole_reversed.png', import.meta.url)),
+  expert: fileURLToPath(new URL('../assets/zenith-mods/expert.png', import.meta.url)),
+  expert_reversed: fileURLToPath(new URL('../assets/zenith-mods/expert_reversed.png', import.meta.url)),
+  gravity: fileURLToPath(new URL('../assets/zenith-mods/gravity.png', import.meta.url)),
+  gravity_reversed: fileURLToPath(new URL('../assets/zenith-mods/gravity_reversed.png', import.meta.url)),
+  invisible: fileURLToPath(new URL('../assets/zenith-mods/invisible.png', import.meta.url)),
+  invisible_reversed: fileURLToPath(new URL('../assets/zenith-mods/invisible_reversed.png', import.meta.url)),
+  messy: fileURLToPath(new URL('../assets/zenith-mods/messy.png', import.meta.url)),
+  messy_reversed: fileURLToPath(new URL('../assets/zenith-mods/messy_reversed.png', import.meta.url)),
+  nohold: fileURLToPath(new URL('../assets/zenith-mods/nohold.png', import.meta.url)),
+  nohold_reversed: fileURLToPath(new URL('../assets/zenith-mods/nohold_reversed.png', import.meta.url)),
+  volatile: fileURLToPath(new URL('../assets/zenith-mods/volatile.png', import.meta.url)),
+  volatile_reversed: fileURLToPath(new URL('../assets/zenith-mods/volatile_reversed.png', import.meta.url)),
+};
+let tetrioHunFontDataUriPromise = null;
+
+export async function createQuickPlayAltitudeCard(username, recordIndex = 1) {
+  return createTetrioAltitudeCard(username, recordIndex, 'zenith');
+}
+
+export async function createExpertQuickPlayAltitudeCard(username, recordIndex = 1) {
+  return createTetrioAltitudeCard(username, recordIndex, 'zenithex');
+}
+
+export async function createQuickPlayRecentAltitudeCard(username, recordIndex = 1) {
+  return createTetrioAltitudeCard(username, recordIndex, 'zenith', 'recent');
+}
+
+export async function createExpertQuickPlayRecentAltitudeCard(username, recordIndex = 1) {
+  return createTetrioAltitudeCard(username, recordIndex, 'zenithex', 'recent');
+}
+
+async function createTetrioAltitudeCard(username, recordIndex = 1, mode = 'zenith', leaderboard = 'top') {
+  const normalizedUsername = normalizeTetrioUsername(username);
+  const normalizedRecordIndex = normalizeRecordIndex(recordIndex);
+  const modeInfo = tetrioQuickPlayModes[mode] ?? tetrioQuickPlayModes.zenith;
+  const normalizedLeaderboard = normalizePersonalRecordLeaderboard(leaderboard);
+
+  if (!normalizedUsername) {
+    const error = new Error('TETR.IO username is required');
+    error.status = 400;
+    throw error;
+  }
+
+  const record = await fetchNthPersonalRecord(
+    normalizedUsername,
+    normalizedRecordIndex,
+    modeInfo,
+    normalizedLeaderboard
+  );
+
+  if (!record) {
+    const error = new Error(modeInfo.notFoundMessage);
+    error.code = 'NO_RECORD';
+    error.status = 404;
+    throw error;
+  }
+
+  const altitude = Number(record.results?.stats?.zenith?.altitude);
+  if (!Number.isFinite(altitude) || altitude < 0) {
+    const error = new Error(modeInfo.unavailableMessage);
+    error.code = 'NO_RECORD';
+    error.status = 404;
+    throw error;
+  }
+
+  const altitudeText = formatAltitudeText(altitude);
+  const [modIcons, hunFont] = await Promise.all([
+    fetchQuickPlayModIcons(record),
+    fetchTetrioHunFontDataUri(),
+  ]);
+  const svg = renderQuickPlayAltitudeSvg(record, normalizedUsername, altitudeText, modIcons, hunFont);
+  const image = await sharp(Buffer.from(svg)).png().toBuffer();
+
+  return {
+    image,
+    altitude,
+    altitudeText,
+    leaderboard: normalizedLeaderboard,
+    mode: modeInfo.code,
+    username: normalizedUsername,
+  };
+}
+
+function normalizePersonalRecordLeaderboard(value) {
+  return value === 'recent' ? 'recent' : 'top';
+}
+
+async function fetchNthPersonalRecord(username, recordIndex, modeInfo, leaderboard) {
+  let remaining = recordIndex;
+  let after = null;
+
+  while (remaining > 0) {
+    const limit = Math.min(tetrioRecordPageSize, remaining);
+    const searchParams = new URLSearchParams({ limit: String(limit) });
+    if (after) {
+      searchParams.set('after', after);
+    }
+
+    const response = await fetchTetrioJson(
+      `/users/${encodeURIComponent(username)}/records/${modeInfo.code}/${leaderboard}?${searchParams.toString()}`
+    );
+    const entries = Array.isArray(response.data?.entries)
+      ? response.data.entries
+      : [];
+
+    if (entries.length === 0) {
+      return null;
+    }
+
+    if (entries.length >= remaining) {
+      return entries[remaining - 1];
+    }
+
+    remaining -= entries.length;
+    if (entries.length < limit) {
+      return null;
+    }
+
+    after = formatPrisecter(entries.at(-1)?.p);
+    if (!after) {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+function formatPrisecter(prisecter) {
+  const pri = Number(prisecter?.pri);
+  const sec = Number(prisecter?.sec);
+  const ter = Number(prisecter?.ter);
+
+  if (![pri, sec, ter].every(Number.isFinite)) {
+    return null;
+  }
+
+  return `${pri}:${sec}:${ter}`;
+}
+
+function normalizeRecordIndex(value) {
+  const index = Number(value);
+  return Number.isInteger(index) && index >= 1 ? index : 1;
+}
+
+function normalizeTetrioUsername(input) {
+  const trimmed = String(input ?? '').trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    const url = new URL(trimmed);
+    const match = url.pathname.match(/^\/u\/([^/]+)/i);
+    if (match) {
+      return decodeURIComponent(match[1]).trim().toLowerCase();
+    }
+  } catch {
+    // Plain usernames are expected most of the time.
+  }
+
+  return trimmed.replace(/^@+/, '').toLowerCase();
+}
+
+async function fetchTetrioJson(path) {
+  const response = await fetch(`${tetrioApiBaseUrl}${path}`, {
+    headers: tetrioHeaders,
+  });
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok || !body?.success) {
+    const error = new Error(body?.error?.msg ?? `TETR.IO API responded with ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  return body;
+}
+
+function formatAltitudeText(value) {
+  const whole = Math.floor(value);
+  const decimal = Math.floor((value % 1) * 10);
+  return `${whole.toLocaleString('en-US')}.${decimal}`;
+}
+
+function fetchTetrioHunFontDataUri() {
+  tetrioHunFontDataUriPromise ??= fetchFontDataUri(tetrioHunFontUrl);
+  return tetrioHunFontDataUriPromise;
+}
+
+async function fetchFontDataUri(url) {
+  try {
+    const response = await fetch(url, { headers: tetrioHeaders });
+    if (!response.ok) {
+      return null;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return `data:font/ttf;base64,${buffer.toString('base64')}`;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchQuickPlayModIcons(record) {
+  const mods = Array.isArray(record?.extras?.zenith?.mods)
+    ? record.extras.zenith.mods
+    : [];
+
+  const entries = await Promise.all(mods.map(async (mod) => {
+    const dataUri = await readLocalImageDataUri(localQuickPlayModIconPaths[mod]);
+    return dataUri
+      ? { mod, dataUri }
+      : null;
+  }));
+
+  return entries.filter(Boolean);
+}
+
+function renderQuickPlayAltitudeSvg(record, username, altitudeText, modIcons = [], hunFontDataUri = null) {
+  const altitudeValueFontSize = 109;
+  const altitudeGroupCenterX = 700;
+  const altitudeGap = 5;
+  const altitudeValueWidth = estimateQuickPlayValueWidth(altitudeText, altitudeValueFontSize);
+  const altitudeUnitWidth = estimateQuickPlayUnitWidth('M', 64);
+  const altitudeGroupWidth = altitudeValueWidth + altitudeGap + altitudeUnitWidth;
+  const altitudeGroupLeftX = altitudeGroupCenterX - altitudeGroupWidth / 2;
+  const altitudeValueX = altitudeGroupLeftX + altitudeValueWidth;
+  const altitudeUnitX = altitudeValueX + altitudeGap;
+  const topPanelY = 8;
+  const topPanelHeight = 303;
+  const altitudeTitleShadowY = topPanelY + 61;
+  const altitudeTitleY = topPanelY + 59;
+  const altitudeInnerBoxY = topPanelY + 88;
+  const altitudeTextY = topPanelY + 176;
+  const altitudeValueTextY = altitudeTextY - 1;
+  const modIconY = altitudeInnerBoxY + 139;
+  const statsRows = buildQuickPlayStatsRows(record);
+  const statsPanelY = 331;
+  const statsInnerBoxX = 18;
+  const statsInnerBoxY = statsPanelY + 84;
+  const statsInnerBoxWidth = 1364;
+  const statsRowHeight = 53;
+  const statsInnerBoxHeight = statsRows.length * statsRowHeight;
+  const statsRowsBottomY = statsInnerBoxY + statsInnerBoxHeight;
+  const statsPanelBottomY = statsRowsBottomY + 16;
+  const statsPanelHeight = statsPanelBottomY - statsPanelY;
+  const playedAtPanelY = statsPanelBottomY + 8;
+  const playedAtPanelHeight = 56;
+  const playedAtText = `PLAYED BY ${String(username ?? '').toUpperCase()} \u00B7 ${formatPlayedAtKst(record?.ts)}`;
+  const svgHeight = playedAtPanelY + playedAtPanelHeight + 12;
+  const modIconMarkup = renderQuickPlayModIcons(modIcons, modIconY);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="${svgHeight}" viewBox="0 0 1400 ${svgHeight}">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#294d2a"/>
+      <stop offset="1" stop-color="#1d3b1f"/>
+    </linearGradient>
+    <filter id="valueGlow" x="-20%" y="-40%" width="140%" height="180%">
+      <feGaussianBlur stdDeviation="5.5" result="blur"/>
+      <feColorMatrix
+        in="blur"
+        type="matrix"
+        values="1 0 0 0 0.66
+                0 1 0 0 0.92
+                0 0 1 0 0.68
+                0 0 0 1 0"
+        result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <style>
+      ${renderTetrioFontFace(hunFontDataUri)}
+      text {
+        font-family: ${quickPlayFontFamily};
+        letter-spacing: 0;
+      }
+      .title {
+        fill: #b0e1af;
+        font-size: 52px;
+        font-weight: 650;
+        letter-spacing: 2px;
+      }
+      .value {
+        fill: #bcf8bc;
+        font-size: ${altitudeValueFontSize}px;
+        font-weight: 800;
+      }
+      .unit {
+        fill: #9fc79b;
+        font-size: 56px;
+        font-weight: 700;
+      }
+      .statsTitle {
+        fill: #b0e1af;
+        font-size: 50px;
+        font-weight: 650;
+        letter-spacing: 2px;
+      }
+      .statsLabel {
+        fill: #95bc92;
+        font-size: 30px;
+        font-weight: 450;
+        letter-spacing: 2px;
+      }
+      .statsValue {
+        fill: #d6f0d5;
+        font-size: 30px;
+        font-weight: 650;
+        letter-spacing: 0.5px;
+      }
+      .metaText {
+        fill: #b0e1af;
+        font-size: 34px;
+        font-weight: 650;
+        letter-spacing: 1px;
+      }
+    </style>
+  </defs>
+
+  <rect width="1400" height="${svgHeight}" rx="3" fill="url(#bg)" stroke="#3d6640" stroke-width="4"/>
+  <rect x="8" y="${topPanelY}" width="1384" height="${topPanelHeight}" rx="3" fill="#254726" stroke="#3d6640" stroke-width="4"/>
+  <text x="34" y="${altitudeTitleShadowY}" class="title" fill="#000000" opacity="0.32">FINAL ALTITUDE</text>
+  <text x="32" y="${altitudeTitleY}" class="title">FINAL ALTITUDE</text>
+  <rect x="22" y="${altitudeInnerBoxY}" width="1356" height="180" rx="6" fill="#1b381b" opacity="0.98"/>
+  <g filter="url(#valueGlow)">
+    <text x="${altitudeValueX}" y="${altitudeValueTextY}" text-anchor="end" dominant-baseline="middle" class="value">${escapeXml(altitudeText)}</text>
+  </g>
+  <text x="${altitudeUnitX}" y="${altitudeTextY}" text-anchor="start" dominant-baseline="middle" class="unit">M</text>
+  ${modIconMarkup}
+
+  <rect x="8" y="${statsPanelY}" width="1384" height="${statsPanelHeight}" rx="3" fill="#254726" stroke="#3d6640" stroke-width="4"/>
+  <text x="32" y="${statsPanelY + 62}" class="statsTitle">STATS</text>
+  <rect x="${statsInnerBoxX}" y="${statsInnerBoxY}" width="${statsInnerBoxWidth}" height="${statsInnerBoxHeight}" rx="4" fill="#1b381b" opacity="0.98"/>
+  ${statsRows.map((row, index) => {
+    const rowY = statsInnerBoxY + index * statsRowHeight;
+    const baselineY = rowY + statsRowHeight / 2;
+    return `
+  ${index < statsRows.length - 1 ? `<line x1="${statsInnerBoxX + 7}" y1="${rowY + statsRowHeight}" x2="${statsInnerBoxX + statsInnerBoxWidth - 7}" y2="${rowY + statsRowHeight}" stroke="#ffffff" stroke-opacity="0.18" stroke-width="2.5"/>` : ''}
+  <text x="${statsInnerBoxX + 12}" y="${baselineY}" dominant-baseline="middle" class="statsLabel">${escapeXml(row.label)}</text>
+  <text x="${statsInnerBoxX + statsInnerBoxWidth - 12}" y="${baselineY}" text-anchor="end" dominant-baseline="middle" class="statsValue">${escapeXml(row.value)}</text>`;
+  }).join('')}
+  <rect x="8" y="${playedAtPanelY}" width="1384" height="${playedAtPanelHeight}" rx="3" fill="#254726" stroke="#3d6640" stroke-width="4"/>
+  <text x="34" y="${playedAtPanelY + playedAtPanelHeight / 2 + 2}" dominant-baseline="middle" class="metaText" fill="#000000" opacity="0.32">${escapeXml(playedAtText)}</text>
+  <text x="32" y="${playedAtPanelY + playedAtPanelHeight / 2}" dominant-baseline="middle" class="metaText">${escapeXml(playedAtText)}</text>
+</svg>`;
+}
+
+function renderTetrioFontFace(fontDataUri) {
+  if (!fontDataUri) {
+    return '';
+  }
+
+  return `@font-face {
+        font-family: "HUN";
+        src: url("${fontDataUri}") format("truetype");
+        font-weight: 400 900;
+        font-style: normal;
+      }`;
+}
+
+function buildQuickPlayStatsRows(record) {
+  const stats = record?.results?.stats ?? {};
+  const zenith = stats.zenith ?? {};
+  const aggregate = record?.results?.aggregatestats ?? {};
+  const extrasZenith = record?.extras?.zenith ?? {};
+  const finalTimeSeconds = Number(stats.finaltime) / 1000;
+  const averageClimbSpeed = finalTimeSeconds > 0
+    ? zenith.avgrankpts / (finalTimeSeconds * 60)
+    : null;
+  const altitudePerSecond = finalTimeSeconds > 0
+    ? zenith.altitude / finalTimeSeconds
+    : null;
+  const attackPerPiece = resolveQuickPlayAttackPerPiece(aggregate);
+  const floorText = formatFloorText(zenith.floor);
+
+  return [
+    { label: 'TIME', value: formatQuickPlayTime(stats.finaltime) },
+    { label: 'FLOOR', value: floorText },
+    { label: "KO'S", value: formatInteger(stats.kills) },
+    { label: 'PEAK POSITION', value: formatPositionSummary(extrasZenith.peakPos, extrasZenith.peakCount) },
+    { label: 'FINAL POSITION', value: formatPositionSummary(extrasZenith.finalPos, extrasZenith.finalCount) },
+    { label: 'AVERAGE CLIMB SPEED', value: formatDecimal(averageClimbSpeed, 2) },
+    { label: 'PEAK CLIMB SPEED', value: formatInteger(Math.floor(Number(zenith.peakrank) || 0)) },
+    { label: 'ALTITUDE PER SECOND', value: formatDecimal(altitudePerSecond, 2) },
+    { label: 'ATTACK PER MINUTE', value: formatDecimal(aggregate.apm, 2) },
+    { label: 'PIECES PER SECOND', value: formatDecimal(aggregate.pps, 2) },
+    { label: 'VERSUS SCORE', value: formatDecimal(aggregate.vsscore, 2) },
+    { label: 'ATTACK PER PIECE', value: formatDecimal(attackPerPiece, 2) },
+    { label: 'MAXIMUM COMBO', value: formatInteger(stats.topcombo) },
+    { label: 'MAXIMUM BACK-TO-BACK CHAIN', value: formatInteger(Math.max(0, Number(stats.topbtb ?? 0) - 1)) },
+  ];
+}
+
+function resolveQuickPlayAttackPerPiece(aggregate) {
+  const app = Number(aggregate?.app);
+  if (Number.isFinite(app)) {
+    return app;
+  }
+
+  const attackPerMinute = Number(aggregate?.apm);
+  const piecesPerSecond = Number(aggregate?.pps);
+  if (!Number.isFinite(attackPerMinute) || !Number.isFinite(piecesPerSecond) || piecesPerSecond <= 0) {
+    return null;
+  }
+
+  return attackPerMinute / 60 / piecesPerSecond;
+}
+
+function formatQuickPlayTime(milliseconds) {
+  if (!Number.isFinite(milliseconds) || milliseconds <= 0) {
+    return '-';
+  }
+
+  const totalMilliseconds = Math.floor(milliseconds);
+  const minutes = Math.floor(totalMilliseconds / 60_000);
+  const seconds = Math.floor((totalMilliseconds % 60_000) / 1_000);
+  const millis = totalMilliseconds % 1_000;
+  return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
+}
+
+function formatFloorText(value) {
+  const floor = Number(value);
+  if (!Number.isFinite(floor) || floor <= 0) {
+    return '-';
+  }
+
+  const floorNumber = Math.floor(floor);
+  const floorName = quickPlayFloorNames[floorNumber - 1];
+  return floorName
+    ? `${floorNumber} : ${floorName}`
+    : String(floorNumber);
+}
+
+function formatPositionSummary(position, count) {
+  const normalizedPosition = Number(position);
+  const normalizedCount = Number(count);
+
+  if (!Number.isFinite(normalizedPosition) || !Number.isFinite(normalizedCount) || normalizedPosition <= 0 || normalizedCount <= 0) {
+    return '-';
+  }
+
+  return `${Math.floor(normalizedPosition)} / ${Math.floor(normalizedCount).toLocaleString('en-US')}`;
+}
+
+function formatDecimal(value, digits = 2) {
+  return Number.isFinite(value)
+    ? Number(value).toLocaleString('en-US', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    })
+    : '-';
+}
+
+function formatInteger(value) {
+  return Number.isFinite(value)
+    ? Math.floor(value).toLocaleString('en-US')
+    : '-';
+}
+
+function formatPlayedAtKst(value) {
+  const timestamp = value ? new Date(value) : null;
+  if (!timestamp || Number.isNaN(timestamp.getTime())) {
+    return '-';
+  }
+
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+  const parts = formatter.formatToParts(timestamp);
+  const getPart = (type) => parts.find((part) => part.type === type)?.value ?? '';
+  const year = getPart('year');
+  const month = getPart('month');
+  const day = getPart('day');
+  const dayPeriod = getPart('dayPeriod');
+  const hour = getPart('hour');
+  const minute = getPart('minute');
+  const second = getPart('second');
+  const normalizedMonth = String(Number(month));
+  const normalizedDay = String(Number(day));
+
+  return `${year}. ${normalizedMonth}. ${normalizedDay}. ${hour}:${minute}:${second} ${String(dayPeriod).toUpperCase()}`;
+}
+
+function renderQuickPlayModIcons(modIcons, y = 232) {
+  if (!modIcons.length) {
+    return '';
+  }
+
+  const iconSize = 56;
+  const gap = 18;
+  const totalWidth = modIcons.length * iconSize + Math.max(0, modIcons.length - 1) * gap;
+  const startX = 700 - totalWidth / 2;
+
+  return modIcons.map((icon, index) => {
+    const x = startX + index * (iconSize + gap);
+    return `<image href="${icon.dataUri}" x="${roundSvgNumber(x)}" y="${y}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid meet"/>`;
+  }).join('');
+}
+
+async function readLocalImageDataUri(path) {
+  if (!path) {
+    return null;
+  }
+
+  try {
+    const buffer = await readFile(path);
+    return `data:image/png;base64,${buffer.toString('base64')}`;
+  } catch {
+    return null;
+  }
+}
+
+function roundSvgNumber(value) {
+  return Number(value.toFixed(2));
+}
+
+function estimateQuickPlayValueWidth(value, fontSize) {
+  const text = String(value ?? '');
+  let units = 0;
+
+  for (const char of text) {
+    if (/\d/.test(char)) {
+      units += 0.6;
+    } else if (char === ',') {
+      units += 0.2;
+    } else if (char === '.') {
+      units += 0.24;
+    } else if (char === ' ') {
+      units += 0.25;
+    } else {
+      units += 0.52;
+    }
+  }
+
+  return Math.ceil(units * fontSize);
+}
+
+function estimateQuickPlayUnitWidth(value, fontSize) {
+  const text = String(value ?? '');
+  let units = 0;
+
+  for (const char of text) {
+    if (char === 'M') {
+      units += 0.78;
+    } else if (char === ' ') {
+      units += 0.25;
+    } else {
+      units += 0.62;
+    }
+  }
+
+  return Math.ceil(units * fontSize);
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;');
+}

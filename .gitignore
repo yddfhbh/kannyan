@@ -1,0 +1,13 @@
+@'
+.env
+node_modules/
+*.zip
+*.tar.gz
+*.log
+bot.err
+bot.log
+
+.vscode/
+.DS_Store
+Thumbs.db
+'@ | Set-Content .gitignore -Encoding UTF8
