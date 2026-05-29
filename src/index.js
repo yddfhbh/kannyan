@@ -553,6 +553,14 @@ async function handleGeminiFallbackMessage(message) {
     return false;
   }
 
+  if (isUnsupportedEmojiPrompt(prompt)) {
+    await message.reply({
+      content: '그런건 잘 모른다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return true;
+  }
+
   if (isPromptOverrideAttempt(prompt)) {
     await message.reply({
       content: '그런 요청은 들어줄 수 없다냥. 질문이 있으면 그냥 물어봐달라냥.',
@@ -597,6 +605,20 @@ async function handleGeminiFallbackMessage(message) {
   }
 
   return true;
+}
+
+function isUnsupportedEmojiPrompt(prompt) {
+  const text = String(prompt ?? '').trim();
+
+  // Discord custom emoji: <:name:id> 또는 <a:name:id>
+  const discordCustomEmojiPattern = /<a?:[A-Za-z0-9_]+:\d{17,20}>/g;
+
+  // 커스텀 이모지만 단독으로 보낸 경우
+  const withoutCustomEmoji = text
+    .replace(discordCustomEmojiPattern, '')
+    .trim();
+
+  return text.length > 0 && withoutCustomEmoji.length === 0;
 }
 
 function isPromptOverrideAttempt(prompt) {
@@ -727,7 +749,7 @@ async function generateGeminiAnswer(prompt) {
     .trim();
 
   if (text) {
-    return text;
+    return sanitizeGeminiAnswer(text);
   }
 
   const blockReason = response.promptFeedback?.blockReason;
@@ -736,6 +758,30 @@ async function generateGeminiAnswer(prompt) {
   }
 
   return '답변을 만들지 못했어요.';
+}
+
+function sanitizeGeminiAnswer(answer) {
+  const text = String(answer ?? '').trim();
+
+  const leakedAnalysisPatterns = [
+    /User Input/i,
+    /User's Input/i,
+    /User Style/i,
+    /Bot Identity/i,
+    /System Instruction/i,
+    /Constraint Check/i,
+    /Core Rule/i,
+    /Goal:/i,
+    /Drafting the response/i,
+    /Sentence \d/i,
+    /Tone:/i,
+  ];
+
+  if (leakedAnalysisPatterns.some((pattern) => pattern.test(text))) {
+    return '먀... 다시 말해줄 수 있냥?';
+  }
+
+  return text;
 }
 
 async function fetchGeminiGenerateContent(payload) {
