@@ -648,14 +648,14 @@ function isPromptOverrideAttempt(prompt) {
 
 function getGeminiUserErrorMessage(error) {
   if (error?.status === 429) {
-    return 'Gemini 요청 한도를 잠깐 넘었어요. 조금 뒤 다시 시도해 주세요.';
+    return '체력이 다 떨어졌다냥...';
   }
 
   if ([500, 503, 504].includes(error?.status) || error?.name === 'AbortError') {
-    return 'Gemini 서버가 지금 바쁘거나 응답이 늦어요. 잠시 뒤 다시 시도해 주세요.';
+    return '(쥬금)';
   }
 
-  return 'Gemini 답변을 가져오지 못했어요. 잠시 뒤 다시 시도해 주세요.';
+  return '...';
 }
 
 function parsePercentCommand(content) {
