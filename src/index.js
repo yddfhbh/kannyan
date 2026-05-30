@@ -600,9 +600,38 @@ async function handlePercentMessageCommand(message) {
 } 
 
 async function handleGeminiFallbackMessage(message) {
-  const rawPrompt = parseGeminiFallbackPrompt(message.content);
+  let rawPrompt = parseGeminiFallbackPrompt(message.content);
+
+  // %만 보내고 이미지가 첨부됐거나, 이미지 메시지에 답장한 경우
   if (!rawPrompt) {
-    return false;
+    const trimmedContent = String(message.content ?? '').trim();
+    const isPercentOnly = trimmedContent === '%';
+
+    if (!isPercentOnly) {
+      return false;
+    }
+
+    const hasDirectImage = [...message.attachments.values()]
+      .some(isGeminiSupportedImageAttachment);
+
+    let hasReplyImage = false;
+
+    if (message.reference?.messageId) {
+      try {
+        const referencedMessage = await message.fetchReference();
+        hasReplyImage = [...referencedMessage.attachments.values()]
+          .some(isGeminiSupportedImageAttachment);
+      } catch (error) {
+        console.error(`Failed to check referenced image ${message.reference.messageId}:`);
+        console.error(error);
+      }
+    }
+
+    if (!hasDirectImage && !hasReplyImage) {
+      return false;
+    }
+
+    rawPrompt = '이 사진을 보고 자연스럽게 설명해줘';
   }
 
   const prompt = normalizeDiscordTextForGemini(message, rawPrompt);
