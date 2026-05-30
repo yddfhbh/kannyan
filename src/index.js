@@ -77,6 +77,7 @@ const geminiSystemInstruction = [
   '답변을 여러 후보로 나열하지 않는다.',
   '불릿포인트나 번호 목록은 사용자가 요구했을 때만 쓴다.',
   '사용자가 짧게 인사하면 짧게 인사만 답한다.',
+  '사용자가 따로 해마 언급하지 않으면 먼저 언급하지않는다.',
   '예를 들어 사용자가 “안녕”이라고 하면 “안냥! 만나서 반갑다냥.”처럼 바로 답한다.',
   '',
   '설정상 중학생 또래의 순수하고 귀여운 캐릭터이며, 사용자를 친근하고 따뜻하게 대한다.',
@@ -216,6 +217,7 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
   ],
 });
 
@@ -570,13 +572,15 @@ async function handlePercentMessageCommand(message) {
 }
 
 async function handleGeminiFallbackMessage(message) {
-  const prompt = parseGeminiFallbackPrompt(message.content);
-  if (!prompt) {
+  const rawPrompt = parseGeminiFallbackPrompt(message.content);
+  if (!rawPrompt) {
     return false;
   }
- 
+  const prompt = normalizeDiscordTextForGemini(message, rawPrompt);
+  const mentionContext = getGeminiMentionContext(message);
+  const currentUserContext = getGeminiCurrentUserContext(message);
   
-  if (isUnsupportedEmojiPrompt(prompt)) {
+  if (isUnsupportedEmojiPrompt(rawPrompt)) {
   await message.reply({
     content: '먀... 다시 말해줄 수 있냥?',
     allowedMentions: { parse: [], repliedUser: false },
@@ -584,7 +588,7 @@ async function handleGeminiFallbackMessage(message) {
   return true;
 }
 
-  if (isPromptOverrideAttempt(prompt)) {
+  if (isPromptOverrideAttempt(rawPrompt)) {
     await message.reply({
       content: '그런 요청은 들어줄 수 없다냥. 질문이 있으면 그냥 물어봐달라냥.',
       allowedMentions: { parse: [], repliedUser: false },
@@ -612,6 +616,8 @@ async function handleGeminiFallbackMessage(message) {
     const answer = await generateGeminiAnswer(prompt, {
       history,
       replyContext,
+      mentionContext,
+      currentUserContext,
    });
 
     appendGeminiMemoryEntry(sessionKey, {
@@ -774,12 +780,19 @@ function getUniqueValues(values) {
 }
 
 async function generateGeminiAnswer(prompt, options = {}) {
-  const { history = [], replyContext = null } = options;
+  const {
+    history = [],
+    replyContext = null,
+    mentionContext = '',
+    currentUserContext = '',
+  } = options;
 
   const contextualPrompt = buildGeminiContextualPrompt({
     prompt,
     history,
     replyContext,
+    mentionContext,
+    currentUserContext,
   });
 
   const response = await fetchGeminiGenerateContent({
@@ -992,7 +1005,87 @@ function getMessageAuthorName(message) {
     ?? 'Unknown';
 }
 
-function buildGeminiContextualPrompt({ prompt, history, replyContext }) {
+function normalizeDiscordTextForGemini(message, text) {
+  let result = String(text ?? '');
+
+  // 유저 멘션 <@123>, <@!123> → @표시이름
+  result = result.replace(/<@!?(\d{17,20})>/g, (full, userId) => {
+    const name = getMentionedUserDisplayName(message, userId);
+    return name ? `@${name}` : full;
+  });
+
+  // 역할 멘션 <@&123> → @역할명
+  result = result.replace(/<@&(\d{17,20})>/g, (full, roleId) => {
+    const role = message.guild?.roles.cache.get(roleId) ?? message.mentions.roles?.get(roleId);
+    return role?.name ? `@${role.name}` : full;
+  });
+
+  // 채널 멘션 <#123> → #채널명
+  result = result.replace(/<#(\d{17,20})>/g, (full, channelId) => {
+    const channel =
+      message.mentions.channels?.get(channelId) ??
+      message.guild?.channels.cache.get(channelId);
+
+    return channel?.name ? `#${channel.name}` : full;
+  });
+
+  return result.trim();
+}
+
+function getMentionedUserDisplayName(message, userId) {
+  const member =
+    message.mentions.members?.get(userId) ??
+    message.guild?.members.cache.get(userId);
+
+  const user =
+    message.mentions.users.get(userId) ??
+    member?.user ??
+    message.client.users.cache.get(userId);
+
+  return (
+    member?.displayName ??
+    user?.globalName ??
+    user?.username ??
+    null
+  );
+}
+
+function getGeminiMentionContext(message) {
+  const lines = [];
+
+  for (const user of message.mentions.users.values()) {
+    const member =
+      message.mentions.members?.get(user.id) ??
+      message.guild?.members.cache.get(user.id);
+
+    const displayName =
+      member?.displayName ??
+      user.globalName ??
+      user.username;
+
+    lines.push(
+      `- <@${user.id}> = 표시 이름: ${displayName}, 계정명: ${user.username}, Discord ID: ${user.id}`
+    );
+  }
+
+  return lines.join('\n');
+}
+
+function getGeminiCurrentUserContext(message) {
+  return [
+    `작성자 표시 이름: ${getMessageAuthorName(message)}`,
+    `작성자 계정명: ${message.author?.username ?? 'Unknown'}`,
+    `작성자 Discord ID: ${message.author?.id ?? 'Unknown'}`,
+  ].join('\n');
+}
+
+function buildGeminiContextualPrompt({
+  prompt,
+  history,
+  replyContext,
+  mentionContext,
+  currentUserContext,
+}) {
   const sections = [
     [
       '[중요]',
@@ -1002,6 +1095,18 @@ function buildGeminiContextualPrompt({ prompt, history, replyContext }) {
     ].join('\n'),
   ];
 
+    if (currentUserContext) {
+    sections.push(`[현재 메시지 작성자]\n${currentUserContext}`);
+  }
+
+  if (mentionContext) {
+    sections.push([
+      '[현재 메시지의 디스코드 멘션]',
+      mentionContext,
+      '',
+      '사용자가 “얘”, “이 사람”, “그 친구”라고 말하면 현재 질문에서 바로 언급된 멘션 유저를 가리키는 것으로 이해한다.',
+    ].join('\n'));
+  }
   const historyText = formatGeminiHistory(history);
   if (historyText) {
     sections.push(`[최근 대화 기록]\n${historyText}`);
