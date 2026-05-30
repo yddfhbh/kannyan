@@ -60,6 +60,16 @@ const geminiMemoryRetentionMs = geminiMemoryRetentionDays * 24 * 60 * 60 * 1000;
 const geminiMemoryMaxMessagesPerSession = Number(process.env.GEMINI_MEMORY_MAX_MESSAGES_PER_SESSION) || 30;
 const geminiMemoryMaxEntryLength = Number(process.env.GEMINI_MEMORY_MAX_ENTRY_LENGTH) || 1800;
 const geminiMemoryMaxContextLength = Number(process.env.GEMINI_MEMORY_MAX_CONTEXT_LENGTH) || 12000;
+const geminiImageMaxBytes = Number(process.env.GEMINI_IMAGE_MAX_BYTES) || 8 * 1024 * 1024;
+
+const geminiSupportedImageMimeTypes = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+]);
+
 
 const geminiMemory = new Map();
 let geminiMemoryLoaded = false;
@@ -583,17 +593,18 @@ async function handleGeminiFallbackMessage(message) {
   if (!rawPrompt) {
     return false;
   }
+
   const prompt = normalizeDiscordTextForGemini(message, rawPrompt);
   const mentionContext = getGeminiMentionContext(message);
   const currentUserContext = getGeminiCurrentUserContext(message);
-  
+
   if (isUnsupportedEmojiPrompt(rawPrompt)) {
-  await message.reply({
-    content: '먀... 다시 말해줄 수 있냥?',
-    allowedMentions: { parse: [], repliedUser: false },
-  });
-  return true;
-}
+    await message.reply({
+      content: '먀... 다시 말해줄 수 있냥?',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return true;
+  }
 
   if (isPromptOverrideAttempt(rawPrompt)) {
     await message.reply({
@@ -604,12 +615,12 @@ async function handleGeminiFallbackMessage(message) {
   }
 
   if (geminiApiKeys.length === 0) {
-  await message.reply({
-    content: 'Gemma API 키가 설정되어 있지 않아요. `.env`에 `GEMINI_API_KEYS` 또는 `GEMINI_API_KEY`를 추가해 주세요.',
-    allowedMentions: { parse: [], repliedUser: false },
-  });
-  return true;
-}
+    await message.reply({
+      content: 'Gemma API 키가 설정되어 있지 않아요. `.env`에 `GEMINI_API_KEYS` 또는 `GEMINI_API_KEY`를 추가해 주세요.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return true;
+  }
 
   try {
     await message.channel.sendTyping();
@@ -620,21 +631,27 @@ async function handleGeminiFallbackMessage(message) {
     const history = getGeminiSessionHistory(sessionKey);
     const replyContext = await getGeminiReplyContext(message);
 
+    // 여기 추가: 현재 메시지/답장한 메시지에 있는 이미지들을 Gemini에 보낼 준비
+    const imageParts = await getGeminiImageParts(message);
+
     const answer = await generateGeminiAnswer(prompt, {
       history,
       replyContext,
       mentionContext,
       currentUserContext,
-   });
+
+      // 여기 추가: 이미지도 같이 넘김
+      imageParts,
+    });
 
     appendGeminiMemoryEntry(sessionKey, {
       role: 'user',
       authorName: getMessageAuthorName(message),
-     text: replyContext
-       ? `[답장 원본: ${replyContext.authorName}] ${replyContext.text}\n\n[현재 질문] ${prompt}`
-        : prompt,
+      text: replyContext
+        ? `[답장 원본: ${replyContext.authorName}] ${replyContext.text}\n\n[첨부 이미지: ${imageParts.length}개]\n\n[현재 질문] ${prompt}`
+        : `[첨부 이미지: ${imageParts.length}개]\n\n${prompt}`,
       timestamp: Date.now(),
-   });
+    });
 
     appendGeminiMemoryEntry(sessionKey, {
       role: 'model',
@@ -792,6 +809,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     replyContext = null,
     mentionContext = '',
     currentUserContext = '',
+    imageParts = [],
   } = options;
 
   const contextualPrompt = buildGeminiContextualPrompt({
@@ -1003,6 +1021,81 @@ async function getGeminiReplyContext(message) {
     console.error(error);
     return null;
   }
+}
+
+async function getGeminiImageParts(message) {
+  const messages = [message];
+
+  if (message.reference?.messageId) {
+    try {
+      const referencedMessage = await message.fetchReference();
+      if (referencedMessage) {
+        messages.push(referencedMessage);
+      }
+    } catch (error) {
+      console.error(`Failed to fetch referenced message images ${message.reference.messageId}:`);
+      console.error(error);
+    }
+  }
+
+  const imageAttachments = messages
+    .flatMap((targetMessage) => [...targetMessage.attachments.values()])
+    .filter(isGeminiSupportedImageAttachment)
+    .slice(0, 4);
+
+  const imageParts = [];
+
+  for (const attachment of imageAttachments) {
+    try {
+      const part = await discordAttachmentToGeminiImagePart(attachment);
+      if (part) {
+        imageParts.push(part);
+      }
+    } catch (error) {
+      console.error(`Failed to read image attachment ${attachment.name ?? attachment.url}:`);
+      console.error(error);
+    }
+  }
+
+  return imageParts;
+}
+
+function isGeminiSupportedImageAttachment(attachment) {
+  const contentType = String(attachment.contentType ?? '').split(';')[0].trim().toLowerCase();
+
+  if (!geminiSupportedImageMimeTypes.has(contentType)) {
+    return false;
+  }
+
+  if (Number(attachment.size ?? 0) > geminiImageMaxBytes) {
+    return false;
+  }
+
+  return Boolean(attachment.url);
+}
+
+async function discordAttachmentToGeminiImagePart(attachment) {
+  const contentType = String(attachment.contentType ?? '').split(';')[0].trim().toLowerCase();
+
+  const response = await fetch(attachment.url);
+  if (!response.ok) {
+    throw new Error(`Discord attachment fetch failed with ${response.status}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+
+  if (arrayBuffer.byteLength > geminiImageMaxBytes) {
+    throw new Error(`Image is too large: ${arrayBuffer.byteLength} bytes`);
+  }
+
+  const base64Data = Buffer.from(arrayBuffer).toString('base64');
+
+  return {
+    inline_data: {
+      mime_type: contentType,
+      data: base64Data,
+    },
+  };
 }
 
 function getMessageAuthorName(message) {
