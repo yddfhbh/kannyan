@@ -1,5 +1,8 @@
-﻿import sharp from 'sharp';
+﻿import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 
+const localHunFontPath = fileURLToPath(new URL('../assets/fonts/hun2.ttf', import.meta.url));
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioContentBaseUrl = 'https://tetr.io/user-content';
 const tetrioGameBaseUrl = 'https://tetr.io';
@@ -230,20 +233,32 @@ async function trimTransparentImageBuffer(buffer, contentType) {
 }
 
 function fetchTetrioHunFontDataUri() {
-  tetrioHunFontDataUriPromise ??= fetchFontDataUri(tetrioHunFontUrl);
+  tetrioHunFontDataUriPromise ??= readLocalFontDataUri(localHunFontPath)
+    .then((localFont) => localFont ?? fetchFontDataUri(tetrioHunFontUrl));
   return tetrioHunFontDataUriPromise;
+}
+
+async function readLocalFontDataUri(path) {
+  try {
+    const buffer = await readFile(path);
+    return `data:font/ttf;base64,${buffer.toString('base64')}`;
+  } catch {
+    return null;
+  }
 }
 
 async function fetchFontDataUri(url) {
   try {
     const response = await fetch(url, { headers: tetrioHeaders });
     if (!response.ok) {
+      console.error('TETR.IO font download failed:', response.status);
       return null;
     }
 
     const buffer = Buffer.from(await response.arrayBuffer());
     return `data:font/ttf;base64,${buffer.toString('base64')}`;
-  } catch {
+  } catch (error) {
+    console.error('TETR.IO font download error:', error);
     return null;
   }
 }
