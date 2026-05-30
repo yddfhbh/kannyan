@@ -248,7 +248,7 @@ async function readLocalFontDataUri(path) {
 }
 
 async function fetchFontDataUri(url) {
-  try {
+  try { 
     const response = await fetch(url, { headers: tetrioHeaders });
     if (!response.ok) {
       console.error('TETR.IO font download failed:', response.status);
