@@ -48,6 +48,17 @@ const geminiModel = process.env.GEMMA_MODEL?.trim() || process.env.GEMINI_MODEL?
 const geminiFallbackModels = parseCommaSeparatedValues(process.env.GEMMA_FALLBACK_MODELS ?? process.env.GEMINI_FALLBACK_MODELS)
   ?? ['gemma-4-31b-it'];
 const geminiModels = getUniqueValues([geminiModel, ...geminiFallbackModels]);
+const geminiVisionModel =
+  process.env.GEMINI_VISION_MODEL?.trim() || 'gemini-2.5-flash-lite';
+
+const geminiVisionFallbackModels =
+  parseCommaSeparatedValues(process.env.GEMINI_VISION_FALLBACK_MODELS)
+  ?? ['gemini-2.5-flash'];
+
+const geminiVisionModels = getUniqueValues([
+  geminiVisionModel,
+  ...geminiVisionFallbackModels,
+]);
 const geminiRequestTimeoutMs = Number(process.env.GEMINI_TIMEOUT_MS) || 20_000;
 const geminiMaxOutputTokens = Number(process.env.GEMINI_MAX_OUTPUT_TOKENS) || 1024;
 const geminiMaxAttemptsPerModel = Number(process.env.GEMINI_MAX_ATTEMPTS_PER_MODEL) || 3;
@@ -820,6 +831,10 @@ async function generateGeminiAnswer(prompt, options = {}) {
     currentUserContext,
   });
 
+  const modelsToUse = imageParts.length > 0
+    ? geminiVisionModels
+    : geminiModels;
+
   const response = await fetchGeminiGenerateContent({
     system_instruction: {
       parts: [
@@ -831,7 +846,10 @@ async function generateGeminiAnswer(prompt, options = {}) {
     contents: [
       {
         role: 'user',
-        parts: [{ text: contextualPrompt }],
+        parts: [
+          { text: contextualPrompt },
+          ...imageParts,
+        ],
       },
     ],
     generationConfig: {
@@ -839,6 +857,8 @@ async function generateGeminiAnswer(prompt, options = {}) {
       temperature: 0.2,
       topP: 0.8,
     },
+  }, {
+    models: modelsToUse,
   });
 
   const text = response.candidates
@@ -1305,14 +1325,18 @@ function sanitizeGeminiAnswer(answer) {
   return text;
 }
 
-async function fetchGeminiGenerateContent(payload) {
+async function fetchGeminiGenerateContent(payload, options = {}) {
+  const modelsToTry = Array.isArray(options.models) && options.models.length > 0
+    ? options.models
+    : geminiModels;
+
   let lastError = null;
 
   for (let keyIndex = 0; keyIndex < geminiApiKeys.length; keyIndex += 1) {
     const apiKey = geminiApiKeys[keyIndex];
     const keyLabel = `key#${keyIndex + 1}`;
 
-    for (const modelName of geminiModels) {
+    for (const modelName of modelsToTry) {
       for (let attempt = 1; attempt <= geminiMaxAttemptsPerModel; attempt += 1) {
         try {
           return await requestGeminiGenerateContent(modelName, payload, apiKey);
@@ -1333,7 +1357,7 @@ async function fetchGeminiGenerateContent(payload) {
 
       if (shouldTryNextGeminiModel(lastError)) {
         console.warn(
-          `Gemma model ${modelName} failed with status ${lastError.status ?? lastError.name} using ${keyLabel}; trying next model if available.`
+          `Gemma/Gemini model ${modelName} failed with status ${lastError.status ?? lastError.name} using ${keyLabel}; trying next model if available.`
         );
         continue;
       }
@@ -1343,7 +1367,7 @@ async function fetchGeminiGenerateContent(payload) {
 
     if (shouldTryNextGeminiApiKey(lastError) && keyIndex < geminiApiKeys.length - 1) {
       console.warn(
-        `Gemma API ${keyLabel} failed with status ${lastError.status ?? lastError.name}; trying next API key.`
+        `Gemma/Gemini API ${keyLabel} failed with status ${lastError.status ?? lastError.name}; trying next API key.`
       );
       continue;
     }
@@ -1351,7 +1375,7 @@ async function fetchGeminiGenerateContent(payload) {
     throw lastError;
   }
 
-  throw lastError ?? new Error('Gemma API request failed.');
+  throw lastError ?? new Error('Gemini API request failed.');
 }
 
 async function requestGeminiGenerateContent(modelName, payload, apiKey) {
