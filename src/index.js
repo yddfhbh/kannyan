@@ -569,7 +569,7 @@ async function handlePercentMessageCommand(message) {
 
   await showTetrioProfileMessage(message, input);
   return true;
-}
+} 
 
 async function handleGeminiFallbackMessage(message) {
   const rawPrompt = parseGeminiFallbackPrompt(message.content);
