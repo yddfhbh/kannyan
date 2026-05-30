@@ -12,3 +12,4 @@ bot.log
 Thumbs.db
 '@ | Set-Content .gitignore -Encoding UTF8
 *.bak.*
+data/gemini-memory.json
