@@ -855,7 +855,7 @@ async function loadGeminiMemory() {
         .map((entry) => ({
           role: entry.role === 'model' ? 'model' : 'user',
           authorName: String(entry.authorName ?? 'Unknown').slice(0, 80),
-          text: truncateText(entry.text, geminiMemoryMaxEntryLength),
+          text: truncateMemoryText(entry.text, geminiMemoryMaxEntryLength),
           timestamp: Number(entry.timestamp) || Date.now(),
         }));
 
@@ -931,7 +931,7 @@ function appendGeminiMemoryEntry(sessionKey, entry) {
   entries.push({
     role: entry.role === 'model' ? 'model' : 'user',
     authorName: String(entry.authorName ?? 'Unknown').slice(0, 80),
-    text: truncateText(entry.text, geminiMemoryMaxEntryLength),
+    text: truncateMemoryText(entry.text, geminiMemoryMaxEntryLength),
     timestamp: Number(entry.timestamp) || Date.now(),
   });
 
@@ -976,7 +976,7 @@ async function getGeminiReplyContext(message) {
 
     return {
       authorName: getMessageAuthorName(referencedMessage),
-      text: truncateText(combinedText, geminiMemoryMaxEntryLength),
+      text: truncateMemoryText(combinedText, geminiMemoryMaxEntryLength),
     };
   } catch (error) {
     console.error(`Failed to fetch Gemma reply context ${message.reference.messageId}:`);
@@ -1017,7 +1017,7 @@ function buildGeminiContextualPrompt({ prompt, history, replyContext }) {
 
   sections.push(`[현재 사용자 질문]\n${prompt}`);
 
-  return truncateText(
+  return truncateMemoryText(
     sections.join('\n\n'),
     geminiMemoryMaxContextLength
   );
@@ -1037,7 +1037,7 @@ function formatGeminiHistory(history) {
     .join('\n');
 }
 
-function truncateText(value, maxLength) {
+function truncateMemoryText(value, maxLength) {
   const text = String(value ?? '').trim();
 
   if (text.length <= maxLength) {
