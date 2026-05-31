@@ -2758,7 +2758,7 @@ function formatMissingTetrioGraphUsersMessage(targets) {
     .filter(Boolean))];
 
   return names.length > 0
-    ? `${names.join(', ')}라는 유저는 없다냥`
+    ? `${names.map(escapeDiscordMarkdown).join(', ')}라는 유저는 없다냥`
     : null;
 }
 
@@ -2840,11 +2840,15 @@ function formatTetrioVersusWinLine(label, first, second, options) {
     ? { username: first.username, winRate: firstWinRate }
     : { username: second.username, winRate: secondWinRate };
 
-  return `${label} : ${winner.username} ${formatPrecisePercent(winner.winRate)}`;
+  return `${label} : ${escapeDiscordMarkdown(winner.username)} ${formatPrecisePercent(winner.winRate)}`;
 }
 
 function formatPrecisePercent(value) {
   return `${(value * 100).toFixed(3)}%`;
+}
+
+function escapeDiscordMarkdown(value) {
+  return String(value ?? '').replace(/([\\_*~`>|])/g, '\\$1');
 }
 
 function toFiniteNumber(value) {
