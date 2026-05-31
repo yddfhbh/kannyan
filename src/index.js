@@ -1507,7 +1507,7 @@ function getHelpMessage() {
     '`%teto` - 디스코드 계정에 연결된 TETR.IO 계정이 있으면 바로 프로필 카드를 보여줍니다.',
     '`/스탯 닉네임:[TETR.IO 닉네임]` 또는 `%ts 닉네임` - TETR.IO 스탯 카드 형식을 보여줍니다. 닉네임을 생략하면 연동된 계정을 사용합니다.',
     '`/그래프 닉네임:[TETR.IO 닉네임]` 또는 `%psq 닉네임` - Opener/Plonk/Stride/Inf DS 그래프를 보여줍니다. 닉네임을 여러 개 입력하면 겹쳐 그리고, 생략하면 연동된 계정을 사용합니다. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있습니다.',
-    '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여줍니다. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률도 표시합니다.',
+    '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여줍니다. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시합니다.',
     '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여줍니다.',
     '`/체스비교 플랫폼:<체닷|리체스> 타임컨트롤:<래피드|블리츠|불렛> 닉네임1:<이름> 닉네임2:<이름>` - 두 사람의 점수와 예상 승률을 비교합니다.',
     '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산합니다.',
@@ -1740,13 +1740,15 @@ async function showTetrioPlaystyleGraph(interaction) {
       return;
     }
 
-    const cards = metricInput
-      ? [createCustomTetrioStatsCardData(metricInput)]
+    const graphData = metricInput
+      ? { cards: [createCustomTetrioStatsCardData(metricInput)], missingTargets: [] }
       : await fetchTetrioStatsCardDataForInteraction(interaction, parsedInput.targets);
+    const cards = graphData?.cards ?? [];
+    const missingTargets = graphData?.missingTargets ?? [];
 
-    if (!cards) {
+    if (cards.length === 0) {
       await interaction.editReply(parsedInput.targets?.length
-        ? '그런 유저는 없어 바부야'
+        ? formatMissingTetrioGraphUsersMessage(missingTargets) ?? '그런 유저는 없어 바부야'
         : 'TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.'
       );
       return;
@@ -1760,6 +1762,7 @@ async function showTetrioPlaystyleGraph(interaction) {
     await interaction.editReply({
       files: [attachment],
     });
+    await sendMissingTetrioGraphUsersForInteraction(interaction, missingTargets);
   } catch (error) {
     console.error('Failed to render TETR.IO playstyle graph:');
     console.error(error);
@@ -1796,13 +1799,15 @@ async function showTetrioVersusGraph(interaction) {
       return;
     }
 
-    const cards = metricInput
-      ? [createCustomTetrioStatsCardData(metricInput)]
+    const graphData = metricInput
+      ? { cards: [createCustomTetrioStatsCardData(metricInput)], missingTargets: [] }
       : await fetchTetrioStatsCardDataForInteraction(interaction, parsedInput.targets);
+    const cards = graphData?.cards ?? [];
+    const missingTargets = graphData?.missingTargets ?? [];
 
-    if (!cards) {
+    if (cards.length === 0) {
       await interaction.editReply(parsedInput.targets?.length
-        ? '그런 유저는 없어 바부야'
+        ? formatMissingTetrioGraphUsersMessage(missingTargets) ?? '그런 유저는 없어 바부야'
         : 'TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.'
       );
       return;
@@ -1812,10 +1817,16 @@ async function showTetrioVersusGraph(interaction) {
     const attachment = new AttachmentBuilder(image, {
       name: `tetrio-vs-${formatTetrioGraphAttachmentName(cards)}.png`,
     });
-
-    await interaction.editReply({
+    const winSummary = formatTetrioVersusWinSummary(cards);
+    const replyPayload = {
       files: [attachment],
-    });
+    };
+    if (winSummary) {
+      replyPayload.content = winSummary;
+    }
+
+    await interaction.editReply(replyPayload);
+    await sendMissingTetrioGraphUsersForInteraction(interaction, missingTargets);
   } catch (error) {
     console.error('Failed to render TETR.IO versus graph:');
     console.error(error);
@@ -1841,7 +1852,9 @@ async function fetchTetrioStatsCardDataForInteraction(interaction, targets) {
 
   const username = await findTetrioUsernameByDiscordId(interaction.user.id);
 
-  return username ? [await fetchTetrioStatsCardData(username)] : null;
+  return username
+    ? { cards: [await fetchTetrioStatsCardData(username)], missingTargets: [] }
+    : null;
 }
 
 async function showTetrioRankCut(interaction) {
@@ -2519,11 +2532,13 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
       return;
     }
 
-    const cards = metricInput
-      ? [createCustomTetrioStatsCardData(metricInput)]
+    const graphData = metricInput
+      ? { cards: [createCustomTetrioStatsCardData(metricInput)], missingTargets: [] }
       : await fetchTetrioStatsCardDataForMessage(message, parsedInput.targets);
+    const cards = graphData?.cards ?? [];
+    const missingTargets = graphData?.missingTargets ?? [];
 
-    if (!cards) {
+    if (cards.length === 0) {
       const linkedUser = parsedInput.targets?.length === 1
         ? getSingleMentionedUserFromTetrioInput(message, parsedInput.targets[0])
         : await getRepliedUserFromTetrioMessage(message);
@@ -2534,7 +2549,7 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
       }
 
       await message.reply({
-        content: '그런 유저는 없어 바보야',
+        content: formatMissingTetrioGraphUsersMessage(missingTargets) ?? '그런 유저는 없어 바보야',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -2549,6 +2564,7 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
       files: [attachment],
       allowedMentions: { repliedUser: false },
     });
+    await sendMissingTetrioGraphUsersForMessage(message, missingTargets);
   } catch (error) {
     console.error('Failed to render TETR.IO playstyle graph:');
     console.error(error);
@@ -2599,11 +2615,13 @@ async function showTetrioVersusGraphMessage(message, input) {
       return;
     }
 
-    const cards = metricInput
-      ? [createCustomTetrioStatsCardData(metricInput)]
+    const graphData = metricInput
+      ? { cards: [createCustomTetrioStatsCardData(metricInput)], missingTargets: [] }
       : await fetchTetrioStatsCardDataForMessage(message, parsedInput.targets);
+    const cards = graphData?.cards ?? [];
+    const missingTargets = graphData?.missingTargets ?? [];
 
-    if (!cards) {
+    if (cards.length === 0) {
       const linkedUser = parsedInput.targets?.length === 1
         ? getSingleMentionedUserFromTetrioInput(message, parsedInput.targets[0])
         : await getRepliedUserFromTetrioMessage(message);
@@ -2614,7 +2632,7 @@ async function showTetrioVersusGraphMessage(message, input) {
       }
 
       await message.reply({
-        content: '그런 유저는 없어 바부야',
+        content: formatMissingTetrioGraphUsersMessage(missingTargets) ?? '그런 유저는 없어 바부야',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -2624,11 +2642,17 @@ async function showTetrioVersusGraphMessage(message, input) {
     const attachment = new AttachmentBuilder(image, {
       name: `tetrio-vs-${formatTetrioGraphAttachmentName(cards)}.png`,
     });
-
-    await message.reply({
+    const winSummary = formatTetrioVersusWinSummary(cards);
+    const replyPayload = {
       files: [attachment],
       allowedMentions: { repliedUser: false },
-    });
+    };
+    if (winSummary) {
+      replyPayload.content = winSummary;
+    }
+
+    await message.reply(replyPayload);
+    await sendMissingTetrioGraphUsersForMessage(message, missingTargets);
   } catch (error) {
     console.error('Failed to render TETR.IO versus graph:');
     console.error(error);
@@ -2671,16 +2695,45 @@ async function fetchTetrioStatsCardDataForMessage(message, targets) {
       ? await findTetrioUsername(target)
       : await findTetrioUsernameByDiscordId(message.author.id);
 
-  return username ? [await fetchTetrioStatsCardData(username)] : null;
+  if (username) {
+    return { cards: [await fetchTetrioStatsCardData(username)], missingTargets: [] };
+  }
+
+  return target
+    ? { cards: [], missingTargets: [target] }
+    : null;
 }
 
 async function fetchTetrioStatsCardDataForTargets(targets) {
-  const usernames = await Promise.all(targets.map(resolveTetrioGraphTarget));
-  if (usernames.some((username) => !username)) {
-    return null;
+  const results = await Promise.all(targets.map(fetchTetrioStatsCardDataForTarget));
+  const cards = results
+    .map((result) => result.card)
+    .filter(Boolean);
+  const missingTargets = results
+    .filter((result) => result.missing)
+    .map((result) => result.target);
+
+  return { cards, missingTargets };
+}
+
+async function fetchTetrioStatsCardDataForTarget(target) {
+  const username = await resolveTetrioGraphTarget(target);
+  if (!username) {
+    return { target, missing: true };
   }
 
-  return Promise.all(usernames.map((username) => fetchTetrioStatsCardData(username)));
+  try {
+    return {
+      target,
+      card: await fetchTetrioStatsCardData(username),
+    };
+  } catch (error) {
+    if (isMissingTetrioGraphUserError(error)) {
+      return { target, missing: true };
+    }
+
+    throw error;
+  }
 }
 
 async function resolveTetrioGraphTarget(target) {
@@ -2697,6 +2750,110 @@ function parseDiscordMentionUserId(value) {
 
 function formatTetrioGraphAttachmentName(cards) {
   return formatAttachmentSafeName(cards.map((card) => card.username).join('-'));
+}
+
+function formatMissingTetrioGraphUsersMessage(targets) {
+  const names = [...new Set((targets ?? [])
+    .map((target) => String(target ?? '').trim())
+    .filter(Boolean))];
+
+  return names.length > 0
+    ? `${names.join(', ')}라는 유저는 없다냥`
+    : null;
+}
+
+async function sendMissingTetrioGraphUsersForInteraction(interaction, targets) {
+  const content = formatMissingTetrioGraphUsersMessage(targets);
+  if (!content) {
+    return;
+  }
+
+  try {
+    await interaction.followUp({
+      content,
+      allowedMentions: { parse: [] },
+    });
+  } catch (error) {
+    console.error('Failed to send missing TETR.IO user notice:');
+    console.error(error);
+  }
+}
+
+async function sendMissingTetrioGraphUsersForMessage(message, targets) {
+  const content = formatMissingTetrioGraphUsersMessage(targets);
+  if (!content) {
+    return;
+  }
+
+  try {
+    await message.channel.send({
+      content,
+      allowedMentions: { parse: [] },
+    });
+  } catch (error) {
+    console.error('Failed to send missing TETR.IO user notice:');
+    console.error(error);
+  }
+}
+
+function isMissingTetrioGraphUserError(error) {
+  return error?.status === 404 && error?.code !== 'NO_LEAGUE_STATS';
+}
+
+function formatTetrioVersusWinSummary(cards) {
+  if (!Array.isArray(cards) || cards.length < 2) {
+    return null;
+  }
+
+  const [first, second] = cards;
+  const lines = [
+    formatTetrioVersusWinLine('점수 기반 승률', first, second, {
+      ratingKey: 'glicko',
+      rdKey: 'rd',
+    }),
+    formatTetrioVersusWinLine('스탯 기반 승률', first, second, {
+      ratingKey: 'estimatedGlicko',
+    }),
+  ].filter(Boolean);
+
+  return lines.length > 0 ? lines.join('\n') : null;
+}
+
+function formatTetrioVersusWinLine(label, first, second, options) {
+  const firstRating = toFiniteNumber(first?.stats?.[options.ratingKey]);
+  const secondRating = toFiniteNumber(second?.stats?.[options.ratingKey]);
+  if (!Number.isFinite(firstRating) || !Number.isFinite(secondRating)) {
+    return null;
+  }
+
+  const firstWinRate = calculateGlickoExpectedScore(
+    firstRating,
+    secondRating,
+    options.rdKey ? toFiniteNumber(second?.stats?.[options.rdKey]) : 60,
+  );
+  const secondWinRate = calculateGlickoExpectedScore(
+    secondRating,
+    firstRating,
+    options.rdKey ? toFiniteNumber(first?.stats?.[options.rdKey]) : 60,
+  );
+  const winner = firstWinRate >= secondWinRate
+    ? { username: first.username, winRate: firstWinRate }
+    : { username: second.username, winRate: secondWinRate };
+
+  return `${label} : ${winner.username} ${formatPrecisePercent(winner.winRate)}`;
+}
+
+function formatPrecisePercent(value) {
+  return `${(value * 100).toFixed(3)}%`;
+}
+
+function toFiniteNumber(value) {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
 }
 
 async function showTetrioRankCutMessage(message) {

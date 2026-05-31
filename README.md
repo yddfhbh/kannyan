@@ -103,8 +103,8 @@ curl http://127.0.0.1:8080/health
 | - | `%teto` | 작성자 또는 답장 대상의 Discord 계정에 연결된 TETR.IO 계정을 찾아 프로필 카드를 보여줍니다. |
 | `/스탯 닉네임:[닉네임]` | `%ts [닉네임]` | TETR.IO 스탯 카드를 보여줍니다. 닉네임을 생략하면 연결된 계정을 사용합니다. |
 | - | `%ts 60 2.0 120` | APM, PPS, VS를 직접 넣어 커스텀 스탯 카드를 만듭니다. |
-| `/그래프 닉네임:[입력]` | `%psq [입력]` | Opener/Plonk/Stride/Inf DS 그래프를 보여줍니다. 입력을 생략하면 연동 계정을 사용하고, 여러 닉네임은 한 그래프에 겹쳐 표시합니다. `60 2.0 120`처럼 APM/PPS/VS 직접 입력도 지원합니다. |
-| `/비교 닉네임:[입력]` | `%vs [입력]` | APM, PPS, VS, APP, DS/Second, DS/Piece, APP+DS/Piece, VS/APM, Cheese Index, Garbage Effi. 비교 그래프를 보여줍니다. 여러 닉네임은 한 그래프에 겹쳐 표시하고, 앞의 두 명은 점수/스탯 기반 승률도 표시합니다. |
+| `/그래프 닉네임:[입력]` | `%psq [입력]` | Opener/Plonk/Stride/Inf DS 그래프를 보여줍니다. 입력을 생략하면 연동 계정을 사용하고, 여러 닉네임은 한 그래프에 겹쳐 표시합니다. 없는 닉네임은 건너뛰고 따로 안내합니다. `60 2.0 120`처럼 APM/PPS/VS 직접 입력도 지원합니다. |
+| `/비교 닉네임:[입력]` | `%vs [입력]` | APM, PPS, VS, APP, DS/Second, DS/Piece, APP+DS/Piece, VS/APM, Cheese Index, Garbage Effi. 비교 그래프를 보여줍니다. 여러 닉네임은 한 그래프에 겹쳐 표시하고, 없는 닉네임은 건너뛰며, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시합니다. |
 | `/랭크컷` | `%tetr`, `%tetoranks` | TETRA LEAGUE 랭크컷 이미지를 보여줍니다. |
 | `/퀵플 닉네임:[닉네임] 숫자:[번호] recent:[top/recent]` | `%qp [닉네임] [번호] [top/recent]` | QUICK PLAY top 또는 recent 기록의 고도 카드를 보여줍니다. 닉네임을 생략하면 연결된 계정을 사용합니다. |
 | `/익스퀵플 닉네임:[닉네임] 숫자:[번호] recent:[top/recent]` | `%exqp [닉네임] [번호] [top/recent]` | EXPERT QUICK PLAY top 또는 recent 기록의 고도 카드를 보여줍니다. 닉네임을 생략하면 연결된 계정을 사용합니다. |

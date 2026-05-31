@@ -1,11 +1,11 @@
 import sharp from 'sharp';
 
 const graphWidth = 600;
-const graphHeight = 470;
+const graphHeight = 400;
 const ringCount = 6;
-const outerRadius = 132;
+const outerRadius = 124;
 const centerX = graphWidth / 2;
-const centerY = 278;
+const centerY = 208;
 const labelRadius = outerRadius + 30;
 const graphFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
 
@@ -53,8 +53,7 @@ function renderTetrioVersusGraphSvg(input) {
   const dataMarkup = series
     .map((entry, index) => renderDataSeries(entry, index, series.length))
     .join('\n');
-  const winSummaryMarkup = renderWinSummary(series);
-  const legendMarkup = renderLegend(series, winSummaryMarkup ? 66 : 22);
+  const legendMarkup = renderLegend(series);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${graphWidth}" height="${graphHeight}" viewBox="0 0 ${graphWidth} ${graphHeight}">
@@ -65,52 +64,42 @@ function renderTetrioVersusGraphSvg(input) {
         letter-spacing: 0;
       }
       .page {
-        fill: #18191d;
+        fill: #020304;
       }
       .grid {
         fill: none;
-        stroke: #c5c9d0;
-        stroke-width: 1;
-        opacity: 0.48;
+        stroke: #aaaeb6;
+        stroke-width: 1.65;
+        opacity: 0.86;
       }
       .axis {
-        stroke: #d3d6dc;
-        stroke-width: 1;
-        opacity: 0.54;
+        stroke: #c7cbd2;
+        stroke-width: 1.75;
+        opacity: 0.78;
       }
       .axisLabel {
-        fill: #78a9ff;
-        font-size: 16px;
-        font-weight: 700;
+        fill: #72a8ff;
+        font-size: 18px;
+        font-weight: 800;
       }
       .legendText {
-        font-size: 15px;
-        font-weight: 800;
-      }
-      .winText {
-        fill: #d7e4ff;
-        font-size: 17px;
-        font-weight: 800;
-      }
-      .winValue {
-        fill: #ffffff;
-        font-weight: 950;
+        font-size: 18px;
+        font-weight: 900;
       }
       .dataFill {
-        stroke-width: 4;
+        stroke-width: 4.4;
         stroke-linejoin: round;
       }
       .markerOuter {
-        stroke-width: 2.4;
+        stroke-width: 2.8;
       }
       .legendBox {
-        fill-opacity: 0.78;
+        fill-opacity: 0.88;
         stroke-width: 4;
       }
     </style>
   </defs>
   <rect width="${graphWidth}" height="${graphHeight}" class="page"/>
-  ${winSummaryMarkup}
   ${legendMarkup}
   <g>
     ${gridMarkup}
@@ -139,9 +128,6 @@ function normalizeStats(stats = {}) {
     ...Object.fromEntries(
       versusAxes.map((axis) => [axis.key, firstFiniteNumber(stats[axis.key], stats[getLowerKey(axis.key)]) ?? 0])
     ),
-    glicko: toFiniteNumber(stats.glicko),
-    rd: toFiniteNumber(stats.rd),
-    estimatedGlicko: firstFiniteNumber(stats.estimatedGlicko, stats.estimatedglicko, stats.estGlicko, stats.estglicko),
   };
 }
 
@@ -171,9 +157,9 @@ function renderDataSeries(entry, index, seriesCount) {
   const color = getSeriesColor(index);
   const dataPoints = versusAxes.map((axis) => getStatPoint(axis, entry.stats[axis.key]));
   const dataPointText = dataPoints.map(formatPoint).join(' ');
-  const fillOpacity = seriesCount > 1 ? 0.45 : 0.72;
+  const fillOpacity = seriesCount > 1 ? 0.58 : 0.84;
   const markerMarkup = dataPoints
-    .map(([x, y]) => `<circle cx="${roundSvgNumber(x)}" cy="${roundSvgNumber(y)}" r="4" class="markerOuter" fill="${color.fill}" stroke="${color.stroke}"/><circle cx="${roundSvgNumber(x)}" cy="${roundSvgNumber(y)}" r="2.1" fill="${color.marker}"/>`)
+    .map(([x, y]) => `<circle cx="${roundSvgNumber(x)}" cy="${roundSvgNumber(y)}" r="4.6" class="markerOuter" fill="${color.fill}" stroke="${color.stroke}"/><circle cx="${roundSvgNumber(x)}" cy="${roundSvgNumber(y)}" r="2.4" fill="${color.marker}"/>`)
     .join('\n');
 
   return `<polygon points="${dataPointText}" class="dataFill" fill="${color.fill}" fill-opacity="${fillOpacity}" stroke="${color.stroke}"/>
@@ -207,74 +193,18 @@ function getLabelAnchor(cosine) {
   return 'middle';
 }
 
-function renderWinSummary(series) {
-  if (series.length < 2) {
-    return '';
-  }
-
-  const [first, second] = series;
-  const scoreLine = getWinLine(first, second, {
-    label: '점수 기반 승률',
-    statKey: 'glicko',
-    opponentRdKey: 'rd',
-  });
-  const statsLine = getWinLine(first, second, {
-    label: '스탯 기반 승률',
-    statKey: 'estimatedGlicko',
-  });
-  const lines = [scoreLine, statsLine].filter(Boolean);
-
-  return lines.map((line, index) => {
-    const y = 22 + index * 22;
-    return `<text x="${centerX}" y="${y}" text-anchor="middle" class="winText">${escapeXml(line.label)} : <tspan class="winValue">${escapeXml(line.username)} ${line.percent}</tspan></text>`;
-  }).join('\n');
-}
-
-function getWinLine(first, second, options) {
-  const firstRating = toFiniteNumber(first.stats[options.statKey]);
-  const secondRating = toFiniteNumber(second.stats[options.statKey]);
-  if (!Number.isFinite(firstRating) || !Number.isFinite(secondRating)) {
-    return null;
-  }
-
-  const opponentRd = options.opponentRdKey
-    ? toFiniteNumber(second.stats[options.opponentRdKey])
-    : 60;
-  const firstWinRate = calculateGlickoExpectedScore(firstRating, secondRating, opponentRd);
-  const winner = firstWinRate >= 0.5
-    ? { username: first.username, winRate: firstWinRate }
-    : { username: second.username, winRate: 1 - firstWinRate };
-
-  return {
-    label: options.label,
-    username: winner.username,
-    percent: formatPercent(winner.winRate),
-  };
-}
-
-function calculateGlickoExpectedScore(playerRating, opponentRating, opponentRd = 60) {
-  const q = Math.log(10) / 400;
-  const rd = Number.isFinite(opponentRd) ? opponentRd : 60;
-  const g = 1 / Math.sqrt(1 + (3 * q ** 2 * rd ** 2) / Math.PI ** 2);
-  return 1 / (1 + 10 ** ((g * (opponentRating - playerRating)) / 400));
-}
-
-function formatPercent(value) {
-  return `${(value * 100).toFixed(3)}%`;
-}
-
-function renderLegend(series, y = 22) {
+function renderLegend(series, y = 18) {
   const entries = getLegendLayout(series, y);
   return entries.map((entry) => `
-  <rect x="${entry.boxX}" y="${entry.y}" width="50" height="18" class="legendBox" fill="${entry.color.fill}" stroke="${entry.color.stroke}"/>
-  <text x="${entry.textX}" y="${entry.y + 14}" class="legendText" fill="${entry.color.text}">${escapeXml(entry.text)}</text>`).join('\n');
+  <rect x="${entry.boxX}" y="${entry.y}" width="46" height="16" class="legendBox" fill="${entry.color.fill}" stroke="${entry.color.stroke}"/>
+  <text x="${entry.textX}" y="${entry.y + 13}" class="legendText" fill="${entry.color.text}">${escapeXml(entry.text)}</text>`).join('\n');
 }
 
-function getLegendLayout(series, y = 22) {
+function getLegendLayout(series, y = 18) {
   const maxNameLength = series.length > 2 ? 12 : 18;
   const entries = series.map((entry, index) => {
     const text = truncateText(entry.username.toUpperCase(), maxNameLength);
-    const width = 50 + 8 + estimateLegendTextWidth(text) + 24;
+    const width = 46 + 10 + estimateLegendTextWidth(text) + 26;
     return {
       text,
       width,
@@ -288,7 +218,7 @@ function getLegendLayout(series, y = 22) {
     const layout = {
       ...entry,
       boxX: cursorX,
-      textX: cursorX + 60,
+      textX: cursorX + 56,
       y,
     };
     cursorX += entry.width;
@@ -301,7 +231,7 @@ function getSeriesColor(index) {
 }
 
 function estimateLegendTextWidth(text) {
-  return text.length * 8.8;
+  return text.length * 10.3;
 }
 
 function toFiniteNumber(value) {
