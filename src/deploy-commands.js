@@ -45,8 +45,8 @@ const commands = [
     .addStringOption((option) =>
       option
         .setName('닉네임')
-        .setDescription('TETR.IO 닉네임 또는 프로필 주소')
-        .setRequired(true)
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
     )
     .toJSON(),
   new SlashCommandBuilder()
@@ -65,7 +65,17 @@ const commands = [
     .addStringOption((option) =>
       option
         .setName('닉네임')
-        .setDescription('TETR.IO 닉네임 여러 개, 프로필 주소, 또는 APM PPS VS 숫자 3개')
+        .setDescription('TETR.IO 닉네임 여러 개 또는 APM PPS VS 숫자 3개, 생략하면 연동된 계정')
+        .setRequired(false)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('비교')
+    .setDescription('TETR.IO 주요 스탯 비교 그래프를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 여러 개 또는 APM PPS VS 숫자 3개, 생략하면 연동된 계정')
         .setRequired(false)
     )
     .toJSON(),
@@ -176,8 +186,8 @@ const commands = [
     .addStringOption((option) =>
       option
         .setName('닉네임')
-        .setDescription('TETR.IO 닉네임 또는 프로필 주소')
-        .setRequired(true)
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
     )
     .addIntegerOption((option) =>
       option
@@ -200,8 +210,8 @@ const commands = [
     .addStringOption((option) =>
       option
         .setName('닉네임')
-        .setDescription('TETR.IO 닉네임 또는 프로필 주소')
-        .setRequired(true)
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
     )
     .addIntegerOption((option) =>
       option

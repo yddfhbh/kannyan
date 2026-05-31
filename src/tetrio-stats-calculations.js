@@ -39,10 +39,18 @@ export function calculateTetrioStats(input = {}) {
     firstFiniteNumber(input.styleStatRank, input.srstatrank, calculateStatRank(styleArea)) ?? 0.001,
     0.001,
   );
+  const estimatedTrBase = firstFiniteNumber(
+    input.ntemp,
+    input.estimateBase,
+    calculateEstimatedTrBase({ apm, pps, vs }),
+  );
+  const estimatedGlicko = firstFiniteNumber(
+    input.estimatedGlicko,
+    input.estimatedglicko,
+    calculateCurrentEstimatedGlicko(estimatedTrBase),
+  );
   const estimatedTr = firstFiniteNumber(input.estimatedTr, calculateEstimatedTr({
-    apm,
-    pps,
-    vs,
+    ntemp: estimatedTrBase,
     rd: firstFiniteNumber(input.rd, input.RD, input.estimatedTrRd),
     wins: firstFiniteNumber(input.wins, input.gamesWon, input.gameswon),
   }));
@@ -75,6 +83,7 @@ export function calculateTetrioStats(input = {}) {
     garbageEffi,
     area,
     weightedApp,
+    estimatedGlicko,
     estimatedTr,
     statRank,
     styleArea,
