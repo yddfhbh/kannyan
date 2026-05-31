@@ -2495,7 +2495,7 @@ function parseTetrioGraphInput(input) {
     return { kind: 'targets', targets: tokens };
   }
 
-  if (tokens.every(isTetrioGraphTargetToken) && !hasMixedTextAndNumberTargets(tokens)) {
+  if (tokens.every(isTetrioGraphTargetToken)) {
     return { kind: 'targets', targets: tokens };
   }
 
@@ -2505,12 +2505,6 @@ function parseTetrioGraphInput(input) {
 function isTetrioGraphTargetToken(token) {
   return /^[A-Za-z0-9_-]+$/.test(String(token ?? ''))
     || Boolean(parseDiscordMentionUserId(token));
-}
-
-function hasMixedTextAndNumberTargets(tokens) {
-  const hasNumberOnlyToken = tokens.some((token) => /^[0-9]+$/.test(token));
-  const hasTextToken = tokens.some((token) => /[A-Za-z_-]/.test(token) || parseDiscordMentionUserId(token));
-  return tokens.length > 1 && hasNumberOnlyToken && hasTextToken;
 }
 
 function hasInvalidTetrioStatsMetricCount(input) {
