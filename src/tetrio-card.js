@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const localHunFontPath = fileURLToPath(new URL('../assets/fonts/hun2.ttf', import.meta.url));
+const bannedAvatarPath = fileURLToPath(new URL('../assets/avatar-banned.png', import.meta.url));
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioContentBaseUrl = 'https://tetr.io/user-content';
 const tetrioGameBaseUrl = 'https://tetr.io';
@@ -27,6 +28,7 @@ const bioTextBottomPadding = 14;
 const bioClipTopOffsetY = 25;
 const bioClipBottomInset = 6;
 let tetrioHunFontDataUriPromise = null;
+let bannedAvatarDataUriPromise = null;
 
 export async function createTetrioProfileCard(username) {
   const normalizedUsername = normalizeTetrioUsername(username);
@@ -124,6 +126,7 @@ async function fetchTetrioJson(path) {
 }
 
 async function fetchTetrioAssets(user, summaries) {
+  const isBanned = isBannedTetrioUser(user);
   const avatarUrl = user.avatar_revision
     ? `${tetrioContentBaseUrl}/avatars/${user._id}.jpg?rv=${user.avatar_revision}`
     : null;
@@ -139,7 +142,7 @@ async function fetchTetrioAssets(user, summaries) {
     ? summaries.league.rank
     : null;
   const [avatar, banner, flag, badgeIconEntries, leagueRankIcon, hunFont] = await Promise.all([
-    fetchImageDataUri(avatarUrl),
+    isBanned ? fetchBannedAvatarDataUri() : fetchImageDataUri(avatarUrl),
     fetchImageDataUri(bannerUrl),
     fetchImageDataUri(flagUrl),
     Promise.all(badges.map(async (badge) => [
@@ -173,6 +176,10 @@ function formatTetrioAssetPath(value) {
 function normalizeCountryCode(value) {
   const country = String(value ?? '').trim().toUpperCase();
   return /^[A-Z]{2}$/.test(country) ? country : null;
+}
+
+function isBannedTetrioUser(user) {
+  return String(user?.role ?? '').toLowerCase() === 'banned';
 }
 
 async function fetchImageDataUri(url, options = {}) {
@@ -236,6 +243,20 @@ function fetchTetrioHunFontDataUri() {
   tetrioHunFontDataUriPromise ??= readLocalFontDataUri(localHunFontPath)
     .then((localFont) => localFont ?? fetchFontDataUri(tetrioHunFontUrl));
   return tetrioHunFontDataUriPromise;
+}
+
+function fetchBannedAvatarDataUri() {
+  bannedAvatarDataUriPromise ??= readLocalImageDataUri(bannedAvatarPath, 'image/png');
+  return bannedAvatarDataUriPromise;
+}
+
+async function readLocalImageDataUri(path, mimeType) {
+  try {
+    const buffer = await readFile(path);
+    return `data:${mimeType};base64,${buffer.toString('base64')}`;
+  } catch {
+    return null;
+  }
 }
 
 async function readLocalFontDataUri(path) {
@@ -318,7 +339,11 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   const noticeSlotHeight = 68;
   const noticeMarkup = [];
   let noticeCursorY = noticeStartY;
-  if (user.badstanding) {
+  if (isBannedTetrioUser(user)) {
+    noticeMarkup.push(renderBannedBanner(noticeCursorY));
+    noticeCursorY += noticeSlotHeight;
+  }
+  if (user.badstanding && !isBannedTetrioUser(user)) {
     noticeMarkup.push(renderBadStandingBanner(noticeCursorY));
     noticeCursorY += noticeSlotHeight;
   }
@@ -684,6 +709,17 @@ function renderBadStandingBanner(y = 204) {
     <rect x="14" y="${y}" width="932" height="62" fill="none" stroke="#ff1d1d" stroke-width="4"/>
     <text x="480" y="${y + 32}" text-anchor="middle" class="dangerTitle" font-size="24.3" font-weight="900">BAD STANDING</text>
     <text x="480" y="${y + 52}" text-anchor="middle" class="dangerSub" font-size="12.6" font-weight="900">ONE OR MORE RECENT BANS ON RECORD</text>
+  </g>`;
+}
+
+function renderBannedBanner(y = 204) {
+  return `
+  <g>
+    <rect x="14" y="${y}" width="932" height="62" fill="url(#dangerStripe)"/>
+    <rect x="14" y="${y}" width="932" height="62" fill="#190000" opacity="0.32"/>
+    <rect x="14" y="${y}" width="932" height="62" fill="none" stroke="#ff1d1d" stroke-width="4"/>
+    <text x="480" y="${y + 32}" text-anchor="middle" class="dangerTitle" font-size="25.5" font-weight="900">BANNED</text>
+    <text x="480" y="${y + 52}" text-anchor="middle" class="dangerSub" font-size="12.6" font-weight="900">THIS USER IS CURRENTLY BANNED</text>
   </g>`;
 }
 

@@ -2453,13 +2453,21 @@ function parseTetrioGraphInput(input) {
   }
 
   const tokens = trimmed.split(/\s+/).filter(Boolean);
-  if (tokens.length === 3 && tokens.every(isDecimalNumberToken)) {
-    const [apm, pps, vs] = tokens.map(Number);
-    return {
-      kind: 'metric',
-      metricInput: { apm, pps, vs },
-      target: null,
-    };
+  if (tokens.every(isDecimalNumberToken)) {
+    if (tokens.length === 3) {
+      const [apm, pps, vs] = tokens.map(Number);
+      return {
+        kind: 'metric',
+        metricInput: { apm, pps, vs },
+        target: null,
+      };
+    }
+
+    if (tokens.length >= 4) {
+      return { kind: 'invalid' };
+    }
+
+    return { kind: 'targets', targets: tokens };
   }
 
   if (tokens.every(isTetrioGraphTargetToken) && !hasMixedTextAndNumberTargets(tokens)) {
