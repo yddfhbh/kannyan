@@ -2,6 +2,9 @@ import sharp from 'sharp';
 
 const graphWidth = 600;
 const graphHeight = 400;
+const graphOutputScale = 1.2;
+const graphOutputWidth = Math.round(graphWidth * graphOutputScale);
+const graphOutputHeight = Math.round(graphHeight * graphOutputScale);
 const ringCount = 6;
 const outerRadius = 124;
 const centerX = graphWidth / 2;
@@ -56,7 +59,7 @@ function renderTetrioVersusGraphSvg(input) {
   const legendMarkup = renderLegend(series);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${graphWidth}" height="${graphHeight}" viewBox="0 0 ${graphWidth} ${graphHeight}">
+<svg xmlns="http://www.w3.org/2000/svg" width="${graphOutputWidth}" height="${graphOutputHeight}" viewBox="0 0 ${graphWidth} ${graphHeight}">
   <defs>
     <style>
       text {
