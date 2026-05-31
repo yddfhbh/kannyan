@@ -1716,6 +1716,11 @@ async function showTetrioStats(interaction) {
     console.error('Failed to render TETR.IO stats card:');
     console.error(error);
 
+    if (isBannedTetrioStatsUserError(error)) {
+      await interaction.editReply(formatBannedTetrioStatsUserMessage(error.username ?? input));
+      return;
+    }
+
     if (error.code === 'NO_LEAGUE_STATS') {
       await interaction.editReply('TETRA LEAGUE 스탯이 아직 없어요.');
       return;
@@ -1754,10 +1759,11 @@ async function showTetrioPlaystyleGraph(interaction) {
     const cards = graphData?.cards ?? [];
     const missingTargets = graphData?.missingTargets ?? [];
     const unavailableTargets = graphData?.unavailableTargets ?? [];
+    const bannedTargets = graphData?.bannedTargets ?? [];
 
     if (cards.length === 0) {
       await interaction.editReply(parsedInput.targets?.length
-        ? formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets }) ?? '그런 유저는 없어 바부야'
+        ? formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없어 바부야'
         : 'TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.'
       );
       return;
@@ -1771,13 +1777,18 @@ async function showTetrioPlaystyleGraph(interaction) {
     await interaction.editReply({
       files: [attachment],
     });
-    await sendSkippedTetrioGraphUsersForInteraction(interaction, { missingTargets, unavailableTargets });
+    await sendSkippedTetrioGraphUsersForInteraction(interaction, { missingTargets, unavailableTargets, bannedTargets });
   } catch (error) {
     console.error('Failed to render TETR.IO playstyle graph:');
     console.error(error);
 
     if (error.code === 'NO_LEAGUE_STATS') {
       await interaction.editReply('리그 더 하고 오세요!');
+      return;
+    }
+
+    if (isBannedTetrioStatsUserError(error)) {
+      await interaction.editReply(formatBannedTetrioGraphUsersMessage([error.username ?? input]));
       return;
     }
 
@@ -1814,10 +1825,11 @@ async function showTetrioVersusGraph(interaction) {
     const cards = graphData?.cards ?? [];
     const missingTargets = graphData?.missingTargets ?? [];
     const unavailableTargets = graphData?.unavailableTargets ?? [];
+    const bannedTargets = graphData?.bannedTargets ?? [];
 
     if (cards.length === 0) {
       await interaction.editReply(parsedInput.targets?.length
-        ? formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets }) ?? '그런 유저는 없어 바부야'
+        ? formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없어 바부야'
         : 'TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.'
       );
       return;
@@ -1836,13 +1848,18 @@ async function showTetrioVersusGraph(interaction) {
     }
 
     await interaction.editReply(replyPayload);
-    await sendSkippedTetrioGraphUsersForInteraction(interaction, { missingTargets, unavailableTargets });
+    await sendSkippedTetrioGraphUsersForInteraction(interaction, { missingTargets, unavailableTargets, bannedTargets });
   } catch (error) {
     console.error('Failed to render TETR.IO versus graph:');
     console.error(error);
 
     if (error.code === 'NO_LEAGUE_STATS') {
       await interaction.editReply('리그 더 하고 오세요!');
+      return;
+    }
+
+    if (isBannedTetrioStatsUserError(error)) {
+      await interaction.editReply(formatBannedTetrioGraphUsersMessage([error.username ?? input]));
       return;
     }
 
@@ -1863,7 +1880,7 @@ async function fetchTetrioStatsCardDataForInteraction(interaction, targets) {
   const username = await findTetrioUsernameByDiscordId(interaction.user.id);
 
   return username
-    ? { cards: [await fetchTetrioStatsCardData(username)], missingTargets: [], unavailableTargets: [] }
+    ? { cards: [await fetchTetrioStatsCardData(username)], missingTargets: [], unavailableTargets: [], bannedTargets: [] }
     : null;
 }
 
@@ -2408,6 +2425,14 @@ async function showTetrioStatsMessage(message, input) {
     console.error('Failed to render TETR.IO stats card:');
     console.error(error);
 
+    if (isBannedTetrioStatsUserError(error)) {
+      await message.reply({
+        content: formatBannedTetrioStatsUserMessage(error.username ?? input),
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
     if (error.code === 'NO_LEAGUE_STATS') {
       await message.reply({
         content: 'TETRA LEAGUE 스탯이 아직 없어요.',
@@ -2556,19 +2581,20 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
     const cards = graphData?.cards ?? [];
     const missingTargets = graphData?.missingTargets ?? [];
     const unavailableTargets = graphData?.unavailableTargets ?? [];
+    const bannedTargets = graphData?.bannedTargets ?? [];
 
     if (cards.length === 0) {
       const linkedUser = parsedInput.targets?.length === 1
         ? getSingleMentionedUserFromTetrioInput(message, parsedInput.targets[0])
         : await getRepliedUserFromTetrioMessage(message);
 
-      if (!parsedInput.targets?.length || (linkedUser && unavailableTargets.length === 0)) {
+      if (!parsedInput.targets?.length || (linkedUser && unavailableTargets.length === 0 && bannedTargets.length === 0)) {
         await sendUnlinkedTetrioImage(message);
         return;
       }
 
       await message.reply({
-        content: formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets }) ?? '그런 유저는 없어 바보야',
+        content: formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없어 바보야',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -2583,7 +2609,7 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
       files: [attachment],
       allowedMentions: { repliedUser: false },
     });
-    await sendSkippedTetrioGraphUsersForMessage(message, { missingTargets, unavailableTargets });
+    await sendSkippedTetrioGraphUsersForMessage(message, { missingTargets, unavailableTargets, bannedTargets });
   } catch (error) {
     console.error('Failed to render TETR.IO playstyle graph:');
     console.error(error);
@@ -2591,6 +2617,14 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
     if (error.code === 'NO_LEAGUE_STATS') {
       await message.reply({
         content: '리그 더 하고 오세요!',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (isBannedTetrioStatsUserError(error)) {
+      await message.reply({
+        content: formatBannedTetrioGraphUsersMessage([error.username ?? input]),
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -2640,19 +2674,20 @@ async function showTetrioVersusGraphMessage(message, input) {
     const cards = graphData?.cards ?? [];
     const missingTargets = graphData?.missingTargets ?? [];
     const unavailableTargets = graphData?.unavailableTargets ?? [];
+    const bannedTargets = graphData?.bannedTargets ?? [];
 
     if (cards.length === 0) {
       const linkedUser = parsedInput.targets?.length === 1
         ? getSingleMentionedUserFromTetrioInput(message, parsedInput.targets[0])
         : await getRepliedUserFromTetrioMessage(message);
 
-      if (!parsedInput.targets?.length || (linkedUser && unavailableTargets.length === 0)) {
+      if (!parsedInput.targets?.length || (linkedUser && unavailableTargets.length === 0 && bannedTargets.length === 0)) {
         await sendUnlinkedTetrioImage(message);
         return;
       }
 
       await message.reply({
-        content: formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets }) ?? '그런 유저는 없어 바부야',
+        content: formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없어 바부야',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -2672,7 +2707,7 @@ async function showTetrioVersusGraphMessage(message, input) {
     }
 
     await message.reply(replyPayload);
-    await sendSkippedTetrioGraphUsersForMessage(message, { missingTargets, unavailableTargets });
+    await sendSkippedTetrioGraphUsersForMessage(message, { missingTargets, unavailableTargets, bannedTargets });
   } catch (error) {
     console.error('Failed to render TETR.IO versus graph:');
     console.error(error);
@@ -2680,6 +2715,14 @@ async function showTetrioVersusGraphMessage(message, input) {
     if (error.code === 'NO_LEAGUE_STATS') {
       await message.reply({
         content: '리그 더 하고 오세요!',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (isBannedTetrioStatsUserError(error)) {
+      await message.reply({
+        content: formatBannedTetrioGraphUsersMessage([error.username ?? input]),
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -2716,11 +2759,11 @@ async function fetchTetrioStatsCardDataForMessage(message, targets) {
       : await findTetrioUsernameByDiscordId(message.author.id);
 
   if (username) {
-    return { cards: [await fetchTetrioStatsCardData(username)], missingTargets: [], unavailableTargets: [] };
+    return { cards: [await fetchTetrioStatsCardData(username)], missingTargets: [], unavailableTargets: [], bannedTargets: [] };
   }
 
   return target
-    ? { cards: [], missingTargets: [target], unavailableTargets: [] }
+    ? { cards: [], missingTargets: [target], unavailableTargets: [], bannedTargets: [] }
     : null;
 }
 
@@ -2735,8 +2778,11 @@ async function fetchTetrioStatsCardDataForTargets(targets) {
   const unavailableTargets = results
     .filter((result) => result.unavailable)
     .map((result) => result.target);
+  const bannedTargets = results
+    .filter((result) => result.banned)
+    .map((result) => result.target);
 
-  return { cards, missingTargets, unavailableTargets };
+  return { cards, missingTargets, unavailableTargets, bannedTargets };
 }
 
 async function fetchTetrioStatsCardDataForTarget(target) {
@@ -2751,6 +2797,10 @@ async function fetchTetrioStatsCardDataForTarget(target) {
       card: await fetchTetrioStatsCardData(username),
     };
   } catch (error) {
+    if (isBannedTetrioStatsUserError(error)) {
+      return { target: error.username ?? target, banned: true };
+    }
+
     if (isUnavailableTetrioGraphUserError(error)) {
       return { target, unavailable: true };
     }
@@ -2799,10 +2849,26 @@ function formatUnavailableTetrioGraphUsersMessage(targets) {
     : null;
 }
 
-function formatSkippedTetrioGraphUsersMessage({ missingTargets = [], unavailableTargets = [] } = {}) {
+function formatBannedTetrioStatsUserMessage(target) {
+  const name = String(target ?? '').trim();
+  return `${escapeDiscordMarkdown(name || '그 유저')}은 정지된 유저다냥`;
+}
+
+function formatBannedTetrioGraphUsersMessage(targets) {
+  const names = [...new Set((targets ?? [])
+    .map((target) => String(target ?? '').trim())
+    .filter(Boolean))];
+
+  return names.length > 0
+    ? `${names.map(escapeDiscordMarkdown).join(', ')}은 밴 당해있어서 제외했다냥`
+    : null;
+}
+
+function formatSkippedTetrioGraphUsersMessage({ missingTargets = [], unavailableTargets = [], bannedTargets = [] } = {}) {
   return [
     formatMissingTetrioGraphUsersMessage(missingTargets),
     formatUnavailableTetrioGraphUsersMessage(unavailableTargets),
+    formatBannedTetrioGraphUsersMessage(bannedTargets),
   ].filter(Boolean).join('\n') || null;
 }
 
@@ -2846,6 +2912,10 @@ function isMissingTetrioGraphUserError(error) {
 
 function isUnavailableTetrioGraphUserError(error) {
   return error?.code === 'NO_LEAGUE_STATS';
+}
+
+function isBannedTetrioStatsUserError(error) {
+  return error?.code === 'BANNED_TETRIO_USER';
 }
 
 function formatTetrioVersusWinSummary(cards) {

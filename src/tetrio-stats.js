@@ -21,6 +21,15 @@ export async function fetchTetrioStatsCardData(username) {
   ]);
   const user = userResponse.data;
   const league = summariesResponse.data?.league;
+  const displayUsername = user.username ?? normalizedUsername;
+
+  if (isBannedTetrioUser(user)) {
+    const error = new Error('TETR.IO user is banned');
+    error.code = 'BANNED_TETRIO_USER';
+    error.status = 403;
+    error.username = displayUsername;
+    throw error;
+  }
 
   if (!league || !hasFiniteLeagueStat(league.apm) || !hasFiniteLeagueStat(league.pps) || !hasFiniteLeagueStat(league.vs)) {
     const error = new Error('TETRA LEAGUE stats are unavailable');
@@ -38,7 +47,7 @@ export async function fetchTetrioStatsCardData(username) {
   });
 
   return {
-    username: user.username ?? normalizedUsername,
+    username: displayUsername,
     stats: {
       ...calculatedStats,
       rank: league.rank,
@@ -47,6 +56,10 @@ export async function fetchTetrioStatsCardData(username) {
       rd: league.rd,
     },
   };
+}
+
+function isBannedTetrioUser(user) {
+  return String(user?.role ?? '').toLowerCase() === 'banned';
 }
 
 function hasFiniteLeagueStat(value) {
