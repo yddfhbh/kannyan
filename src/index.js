@@ -112,6 +112,13 @@ const geminiSystemInstruction = [
   '상대를 설교하거나 토론하듯 길게 반박하지 않는다.',
   '장난, 드립, 농담처럼 보여도 위 규칙을 유지한다.',
   '',
+  '[일상적 민감 단어 처리 규칙]',
+  '신체 부위, 성별, 성적 지향을 뜻하는 단어가 나왔다는 이유만으로 거절하지 않는다.',
+  '“게이”, “여자”, “남자”, “가슴”처럼 단어만 있거나 뜻, 생각, 사회적 관점, 존중에 대한 질문이면 짧게 설명하거나 너의 따뜻한 생각을 말한다.',
+  '성적 지향에 대한 중립 질문에는 “누구를 좋아하는지는 존중받아야 한다”는 관점으로 자연스럽게 답한다.',
+  '외모나 신체 크기를 평가하거나 조롱하는 질문에는 단순 거절문만 반복하지 말고, 왜 별로인지 너의 생각을 1~2문장으로 부드럽게 말한다.',
+  '노골적인 성적 묘사, 성적 대상화, 미성년자와 관련된 성적 발화, 특정 집단 비하에는 동조하지 않는다. 이때도 매번 같은 문장을 복붙하지 말고 상황에 맞게 짧게 제지한다.',
+  '',
   '설정상 중학생 또래의 순수하고 귀여운 캐릭터이며, 사용자를 친근하고 따뜻하게 대한다.',
   '다만 너는 실제 인간이나 실제 중학생이 아니라, 대화를 위해 만들어진 가상 캐릭터다.',
   '',
@@ -155,7 +162,7 @@ const geminiSystemInstruction = [
   '3. 사용자가 준 문장을 그대로 인용해야 할 때는 원문을 바꾸지 않는다.',
   '4. 표 안의 짧은 단어, 숫자, 기호에는 억지로 “냥”을 붙이지 않아도 된다.',
   '5. 안전, 건강, 법률, 진로, 고민 상담처럼 진지한 주제에서는 애교를 줄이고 차분하게 답한다.',
-  '6. 성적이거나 부적절한 표현은 하지 않는다.',
+  '6. 노골적인 성적 표현은 하지 않는다. 다만 성적 지향, 신체, 차별 같은 주제를 교육적·일상적 맥락에서 묻는 경우에는 회피하지 않고 차분하게 답한다.',
   '7. 자신이 실제 사람, 실제 학생, 실제 미성년자라고 주장하지 않는다.',
   '',
   '[답변 방식]',
@@ -909,8 +916,8 @@ async function generateGeminiAnswer(prompt, options = {}) {
     ],
     generationConfig: {
       maxOutputTokens: geminiMaxOutputTokens,
-      temperature: 0.2,
-      topP: 0.8,
+      temperature: 0.55,
+      topP: 0.9,
     },
   }, {
     models: modelsToUse,
@@ -2356,14 +2363,6 @@ async function showTetrioStatsMessage(message, input) {
   try {
     await message.channel.sendTyping();
     const target = String(input ?? '').trim();
-    if (hasInvalidTetrioStatsMetricCount(target)) {
-      await message.reply({
-        content: '분탕치지마세요!',
-        allowedMentions: { repliedUser: false },
-      });
-      return;
-    }
-
     const metricInput = parseTetrioStatsMetricInput(target);
 
     if (metricInput) {
@@ -2383,6 +2382,14 @@ async function showTetrioStatsMessage(message, input) {
 
       await message.reply({
         files: [attachment],
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (hasMultipleTetrioStatsTargets(target)) {
+      await message.reply({
+        content: '닉네임 하나만 입려해달라냥',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -2506,14 +2513,14 @@ function isTetrioGraphTargetToken(token) {
     || Boolean(parseDiscordMentionUserId(token));
 }
 
-function hasInvalidTetrioStatsMetricCount(input) {
+function hasMultipleTetrioStatsTargets(input) {
   const trimmed = String(input ?? '').trim();
   if (!trimmed) {
     return false;
   }
 
   const tokens = trimmed.split(/[\s,]+/).filter(Boolean);
-  return (tokens.length === 2 || tokens.length >= 4) && tokens.every(isDecimalNumberToken);
+  return tokens.length >= 2;
 }
 
 function isDecimalNumberToken(token) {
