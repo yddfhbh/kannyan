@@ -795,32 +795,67 @@ function renderChampionDistinguishmentBanner(distinguishment, y, x = 14, width =
   const height = 62;
   const theme = getChampionDistinguishmentTheme(distinguishment.detail);
   const title = normalizeDistinguishmentText(distinguishment.text || 'CHAMPION');
+  const idSuffix = `champion-${String(distinguishment.detail || 'default').replace(/[^a-z0-9_-]/gi, '')}-${Math.round(y)}`;
+  const outerInsetY = 11;
+  const outerNotch = 13;
+  const innerInsetX = 8;
+  const innerNotch = 16;
   const outerPoints = [
-    formatPoint([x, y + height / 2]),
-    formatPoint([x + 15, y + 7]),
-    formatPoint([x + width - 15, y + 7]),
-    formatPoint([x + width, y + height / 2]),
-    formatPoint([x + width - 15, y + height - 7]),
-    formatPoint([x + 15, y + height - 7]),
+    formatPoint([x, y + outerInsetY]),
+    formatPoint([x + outerNotch, y + height / 2]),
+    formatPoint([x, y + height - outerInsetY]),
+    formatPoint([x + width, y + height - outerInsetY]),
+    formatPoint([x + width - outerNotch, y + height / 2]),
+    formatPoint([x + width, y + outerInsetY]),
   ].join(' ');
+  const innerX = x + innerInsetX;
+  const innerWidth = width - innerInsetX * 2;
   const innerPoints = [
-    formatPoint([x + 10, y + height / 2]),
-    formatPoint([x + 24, y + 11]),
-    formatPoint([x + width - 24, y + 11]),
-    formatPoint([x + width - 10, y + height / 2]),
-    formatPoint([x + width - 24, y + height - 11]),
-    formatPoint([x + 24, y + height - 11]),
+    formatPoint([innerX, y]),
+    formatPoint([innerX + innerNotch, y + height / 2]),
+    formatPoint([innerX, y + height]),
+    formatPoint([innerX + innerWidth, y + height]),
+    formatPoint([innerX + innerWidth - innerNotch, y + height / 2]),
+    formatPoint([innerX + innerWidth, y]),
   ].join(' ');
 
   return `
   <g>
-    <polygon points="${outerPoints}" fill="${theme.outerFill}"/>
-    <polygon points="${innerPoints}" fill="${theme.innerFill}" stroke="${theme.innerStroke}" stroke-width="2.4"/>
-    <line x1="${x + 26}" y1="${y + 13}" x2="${x + width - 26}" y2="${y + 13}" stroke="${theme.lineHighlight}" stroke-width="2.4" opacity="0.92"/>
-    <line x1="${x + 26}" y1="${y + height - 13}" x2="${x + width - 26}" y2="${y + height - 13}" stroke="${theme.lineShadow}" stroke-width="2.4" opacity="0.8"/>
-    <polygon points="${formatPoint([x + 5, y + height / 2])} ${formatPoint([x + 17, y + 11])} ${formatPoint([x + 29, y + 11])} ${formatPoint([x + 17, y + height / 2])} ${formatPoint([x + 29, y + height - 11])} ${formatPoint([x + 17, y + height - 11])}" fill="${theme.sideFill}"/>
-    <polygon points="${formatPoint([x + width - 5, y + height / 2])} ${formatPoint([x + width - 17, y + 11])} ${formatPoint([x + width - 29, y + 11])} ${formatPoint([x + width - 17, y + height / 2])} ${formatPoint([x + width - 29, y + height - 11])} ${formatPoint([x + width - 17, y + height - 11])}" fill="${theme.sideFill}"/>
-    <text x="${x + width / 2}" y="${y + height / 2}" text-anchor="middle" dominant-baseline="middle" font-size="28" font-weight="900" fill="${theme.titleFill}" stroke="${theme.titleStroke}" stroke-width="0.9" paint-order="stroke fill" letter-spacing="1.8" textLength="${width - 150}" lengthAdjust="spacingAndGlyphs">${escapeXml(title)}</text>
+    <defs>
+      <linearGradient id="${idSuffix}-outer" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="${theme.caa}"/>
+        <stop offset="0.5" stop-color="${theme.ca}"/>
+        <stop offset="0.5" stop-color="${theme.cb}"/>
+        <stop offset="1" stop-color="${theme.cbb}"/>
+      </linearGradient>
+      <radialGradient id="${idSuffix}-inner" cx="0.5" cy="0.5" r="0.78">
+        <stop offset="0" stop-color="${theme.cx}"/>
+        <stop offset="1" stop-color="${theme.cy}"/>
+      </radialGradient>
+      <linearGradient id="${idSuffix}-sheen" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.06"/>
+        <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.09"/>
+        <stop offset="0.5" stop-color="#000000" stop-opacity="0.06"/>
+        <stop offset="1" stop-color="#000000" stop-opacity="0.09"/>
+      </linearGradient>
+      <linearGradient id="${idSuffix}-stripe" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="${theme.ca}"/>
+        <stop offset="1" stop-color="${theme.cb}"/>
+      </linearGradient>
+      <clipPath id="${idSuffix}-innerClip">
+        <polygon points="${innerPoints}"/>
+      </clipPath>
+    </defs>
+    <polygon points="${outerPoints}" fill="url(#${idSuffix}-outer)"/>
+    <polygon points="${innerPoints}" fill="url(#${idSuffix}-inner)"/>
+    <polygon points="${innerPoints}" fill="url(#${idSuffix}-sheen)"/>
+    <g clip-path="url(#${idSuffix}-innerClip)">
+      <rect x="${innerX}" y="${y + 5}" width="${innerWidth}" height="3" fill="url(#${idSuffix}-stripe)"/>
+      <rect x="${innerX}" y="${y + height - 8}" width="${innerWidth}" height="3" fill="url(#${idSuffix}-stripe)"/>
+    </g>
+    <text x="${x + width / 2}" y="${y + height / 2 + 3}" text-anchor="middle" dominant-baseline="middle" font-size="28.8" font-weight="900" fill="${theme.cy}" opacity="0.34" letter-spacing="5.6">${escapeXml(title)}</text>
+    <text x="${x + width / 2}" y="${y + height / 2 + 3}" text-anchor="middle" dominant-baseline="middle" font-size="28.8" font-weight="900" fill="${theme.cyyy}" letter-spacing="5.6">${escapeXml(title)}</text>
+    <text x="${x + width / 2}" y="${y + height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" font-size="28.8" font-weight="900" fill="${theme.cyy}" letter-spacing="5.6">${escapeXml(title)}</text>
   </g>`;
 }
 
@@ -1007,58 +1042,58 @@ function getChampionDistinguishmentTheme(detail) {
   switch (detail) {
     case '40l':
       return {
-        outerFill: '#d4b52f',
-        innerFill: '#7cd2da',
-        innerStroke: '#fff0a8',
-        lineHighlight: '#ffe98d',
-        lineShadow: '#5ca6b0',
-        sideFill: '#f4c721',
-        titleFill: '#5c8488',
-        titleStroke: '#def8fb',
+        caa: '#FFD74A',
+        ca: '#EFC01B',
+        cb: '#BD9817',
+        cbb: '#8F710A',
+        cx: '#CCF5F6',
+        cy: '#84B7CA',
+        cyy: '#638B8C',
+        cyyy: '#CAEDEF',
       };
     case 'blitz':
       return {
-        outerFill: '#d94334',
-        innerFill: '#7ac6d8',
-        innerStroke: '#ffc8b1',
-        lineHighlight: '#ffaea1',
-        lineShadow: '#4f90a6',
-        sideFill: '#bc2214',
-        titleFill: '#e9fff9',
-        titleStroke: '#4f7b90',
+        caa: '#FF4E4A',
+        ca: '#EF2F1B',
+        cb: '#BD2717',
+        cbb: '#8F130A',
+        cx: '#CCF5F6',
+        cy: '#84B7CA',
+        cyy: '#638B8C',
+        cyyy: '#CAEDEF',
       };
     case 'league':
       return {
-        outerFill: '#c52bc6',
-        innerFill: '#ffc423',
-        innerStroke: '#ff7af1',
-        lineHighlight: '#ffe28a',
-        lineShadow: '#cf7f00',
-        sideFill: '#8e1db0',
-        titleFill: '#c6881d',
-        titleStroke: '#ffe9a8',
+        caa: '#F46BEF',
+        ca: '#E64BE1',
+        cb: '#B631B1',
+        cbb: '#80227D',
+        cx: '#FFDB31',
+        cy: '#FFA200',
+        cyy: '#C18922',
+        cyyy: '#FFE492',
       };
     case 'x-multiple':
       return {
-        outerFill: '#7d79d9',
-        innerFill: '#ffd03f',
-        innerStroke: '#f4f0ff',
-        lineHighlight: '#fff2a2',
-        lineShadow: '#c79711',
-        sideFill: '#6650c8',
-        titleFill: '#8f640d',
-        titleStroke: '#fff4c0',
+        caa: '#7d79d9',
+        ca: '#6650c8',
+        cb: '#4d3ca1',
+        cbb: '#342873',
+        cx: '#FFDB31',
+        cy: '#FFA200',
+        cyy: '#C18922',
+        cyyy: '#FFE492',
       };
     default:
       return {
-        outerFill: '#5f8f60',
-        innerFill: '#d8f2a2',
-        innerStroke: '#edfbd2',
-        lineHighlight: '#ffffff',
-        lineShadow: '#8bb85c',
-        sideFill: '#3f7041',
-        titleFill: '#355b23',
-        titleStroke: '#f7ffe2',
+        caa: '#CCF5F6',
+        ca: '#C2E6E7',
+        cb: '#ACD5D6',
+        cbb: '#84B7CA',
+        cx: '#FFDB31',
+        cy: '#FFA200',
+        cyy: '#C18922',
+        cyyy: '#FFE492',
       };
   }
 }
