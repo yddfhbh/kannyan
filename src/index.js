@@ -2502,6 +2502,10 @@ function parseTetrioGraphInput(input) {
   }
 
   if (tokens.every(isTetrioGraphTargetToken)) {
+    if (tokens.length >= 16) {
+      return { kind: 'invalid' };
+    }
+
     return { kind: 'targets', targets: tokens };
   }
 
