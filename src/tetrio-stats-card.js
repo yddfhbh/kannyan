@@ -70,9 +70,9 @@ function renderTetrioStatsCardSvg(username, stats) {
       { label: 'APP+DS/Piece', value: formatDecimal(values.appDsPiece, 4) },
     ],
     [
-      null,
       { label: 'Rank', value: values.rank },
-      null,
+      { label: 'Promote', value: values.promote },
+      { label: 'Demote', value: values.demote },
     ],
   ];
   const advancedRows = [
@@ -218,6 +218,18 @@ function normalizeStats(stats) {
     app: toFiniteNumber(stats.app),
     appDsPiece: firstFiniteNumber(stats.appDsPiece, stats.appdspiece),
     rank: (String(stats.rank ?? '-').trim() || '-').toUpperCase(),
+    promote: formatPlaceholderText(stats.promote),
+    demote: formatPlaceholderText(stats.demote),
+    currentGlicko: toFiniteNumber(stats.currentGlicko),
+    currentRd: toFiniteNumber(stats.currentRd),
+    currentTr: toFiniteNumber(stats.currentTr),
+    currentStanding: toFiniteNumber(stats.currentStanding),
+    nextRank: normalizeOptionalRank(stats.nextRank),
+    previousRank: normalizeOptionalRank(stats.previousRank),
+    nextRankGlickoCutoff: toFiniteNumber(stats.nextRankGlickoCutoff),
+    previousRankGlickoCutoff: toFiniteNumber(stats.previousRankGlickoCutoff),
+    nextRankTrCutoff: toFiniteNumber(stats.nextRankTrCutoff),
+    previousRankTrCutoff: toFiniteNumber(stats.previousRankTrCutoff),
     dsSecond: firstFiniteNumber(stats.dsSecond, stats.dssecond),
     vsApm: firstFiniteNumber(stats.vsApm, stats.vsapm),
     garbageEffi: firstFiniteNumber(stats.garbageEffi, stats.garbageeffi),
@@ -236,6 +248,16 @@ function normalizeStats(stats) {
       infiniteDs: firstFiniteNumber(stats.playstyle?.infiniteDs, stats.playstyle?.infDs),
     },
   };
+}
+
+function formatPlaceholderText(value) {
+  const text = String(value ?? '').trim();
+  return text || '-';
+}
+
+function normalizeOptionalRank(value) {
+  const text = String(value ?? '').trim();
+  return text ? text.toUpperCase() : null;
 }
 
 function toFiniteNumber(value) {
