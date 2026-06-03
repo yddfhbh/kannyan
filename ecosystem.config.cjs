@@ -1,3 +1,10 @@
+const linuxFontconfigEnv = process.platform === 'linux'
+  ? {
+      FONTCONFIG_PATH: '/etc/fonts',
+      FONTCONFIG_FILE: '/etc/fonts/fonts.conf',
+    }
+  : {};
+
 module.exports = {
   apps: [
     {
@@ -11,6 +18,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: '8080',
+        ...linuxFontconfigEnv,
       },
     },
   ],

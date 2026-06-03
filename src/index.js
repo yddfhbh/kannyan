@@ -575,6 +575,11 @@ async function updateVmStatusMessage(readyClient) {
     console.error('Failed to update VM status message:');
     console.error(error);
 
+    if (isDiscordPermissionError(error)) {
+      console.error('VM status updater stopped. Give the bot View Channel, Send Messages, and Read Message History permissions, then restart it.');
+      stopVmStatusUpdater();
+    }
+
     if (error?.code === 10008) {
       vmStatusMessage = null;
     }
@@ -587,6 +592,10 @@ async function resolveVmStatusMessage(readyClient) {
   const channel = await readyClient.channels.fetch(vmStatusChannelId).catch((error) => {
     console.error(`Failed to fetch VM status channel ${vmStatusChannelId}:`);
     console.error(error);
+    if (isDiscordPermissionError(error)) {
+      console.error('VM status updater stopped because the bot cannot access the configured channel.');
+      stopVmStatusUpdater();
+    }
     return null;
   });
 
@@ -599,6 +608,10 @@ async function resolveVmStatusMessage(readyClient) {
     const configuredMessage = await channel.messages.fetch(vmStatusMessageId).catch((error) => {
       console.error(`Failed to fetch VM status message ${vmStatusMessageId}:`);
       console.error(error);
+      if (isDiscordPermissionError(error)) {
+        console.error('VM status updater stopped because the bot cannot read the configured status message.');
+        stopVmStatusUpdater();
+      }
       return null;
     });
 
@@ -624,8 +637,12 @@ async function resolveVmStatusMessage(readyClient) {
   });
 }
 
+function isDiscordPermissionError(error) {
+  return error?.code === 50001 || error?.code === 50013 || error?.status === 403;
+}
+
 async function createVmStatusMessageContent() {
-  const cpuUsagePercent = sampleCpuUsagePercent();
+  const cpuUsage = sampleCpuUsage();
   const memory = getMemoryUsage();
   const disk = await getDiskUsage(vmStatusDiskPath);
   const loadAverage = os.loadavg();
@@ -634,9 +651,8 @@ async function createVmStatusMessageContent() {
   return [
     `**${vmStatusMessageTitle}**`,
     `마지막 갱신: ${formatKoreanDateTime(new Date())}`,
-    `업데이트 간격: ${formatDuration(vmStatusIntervalMs / 1000)}`,
     '',
-    `CPU: ${formatVmPercent(cpuUsagePercent)} ${renderUsageBar(cpuUsagePercent)} (${os.cpus().length} vCPU, load ${formatLoadAverage(loadAverage)})`,
+    ...formatCpuUsageLines(cpuUsage, loadAverage),
     `메모리: ${formatBytes(memory.used)} / ${formatBytes(memory.total)} (${formatVmPercent(memory.percent)}) ${renderUsageBar(memory.percent)}`,
     disk
       ? `저장공간(${disk.path}): ${formatBytes(disk.used)} / ${formatBytes(disk.total)} (${formatVmPercent(disk.percent)}) ${renderUsageBar(disk.percent)}`
@@ -648,24 +664,37 @@ async function createVmStatusMessageContent() {
 }
 
 function sampleCpuTimes() {
-  const cpus = os.cpus();
-  let idle = 0;
-  let total = 0;
+  const cores = os.cpus().map((cpu) => {
+    const total = Object.values(cpu.times).reduce((sum, value) => sum + value, 0);
+    return {
+      idle: cpu.times.idle,
+      total,
+    };
+  });
 
-  for (const cpu of cpus) {
-    idle += cpu.times.idle;
-    total += Object.values(cpu.times).reduce((sum, value) => sum + value, 0);
-  }
+  const idle = cores.reduce((sum, core) => sum + core.idle, 0);
+  const total = cores.reduce((sum, core) => sum + core.total, 0);
 
-  return { idle, total };
+  return { idle, total, cores };
 }
 
-function sampleCpuUsagePercent() {
+function sampleCpuUsage() {
   const currentSample = sampleCpuTimes();
   const previousSample = previousCpuSample;
   previousCpuSample = currentSample;
 
-  if (!previousSample) {
+  const cores = currentSample.cores.map((coreSample, index) =>
+    calculateCpuUsagePercent(previousSample?.cores?.[index], coreSample)
+  );
+
+  return {
+    total: calculateCpuUsagePercent(previousSample, currentSample),
+    cores,
+  };
+}
+
+function calculateCpuUsagePercent(previousSample, currentSample) {
+  if (!previousSample || !currentSample) {
     return null;
   }
 
@@ -677,6 +706,21 @@ function sampleCpuUsagePercent() {
   }
 
   return clampPercent(100 - (idleDelta / totalDelta) * 100);
+}
+
+function formatCpuUsageLines(cpuUsage, loadAverage) {
+  const coreUsages = Array.isArray(cpuUsage?.cores) ? cpuUsage.cores : [];
+  const coreCount = coreUsages.length || os.cpus().length;
+  const lines = [
+    `CPU 전체: ${formatVmPercent(cpuUsage?.total)} ${renderUsageBar(cpuUsage?.total)} (${coreCount} vCPU, load ${formatLoadAverage(loadAverage)})`,
+  ];
+
+  for (let index = 0; index < coreCount; index += 1) {
+    const percent = coreUsages[index] ?? null;
+    lines.push(`CPU ${index + 1}: ${formatVmPercent(percent)} ${renderUsageBar(percent)}`);
+  }
+
+  return lines;
 }
 
 function getMemoryUsage() {
