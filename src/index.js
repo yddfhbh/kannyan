@@ -645,14 +645,13 @@ async function createVmStatusMessageContent() {
   const cpuUsage = sampleCpuUsage();
   const memory = getMemoryUsage();
   const disk = await getDiskUsage(vmStatusDiskPath);
-  const loadAverage = os.loadavg();
   const processMemory = process.memoryUsage();
 
   return [
     `**${vmStatusMessageTitle}**`,
     `마지막 갱신: ${formatKoreanDateTime(new Date())}`,
     '',
-    ...formatCpuUsageLines(cpuUsage, loadAverage),
+    ...formatCpuUsageLines(cpuUsage),
     `메모리: ${formatBytes(memory.used)} / ${formatBytes(memory.total)} (${formatVmPercent(memory.percent)}) ${renderUsageBar(memory.percent)}`,
     disk
       ? `저장공간(${disk.path}): ${formatBytes(disk.used)} / ${formatBytes(disk.total)} (${formatVmPercent(disk.percent)}) ${renderUsageBar(disk.percent)}`
@@ -708,11 +707,11 @@ function calculateCpuUsagePercent(previousSample, currentSample) {
   return clampPercent(100 - (idleDelta / totalDelta) * 100);
 }
 
-function formatCpuUsageLines(cpuUsage, loadAverage) {
+function formatCpuUsageLines(cpuUsage) {
   const coreUsages = Array.isArray(cpuUsage?.cores) ? cpuUsage.cores : [];
   const coreCount = coreUsages.length || os.cpus().length;
   const lines = [
-    `CPU 전체: ${formatVmPercent(cpuUsage?.total)} ${renderUsageBar(cpuUsage?.total)} (${coreCount} vCPU, load ${formatLoadAverage(loadAverage)})`,
+    `CPU 전체: ${formatVmPercent(cpuUsage?.total)} ${renderUsageBar(cpuUsage?.total)}`,
   ];
 
   for (let index = 0; index < coreCount; index += 1) {
