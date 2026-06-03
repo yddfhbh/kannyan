@@ -67,6 +67,7 @@ const geminiVisionModels = getUniqueValues([
 const geminiRequestTimeoutMs = Number(process.env.GEMINI_TIMEOUT_MS) || 20_000;
 const geminiMaxOutputTokens = Number(process.env.GEMINI_MAX_OUTPUT_TOKENS) || 1024;
 const geminiMaxAttemptsPerModel = Number(process.env.GEMINI_MAX_ATTEMPTS_PER_MODEL) || 3;
+const geminiTimingLogsEnabled = String(process.env.GEMINI_TIMING_LOGS ?? 'true').trim().toLowerCase() !== 'false';
 const geminiRetryStatusCodes = new Set([429, 500, 503, 504]);
 const geminiFallbackStatusCodes = new Set([404, 429, 500, 503, 504]);
 const discordMessageChunkMaxLength = 1900;
@@ -1261,44 +1262,59 @@ async function generateGeminiAnswer(prompt, options = {}) {
   const modelsToUse = imageParts.length > 0
     ? geminiVisionModels
     : geminiModels;
+  const answerStartedAt = Date.now();
 
-  const response = await fetchGeminiGenerateContent({
-    system_instruction: {
-      parts: [
-        {
-          text: geminiSystemInstruction,
-        },
-      ],
-    },
-    contents: [
-      {
-        role: 'user',
+  logGeminiTiming(
+    `answer start mode=${imageParts.length > 0 ? 'vision' : 'text'} models=${modelsToUse.join(',')} promptChars=${contextualPrompt.length} history=${history.length} images=${imageParts.length}`
+  );
+
+  let response;
+  try {
+    response = await fetchGeminiGenerateContent({
+      system_instruction: {
         parts: [
-          { text: contextualPrompt },
-          ...imageParts,
+          {
+            text: geminiSystemInstruction,
+          },
         ],
       },
-    ],
-    generationConfig: {
-      maxOutputTokens: geminiMaxOutputTokens,
-      temperature: 0.55,
-      topP: 0.9,
-    },
-  }, {
-    models: modelsToUse,
-  });
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: contextualPrompt },
+            ...imageParts,
+          ],
+        },
+      ],
+      generationConfig: {
+        maxOutputTokens: geminiMaxOutputTokens,
+        temperature: 0.55,
+        topP: 0.9,
+      },
+    }, {
+      models: modelsToUse,
+    });
+  } catch (error) {
+    logGeminiTiming(`answer failed total=${Date.now() - answerStartedAt}ms status=${formatGeminiErrorStatus(error)}`);
+    throw error;
+  }
 
   const text = extractGeminiResponseText(response);
 
   if (text) {
-    return applyCustomEmojiAliases(sanitizeGeminiAnswer(text), prompt);
+    const answer = applyCustomEmojiAliases(sanitizeGeminiAnswer(text), prompt);
+    logGeminiTiming(`answer ready total=${Date.now() - answerStartedAt}ms rawChars=${text.length} outputChars=${answer.length}`);
+    return answer;
   }
 
   const blockReason = response.promptFeedback?.blockReason;
   if (blockReason) {
+    logGeminiTiming(`answer blocked total=${Date.now() - answerStartedAt}ms reason=${blockReason}`);
     return `안전 필터 때문에 답변하지 못했어요. (${blockReason})`;
   }
 
+  logGeminiTiming(`answer empty total=${Date.now() - answerStartedAt}ms`);
   return '답변을 만들지 못했어요.';
 }
 
@@ -1812,16 +1828,26 @@ async function fetchGeminiGenerateContent(payload, options = {}) {
 
     for (const modelName of modelsToTry) {
       for (let attempt = 1; attempt <= geminiMaxAttemptsPerModel; attempt += 1) {
+        const requestStartedAt = Date.now();
         try {
-          return await requestGeminiGenerateContent(modelName, payload, apiKey);
+          const response = await requestGeminiGenerateContent(modelName, payload, apiKey);
+          logGeminiTiming(
+            `request success model=${modelName} ${keyLabel} attempt=${attempt}/${geminiMaxAttemptsPerModel} duration=${Date.now() - requestStartedAt}ms`
+          );
+          return response;
         } catch (error) {
           lastError = error;
 
           const canRetry = shouldRetryGeminiRequest(error)
             && attempt < geminiMaxAttemptsPerModel;
+          const retryDelayMs = canRetry ? getGeminiRetryDelayMs(attempt) : 0;
+
+          logGeminiTiming(
+            `request failed model=${modelName} ${keyLabel} attempt=${attempt}/${geminiMaxAttemptsPerModel} duration=${Date.now() - requestStartedAt}ms status=${formatGeminiErrorStatus(error)}${canRetry ? ` retryIn=${retryDelayMs}ms` : ''}`
+          );
 
           if (canRetry) {
-            await wait(getGeminiRetryDelayMs(attempt));
+            await wait(retryDelayMs);
             continue;
           }
 
@@ -1896,6 +1922,18 @@ function shouldTryNextGeminiModel(error) {
 
 function shouldTryNextGeminiApiKey(error) {
   return [400, 401, 403, 429].includes(error?.status);
+}
+
+function logGeminiTiming(message) {
+  if (!geminiTimingLogsEnabled) {
+    return;
+  }
+
+  console.info(`[Gemini timing] ${message}`);
+}
+
+function formatGeminiErrorStatus(error) {
+  return error?.status ?? error?.name ?? 'unknown';
 }
 
 function chunkDiscordMessage(content) {
