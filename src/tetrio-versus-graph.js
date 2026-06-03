@@ -4,13 +4,20 @@ const graphWidth = 600;
 const graphHeight = 400;
 const graphOutputScale = 1.2;
 const graphOutputWidth = Math.round(graphWidth * graphOutputScale);
-const graphOutputHeight = Math.round(graphHeight * graphOutputScale);
 const ringCount = 6;
 const outerRadius = 124;
 const centerX = graphWidth / 2;
 const centerY = 208;
 const labelRadius = outerRadius + 30;
 const graphFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const legendStartY = 18;
+const legendRowHeight = 30;
+const legendChartGap = 18;
+const legendMarginX = 16;
+const legendGapX = 30;
+const legendBoxWidth = 46;
+const legendBoxHeight = 16;
+const legendTextGap = 10;
 
 const versusAxes = [
   { key: 'apm', label: 'APM', valueAtRing: 180, referenceRing: 6 },
@@ -50,16 +57,20 @@ export async function createTetrioVersusGraph(input = {}) {
 
 function renderTetrioVersusGraphSvg(input) {
   const series = normalizeGraphSeries(input);
+  const legend = getLegendLayout(series);
+  const chartOffsetY = Math.max(0, legend.rowCount - 1) * legendRowHeight + legendChartGap;
+  const svgHeight = graphHeight + chartOffsetY;
+  const graphOutputHeight = Math.round(svgHeight * graphOutputScale);
   const gridMarkup = Array.from({ length: ringCount }, (_, index) => renderRing(index + 1)).join('\n');
   const axisMarkup = versusAxes.map(renderAxis).join('\n');
   const labelMarkup = versusAxes.map(renderAxisLabel).join('\n');
   const dataMarkup = series
     .map((entry, index) => renderDataSeries(entry, index, series.length))
     .join('\n');
-  const legendMarkup = renderLegend(series);
+  const legendMarkup = renderLegend(legend.entries);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${graphOutputWidth}" height="${graphOutputHeight}" viewBox="0 0 ${graphWidth} ${graphHeight}">
+<svg xmlns="http://www.w3.org/2000/svg" width="${graphOutputWidth}" height="${graphOutputHeight}" viewBox="0 0 ${graphWidth} ${svgHeight}">
   <defs>
     <style>
       text {
@@ -102,9 +113,9 @@ function renderTetrioVersusGraphSvg(input) {
       }
     </style>
   </defs>
-  <rect width="${graphWidth}" height="${graphHeight}" class="page"/>
+  <rect width="${graphWidth}" height="${svgHeight}" class="page"/>
   ${legendMarkup}
-  <g>
+  <g transform="translate(0 ${chartOffsetY})">
     ${gridMarkup}
     ${axisMarkup}
     ${dataMarkup}
@@ -196,37 +207,70 @@ function getLabelAnchor(cosine) {
   return 'middle';
 }
 
-function renderLegend(series, y = 18) {
-  const entries = getLegendLayout(series, y);
+function renderLegend(entries) {
   return entries.map((entry) => `
-  <rect x="${entry.boxX}" y="${entry.y}" width="46" height="16" class="legendBox" fill="${entry.color.fill}" stroke="${entry.color.stroke}"/>
+  <rect x="${entry.boxX}" y="${entry.y}" width="${legendBoxWidth}" height="${legendBoxHeight}" class="legendBox" fill="${entry.color.fill}" stroke="${entry.color.stroke}"/>
   <text x="${entry.textX}" y="${entry.y + 13}" class="legendText" fill="${entry.color.text}">${escapeXml(entry.text)}</text>`).join('\n');
 }
 
-function getLegendLayout(series, y = 18) {
-  const maxNameLength = series.length > 2 ? 12 : 18;
+function getLegendLayout(series, y = legendStartY) {
+  const maxRowWidth = graphWidth - legendMarginX * 2;
   const entries = series.map((entry, index) => {
-    const text = truncateText(entry.username.toUpperCase(), maxNameLength);
-    const width = 46 + 10 + estimateLegendTextWidth(text) + 26;
+    const text = entry.username.toUpperCase();
+    const width = legendBoxWidth + legendTextGap + estimateLegendTextWidth(text);
     return {
       text,
       width,
       color: getSeriesColor(index),
     };
   });
-  const totalWidth = entries.reduce((sum, entry) => sum + entry.width, 0) - 24;
-  let cursorX = Math.max(16, Math.round((graphWidth - totalWidth) / 2));
 
-  return entries.map((entry) => {
-    const layout = {
-      ...entry,
-      boxX: cursorX,
-      textX: cursorX + 56,
-      y,
-    };
-    cursorX += entry.width;
-    return layout;
+  const rows = [];
+  let currentRow = [];
+  let currentRowWidth = 0;
+
+  for (const entry of entries) {
+    const nextRowWidth = currentRow.length > 0
+      ? currentRowWidth + legendGapX + entry.width
+      : entry.width;
+
+    if (currentRow.length > 0 && nextRowWidth > maxRowWidth) {
+      rows.push(currentRow);
+      currentRow = [entry];
+      currentRowWidth = entry.width;
+      continue;
+    }
+
+    currentRow.push(entry);
+    currentRowWidth = nextRowWidth;
+  }
+
+  if (currentRow.length > 0) {
+    rows.push(currentRow);
+  }
+
+  const layoutEntries = rows.flatMap((row, rowIndex) => {
+    const rowWidth = row.reduce((sum, entry) => sum + entry.width, 0)
+      + legendGapX * Math.max(0, row.length - 1);
+    let cursorX = Math.max(legendMarginX, Math.round((graphWidth - rowWidth) / 2));
+    const rowY = y + rowIndex * legendRowHeight;
+
+    return row.map((entry) => {
+      const layout = {
+        ...entry,
+        boxX: cursorX,
+        textX: cursorX + legendBoxWidth + legendTextGap,
+        y: rowY,
+      };
+      cursorX += entry.width + legendGapX;
+      return layout;
+    });
   });
+
+  return {
+    entries: layoutEntries,
+    rowCount: Math.max(1, rows.length),
+  };
 }
 
 function getSeriesColor(index) {
@@ -234,7 +278,7 @@ function getSeriesColor(index) {
 }
 
 function estimateLegendTextWidth(text) {
-  return text.length * 10.3;
+  return text.length * 12;
 }
 
 function toFiniteNumber(value) {
@@ -255,10 +299,6 @@ function firstFiniteNumber(...values) {
   }
 
   return null;
-}
-
-function truncateText(value, maxLength) {
-  return value.length > maxLength ? `${value.slice(0, maxLength - 3)}...` : value;
 }
 
 function formatPoint(point) {
