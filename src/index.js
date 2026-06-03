@@ -1,8 +1,11 @@
 import 'dotenv/config';
+import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import sharp from 'sharp';
 import {
   ActivityType,
@@ -30,6 +33,7 @@ import { createTetrioStatsCard } from './tetrio-stats-card.js';
 import { createTetrioPlaystyleGraph } from './tetrio-playstyle-graph.js';
 import { createTetrioVersusGraph } from './tetrio-versus-graph.js';
 
+const execFileAsync = promisify(execFile);
 const customEmojis = {
   seahorse: '<:seahorse:1509925255026577474>',
 };
@@ -73,6 +77,11 @@ const geminiMemoryMaxMessagesPerSession = Number(process.env.GEMINI_MEMORY_MAX_M
 const geminiMemoryMaxEntryLength = Number(process.env.GEMINI_MEMORY_MAX_ENTRY_LENGTH) || 1800;
 const geminiMemoryMaxContextLength = Number(process.env.GEMINI_MEMORY_MAX_CONTEXT_LENGTH) || 12000;
 const geminiImageMaxBytes = Number(process.env.GEMINI_IMAGE_MAX_BYTES) || 8 * 1024 * 1024;
+const vmStatusChannelId = process.env.VM_STATUS_CHANNEL_ID?.trim() ?? '';
+const vmStatusMessageId = process.env.VM_STATUS_MESSAGE_ID?.trim() ?? '';
+const vmStatusIntervalMs = Math.max(5000, Number(process.env.VM_STATUS_INTERVAL_MS) || 5000);
+const vmStatusDiskPath = process.env.VM_STATUS_DISK_PATH?.trim() || '/';
+const vmStatusMessageTitle = 'VM 상태 대시보드';
 
 const geminiSupportedImageMimeTypes = new Set([
   'image/jpeg',
@@ -242,6 +251,10 @@ if (!DISCORD_TOKEN) {
 }
 
 let discordReady = false;
+let vmStatusMessage = null;
+let vmStatusTimer = null;
+let vmStatusUpdateInFlight = false;
+let previousCpuSample = sampleCpuTimes();
 
 const server = http.createServer((request, response) => {
   if (request.url === '/health') {
@@ -274,6 +287,7 @@ client.once(Events.ClientReady, (readyClient) => {
     status: 'online',
   });
   console.log(`Logged in as ${readyClient.user.tag}`);
+  startVmStatusUpdater(readyClient);
 });
 
 client.on(Events.Error, (error) => {
@@ -511,9 +525,316 @@ process.on('uncaughtException', (error) => {
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => {
     console.log(`Received ${signal}, shutting down...`);
+    stopVmStatusUpdater();
     client.destroy();
     server.close(() => process.exit(0));
   });
+}
+
+function startVmStatusUpdater(readyClient) {
+  if (!vmStatusChannelId) {
+    return;
+  }
+
+  stopVmStatusUpdater();
+  console.log(`VM status updater enabled for channel ${vmStatusChannelId} every ${vmStatusIntervalMs}ms.`);
+  void updateVmStatusMessage(readyClient);
+  vmStatusTimer = setInterval(() => {
+    void updateVmStatusMessage(readyClient);
+  }, vmStatusIntervalMs);
+}
+
+function stopVmStatusUpdater() {
+  if (vmStatusTimer) {
+    clearInterval(vmStatusTimer);
+    vmStatusTimer = null;
+  }
+
+  vmStatusUpdateInFlight = false;
+}
+
+async function updateVmStatusMessage(readyClient) {
+  if (vmStatusUpdateInFlight) {
+    return;
+  }
+
+  vmStatusUpdateInFlight = true;
+
+  try {
+    vmStatusMessage ??= await resolveVmStatusMessage(readyClient);
+    if (!vmStatusMessage) {
+      return;
+    }
+
+    const content = await createVmStatusMessageContent();
+    await vmStatusMessage.edit({
+      content,
+      allowedMentions: { parse: [] },
+    });
+  } catch (error) {
+    console.error('Failed to update VM status message:');
+    console.error(error);
+
+    if (error?.code === 10008) {
+      vmStatusMessage = null;
+    }
+  } finally {
+    vmStatusUpdateInFlight = false;
+  }
+}
+
+async function resolveVmStatusMessage(readyClient) {
+  const channel = await readyClient.channels.fetch(vmStatusChannelId).catch((error) => {
+    console.error(`Failed to fetch VM status channel ${vmStatusChannelId}:`);
+    console.error(error);
+    return null;
+  });
+
+  if (!channel?.isTextBased?.() || !channel.messages || typeof channel.send !== 'function') {
+    console.error(`VM status channel ${vmStatusChannelId} is not a sendable text channel.`);
+    return null;
+  }
+
+  if (vmStatusMessageId) {
+    const configuredMessage = await channel.messages.fetch(vmStatusMessageId).catch((error) => {
+      console.error(`Failed to fetch VM status message ${vmStatusMessageId}:`);
+      console.error(error);
+      return null;
+    });
+
+    if (configuredMessage) {
+      return configuredMessage;
+    }
+  }
+
+  const recentMessages = await channel.messages.fetch({ limit: 25 }).catch(() => null);
+  const reusableMessage = recentMessages
+    ?.find((message) =>
+      message.author?.id === readyClient.user.id
+      && message.content.includes(vmStatusMessageTitle)
+    );
+
+  if (reusableMessage) {
+    return reusableMessage;
+  }
+
+  return channel.send({
+    content: `${vmStatusMessageTitle}\n상태 수집 중...`,
+    allowedMentions: { parse: [] },
+  });
+}
+
+async function createVmStatusMessageContent() {
+  const cpuUsagePercent = sampleCpuUsagePercent();
+  const memory = getMemoryUsage();
+  const disk = await getDiskUsage(vmStatusDiskPath);
+  const loadAverage = os.loadavg();
+  const processMemory = process.memoryUsage();
+
+  return [
+    `**${vmStatusMessageTitle}**`,
+    `마지막 갱신: ${formatKoreanDateTime(new Date())}`,
+    `업데이트 간격: ${formatDuration(vmStatusIntervalMs / 1000)}`,
+    '',
+    `CPU: ${formatVmPercent(cpuUsagePercent)} ${renderUsageBar(cpuUsagePercent)} (${os.cpus().length} vCPU, load ${formatLoadAverage(loadAverage)})`,
+    `메모리: ${formatBytes(memory.used)} / ${formatBytes(memory.total)} (${formatVmPercent(memory.percent)}) ${renderUsageBar(memory.percent)}`,
+    disk
+      ? `저장공간(${disk.path}): ${formatBytes(disk.used)} / ${formatBytes(disk.total)} (${formatVmPercent(disk.percent)}) ${renderUsageBar(disk.percent)}`
+      : `저장공간(${vmStatusDiskPath}): 측정 실패`,
+    `봇 메모리(RSS): ${formatBytes(processMemory.rss)}`,
+    `VM uptime: ${formatDuration(os.uptime())}`,
+    `봇 uptime: ${formatDuration(process.uptime())}`,
+  ].join('\n');
+}
+
+function sampleCpuTimes() {
+  const cpus = os.cpus();
+  let idle = 0;
+  let total = 0;
+
+  for (const cpu of cpus) {
+    idle += cpu.times.idle;
+    total += Object.values(cpu.times).reduce((sum, value) => sum + value, 0);
+  }
+
+  return { idle, total };
+}
+
+function sampleCpuUsagePercent() {
+  const currentSample = sampleCpuTimes();
+  const previousSample = previousCpuSample;
+  previousCpuSample = currentSample;
+
+  if (!previousSample) {
+    return null;
+  }
+
+  const idleDelta = currentSample.idle - previousSample.idle;
+  const totalDelta = currentSample.total - previousSample.total;
+
+  if (totalDelta <= 0) {
+    return null;
+  }
+
+  return clampPercent(100 - (idleDelta / totalDelta) * 100);
+}
+
+function getMemoryUsage() {
+  const total = os.totalmem();
+  const free = os.freemem();
+  const used = Math.max(0, total - free);
+
+  return {
+    total,
+    used,
+    free,
+    percent: total > 0 ? clampPercent((used / total) * 100) : null,
+  };
+}
+
+async function getDiskUsage(diskPath) {
+  const normalizedPath = diskPath || '/';
+
+  if (typeof fs.statfs === 'function') {
+    try {
+      const stats = await fs.statfs(normalizedPath);
+      const blockSize = Number(stats.bsize ?? 0);
+      const total = Number(stats.blocks ?? 0) * blockSize;
+      const free = Number(stats.bavail ?? stats.bfree ?? 0) * blockSize;
+
+      if (total > 0) {
+        const used = Math.max(0, total - free);
+        return {
+          path: normalizedPath,
+          total,
+          used,
+          free,
+          percent: clampPercent((used / total) * 100),
+        };
+      }
+    } catch {
+      // Fall through to df for older or platform-specific statfs behavior.
+    }
+  }
+
+  return getDiskUsageFromDf(normalizedPath);
+}
+
+async function getDiskUsageFromDf(diskPath) {
+  try {
+    const { stdout } = await execFileAsync('df', ['-Pk', diskPath], { timeout: 3000 });
+    const lines = stdout.trim().split(/\r?\n/);
+    const columns = lines.at(-1)?.trim().split(/\s+/) ?? [];
+    const total = Number(columns[1]) * 1024;
+    const used = Number(columns[2]) * 1024;
+    const free = Number(columns[3]) * 1024;
+    const mountedPath = columns.slice(5).join(' ') || diskPath;
+
+    if (!Number.isFinite(total) || total <= 0) {
+      return null;
+    }
+
+    return {
+      path: mountedPath,
+      total,
+      used,
+      free,
+      percent: clampPercent((used / total) * 100),
+    };
+  } catch (error) {
+    console.error(`Failed to read disk usage for ${diskPath}:`);
+    console.error(error);
+    return null;
+  }
+}
+
+function renderUsageBar(percent) {
+  if (!Number.isFinite(percent)) {
+    return '[측정 중]';
+  }
+
+  const width = 12;
+  const filled = Math.max(0, Math.min(width, Math.round((percent / 100) * width)));
+  return `[${'#'.repeat(filled)}${'-'.repeat(width - filled)}]`;
+}
+
+function formatVmPercent(percent) {
+  return Number.isFinite(percent)
+    ? `${percent.toFixed(1)}%`
+    : '측정 중';
+}
+
+function clampPercent(value) {
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(100, value));
+}
+
+function formatLoadAverage(loadAverage) {
+  if (!Array.isArray(loadAverage) || loadAverage.length < 3) {
+    return '0.00 / 0.00 / 0.00';
+  }
+
+  return loadAverage
+    .slice(0, 3)
+    .map((value) => Number(value).toFixed(2))
+    .join(' / ');
+}
+
+function formatBytes(bytes) {
+  const value = Number(bytes);
+  if (!Number.isFinite(value) || value < 0) {
+    return '0 B';
+  }
+
+  const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+  let size = value;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+
+  const digits = size >= 100 || unitIndex === 0 ? 0 : size >= 10 ? 1 : 2;
+  return `${size.toFixed(digits)} ${units[unitIndex]}`;
+}
+
+function formatDuration(totalSeconds) {
+  const seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const days = Math.floor(seconds / 86_400);
+  const hours = Math.floor((seconds % 86_400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+
+  if (days > 0) {
+    return `${days}d ${hours}h ${minutes}m`;
+  }
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${remainingSeconds}s`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${remainingSeconds}s`;
+  }
+
+  return `${remainingSeconds}s`;
+}
+
+function formatKoreanDateTime(date) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(date);
 }
 
 async function handlePercentMessageCommand(message) {
