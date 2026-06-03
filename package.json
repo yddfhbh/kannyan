@@ -18,6 +18,8 @@
   "dependencies": {
     "discord.js": "^14.19.3",
     "dotenv": "^16.5.0",
+    "jsdom": "^26.1.0",
+    "minomuncher-core": "^0.0.5",
     "sharp": "^0.34.5"
   }
 }

@@ -80,6 +80,16 @@ const commands = [
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('분석')
+    .setDescription('첨부한 TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석합니다.')
+    .addAttachmentOption((option) =>
+      option
+        .setName('파일')
+        .setDescription('선택사항: TETR.IO .ttrm 리플레이 파일')
+        .setRequired(false)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('랭크컷')
     .setDescription('TETRA LEAGUE 랭크컷 이미지를 보여줍니다.')
     .toJSON(),

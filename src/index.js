@@ -32,6 +32,7 @@ import { fetchTetrioStatsCardData } from './tetrio-stats.js';
 import { createTetrioStatsCard } from './tetrio-stats-card.js';
 import { createTetrioPlaystyleGraph } from './tetrio-playstyle-graph.js';
 import { createTetrioVersusGraph } from './tetrio-versus-graph.js';
+import { createMinomuncherAnalysis } from './minomuncher-analysis.js';
 
 const execFileAsync = promisify(execFile);
 const customEmojis = {
@@ -78,6 +79,7 @@ const geminiMemoryMaxMessagesPerSession = Number(process.env.GEMINI_MEMORY_MAX_M
 const geminiMemoryMaxEntryLength = Number(process.env.GEMINI_MEMORY_MAX_ENTRY_LENGTH) || 1800;
 const geminiMemoryMaxContextLength = Number(process.env.GEMINI_MEMORY_MAX_CONTEXT_LENGTH) || 12000;
 const geminiImageMaxBytes = Number(process.env.GEMINI_IMAGE_MAX_BYTES) || 8 * 1024 * 1024;
+const minomuncherReplayMaxBytes = Number(process.env.MINOMUNCHER_REPLAY_MAX_BYTES) || 25 * 1024 * 1024;
 const vmStatusChannelId = process.env.VM_STATUS_CHANNEL_ID?.trim() ?? '';
 const vmStatusMessageId = process.env.VM_STATUS_MESSAGE_ID?.trim() ?? '';
 const vmStatusIntervalMs = Math.max(5000, Number(process.env.VM_STATUS_INTERVAL_MS) || 5000);
@@ -227,6 +229,7 @@ const percentCommandAliases = {
   tetrioStats: ['ts'],
   tetrioPlaystyleGraph: ['psq'],
   tetrioVersusGraph: ['vs'],
+  minomuncher: ['munch'],
   tetr: ['tetr', 'tetoranks'],
   quickplay: ['qp'],
   expertQuickplay: ['exqp'],
@@ -446,6 +449,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (interaction.commandName === '비교') {
       await showTetrioVersusGraph(interaction);
+      return;
+    }
+
+    if (interaction.commandName === '분석') {
+      await showMinomuncherAnalysis(interaction);
       return;
     }
 
@@ -941,6 +949,11 @@ async function handlePercentMessageCommand(message) {
 
   if (command === 'tetrioVersusGraph') {
     await showTetrioVersusGraphMessage(message, input);
+    return true;
+  }
+
+  if (command === 'minomuncher') {
+    await showMinomuncherAnalysisMessage(message, input);
     return true;
   }
 
@@ -1972,6 +1985,7 @@ function getHelpMessage() {
     '`/스탯 닉네임:[TETR.IO 닉네임]` 또는 `%ts 닉네임` - TETR.IO 스탯 카드 형식을 보여줍니다. 닉네임을 생략하면 연동된 계정을 사용합니다.',
     '`/그래프 닉네임:[TETR.IO 닉네임]` 또는 `%psq 닉네임` - Opener/Plonk/Stride/Inf DS 그래프를 보여줍니다. 닉네임을 여러 개 입력하면 겹쳐 그리고, 생략하면 연동된 계정을 사용합니다. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있습니다.',
     '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여줍니다. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시합니다.',
+    '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석합니다. 파일이 없으면 `ttrm파일 달라냥!`을 보냅니다.',
     '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여줍니다.',
     '`/체스비교 플랫폼:<체닷|리체스> 타임컨트롤:<래피드|블리츠|불렛> 닉네임1:<이름> 닉네임2:<이름>` - 두 사람의 점수와 예상 승률을 비교합니다.',
     '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산합니다.',
@@ -2326,6 +2340,140 @@ async function showTetrioVersusGraph(interaction) {
 
     await interaction.editReply('비교 그래프를 렌더링하지 못했어요. 잠시 후 다시 시도해 주세요.');
   }
+}
+
+async function showMinomuncherAnalysis(interaction) {
+  const replayAttachment = interaction.options.getAttachment('파일');
+
+  await interaction.deferReply();
+
+  try {
+    const replayFiles = await fetchMinomuncherReplayAttachments(
+      replayAttachment ? [replayAttachment] : []
+    );
+
+    if (replayFiles.length === 0) {
+      await interaction.editReply('ttrm파일 달라냥!');
+      return;
+    }
+
+    await sendMinomuncherAnalysisForInteraction(interaction, replayFiles);
+  } catch (error) {
+    console.error('Failed to render MinoMuncher analysis:');
+    console.error(error);
+    await interaction.editReply(getMinomuncherErrorMessage(error));
+  }
+}
+
+async function showMinomuncherAnalysisMessage(message, input) {
+  try {
+    await message.channel.sendTyping();
+
+    const replayFiles = await fetchMinomuncherReplayAttachments(message.attachments.values());
+    if (replayFiles.length === 0) {
+      await message.reply({
+        content: 'ttrm파일 달라냥!',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    await sendMinomuncherAnalysisForMessage(message, replayFiles);
+  } catch (error) {
+    console.error('Failed to render MinoMuncher analysis:');
+    console.error(error);
+
+    await message.reply({
+      content: getMinomuncherErrorMessage(error),
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+
+async function sendMinomuncherAnalysisForInteraction(interaction, replayFiles = []) {
+  const result = await createMinomuncherAnalysis({ replays: replayFiles });
+  const attachments = createMinomuncherAttachments(result.files);
+
+  if (attachments.length === 0) {
+    await interaction.editReply('첨부한 리플레이에서 분석할 플레이어를 찾지 못했다냥.');
+    return;
+  }
+
+  await interaction.editReply({ files: attachments });
+}
+
+async function sendMinomuncherAnalysisForMessage(message, replayFiles = []) {
+  const result = await createMinomuncherAnalysis({ replays: replayFiles });
+  const attachments = createMinomuncherAttachments(result.files);
+
+  if (attachments.length === 0) {
+    await message.reply({
+      content: '첨부한 리플레이에서 분석할 플레이어를 찾지 못했다냥.',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  await message.reply({
+    files: attachments,
+    allowedMentions: { repliedUser: false },
+  });
+}
+
+function createMinomuncherAttachments(files) {
+  return (files ?? []).map((file) => new AttachmentBuilder(file.buffer, {
+    name: file.name,
+  }));
+}
+
+async function fetchMinomuncherReplayAttachments(attachments) {
+  const replayAttachments = [...(attachments ?? [])].filter(isMinomuncherReplayAttachment);
+  const replayFiles = [];
+
+  for (const attachment of replayAttachments) {
+    if (attachment.size > minomuncherReplayMaxBytes) {
+      const error = new Error('MinoMuncher replay attachment is too large');
+      error.code = 'MINOMUNCHER_REPLAY_TOO_LARGE';
+      error.fileName = attachment.name;
+      throw error;
+    }
+
+    const response = await fetch(attachment.url);
+    if (!response.ok) {
+      const error = new Error(`Failed to download replay attachment: ${response.status}`);
+      error.code = 'MINOMUNCHER_REPLAY_DOWNLOAD_FAILED';
+      error.status = response.status;
+      error.fileName = attachment.name;
+      throw error;
+    }
+
+    replayFiles.push({
+      name: attachment.name ?? 'replay.ttrm',
+      content: await response.text(),
+    });
+  }
+
+  return replayFiles;
+}
+
+function isMinomuncherReplayAttachment(attachment) {
+  return /\.(?:ttrm|json|txt)$/i.test(String(attachment?.name ?? ''));
+}
+
+function getMinomuncherErrorMessage(error) {
+  if (error?.code === 'MINOMUNCHER_REPLAY_TOO_LARGE') {
+    return `${error.fileName ?? '첨부 파일'}은 너무 크다냥. ${Math.floor(minomuncherReplayMaxBytes / 1024 / 1024)}MB 이하로 올려주세요.`;
+  }
+
+  if (error?.code === 'MINOMUNCHER_REPLAY_DOWNLOAD_FAILED') {
+    return `${error.fileName ?? '첨부 파일'}을 내려받지 못했다냥. 다시 올려주세요.`;
+  }
+
+  if (error?.code === 'MINOMUNCHER_REPLAY_PARSE_FAILED') {
+    return '첨부한 리플레이를 파싱하지 못했다냥. `.ttrm` 파일이 맞는지 확인해 주세요.';
+  }
+
+  return '분석 그래프를 만들지 못했어요. 잠시 후 다시 시도해 주세요.';
 }
 
 async function fetchTetrioStatsCardDataForInteraction(interaction, targets) {
@@ -3479,6 +3627,15 @@ async function showLinkedTetrioProfileMessage(message, user = message.author) {
 }
 
 async function sendUnlinkedTetrioImage(message) {
+  const attachment = await createUnlinkedTetrioAttachment();
+
+  await message.reply({
+    files: [attachment],
+    allowedMentions: { repliedUser: false },
+  });
+}
+
+async function createUnlinkedTetrioAttachment() {
   const resizedImage = await sharp(unlinkedTetrioImagePath)
     .resize({
       width: Math.max(1, Math.round(200 * unlinkedTetrioImageScale)),
@@ -3486,13 +3643,9 @@ async function sendUnlinkedTetrioImage(message) {
     })
     .jpeg()
     .toBuffer();
-  const attachment = new AttachmentBuilder(resizedImage, {
-    name: 'teto-unlinked.jpg',
-  });
 
-  await message.reply({
-    files: [attachment],
-    allowedMentions: { repliedUser: false },
+  return new AttachmentBuilder(resizedImage, {
+    name: 'teto-unlinked.jpg',
   });
 }
 
