@@ -238,6 +238,54 @@ const commands = [
         .addChoices(...quickPlayRecordChoices)
     )
     .toJSON(),
+  new SlashCommandBuilder()
+    .setName('40라인')
+    .setDescription('TETR.IO 40 LINES top 또는 recent 기록의 시간을 이미지로 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('숫자')
+        .setDescription('가져올 기록 순번, 기본값은 1')
+        .setRequired(false)
+        .setMinValue(1)
+    )
+    .addStringOption((option) =>
+      option
+        .setName('recent')
+        .setDescription('생략하면 top, recent를 고르면 최근 기록 기준으로 가져옵니다.')
+        .setRequired(false)
+        .addChoices(...quickPlayRecordChoices)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('블리츠')
+    .setDescription('TETR.IO BLITZ top 또는 recent 기록의 점수를 이미지로 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('숫자')
+        .setDescription('가져올 기록 순번, 기본값은 1')
+        .setRequired(false)
+        .setMinValue(1)
+    )
+    .addStringOption((option) =>
+      option
+        .setName('recent')
+        .setDescription('생략하면 top, recent를 고르면 최근 기록 기준으로 가져옵니다.')
+        .setRequired(false)
+        .addChoices(...quickPlayRecordChoices)
+    )
+    .toJSON(),
 ];
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);

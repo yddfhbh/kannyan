@@ -15,13 +15,52 @@ const quickPlayFontFamily = '"HUN", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sa
 const tetrioQuickPlayModes = {
   zenith: {
     code: 'zenith',
+    title: 'FINAL ALTITUDE',
+    unit: 'M',
+    getMainValue: getQuickPlayAltitude,
+    formatMainValue: formatAltitudeText,
+    buildStatsRows: buildQuickPlayStatsRows,
+    valueKey: 'altitude',
+    textKey: 'altitudeText',
     notFoundMessage: 'No quick play record found for the requested position',
     unavailableMessage: 'Quick play altitude is unavailable',
   },
   zenithex: {
     code: 'zenithex',
+    title: 'FINAL ALTITUDE',
+    unit: 'M',
+    getMainValue: getQuickPlayAltitude,
+    formatMainValue: formatAltitudeText,
+    buildStatsRows: buildQuickPlayStatsRows,
+    valueKey: 'altitude',
+    textKey: 'altitudeText',
     notFoundMessage: 'No expert quick play record found for the requested position',
     unavailableMessage: 'Expert quick play altitude is unavailable',
+  },
+  '40l': {
+    code: '40l',
+    title: 'FINAL TIME',
+    unit: '',
+    getMainValue: getFortyLinesFinalTime,
+    formatMainValue: formatQuickPlayTime,
+    buildStatsRows: buildFortyLinesStatsRows,
+    mainValueFormat: 'timeSplitDecimal',
+    valueKey: 'finalTime',
+    textKey: 'finalTimeText',
+    notFoundMessage: 'No 40 Lines record found for the requested position',
+    unavailableMessage: '40 Lines final time is unavailable',
+  },
+  blitz: {
+    code: 'blitz',
+    title: 'FINAL SCORE',
+    unit: '',
+    getMainValue: getBlitzScore,
+    formatMainValue: formatInteger,
+    buildStatsRows: buildBlitzStatsRows,
+    valueKey: 'score',
+    textKey: 'scoreText',
+    notFoundMessage: 'No Blitz record found for the requested position',
+    unavailableMessage: 'Blitz score is unavailable',
   },
 };
 const quickPlayFloorNames = [
@@ -73,6 +112,22 @@ export async function createExpertQuickPlayRecentAltitudeCard(username, recordIn
   return createTetrioAltitudeCard(username, recordIndex, 'zenithex', 'recent');
 }
 
+export async function createFortyLinesTimeCard(username, recordIndex = 1) {
+  return createTetrioAltitudeCard(username, recordIndex, '40l');
+}
+
+export async function createFortyLinesRecentTimeCard(username, recordIndex = 1) {
+  return createTetrioAltitudeCard(username, recordIndex, '40l', 'recent');
+}
+
+export async function createBlitzScoreCard(username, recordIndex = 1) {
+  return createTetrioAltitudeCard(username, recordIndex, 'blitz');
+}
+
+export async function createBlitzRecentScoreCard(username, recordIndex = 1) {
+  return createTetrioAltitudeCard(username, recordIndex, 'blitz', 'recent');
+}
+
 async function createTetrioAltitudeCard(username, recordIndex = 1, mode = 'zenith', leaderboard = 'top') {
   const normalizedUsername = normalizeTetrioUsername(username);
   const normalizedRecordIndex = normalizeRecordIndex(recordIndex);
@@ -99,26 +154,32 @@ async function createTetrioAltitudeCard(username, recordIndex = 1, mode = 'zenit
     throw error;
   }
 
-  const altitude = Number(record.results?.stats?.zenith?.altitude);
-  if (!Number.isFinite(altitude) || altitude < 0) {
+  const mainValue = modeInfo.getMainValue(record);
+  if (!Number.isFinite(mainValue) || mainValue < 0) {
     const error = new Error(modeInfo.unavailableMessage);
     error.code = 'NO_RECORD';
     error.status = 404;
     throw error;
   }
 
-  const altitudeText = formatAltitudeText(altitude);
+  const mainText = modeInfo.formatMainValue(mainValue);
+  const statsRows = modeInfo.buildStatsRows(record);
   const [modIcons, hunFont] = await Promise.all([
     fetchQuickPlayModIcons(record),
     fetchTetrioHunFontDataUri(),
   ]);
-  const svg = renderQuickPlayAltitudeSvg(record, normalizedUsername, altitudeText, modIcons, hunFont);
+  const svg = renderQuickPlayAltitudeSvg(record, normalizedUsername, mainText, modIcons, hunFont, {
+    mainValueFormat: modeInfo.mainValueFormat,
+    statsRows,
+    title: modeInfo.title,
+    unit: modeInfo.unit,
+  });
   const image = await sharp(Buffer.from(svg)).png().toBuffer();
 
   return {
     image,
-    altitude,
-    altitudeText,
+    [modeInfo.valueKey]: mainValue,
+    [modeInfo.textKey]: mainText,
     leaderboard: normalizedLeaderboard,
     mode: modeInfo.code,
     username: normalizedUsername,
@@ -227,6 +288,18 @@ function formatAltitudeText(value) {
   return `${whole.toLocaleString('en-US')}.${decimal}`;
 }
 
+function getQuickPlayAltitude(record) {
+  return Number(record?.results?.stats?.zenith?.altitude);
+}
+
+function getFortyLinesFinalTime(record) {
+  return Number(record?.results?.stats?.finaltime);
+}
+
+function getBlitzScore(record) {
+  return Number(record?.results?.stats?.score);
+}
+
 function fetchTetrioHunFontDataUri() {
   tetrioHunFontDataUriPromise ??= readLocalFontDataUri(localHunFontPath)
     .then((localFont) => localFont ?? fetchFontDataUri(tetrioHunFontUrl));
@@ -271,25 +344,28 @@ async function fetchQuickPlayModIcons(record) {
   return entries.filter(Boolean);
 }
 
-function renderQuickPlayAltitudeSvg(record, username, altitudeText, modIcons = [], hunFontDataUri = null) {
-  const altitudeValueFontSize = 109;
-  const altitudeGroupCenterX = 700;
-  const altitudeGap = 5;
-  const altitudeValueWidth = estimateQuickPlayValueWidth(altitudeText, altitudeValueFontSize);
-  const altitudeUnitWidth = estimateQuickPlayUnitWidth('M', 64);
-  const altitudeGroupWidth = altitudeValueWidth + altitudeGap + altitudeUnitWidth;
-  const altitudeGroupLeftX = altitudeGroupCenterX - altitudeGroupWidth / 2;
-  const altitudeValueX = altitudeGroupLeftX + altitudeValueWidth;
-  const altitudeUnitX = altitudeValueX + altitudeGap;
+function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], hunFontDataUri = null, options = {}) {
+  const mainTitle = options.title ?? 'FINAL ALTITUDE';
+  const mainUnit = options.unit === undefined ? 'M' : String(options.unit ?? '');
+  const statsRows = options.statsRows ?? buildQuickPlayStatsRows(record);
+  const mainValueFormat = options.mainValueFormat ?? 'plain';
+  const valueFontSize = 109;
+  const valueGroupCenterX = 700;
+  const valueGap = mainUnit ? 5 : 0;
+  const valueWidth = mainUnit ? estimateQuickPlayValueWidth(mainText, valueFontSize) : 0;
+  const unitWidth = mainUnit ? estimateQuickPlayUnitWidth(mainUnit, 64) : 0;
+  const valueGroupWidth = valueWidth + valueGap + unitWidth;
+  const valueGroupLeftX = valueGroupCenterX - valueGroupWidth / 2;
+  const valueX = valueGroupLeftX + valueWidth;
+  const unitX = valueX + valueGap;
   const topPanelY = 8;
   const topPanelHeight = 303;
-  const altitudeTitleShadowY = topPanelY + 61;
-  const altitudeTitleY = topPanelY + 59;
-  const altitudeInnerBoxY = topPanelY + 88;
-  const altitudeTextY = topPanelY + 176;
-  const altitudeValueTextY = altitudeTextY - 1;
-  const modIconY = altitudeInnerBoxY + 139;
-  const statsRows = buildQuickPlayStatsRows(record);
+  const mainTitleShadowY = topPanelY + 61;
+  const mainTitleY = topPanelY + 59;
+  const mainInnerBoxY = topPanelY + 88;
+  const mainTextY = topPanelY + 176;
+  const mainValueTextY = mainTextY - 1;
+  const modIconY = mainInnerBoxY + 139;
   const statsPanelY = 331;
   const statsInnerBoxX = 18;
   const statsInnerBoxY = statsPanelY + 84;
@@ -304,6 +380,17 @@ function renderQuickPlayAltitudeSvg(record, username, altitudeText, modIcons = [
   const playedAtText = `PLAYED BY ${String(username ?? '').toUpperCase()} \u00B7 ${formatPlayedAtKst(record?.ts)}`;
   const svgHeight = playedAtPanelY + playedAtPanelHeight + 12;
   const modIconMarkup = renderQuickPlayModIcons(modIcons, modIconY);
+  const mainValueMarkup = renderQuickPlayMainValueMarkup({
+    centerX: valueGroupCenterX,
+    fontSize: valueFontSize,
+    format: mainValueFormat,
+    text: mainText,
+    unit: mainUnit,
+    unitX,
+    unitY: mainTextY,
+    valueX,
+    valueY: mainValueTextY,
+  });
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="${svgHeight}" viewBox="0 0 1400 ${svgHeight}">
@@ -341,7 +428,7 @@ function renderQuickPlayAltitudeSvg(record, username, altitudeText, modIcons = [
       }
       .value {
         fill: #bcf8bc;
-        font-size: ${altitudeValueFontSize}px;
+        font-size: ${valueFontSize}px;
         font-weight: 800;
       }
       .unit {
@@ -378,13 +465,10 @@ function renderQuickPlayAltitudeSvg(record, username, altitudeText, modIcons = [
 
   <rect width="1400" height="${svgHeight}" rx="3" fill="url(#bg)" stroke="#3d6640" stroke-width="4"/>
   <rect x="8" y="${topPanelY}" width="1384" height="${topPanelHeight}" rx="3" fill="#254726" stroke="#3d6640" stroke-width="4"/>
-  <text x="34" y="${altitudeTitleShadowY}" class="title" fill="#000000" opacity="0.32">FINAL ALTITUDE</text>
-  <text x="32" y="${altitudeTitleY}" class="title">FINAL ALTITUDE</text>
-  <rect x="22" y="${altitudeInnerBoxY}" width="1356" height="180" rx="6" fill="#1b381b" opacity="0.98"/>
-  <g filter="url(#valueGlow)">
-    <text x="${altitudeValueX}" y="${altitudeValueTextY}" text-anchor="end" dominant-baseline="middle" class="value">${escapeXml(altitudeText)}</text>
-  </g>
-  <text x="${altitudeUnitX}" y="${altitudeTextY}" text-anchor="start" dominant-baseline="middle" class="unit">M</text>
+  <text x="34" y="${mainTitleShadowY}" class="title" fill="#000000" opacity="0.32">${escapeXml(mainTitle)}</text>
+  <text x="32" y="${mainTitleY}" class="title">${escapeXml(mainTitle)}</text>
+  <rect x="22" y="${mainInnerBoxY}" width="1356" height="180" rx="6" fill="#1b381b" opacity="0.98"/>
+  ${mainValueMarkup}
   ${modIconMarkup}
 
   <rect x="8" y="${statsPanelY}" width="1384" height="${statsPanelHeight}" rx="3" fill="#254726" stroke="#3d6640" stroke-width="4"/>
@@ -402,6 +486,50 @@ function renderQuickPlayAltitudeSvg(record, username, altitudeText, modIcons = [
   <text x="34" y="${playedAtPanelY + playedAtPanelHeight / 2 + 2}" dominant-baseline="middle" class="metaText" fill="#000000" opacity="0.32">${escapeXml(playedAtText)}</text>
   <text x="32" y="${playedAtPanelY + playedAtPanelHeight / 2}" dominant-baseline="middle" class="metaText">${escapeXml(playedAtText)}</text>
 </svg>`;
+}
+
+function renderQuickPlayMainValueMarkup({
+  centerX,
+  fontSize,
+  format,
+  text,
+  unit,
+  unitX,
+  unitY,
+  valueX,
+  valueY,
+}) {
+  const normalizedText = String(text ?? '');
+
+  if (!unit) {
+    if (format === 'timeSplitDecimal') {
+      const splitIndex = normalizedText.lastIndexOf('.');
+      if (splitIndex > 0 && splitIndex < normalizedText.length - 1) {
+        return `<g filter="url(#valueGlow)">
+    <text x="${centerX}" y="${valueY}" text-anchor="middle" dominant-baseline="middle" class="value">
+      <tspan>${escapeXml(normalizedText.slice(0, splitIndex))}</tspan><tspan font-size="${getQuickPlayTimedDecimalFontSize(fontSize)}" dy="0.13em">${escapeXml(normalizedText.slice(splitIndex))}</tspan>
+    </text>
+  </g>`;
+      }
+    }
+
+    return `<g filter="url(#valueGlow)">
+    <text x="${centerX}" y="${valueY}" text-anchor="middle" dominant-baseline="middle" class="value">${escapeXml(normalizedText)}</text>
+  </g>`;
+  }
+
+  return `<g filter="url(#valueGlow)">
+    <text x="${valueX}" y="${valueY}" text-anchor="end" dominant-baseline="middle" class="value">${escapeXml(normalizedText)}</text>
+  </g>
+  <text x="${unitX}" y="${unitY + getQuickPlayUnitBottomAlignmentOffset(fontSize)}" text-anchor="start" dominant-baseline="middle" class="unit">${escapeXml(unit)}</text>`;
+}
+
+function getQuickPlayTimedDecimalFontSize(fontSize) {
+  return Math.max(1, Math.round(fontSize * 0.64));
+}
+
+function getQuickPlayUnitBottomAlignmentOffset(fontSize) {
+  return Math.round(fontSize * 0.17);
 }
 
 function renderTetrioFontFace(fontDataUri) {
@@ -450,6 +578,88 @@ function buildQuickPlayStatsRows(record) {
   ];
 }
 
+function buildFortyLinesStatsRows(record) {
+  const stats = record?.results?.stats ?? {};
+  const aggregate = record?.results?.aggregatestats ?? {};
+  const finalTimeSeconds = Number(stats.finaltime) / 1000;
+  const piecesPlaced = Number(stats.piecesplaced);
+  const keysPressed = Number(stats.inputs);
+  const lines = Number(stats.lines);
+  const keysPerPiece = piecesPlaced > 0
+    ? keysPressed / piecesPlaced
+    : null;
+  const keysPerSecond = finalTimeSeconds > 0
+    ? keysPressed / finalTimeSeconds
+    : null;
+  const linesPerMinute = finalTimeSeconds > 0
+    ? lines / finalTimeSeconds * 60
+    : null;
+  const finessePercent = piecesPlaced > 0
+    ? Number(stats.finesse?.perfectpieces) / piecesPlaced
+    : null;
+
+  return [
+    { label: 'PIECES PLACED', value: formatInteger(stats.piecesplaced) },
+    { label: 'PIECES PER SECOND', value: formatDecimal(aggregate.pps, 2) },
+    { label: 'KEYS PRESSED', value: formatInteger(stats.inputs) },
+    { label: 'KEYS PER PIECE', value: formatDecimal(keysPerPiece, 3) },
+    { label: 'KEYS PER SECOND', value: formatDecimal(keysPerSecond, 3) },
+    { label: 'HOLDS', value: formatInteger(stats.holds) },
+    { label: 'SCORE', value: formatInteger(stats.score) },
+    { label: 'TIME', value: formatQuickPlayTime(stats.finaltime) },
+    { label: 'LINES', value: formatInteger(stats.lines) },
+    { label: 'LINES PER MINUTE', value: formatDecimal(linesPerMinute, 2) },
+    { label: 'SPINS', value: formatInteger(stats.tspins) },
+    { label: 'QUADS', value: formatInteger(stats.clears?.quads) },
+    { label: 'MAXIMUM COMBO', value: formatInteger(Math.max(0, Number(stats.topcombo ?? 0) - 1)) },
+    { label: 'MAXIMUM BACK-TO-BACK CHAIN', value: formatInteger(Math.max(0, Number(stats.topbtb ?? 0) - 1)) },
+    { label: 'ALL CLEARS', value: formatInteger(stats.clears?.allclear) },
+    { label: 'FINESSE %', value: formatPercent(finessePercent, 2) },
+    { label: 'FINESSE FAULTS', value: formatInteger(stats.finesse?.faults) },
+  ];
+}
+
+function buildBlitzStatsRows(record) {
+  const stats = record?.results?.stats ?? {};
+  const aggregate = record?.results?.aggregatestats ?? {};
+  const finalTimeSeconds = Number(stats.finaltime) / 1000;
+  const piecesPlaced = Number(stats.piecesplaced);
+  const keysPressed = Number(stats.inputs);
+  const lines = Number(stats.lines);
+  const keysPerPiece = piecesPlaced > 0
+    ? keysPressed / piecesPlaced
+    : null;
+  const keysPerSecond = finalTimeSeconds > 0
+    ? keysPressed / finalTimeSeconds
+    : null;
+  const linesPerMinute = finalTimeSeconds > 0
+    ? lines / finalTimeSeconds * 60
+    : null;
+  const finessePercent = piecesPlaced > 0
+    ? Number(stats.finesse?.perfectpieces) / piecesPlaced
+    : null;
+
+  return [
+    { label: 'LEVEL', value: formatInteger(stats.level) },
+    { label: 'PIECES PLACED', value: formatInteger(stats.piecesplaced) },
+    { label: 'PIECES PER SECOND', value: formatDecimal(aggregate.pps, 2) },
+    { label: 'KEYS PRESSED', value: formatInteger(stats.inputs) },
+    { label: 'KEYS PER PIECE', value: formatDecimal(keysPerPiece, 3) },
+    { label: 'KEYS PER SECOND', value: formatDecimal(keysPerSecond, 3) },
+    { label: 'HOLDS', value: formatInteger(stats.holds) },
+    { label: 'SCORE', value: formatInteger(stats.score) },
+    { label: 'TIME', value: formatQuickPlayTime(stats.finaltime) },
+    { label: 'LINES', value: formatInteger(stats.lines) },
+    { label: 'LINES PER MINUTE', value: formatDecimal(linesPerMinute, 2) },
+    { label: 'T-SPINS', value: formatInteger(stats.tspins) },
+    { label: 'MAXIMUM COMBO', value: formatInteger(Math.max(0, Number(stats.topcombo ?? 0) - 1)) },
+    { label: 'MAXIMUM BACK-TO-BACK CHAIN', value: formatInteger(Math.max(0, Number(stats.topbtb ?? 0) - 1)) },
+    { label: 'ALL CLEARS', value: formatInteger(stats.clears?.allclear) },
+    { label: 'FINESSE %', value: formatPercent(finessePercent, 2) },
+    { label: 'FINESSE FAULTS', value: formatInteger(stats.finesse?.faults) },
+  ];
+}
+
 function resolveQuickPlayAttackPerPiece(aggregate) {
   const app = Number(aggregate?.app);
   if (Number.isFinite(app)) {
@@ -466,14 +676,15 @@ function resolveQuickPlayAttackPerPiece(aggregate) {
 }
 
 function formatQuickPlayTime(milliseconds) {
-  if (!Number.isFinite(milliseconds) || milliseconds <= 0) {
+  const totalMilliseconds = Number(milliseconds);
+  if (!Number.isFinite(totalMilliseconds) || totalMilliseconds <= 0) {
     return '-';
   }
 
-  const totalMilliseconds = Math.floor(milliseconds);
-  const minutes = Math.floor(totalMilliseconds / 60_000);
-  const seconds = Math.floor((totalMilliseconds % 60_000) / 1_000);
-  const millis = totalMilliseconds % 1_000;
+  const flooredMilliseconds = Math.floor(totalMilliseconds);
+  const minutes = Math.floor(flooredMilliseconds / 60_000);
+  const seconds = Math.floor((flooredMilliseconds % 60_000) / 1_000);
+  const millis = flooredMilliseconds % 1_000;
   return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
 }
 
@@ -502,8 +713,9 @@ function formatPositionSummary(position, count) {
 }
 
 function formatDecimal(value, digits = 2) {
-  return Number.isFinite(value)
-    ? Number(value).toLocaleString('en-US', {
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? number.toLocaleString('en-US', {
       minimumFractionDigits: digits,
       maximumFractionDigits: digits,
     })
@@ -511,8 +723,19 @@ function formatDecimal(value, digits = 2) {
 }
 
 function formatInteger(value) {
-  return Number.isFinite(value)
-    ? Math.floor(value).toLocaleString('en-US')
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? Math.floor(number).toLocaleString('en-US')
+    : '-';
+}
+
+function formatPercent(value, digits = 2) {
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? `${(number * 100).toLocaleString('en-US', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    })}%`
     : '-';
 }
 

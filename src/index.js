@@ -22,8 +22,12 @@ import {
 } from './tetrio-card.js';
 import { calculateTetrioStats } from './tetrio-stats-calculations.js';
 import {
+  createBlitzRecentScoreCard,
+  createBlitzScoreCard,
   createExpertQuickPlayAltitudeCard,
   createExpertQuickPlayRecentAltitudeCard,
+  createFortyLinesRecentTimeCard,
+  createFortyLinesTimeCard,
   createQuickPlayAltitudeCard,
   createQuickPlayRecentAltitudeCard,
 } from './tetrio-quickplay.js';
@@ -234,6 +238,8 @@ const percentCommandAliases = {
   tetr: ['tetr', 'tetoranks'],
   quickplay: ['qp'],
   expertQuickplay: ['exqp'],
+  fortyLines: ['40l'],
+  blitz: ['blitz'],
 };
 const liveRatingTypes = {
   classical: {
@@ -490,6 +496,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (interaction.commandName === '익스퀵플') {
       await showExpertQuickPlayAltitude(interaction);
+      return;
+    }
+
+    if (interaction.commandName === '40라인') {
+      await showFortyLinesTime(interaction);
+      return;
+    }
+
+    if (interaction.commandName === '블리츠') {
+      await showBlitzScore(interaction);
       return;
     }
 
@@ -965,6 +981,16 @@ async function handlePercentMessageCommand(message) {
 
   if (command === 'expertQuickplay') {
     await handleQuickPlayAltitudeMessage(message, input, 'zenithex');
+    return true;
+  }
+
+  if (command === 'fortyLines') {
+    await handleQuickPlayAltitudeMessage(message, input, '40l');
+    return true;
+  }
+
+  if (command === 'blitz') {
+    await handleQuickPlayAltitudeMessage(message, input, 'blitz');
     return true;
   }
 
@@ -1995,7 +2021,9 @@ function getHelpMessage() {
     '팁: 슬래시 명령어는 옵션 선택이 편하고, `%...` 명령어는 채팅에 바로 입력해서 빠르게 쓸 수 있습니다.',
     '`/퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%qp 닉네임 [기록 번호]` - QUICK PLAY 고도 카드를 보여줍니다. 닉네임을 생략하면 연동된 계정을 사용합니다.',
     '`/익스퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%exqp 닉네임 [기록 번호]` - EXPERT QUICK PLAY 고도 카드를 보여줍니다. 닉네임을 생략하면 연동된 계정을 사용합니다.',
-    '`/퀵플`과 `/익스퀵플`은 선택 옵션 `recent`를 넣으면 최근 기록 기준으로 n번째 카드를 보여줍니다.',
+    '`/40라인 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%40L 닉네임 [기록 번호] [top|recent]` - 40 LINES top 또는 recent 기록의 시간 카드를 보여줍니다. 닉네임을 생략하면 연동된 계정을 사용합니다.',
+    '`/블리츠 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%blitz 닉네임 [기록 번호] [top|recent]` - BLITZ top 또는 recent 기록의 점수 카드를 보여줍니다. 닉네임을 생략하면 연동된 계정을 사용합니다.',
+    '`/퀵플`, `/익스퀵플`, `/40라인`, `/블리츠`는 선택 옵션 `recent`를 넣으면 최근 기록 기준으로 n번째 카드를 보여줍니다.',
     '`%질문` - 제미나이랑 채팅하고 놀 수 있습니다',
   ].join('\n');
 }
@@ -2587,6 +2615,84 @@ async function showExpertQuickPlayAltitude(interaction) {
   }
 }
 
+async function showFortyLinesTime(interaction) {
+  const leaderboard = normalizeQuickPlayLeaderboard(interaction.options.getString('recent')) ?? 'top';
+  const input = interaction.options.getString('닉네임')?.trim();
+  const recordIndex = interaction.options.getInteger('숫자') ?? 1;
+
+  await interaction.deferReply();
+
+  try {
+    const username = input
+      ? input
+      : await findTetrioUsernameByDiscordId(interaction.user.id);
+
+    if (!username) {
+      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.');
+      return;
+    }
+
+    const card = await createQuickPlayAltitudeCardForLeaderboard(username, recordIndex, '40l', leaderboard);
+    const attachment = new AttachmentBuilder(card.image, {
+      name: getQuickPlayAttachmentName(card.username, recordIndex, '40l', leaderboard),
+    });
+
+    await interaction.editReply({
+      files: [attachment],
+    });
+  } catch (error) {
+    console.error(`Failed to fetch 40 Lines time for ${input ?? 'linked account'} at rank ${recordIndex} (${leaderboard}):`);
+    console.error(error);
+
+    const knownErrorMessage = await getQuickPlayKnownErrorMessage(error, input, !input);
+    if (knownErrorMessage) {
+      await interaction.editReply(knownErrorMessage);
+      return;
+    }
+
+    await interaction.editReply('40라인 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.');
+  }
+}
+
+async function showBlitzScore(interaction) {
+  const leaderboard = normalizeQuickPlayLeaderboard(interaction.options.getString('recent')) ?? 'top';
+  const input = interaction.options.getString('닉네임')?.trim();
+  const recordIndex = interaction.options.getInteger('숫자') ?? 1;
+
+  await interaction.deferReply();
+
+  try {
+    const username = input
+      ? input
+      : await findTetrioUsernameByDiscordId(interaction.user.id);
+
+    if (!username) {
+      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.');
+      return;
+    }
+
+    const card = await createQuickPlayAltitudeCardForLeaderboard(username, recordIndex, 'blitz', leaderboard);
+    const attachment = new AttachmentBuilder(card.image, {
+      name: getQuickPlayAttachmentName(card.username, recordIndex, 'blitz', leaderboard),
+    });
+
+    await interaction.editReply({
+      files: [attachment],
+    });
+  } catch (error) {
+    console.error(`Failed to fetch Blitz score for ${input ?? 'linked account'} at rank ${recordIndex} (${leaderboard}):`);
+    console.error(error);
+
+    const knownErrorMessage = await getQuickPlayKnownErrorMessage(error, input, !input);
+    if (knownErrorMessage) {
+      await interaction.editReply(knownErrorMessage);
+      return;
+    }
+
+    await interaction.editReply('블리츠 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.');
+  }
+}
+
 function applyCustomEmojiAliases(answer, prompt) {
   let text = String(answer ?? '');
 
@@ -2621,6 +2727,18 @@ function normalizeQuickPlayLeaderboard(value) {
 
 async function createQuickPlayAltitudeCardForLeaderboard(username, recordIndex, mode, leaderboard = 'top') {
   const normalizedLeaderboard = normalizeQuickPlayLeaderboard(leaderboard) ?? 'top';
+
+  if (mode === '40l') {
+    return normalizedLeaderboard === 'recent'
+      ? createFortyLinesRecentTimeCard(username, recordIndex)
+      : createFortyLinesTimeCard(username, recordIndex);
+  }
+
+  if (mode === 'blitz') {
+    return normalizedLeaderboard === 'recent'
+      ? createBlitzRecentScoreCard(username, recordIndex)
+      : createBlitzScoreCard(username, recordIndex);
+  }
 
   if (mode === 'zenithex') {
     return normalizedLeaderboard === 'recent'
@@ -2668,7 +2786,11 @@ async function getQuickPlayKnownErrorMessage(error, username = null, assumeExist
 function getQuickPlayAttachmentName(username, recordIndex, mode, leaderboard = 'top') {
   const prefix = mode === 'zenithex'
     ? 'expert-quickplay'
-    : 'quickplay';
+    : mode === '40l'
+      ? '40lines'
+      : mode === 'blitz'
+        ? 'blitz'
+        : 'quickplay';
   const normalizedLeaderboard = normalizeQuickPlayLeaderboard(leaderboard) ?? 'top';
 
   return normalizedLeaderboard === 'recent'
@@ -2676,10 +2798,42 @@ function getQuickPlayAttachmentName(username, recordIndex, mode, leaderboard = '
     : `${prefix}-${username}-${recordIndex}.png`;
 }
 
+function getTetrioPersonalRecordCommandName(mode) {
+  if (mode === 'zenithex') {
+    return '%exqp';
+  }
+
+  if (mode === '40l') {
+    return '%40L';
+  }
+
+  if (mode === 'blitz') {
+    return '%blitz';
+  }
+
+  return '%qp';
+}
+
+function getTetrioPersonalRecordErrorMessage(mode) {
+  if (mode === 'zenithex') {
+    return '익스퍼트 퀵플레이 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+  }
+
+  if (mode === '40l') {
+    return '40라인 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+  }
+
+  if (mode === 'blitz') {
+    return '블리츠 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+  }
+
+  return '퀵플레이 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+}
+
 async function handleQuickPlayAltitudeMessage(message, input, mode = 'zenith') {
   const parsedInput = parseQuickPlayMessageInput(input);
   if (!parsedInput) {
-    const commandName = mode === 'zenithex' ? '%exqp' : '%qp';
+    const commandName = getTetrioPersonalRecordCommandName(mode);
     await message.reply({
       content: `사용법: \`${commandName} 닉네임 [숫자]\`, \`${commandName} @멘션 [숫자]\`, \`${commandName} [숫자]\``,
       allowedMentions: { repliedUser: false },
@@ -2807,7 +2961,7 @@ async function handleAmbiguousNumericQuickPlayAltitudeMessage(
     console.error(error);
 
     await message.reply({
-      content: '퀵플레이 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.',
+      content: getTetrioPersonalRecordErrorMessage(mode),
       allowedMentions: { repliedUser: false },
     });
   }
@@ -2902,9 +3056,7 @@ async function showQuickPlayAltitudeMessage(
   leaderboard = 'top',
   assumeExistingUser = false
 ) {
-  const genericErrorMessage = mode === 'zenithex'
-    ? '익스퍼트 퀵플레이 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.'
-    : '퀵플레이 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+  const genericErrorMessage = getTetrioPersonalRecordErrorMessage(mode);
 
   try {
     await message.channel.sendTyping();
@@ -2918,7 +3070,7 @@ async function showQuickPlayAltitudeMessage(
       allowedMentions: { repliedUser: false },
     });
   } catch (error) {
-    console.error(`Failed to fetch ${mode} altitude for ${username} at rank ${recordIndex} (${leaderboard}):`);
+    console.error(`Failed to fetch ${mode} record for ${username} at rank ${recordIndex} (${leaderboard}):`);
     console.error(error);
 
     const content = (await getQuickPlayKnownErrorMessage(error, username, assumeExistingUser)) ?? genericErrorMessage;
