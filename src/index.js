@@ -218,6 +218,7 @@ const defaultRatingDeviation = 350;
 const maxAlarmMinutes = 10_080;
 const unlinkedTetrioImagePath = fileURLToPath(new URL('../assets/teto-babu.jpg', import.meta.url));
 const unlinkedTetrioImageScale = 0.8;
+let unlinkedTetrioImageBufferPromise = null;
 const ambiguousNumericNicknameMinLength = 3;
 const trollingNumericInputMaxLength = 5;
 const quickPlayPersonalLeaderboards = new Set(['top', 'recent']);
@@ -3636,7 +3637,15 @@ async function sendUnlinkedTetrioImage(message) {
 }
 
 async function createUnlinkedTetrioAttachment() {
-  const resizedImage = await sharp(unlinkedTetrioImagePath)
+  const resizedImage = await getUnlinkedTetrioImageBuffer();
+
+  return new AttachmentBuilder(resizedImage, {
+    name: 'teto-unlinked.jpg',
+  });
+}
+
+function getUnlinkedTetrioImageBuffer() {
+  unlinkedTetrioImageBufferPromise ??= sharp(unlinkedTetrioImagePath)
     .resize({
       width: Math.max(1, Math.round(200 * unlinkedTetrioImageScale)),
       height: Math.max(1, Math.round(200 * unlinkedTetrioImageScale)),
@@ -3644,9 +3653,7 @@ async function createUnlinkedTetrioAttachment() {
     .jpeg()
     .toBuffer();
 
-  return new AttachmentBuilder(resizedImage, {
-    name: 'teto-unlinked.jpg',
-  });
+  return unlinkedTetrioImageBufferPromise;
 }
 
 async function showChessComRatingsMessage(message, input) {

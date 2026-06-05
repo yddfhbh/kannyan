@@ -5,6 +5,7 @@ import sharp from 'sharp';
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioGameBaseUrl = 'https://tetr.io';
 const tetrioHunFontUrl = `${tetrioGameBaseUrl}/res/font/hun2.ttf?v=6`;
+const localHunFontPath = fileURLToPath(new URL('../assets/fonts/hun2.ttf', import.meta.url));
 const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO quick play altitude',
   'X-Session-ID': 'discord-bot-tetrio-quickplay',
@@ -54,6 +55,7 @@ const localQuickPlayModIconPaths = {
   volatile_reversed: fileURLToPath(new URL('../assets/zenith-mods/volatile_reversed.png', import.meta.url)),
 };
 let tetrioHunFontDataUriPromise = null;
+const localImageDataUriCache = new Map();
 
 export async function createQuickPlayAltitudeCard(username, recordIndex = 1) {
   return createTetrioAltitudeCard(username, recordIndex, 'zenith');
@@ -226,8 +228,18 @@ function formatAltitudeText(value) {
 }
 
 function fetchTetrioHunFontDataUri() {
-  tetrioHunFontDataUriPromise ??= fetchFontDataUri(tetrioHunFontUrl);
+  tetrioHunFontDataUriPromise ??= readLocalFontDataUri(localHunFontPath)
+    .then((localFont) => localFont ?? fetchFontDataUri(tetrioHunFontUrl));
   return tetrioHunFontDataUriPromise;
+}
+
+async function readLocalFontDataUri(path) {
+  try {
+    const buffer = await readFile(path);
+    return `data:font/ttf;base64,${buffer.toString('base64')}`;
+  } catch {
+    return null;
+  }
 }
 
 async function fetchFontDataUri(url) {
@@ -556,9 +568,15 @@ async function readLocalImageDataUri(path) {
     return null;
   }
 
+  if (localImageDataUriCache.has(path)) {
+    return localImageDataUriCache.get(path);
+  }
+
   try {
     const buffer = await readFile(path);
-    return `data:image/png;base64,${buffer.toString('base64')}`;
+    const dataUri = `data:image/png;base64,${buffer.toString('base64')}`;
+    localImageDataUriCache.set(path, dataUri);
+    return dataUri;
   } catch {
     return null;
   }

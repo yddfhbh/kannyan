@@ -21,6 +21,7 @@ const muncherSingleGraphTypes = [
   'surge',
   'PPS',
 ];
+const muncherGraphRenderConcurrency = 3;
 
 export async function createMinomuncherAnalysis(options = {}) {
   const replayFiles = normalizeReplayFiles(options.replays);
@@ -91,24 +92,33 @@ function buildCumulativeStats(gameStats) {
 }
 
 async function createMinomuncherGraphFiles(stats) {
-  const files = [];
+  const graphFiles = [];
 
   for (const [groupName, graphTypes] of muncherGraphGroups) {
     const svgData = graphTypes.map((graphType) => createMinomuncherGraphSvg(graphType, stats));
     const svg = combineSvgData(svgData);
-    files.push({
+    graphFiles.push({
       name: `${groupName}.png`,
-      buffer: await renderSvgData(svg),
+      svg,
     });
   }
 
   for (const graphType of muncherSingleGraphTypes) {
     const svg = createMinomuncherGraphSvg(graphType, stats);
-    files.push({
+    graphFiles.push({
       name: `${formatAttachmentName(graphType)}.png`,
-      buffer: await renderSvgData(svg),
+      svg,
     });
   }
+
+  const files = await mapWithConcurrency(
+    graphFiles,
+    muncherGraphRenderConcurrency,
+    async ({ name, svg }) => ({
+      name,
+      buffer: await renderSvgData(svg),
+    }),
+  );
 
   files.push({
     name: 'rawStats.json',
@@ -116,6 +126,23 @@ async function createMinomuncherGraphFiles(stats) {
   });
 
   return files;
+}
+
+async function mapWithConcurrency(items, concurrency, mapper) {
+  const results = new Array(items.length);
+  const workerCount = Math.min(Math.max(1, concurrency), items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await mapper(items[index], index);
+    }
+  }
+
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
 }
 
 function createMinomuncherGraphSvg(graphType, stats) {

@@ -1,10 +1,15 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import {
+  fetchCachedTetrioRankCutData,
+  getCachedTetrioRankCutDataExpiresAt,
+  getNextRankCutExpiryTime,
+} from './tetrio-rankcut-cache.js';
 
-const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioGameBaseUrl = 'https://tetr.io';
 const tetrioHunFontUrl = `${tetrioGameBaseUrl}/res/font/hun2.ttf?v=6`;
+const localHunFontPath = fileURLToPath(new URL('../assets/fonts/hun2.ttf', import.meta.url));
 const tlLogoPath = fileURLToPath(new URL('../assets/tetrio-rankcut-tl-logo.png', import.meta.url));
 const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO rank cut',
@@ -54,9 +59,39 @@ const rankCardStyles = {
   tl: { fill: '#3f4349', border: '#a8acb1', accent: '#eceff3', shadow: '#272b2f' },
 };
 let tetrioHunFontDataUriPromise = null;
+let tlLogoDataUriPromise = null;
+let rankCutImageCache = null;
+let rankCutImagePromise = null;
+const rankIconDataUriCache = new Map();
 
 export async function createTetrioRankCutImage() {
-  const response = await fetchTetrioJson('/labs/league_ranks');
+  const response = await fetchCachedTetrioRankCutData();
+  const now = Date.now();
+  if (rankCutImageCache && rankCutImageCache.expiresAt > now) {
+    return rankCutImageCache.image;
+  }
+
+  if (rankCutImagePromise) {
+    return rankCutImagePromise;
+  }
+
+  rankCutImagePromise = renderTetrioRankCutImage(response)
+    .then((image) => {
+      rankCutImageCache = {
+        image,
+        expiresAt: getCachedTetrioRankCutDataExpiresAt()
+          || getNextRankCutExpiryTime(response.data?.t),
+      };
+      return image;
+    })
+    .finally(() => {
+      rankCutImagePromise = null;
+    });
+
+  return rankCutImagePromise;
+}
+
+async function renderTetrioRankCutImage(response) {
   const payload = response.data?.data;
   if (!payload || typeof payload !== 'object') {
     throw new Error('TETR.IO league rank data is unavailable');
@@ -69,21 +104,6 @@ export async function createTetrioRankCutImage() {
   ]);
   const svg = renderTetrioRankCutSvg(cards, assets, hunFont, response.data?.t);
   return sharp(Buffer.from(svg)).png().toBuffer();
-}
-
-async function fetchTetrioJson(path) {
-  const response = await fetch(`${tetrioApiBaseUrl}${path}`, {
-    headers: tetrioHeaders,
-  });
-  const body = await response.json().catch(() => null);
-
-  if (!response.ok || !body?.success) {
-    const error = new Error(body?.error?.msg ?? `TETR.IO API responded with ${response.status}`);
-    error.status = response.status;
-    throw error;
-  }
-
-  return body;
 }
 
 function buildRankCards(data) {
@@ -162,19 +182,30 @@ function calculateApp(apm, pps) {
 
 async function fetchRankAssets(cards) {
   const iconEntries = await Promise.all(cards.map(async (card) => {
-    if (card.rank === 'tl') {
-      return [card.rank, await readLocalImageDataUri(tlLogoPath)];
-    }
-
-    return [
-      card.rank,
-      await fetchImageDataUri(`${tetrioGameBaseUrl}/res/league-ranks/${formatTetrioAssetPath(card.rank)}.png`, {
-        trimTransparent: true,
-      }),
-    ];
+    return [card.rank, await fetchRankIconDataUri(card.rank)];
   }));
 
   return Object.fromEntries(iconEntries);
+}
+
+async function fetchRankIconDataUri(rank) {
+  if (rank === 'tl') {
+    tlLogoDataUriPromise ??= readLocalImageDataUri(tlLogoPath);
+    return tlLogoDataUriPromise;
+  }
+
+  if (rankIconDataUriCache.has(rank)) {
+    return rankIconDataUriCache.get(rank);
+  }
+
+  const dataUri = await fetchImageDataUri(`${tetrioGameBaseUrl}/res/league-ranks/${formatTetrioAssetPath(rank)}.png`, {
+    trimTransparent: true,
+  });
+  if (dataUri) {
+    rankIconDataUriCache.set(rank, dataUri);
+  }
+
+  return dataUri;
 }
 
 function renderTetrioRankCutSvg(cards, assets, hunFontDataUri, asOf) {
@@ -420,8 +451,18 @@ function renderFontFace(fontDataUri) {
 }
 
 function fetchTetrioHunFontDataUri() {
-  tetrioHunFontDataUriPromise ??= fetchFontDataUri(tetrioHunFontUrl);
+  tetrioHunFontDataUriPromise ??= readLocalFontDataUri(localHunFontPath)
+    .then((localFont) => localFont ?? fetchFontDataUri(tetrioHunFontUrl));
   return tetrioHunFontDataUriPromise;
+}
+
+async function readLocalFontDataUri(path) {
+  try {
+    const buffer = await readFile(path);
+    return `data:font/ttf;base64,${buffer.toString('base64')}`;
+  } catch {
+    return null;
+  }
 }
 
 async function fetchFontDataUri(url) {

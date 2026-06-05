@@ -2,6 +2,7 @@ import {
   calculateTetraRating,
   calculateTetrioStats,
 } from './tetrio-stats-calculations.js';
+import { fetchCachedTetrioRankCutData } from './tetrio-rankcut-cache.js';
 
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioHeaders = {
@@ -41,7 +42,7 @@ export async function fetchTetrioStatsCardData(username) {
   const [userResponse, summariesResponse, rankCutResponse] = await Promise.all([
     fetchTetrioJson(`/users/${encodeURIComponent(normalizedUsername)}`),
     fetchTetrioJson(`/users/${encodeURIComponent(normalizedUsername)}/summaries`),
-    fetchTetrioJson('/labs/league_ranks').catch(() => null),
+    fetchCachedTetrioRankCutData().catch(() => null),
   ]);
   const user = userResponse.data;
   const league = summariesResponse.data?.league;
