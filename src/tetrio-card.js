@@ -34,6 +34,9 @@ const tetrioJsonCacheMaxEntries = 200;
 const imageDataUriCacheMaxEntries = 800;
 const achievementSpriteCacheMaxEntries = 8;
 const measuredTextWidthCacheMaxEntries = 1200;
+const levelTagHeight = 28;
+const supporterBadgeHeight = 26;
+const compactProfileStatsBoxHeight = 24;
 const achievementIconGridSize = 8;
 const achievementIconInnerScale = 0.5714;
 const achievementIconInnerOffsetScale = 0.2143;
@@ -621,6 +624,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   const levelTag = getLevelTag(user.xp);
   const badgeLayout = getBadgeLayout(badges.length, contentWidth);
   const levelTagY = bannerY + bannerHeight + 8;
+  const levelRowCenterY = levelTagY + levelTagHeight / 2;
   const profileStats = getCompactProfileStats(user, league);
   const profileStatsWidth = getCompactProfileStatsWidth(profileStats);
   const profileDistinguishment = resolveProfileDistinguishment(user, summaries);
@@ -629,11 +633,12 @@ async function renderTetrioCardSvg(user, summaries, assets) {
     ? contentRight - profileStatsWidth - 8 + profileStatsRightNudge
     : contentRight;
   const supporterBadge = user.supporter
-    ? getSupporterBadgeLayout(user.supporter_tier ?? 1, supporterBadgeRightEdge, levelTagY + 3)
+    ? getSupporterBadgeLayout(user.supporter_tier ?? 1, supporterBadgeRightEdge, levelRowCenterY - supporterBadgeHeight / 2)
     : null;
   const profileStatsX = supporterBadge
     ? supporterBadge.x + supporterBadge.width + 8
     : contentRight - profileStatsWidth + profileStatsRightNudge;
+  const profileStatsY = levelRowCenterY - compactProfileStatsBoxHeight / 2;
   const noticeStartY = levelTagY + 42;
   const noticeSlotHeight = 68;
   const noticeMarkup = [];
@@ -775,7 +780,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   ${renderLevelTag(levelTag, contentX, levelTagY)}
   ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
   ${supporterBadge ? renderSupporterBadgeMarkup(supporterBadge) : ''}
-  ${renderProfileStats(profileStats, profileStatsX, levelTagY + 4)}
+  ${renderProfileStats(profileStats, profileStatsX, profileStatsY)}
 
   ${noticeMarkup.join('\n')}
 
@@ -814,7 +819,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
 
 function getSupporterBadgeLayout(tier, rightEdge = 920, y = 160) {
   const starCount = Math.max(0, Math.min(4, Number(tier) - 1));
-  const height = 26;
+  const height = supporterBadgeHeight;
   const starCellWidth = 40;
   const starStep = 32;
   const starAreaWidth = starCount > 0
@@ -968,7 +973,7 @@ function renderProfileStats(stats, x = 720, y = 160) {
 }
 
 function renderProfileStatsBox(items, x, y, options = {}) {
-  const boxHeight = 24;
+  const boxHeight = compactProfileStatsBoxHeight;
   const baselineY = y + 17;
   const boxWidth = getCompactProfileStatsBoxWidth(items, options);
   const boxMarkup = `<rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" rx="4" fill="${tetrioPalette.panelBg}" stroke="${tetrioPalette.panelBg}" stroke-width="1.5"/>`;
@@ -1624,7 +1629,7 @@ function getLevelTag(xp) {
 }
 
 function renderLevelTag(tag, x, y) {
-  const height = 28;
+  const height = levelTagHeight;
   const unit = 21;
   const bodyWidth = tag.width - 21;
   const itemX = bodyWidth - unit * 0.5;
