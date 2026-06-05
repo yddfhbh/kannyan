@@ -30,11 +30,34 @@ const bioClipTopOffsetY = 25;
 const bioClipBottomInset = 6;
 const measuredBioWrapMaxLength = 180;
 const bioEmojiSize = 17;
-const imageDataUriCacheMaxEntries = 400;
+const tetrioJsonCacheMaxEntries = 200;
+const imageDataUriCacheMaxEntries = 800;
+const achievementSpriteCacheMaxEntries = 8;
+const measuredTextWidthCacheMaxEntries = 1200;
+const achievementIconGridSize = 8;
+const achievementIconInnerScale = 0.5714;
+const achievementIconInnerOffsetScale = 0.2143;
+const achievementRankNames = new Map([
+  [0, 'none'],
+  [1, 'bronze'],
+  [2, 'silver'],
+  [3, 'gold'],
+  [4, 'platinum'],
+  [5, 'diamond'],
+  [100, 'issued'],
+]);
 let tetrioHunFontDataUriPromise = null;
 let bannedAvatarDataUriPromise = null;
 const bioHangulWidthCache = new Map();
+const tetrioJsonCache = new Map();
+const tetrioJsonPendingPromises = new Map();
 const imageDataUriCache = new Map();
+const imageDataUriPendingPromises = new Map();
+const achievementIconPendingPromises = new Map();
+const achievementSpriteCache = new Map();
+const achievementSpritePendingPromises = new Map();
+const headerNameWidthCache = new Map();
+const bioTextWidthCache = new Map();
 const graphemeSegmenter = typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'
   ? new Intl.Segmenter('en', { granularity: 'grapheme' })
   : null;
@@ -122,6 +145,29 @@ function normalizeTetrioUsername(input) {
 }
 
 async function fetchTetrioJson(path) {
+  const now = Date.now();
+  const cached = tetrioJsonCache.get(path);
+  if (cached && cached.expiresAt > now) {
+    return cached.body;
+  }
+
+  if (cached) {
+    tetrioJsonCache.delete(path);
+  }
+
+  if (tetrioJsonPendingPromises.has(path)) {
+    return tetrioJsonPendingPromises.get(path);
+  }
+
+  const promise = fetchTetrioJsonUncached(path)
+    .finally(() => {
+      tetrioJsonPendingPromises.delete(path);
+    });
+  tetrioJsonPendingPromises.set(path, promise);
+  return promise;
+}
+
+async function fetchTetrioJsonUncached(path) {
   const response = await fetch(`${tetrioApiBaseUrl}${path}`, {
     headers: tetrioHeaders,
   });
@@ -133,7 +179,24 @@ async function fetchTetrioJson(path) {
     throw error;
   }
 
+  cacheTetrioJsonResult(path, body);
   return body;
+}
+
+function cacheTetrioJsonResult(path, body) {
+  const expiresAt = Number(body?.cache?.cached_until);
+  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+    return;
+  }
+
+  if (tetrioJsonCache.size >= tetrioJsonCacheMaxEntries) {
+    tetrioJsonCache.delete(tetrioJsonCache.keys().next().value);
+  }
+
+  tetrioJsonCache.set(path, {
+    body,
+    expiresAt,
+  });
 }
 
 async function fetchTetrioAssets(user, summaries) {
@@ -149,17 +212,20 @@ async function fetchTetrioAssets(user, summaries) {
     ? `https://flagcdn.com/h40/${countryCode.toLowerCase()}.png`
     : null;
   const badges = user.badges ?? [];
+  const featuredAchievements = getFeaturedAchievements(user, summaries);
   const leagueRank = summaries?.league?.rank
     ? summaries.league.rank
     : null;
-  const [avatar, banner, flag, badgeIconEntries, leagueRankIcon, hunFont] = await Promise.all([
+  const uniqueBadges = getUniqueBadges(badges);
+  const [avatar, banner, flag, badgeIconEntries, featuredAchievementAssets, leagueRankIcon, hunFont] = await Promise.all([
     isBanned ? fetchBannedAvatarDataUri() : fetchImageDataUri(avatarUrl),
     fetchImageDataUri(bannerUrl),
     fetchImageDataUri(flagUrl),
-    Promise.all(badges.map(async (badge) => [
+    Promise.all(uniqueBadges.map(async (badge) => [
       badge.id,
       await fetchImageDataUri(`${tetrioGameBaseUrl}/res/badges/${formatTetrioAssetPath(badge.id)}.png`),
     ])),
+    Promise.all(featuredAchievements.map(fetchFeaturedAchievementAsset)),
     fetchImageDataUri(leagueRank ? `${tetrioGameBaseUrl}/res/league-ranks/${formatTetrioAssetPath(leagueRank)}.png` : null, {
       includeMetadata: true,
       trimTransparent: true,
@@ -172,9 +238,194 @@ async function fetchTetrioAssets(user, summaries) {
     banner,
     flag,
     badgeIcons: Object.fromEntries(badgeIconEntries),
+    featuredAchievements: featuredAchievementAssets.filter(Boolean),
     leagueRankIcon,
     hunFont,
   };
+}
+
+function getUniqueBadges(badges) {
+  const seen = new Set();
+  return badges.filter((badge) => {
+    const id = String(badge?.id ?? '');
+    if (!id || seen.has(id)) {
+      return false;
+    }
+
+    seen.add(id);
+    return true;
+  });
+}
+
+function getFeaturedAchievements(user, summaries) {
+  const featuredIds = Array.isArray(user?.achievements)
+    ? getUniqueFeaturedAchievementIds(user.achievements).slice(0, 3)
+    : [];
+  const achievements = Array.isArray(summaries?.achievements)
+    ? summaries.achievements
+    : [];
+
+  return featuredIds
+    .map((featuredId) => achievements.find((achievement) =>
+      Number(achievement?.k) === Number(featuredId)
+      && !achievement?.stub
+      && Number(achievement?.rank) !== 0
+    ))
+    .filter(Boolean);
+}
+
+function getUniqueFeaturedAchievementIds(achievementIds) {
+  const seen = new Set();
+  const uniqueIds = [];
+
+  for (const achievementId of achievementIds) {
+    const id = Number(achievementId);
+    if (!Number.isSafeInteger(id) || seen.has(id)) {
+      continue;
+    }
+
+    seen.add(id);
+    uniqueIds.push(id);
+  }
+
+  return uniqueIds;
+}
+
+async function fetchFeaturedAchievementAsset(achievement) {
+  const id = Number(achievement?.k);
+  const rankName = achievementRankNames.get(Number(achievement?.rank));
+  if (!Number.isSafeInteger(id) || id < 1 || !rankName) {
+    return null;
+  }
+
+  const spriteIndex = Math.floor((id - 1) / 64);
+  const tileIndex = (id - 1) % (achievementIconGridSize * achievementIconGridSize);
+  const competitivePlace = getAchievementCompetitivePlace(achievement);
+  const [frame, wreath, icon] = await Promise.all([
+    fetchImageDataUri(`${tetrioGameBaseUrl}/res/achievements/frames/${rankName}.png`),
+    fetchImageDataUri(competitivePlace ? `${tetrioGameBaseUrl}/res/achievements/wreaths/${competitivePlace}.png` : null),
+    fetchAchievementIconDataUri(spriteIndex, tileIndex),
+  ]);
+
+  return {
+    ...achievement,
+    competitivePlace,
+    frame,
+    icon,
+    rankName,
+    wreath,
+  };
+}
+
+async function fetchAchievementIconDataUri(spriteIndex, tileIndex) {
+  const cacheKey = `achievement-icon:${spriteIndex}:${tileIndex}`;
+  if (imageDataUriCache.has(cacheKey)) {
+    return imageDataUriCache.get(cacheKey);
+  }
+
+  if (achievementIconPendingPromises.has(cacheKey)) {
+    return achievementIconPendingPromises.get(cacheKey);
+  }
+
+  const promise = fetchAchievementIconDataUriUncached(spriteIndex, tileIndex, cacheKey)
+    .finally(() => {
+      achievementIconPendingPromises.delete(cacheKey);
+    });
+  achievementIconPendingPromises.set(cacheKey, promise);
+  return promise;
+}
+
+async function fetchAchievementIconDataUriUncached(spriteIndex, tileIndex, cacheKey) {
+  try {
+    const sprite = await fetchAchievementSprite(spriteIndex);
+    const tileWidth = Math.floor((sprite?.width ?? 0) / achievementIconGridSize);
+    const tileHeight = Math.floor((sprite?.height ?? 0) / achievementIconGridSize);
+    if (tileWidth <= 0 || tileHeight <= 0) {
+      return null;
+    }
+
+    const tileColumn = tileIndex % achievementIconGridSize;
+    const tileRow = Math.floor(tileIndex / achievementIconGridSize);
+    const buffer = await sharp(sprite.buffer)
+      .extract({
+        left: tileColumn * tileWidth,
+        top: tileRow * tileHeight,
+        width: tileWidth,
+        height: tileHeight,
+      })
+      .negate({ alpha: false })
+      .png()
+      .toBuffer();
+    const dataUri = `data:image/png;base64,${buffer.toString('base64')}`;
+    cacheImageDataUriResult(cacheKey, dataUri);
+    return dataUri;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchAchievementSprite(spriteIndex) {
+  const cacheKey = `achievement-sprite:${spriteIndex}`;
+  if (achievementSpriteCache.has(cacheKey)) {
+    return achievementSpriteCache.get(cacheKey);
+  }
+
+  if (achievementSpritePendingPromises.has(cacheKey)) {
+    return achievementSpritePendingPromises.get(cacheKey);
+  }
+
+  const promise = fetchAchievementSpriteUncached(spriteIndex, cacheKey)
+    .finally(() => {
+      achievementSpritePendingPromises.delete(cacheKey);
+    });
+  achievementSpritePendingPromises.set(cacheKey, promise);
+  return promise;
+}
+
+async function fetchAchievementSpriteUncached(spriteIndex, cacheKey) {
+  const response = await fetch(`${tetrioGameBaseUrl}/res/achievements/icons/${spriteIndex}.png`, {
+    headers: tetrioHeaders,
+  });
+  if (!response.ok) {
+    return null;
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const metadata = await sharp(buffer).metadata();
+  const result = {
+    buffer,
+    height: metadata.height,
+    width: metadata.width,
+  };
+  cacheAchievementSpriteResult(cacheKey, result);
+  return result;
+}
+
+function cacheAchievementSpriteResult(key, result) {
+  if (!result?.buffer) {
+    return;
+  }
+
+  if (achievementSpriteCache.size >= achievementSpriteCacheMaxEntries) {
+    achievementSpriteCache.delete(achievementSpriteCache.keys().next().value);
+  }
+
+  achievementSpriteCache.set(key, result);
+}
+
+function getAchievementCompetitivePlace(achievement) {
+  const position = Number(achievement?.pos);
+  if (Number(achievement?.art) !== 2 || !Number.isFinite(position) || position < 0) {
+    return null;
+  }
+
+  if (position < 3) return 't3';
+  if (position < 5) return 't5';
+  if (position < 10) return 't10';
+  if (position < 25) return 't25';
+  if (position < 50) return 't50';
+  if (position < 100) return 't100';
+  return null;
 }
 
 function formatTetrioAssetPath(value) {
@@ -203,6 +454,19 @@ async function fetchImageDataUri(url, options = {}) {
     return imageDataUriCache.get(cacheKey);
   }
 
+  if (imageDataUriPendingPromises.has(cacheKey)) {
+    return imageDataUriPendingPromises.get(cacheKey);
+  }
+
+  const promise = fetchImageDataUriUncached(url, options, cacheKey)
+    .finally(() => {
+      imageDataUriPendingPromises.delete(cacheKey);
+    });
+  imageDataUriPendingPromises.set(cacheKey, promise);
+  return promise;
+}
+
+async function fetchImageDataUriUncached(url, options, cacheKey) {
   try {
     const response = await fetch(url, { headers: tetrioHeaders });
     if (!response.ok) {
@@ -355,8 +619,6 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   const zenithEx = summaries.zenithex;
   const badges = user.badges ?? [];
   const levelTag = getLevelTag(user.xp);
-  const levelProgress = formatLevelProgress(user.xp);
-  const xp = formatXp(user.xp);
   const badgeLayout = getBadgeLayout(badges.length, contentWidth);
   const levelTagY = bannerY + bannerHeight + 8;
   const profileStats = getCompactProfileStats(user, league);
@@ -372,9 +634,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   const profileStatsX = supporterBadge
     ? supporterBadge.x + supporterBadge.width + 8
     : contentRight - profileStatsWidth + profileStatsRightNudge;
-  const levelTextY = levelTagY + 20;
-  const levelProgressY = levelTagY + 34;
-  const noticeStartY = levelProgressY + 8;
+  const noticeStartY = levelTagY + 42;
   const noticeSlotHeight = 68;
   const noticeMarkup = [];
   let noticeCursorY = noticeStartY;
@@ -390,7 +650,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
     noticeMarkup.push(renderDistinguishmentBanner(profileDistinguishment, noticeCursorY));
     noticeCursorY += noticeSlotHeight;
   }
-  const badgeBoxY = noticeMarkup.length > 0 ? noticeCursorY : levelProgressY + 12;
+  const badgeBoxY = noticeMarkup.length > 0 ? noticeCursorY : levelTagY + 46;
   const badgeY = badgeBoxY + 10;
   const badgeBoxHeight = badgeLayout.boxHeight;
   const bioTextInset = 12;
@@ -437,6 +697,9 @@ async function renderTetrioCardSvg(user, summaries, assets) {
     </filter>
     <filter id="statValueGlowTight" x="-22%" y="-62%" width="144%" height="224%" color-interpolation-filters="sRGB">
       <feGaussianBlur in="SourceGraphic" stdDeviation="1.45"/>
+    </filter>
+    <filter id="featuredAchievementShadow" x="-18%" y="-18%" width="136%" height="146%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="2.4" stdDeviation="2.2" flood-color="#061009" flood-opacity="0.72"/>
     </filter>
     <pattern id="dangerStripe" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
       <rect width="24" height="24" fill="#b50808"/>
@@ -510,9 +773,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   ${renderHeaderFlag(flag, nameX, bannerY + 28, headerNameWidth)}
   <text x="${avatarX + avatarSize + 18}" y="${bannerY + 77}" class="${headerMetaClass}" font-size="15.5" font-weight="800">${escapeXml(joined)} - ${formatNumber(user.friend_count ?? user.friendcount ?? 0)} FRIENDS</text>
   ${renderLevelTag(levelTag, contentX, levelTagY)}
-  <text x="${contentX + levelTag.width + 3}" y="${levelTextY}" class="xp" font-size="16.5" font-weight="900">${xp} XP</text>
-  <rect x="${contentX}" y="${levelProgressY}" width="186" height="4" fill="${tetrioPalette.progressTrack}"/>
-  <rect x="${contentX}" y="${levelProgressY}" width="${Math.round(186 * levelProgress / 100)}" height="4" fill="#bdf9bd"/>
+  ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
   ${supporterBadge ? renderSupporterBadgeMarkup(supporterBadge) : ''}
   ${renderProfileStats(profileStats, profileStatsX, levelTagY + 4)}
 
@@ -1201,6 +1462,16 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
     return 0;
   }
 
+  const cacheKey = [
+    fontSize,
+    fontWeight,
+    fontDataUri ? fontDataUri.length : 0,
+    normalizedText,
+  ].join('|');
+  if (headerNameWidthCache.has(cacheKey)) {
+    return headerNameWidthCache.get(cacheKey);
+  }
+
   const fallbackWidth = estimateHeaderNameWidth(normalizedText, fontSize);
 
   try {
@@ -1222,8 +1493,11 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
       .trim()
       .toBuffer({ resolveWithObject: true });
 
-    return Math.max(fallbackWidth, info.width);
+    const width = Math.max(fallbackWidth, info.width);
+    cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, width);
+    return width;
   } catch {
+    cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, fallbackWidth);
     return fallbackWidth;
   }
 }
@@ -1365,6 +1639,36 @@ function renderLevelTag(tag, x, y) {
     <polygon points="${getLevelTagItemPoints(tag.golden ? 'golden' : tag.shape, itemX, height, unit)}" fill="${itemFill}" opacity="${tag.nullTag ? 0.65 : 1}"/>
     <text x="9" y="20.5" font-size="19" font-weight="900" fill="${textFill}" opacity="${textOpacity}">${escapeXml(tag.text)}</text>
   </g>`;
+}
+
+function renderFeaturedAchievements(achievements = [], x, y) {
+  const visibleAchievements = achievements.filter(Boolean).slice(0, 3);
+  if (visibleAchievements.length === 0) {
+    return '';
+  }
+
+  const iconSize = 48;
+  const gap = 4;
+
+  return `
+  <g filter="url(#featuredAchievementShadow)">
+    ${visibleAchievements.map((achievement, index) =>
+      renderFeaturedAchievementIcon(achievement, x + index * (iconSize + gap), y, iconSize)
+    ).join('')}
+  </g>`;
+}
+
+function renderFeaturedAchievementIcon(achievement, x, y, size) {
+  const innerSize = roundSvgNumber(size * achievementIconInnerScale);
+  const innerOffset = roundSvgNumber(size * achievementIconInnerOffsetScale);
+
+  return `
+    <g transform="translate(${roundSvgNumber(x)} ${roundSvgNumber(y)})">
+      <rect x="${innerOffset - 1}" y="${innerOffset - 1}" width="${innerSize + 2}" height="${innerSize + 2}" rx="2" fill="#171f19" opacity="0.58"/>
+      ${achievement.frame ? `<image href="${achievement.frame}" x="0" y="0" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet"/>` : `<rect x="0" y="0" width="${size}" height="${size}" rx="4" fill="none" stroke="#9cd69e" stroke-width="2"/>`}
+      ${achievement.wreath ? `<image href="${achievement.wreath}" x="0" y="0" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet"/>` : ''}
+      ${achievement.icon ? `<image href="${achievement.icon}" x="${innerOffset}" y="${innerOffset}" width="${innerSize}" height="${innerSize}" preserveAspectRatio="xMidYMid meet" opacity="0.88"/>` : ''}
+    </g>`;
 }
 
 function getLevelTagBodyPoints(shape, width, height, unit) {
@@ -2238,15 +2542,6 @@ function xpToLevel(xp) {
   return (xp / 500) ** 0.6 + (xp / (5000 + Math.max(0, xp - 4_000_000) / 5000)) + 1;
 }
 
-function formatLevelProgress(xp) {
-  const level = xpToLevel(xp);
-  return Number.isFinite(level) ? Math.floor((level % 1) * 100) : 0;
-}
-
-function formatXp(xp) {
-  return Number.isFinite(xp) && xp >= 0 ? Math.floor(xp).toLocaleString('en-US') : '0';
-}
-
 function formatTrNumber(value) {
   return Number.isFinite(value) ? String(Math.round(value)) : '-';
 }
@@ -2444,9 +2739,33 @@ async function measureBioTextWidthCached(text, fontSize, fontDataUri, measuremen
     return measurementCache.get(text);
   }
 
+  const globalCacheKey = [
+    fontSize,
+    fontDataUri ? fontDataUri.length : 0,
+    text,
+  ].join('|');
+  if (bioTextWidthCache.has(globalCacheKey)) {
+    const width = bioTextWidthCache.get(globalCacheKey);
+    measurementCache.set(text, width);
+    return width;
+  }
+
   const width = await measureBioSampleWidth(text, fontSize, fontDataUri);
   measurementCache.set(text, width);
+  cacheMeasuredTextWidth(bioTextWidthCache, globalCacheKey, width);
   return width;
+}
+
+function cacheMeasuredTextWidth(cache, key, width) {
+  if (!Number.isFinite(width)) {
+    return;
+  }
+
+  if (cache.size >= measuredTextWidthCacheMaxEntries) {
+    cache.delete(cache.keys().next().value);
+  }
+
+  cache.set(key, width);
 }
 
 function wrapBioParagraphEstimated(paragraph, maxWidth, hangulWidth = null) {

@@ -525,7 +525,7 @@ function renderQuickPlayMainValueMarkup({
 }
 
 function getQuickPlayTimedDecimalFontSize(fontSize) {
-  return Math.max(1, Math.round(fontSize * 0.64));
+  return Math.max(1, Math.round(fontSize * 0.7));
 }
 
 function getQuickPlayUnitBottomAlignmentOffset(fontSize) {
