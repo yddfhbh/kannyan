@@ -241,14 +241,14 @@ function renderLeagueMatchSvg(match, hunFontDataUri = null) {
       <stop offset="1" stop-color="#220407"/>
     </linearGradient>
     <filter id="textGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feGaussianBlur stdDeviation="1.8" result="blur"/>
       <feColorMatrix
         in="blur"
         type="matrix"
         values="1 0 0 0 0.85
                 0 1 0 0 0.88
                 0 0 1 0 1
-                0 0 0 0.8 0"
+                0 0 0 0.65 0"
         result="glow"/>
       <feMerge>
         <feMergeNode in="glow"/>
@@ -263,13 +263,13 @@ function renderLeagueMatchSvg(match, hunFontDataUri = null) {
       }
       .username {
         fill: #f6f2ef;
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 900;
       }
       .score {
         fill: #ffffff;
-        font-size: 62px;
-        font-weight: 900;
+        font-size: 55px;
+        font-weight: 650;
       }
       .summaryValue {
         fill: #fbf4f2;
@@ -303,8 +303,8 @@ function renderLeagueMatchSvg(match, hunFontDataUri = null) {
       }
       .time {
         fill: #ffffff;
-        font-size: 15px;
-        font-weight: 900;
+        font-size: 14px;
+        font-weight: 650;
       }
       .versus {
         fill: #ffd620;
@@ -340,7 +340,7 @@ function renderTopPanel(player, sideIndex, y, height) {
   return `
   <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${theme.topGradient})" stroke="${theme.border}" stroke-width="2"/>
   <text x="${textX}" y="${y + 22}" text-anchor="${textAnchor}" class="username">${escapeXml(player.username.toUpperCase())}</text>
-  <text x="${scoreX}" y="${y + 70}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${formatInteger(player.wins)}</text>
+  <text x="${scoreX}" y="${y + 56}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${formatInteger(player.wins)}</text>
   <text x="${textX}" y="${y + height - 12}" text-anchor="${textAnchor}">
     ${renderInlineStats(player.stats, 'summaryValue', statsClass)}
   </text>`;
@@ -361,15 +361,18 @@ function renderRoundSide(side, sideIndex, y, height) {
   const isLeft = sideIndex === 0;
   const x = isLeft ? 82 : 414;
   const width = 292;
-  const textX = isLeft ? x + width - 13 : x + 13;
+  const textX = isLeft ? x + width - 10 : x + 10;
   const textAnchor = isLeft ? 'end' : 'start';
   const fill = side.alive ? theme.rowWinGradient : theme.rowGradient;
   const border = side.alive ? theme.border : theme.mutedBorder;
   const opacity = side.alive ? 1 : 0.76;
   const labelClass = sideIndex === 0 ? 'blueLabel' : 'redLabel';
+  const innerLineX = isLeft ? x + width : x;
+  const innerLineColor = side.alive ? '#ffffff' : theme.border;
 
   return `
   <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${fill})" stroke="${border}" stroke-width="1.4" opacity="${opacity}"/>
+  <line x1="${innerLineX}" y1="${y}" x2="${innerLineX}" y2="${y + height}" stroke="${innerLineColor}" stroke-width="2.4" opacity="${opacity}"/>
   <text x="${textX}" y="${y + height / 2 + 1}" text-anchor="${textAnchor}" dominant-baseline="middle">
     ${renderInlineStats(side.stats, 'roundValue', labelClass)}
   </text>`;
