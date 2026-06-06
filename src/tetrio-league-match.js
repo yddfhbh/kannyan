@@ -274,7 +274,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
       }
       .score {
         fill: #ffffff;
-        font-size: 55px;
+        font-size: 60px;
         font-weight: 500;
       }
       .summaryValue {
@@ -346,9 +346,9 @@ function renderTopPanel(player, sideIndex, y, height) {
   return `
   <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="${theme.border}" stroke-width="5" opacity="0.18"/>
   <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${theme.topGradient})" stroke="${theme.border}" stroke-width="1.5"/>
-  <text x="${textX}" y="${y + 22}" text-anchor="${textAnchor}" class="username">${escapeXml(player.username.toUpperCase())}</text>
-  <text x="${scoreX}" y="${y + 56}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${formatInteger(player.wins)}</text>
-  <text x="${textX}" y="${y + height - 12}" text-anchor="${textAnchor}">
+  <text x="${textX}" y="${y + 20}" text-anchor="${textAnchor}" class="username">${escapeXml(player.username.toUpperCase())}</text>
+  <text x="${scoreX}" y="${y + 52}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${formatInteger(player.wins)}</text>
+  <text x="${textX}" y="${y + height - 14}" text-anchor="${textAnchor}">
     ${renderInlineStats(player.stats, 'summaryValue', statsClass, { compact: true })}
   </text>`;
 }
@@ -387,10 +387,11 @@ function renderRoundSide(side, sideIndex, y, height) {
 
 function renderInlineStats(stats, valueClass, labelClass, options = {}) {
   const labelGap = options.compact ? 2 : 3;
-  const separatorGap = options.compact ? 4 : 6;
-  const valueGap = options.compact ? 4 : 6;
-  const separatorSize = options.compact ? 7 : 10;
-  const separator = `<tspan class="${labelClass}" dx="${separatorGap}" font-size="${separatorSize}" font-weight="900">&#9635;</tspan>`;
+  const separatorGap = options.compact ? 4 : 5;
+  const valueGap = options.compact ? 4 : 5;
+  const separator = options.compact
+    ? `<tspan class="${labelClass}" dx="${separatorGap}" font-size="7" font-weight="900">&#9635;</tspan>`
+    : `<tspan class="${valueClass}" dx="${separatorGap}">-</tspan>`;
   return `<tspan class="${valueClass}">${escapeXml(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${escapeXml(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${escapeXml(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>`;
 }
 
