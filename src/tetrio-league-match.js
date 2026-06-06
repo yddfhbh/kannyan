@@ -4,14 +4,17 @@ import sharp from 'sharp';
 
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioGameBaseUrl = 'https://tetr.io';
-const tetrioHunFontUrl = `${tetrioGameBaseUrl}/res/font/hun2.ttf?v=6`;
+const tetrioRegularFontUrl = `${tetrioGameBaseUrl}/res/font/cr.ttf`;
+const tetrioBoldFontUrl = `${tetrioGameBaseUrl}/res/font/cb.ttf`;
+const localRegularFontPath = fileURLToPath(new URL('../assets/fonts/cr.ttf', import.meta.url));
+const localBoldFontPath = fileURLToPath(new URL('../assets/fonts/cb.ttf', import.meta.url));
 const localHunFontPath = fileURLToPath(new URL('../assets/fonts/hun2.ttf', import.meta.url));
 const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO league match card',
   'X-Session-ID': 'discord-bot-tetrio-league-match',
 };
 const tetrioRecordPageSize = 100;
-const leagueFontFamily = '"HUN2", "HUN", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const leagueFontFamily = '"C", "HUN2", "HUN", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
 const sideThemes = [
   {
     name: 'blue',
@@ -20,7 +23,7 @@ const sideThemes = [
     rowWinGradient: 'blueRowWin',
     border: '#257bff',
     mutedBorder: '#124276',
-    label: '#2e82ff',
+    label: '#4a8be4',
     score: '#ffffff',
   },
   {
@@ -30,12 +33,12 @@ const sideThemes = [
     rowWinGradient: 'redRowWin',
     border: '#ff242a',
     mutedBorder: '#6e1216',
-    label: '#ff3438',
+    label: '#d83a3f',
     score: '#ffffff',
   },
 ];
 
-let tetrioHunFontDataUriPromise = null;
+let tetrioFontDataUrisPromise = null;
 
 export async function createTetrioLeagueMatchCard(username, matchIndex = 1) {
   const normalizedUsername = normalizeTetrioUsername(username);
@@ -56,8 +59,8 @@ export async function createTetrioLeagueMatchCard(username, matchIndex = 1) {
   }
 
   const match = buildLeagueMatchView(record, normalizedUsername, normalizedMatchIndex);
-  const hunFont = await fetchTetrioHunFontDataUri();
-  const svg = renderLeagueMatchSvg(match, hunFont);
+  const fontDataUris = await fetchTetrioFontDataUris();
+  const svg = renderLeagueMatchSvg(match, fontDataUris);
   const image = await sharp(Buffer.from(svg)).png().toBuffer();
 
   return {
@@ -195,7 +198,7 @@ function normalizeNaturalOrder(player) {
   return Number.isFinite(naturalOrder) ? naturalOrder : 0;
 }
 
-function renderLeagueMatchSvg(match, hunFontDataUri = null) {
+function renderLeagueMatchSvg(match, fontDataUris = {}) {
   const width = 790;
   const topY = 4;
   const topHeight = 112;
@@ -256,7 +259,7 @@ function renderLeagueMatchSvg(match, hunFontDataUri = null) {
       </feMerge>
     </filter>
     <style>
-      ${renderTetrioFontFace(hunFontDataUri)}
+      ${renderTetrioFontFace(fontDataUris)}
       text {
         font-family: ${leagueFontFamily};
         letter-spacing: 0;
@@ -264,42 +267,42 @@ function renderLeagueMatchSvg(match, hunFontDataUri = null) {
       .username {
         fill: #f6f2ef;
         font-size: 17px;
-        font-weight: 800;
+        font-weight: 900;
       }
       .score {
         fill: #ffffff;
         font-size: 55px;
-        font-weight: 650;
+        font-weight: 500;
       }
       .summaryValue {
-        fill: #fbf4f2;
+        fill: #f0f3fa;
         font-size: 11.5px;
-        font-weight: 700;
+        font-weight: 900;
       }
       .roundValue {
-        fill: #fbf4f2;
+        fill: #f0f3fa;
         font-size: 13.6px;
-        font-weight: 700;
+        font-weight: 900;
       }
       .blueLabel {
         fill: ${sideThemes[0].label};
         font-size: 13.6px;
-        font-weight: 700;
+        font-weight: 900;
       }
       .redLabel {
         fill: ${sideThemes[1].label};
         font-size: 13.6px;
-        font-weight: 700;
+        font-weight: 900;
       }
       .summaryBlueLabel {
         fill: ${sideThemes[0].label};
         font-size: 11.5px;
-        font-weight: 700;
+        font-weight: 900;
       }
       .summaryRedLabel {
         fill: ${sideThemes[1].label};
         font-size: 11.5px;
-        font-weight: 700;
+        font-weight: 900;
       }
       .time {
         fill: #ffffff;
@@ -309,12 +312,12 @@ function renderLeagueMatchSvg(match, hunFontDataUri = null) {
       .versus {
         fill: #ffd620;
         font-size: 42px;
-        font-weight: 800;
+        font-weight: 900;
       }
       .footer {
         fill: #d9e6d5;
         font-size: 16px;
-        font-weight: 800;
+        font-weight: 900;
       }
     </style>
   </defs>
@@ -379,7 +382,7 @@ function renderRoundSide(side, sideIndex, y, height) {
 }
 
 function renderInlineStats(stats, valueClass, labelClass) {
-  return `<tspan class="${valueClass}">${escapeXml(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="3">APM</tspan><tspan class="${valueClass}" dx="8">&#183;</tspan><tspan class="${valueClass}" dx="8">${escapeXml(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="3">PPS</tspan><tspan class="${valueClass}" dx="8">&#183;</tspan><tspan class="${valueClass}" dx="8">${escapeXml(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="3">VS</tspan>`;
+  return `<tspan class="${valueClass}">${escapeXml(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="3">APM</tspan><tspan class="${valueClass}" dx="7">-</tspan><tspan class="${valueClass}" dx="7">${escapeXml(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="3">PPS</tspan><tspan class="${valueClass}" dx="7">-</tspan><tspan class="${valueClass}" dx="7">${escapeXml(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="3">VS</tspan>`;
 }
 
 function normalizeRecordIndex(value) {
@@ -434,10 +437,15 @@ function formatPrisecter(prisecter) {
   return `${pri}:${sec}:${ter}`;
 }
 
-function fetchTetrioHunFontDataUri() {
-  tetrioHunFontDataUriPromise ??= readLocalFontDataUri(localHunFontPath)
-    .then((localFont) => localFont ?? fetchFontDataUri(tetrioHunFontUrl));
-  return tetrioHunFontDataUriPromise;
+function fetchTetrioFontDataUris() {
+  tetrioFontDataUrisPromise ??= Promise.all([
+    readLocalFontDataUri(localRegularFontPath)
+      .then((localFont) => localFont ?? fetchFontDataUri(tetrioRegularFontUrl)),
+    readLocalFontDataUri(localBoldFontPath)
+      .then((localFont) => localFont ?? fetchFontDataUri(tetrioBoldFontUrl)),
+    readLocalFontDataUri(localHunFontPath),
+  ]).then(([regular, bold, hun]) => ({ regular, bold, hun }));
+  return tetrioFontDataUrisPromise;
 }
 
 async function readLocalFontDataUri(path) {
@@ -509,23 +517,43 @@ function formatInteger(value) {
     : '-';
 }
 
-function renderTetrioFontFace(fontDataUri) {
-  if (!fontDataUri) {
-    return '';
+function renderTetrioFontFace(fontDataUris = {}) {
+  const rules = [];
+
+  if (fontDataUris.regular) {
+    rules.push(`@font-face {
+        font-family: "C";
+        src: url("${fontDataUris.regular}") format("truetype");
+        font-weight: 500;
+        font-style: normal;
+      }`);
   }
 
-  return `@font-face {
+  if (fontDataUris.bold) {
+    rules.push(`@font-face {
+        font-family: "C";
+        src: url("${fontDataUris.bold}") format("truetype");
+        font-weight: 900;
+        font-style: normal;
+      }`);
+  }
+
+  if (fontDataUris.hun) {
+    rules.push(`@font-face {
         font-family: "HUN2";
-        src: url("${fontDataUri}") format("truetype");
+        src: url("${fontDataUris.hun}") format("truetype");
         font-weight: 400 900;
         font-style: normal;
       }
       @font-face {
         font-family: "HUN";
-        src: url("${fontDataUri}") format("truetype");
+        src: url("${fontDataUris.hun}") format("truetype");
         font-weight: 400 900;
         font-style: normal;
-      }`;
+      }`);
+  }
+
+  return rules.join('\n      ');
 }
 
 function escapeXml(value) {
