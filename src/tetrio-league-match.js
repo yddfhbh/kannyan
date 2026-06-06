@@ -14,14 +14,14 @@ const tetrioHeaders = {
   'X-Session-ID': 'discord-bot-tetrio-league-match',
 };
 const tetrioRecordPageSize = 100;
-const leagueFontFamily = '"C", "HUN2", "HUN", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const leagueFontFamily = '"HUN", "HUN2", "C", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
 const sideThemes = [
   {
     name: 'blue',
     topGradient: 'blueTop',
     rowGradient: 'blueRow',
     rowWinGradient: 'blueRowWin',
-    border: '#257bff',
+    border: '#1684f7',
     mutedBorder: '#124276',
     label: '#4a8be4',
     score: '#ffffff',
@@ -31,7 +31,7 @@ const sideThemes = [
     topGradient: 'redTop',
     rowGradient: 'redRow',
     rowWinGradient: 'redRowWin',
-    border: '#ff242a',
+    border: '#f5232a',
     mutedBorder: '#6e1216',
     label: '#d83a3f',
     score: '#ffffff',
@@ -220,12 +220,12 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
     <linearGradient id="blueTop" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0" stop-color="#06101d"/>
-      <stop offset="1" stop-color="#173968"/>
+      <stop offset="0" stop-color="#02070d"/>
+      <stop offset="1" stop-color="#122d55"/>
     </linearGradient>
     <linearGradient id="redTop" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0" stop-color="#611317"/>
-      <stop offset="1" stop-color="#100205"/>
+      <stop offset="0" stop-color="#5b1015"/>
+      <stop offset="1" stop-color="#090103"/>
     </linearGradient>
     <linearGradient id="blueRow" x1="0" x2="1" y1="0" y2="0">
       <stop offset="0" stop-color="#010407"/>
@@ -276,33 +276,33 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
       }
       .summaryValue {
         fill: #f0f3fa;
-        font-size: 11.5px;
-        font-weight: 900;
+        font-size: 8.8px;
+        font-weight: 700;
       }
       .roundValue {
         fill: #f0f3fa;
-        font-size: 13.6px;
-        font-weight: 900;
+        font-size: 13px;
+        font-weight: 700;
       }
       .blueLabel {
         fill: ${sideThemes[0].label};
-        font-size: 13.6px;
-        font-weight: 900;
+        font-size: 13px;
+        font-weight: 700;
       }
       .redLabel {
         fill: ${sideThemes[1].label};
-        font-size: 13.6px;
-        font-weight: 900;
+        font-size: 13px;
+        font-weight: 700;
       }
       .summaryBlueLabel {
         fill: ${sideThemes[0].label};
-        font-size: 11.5px;
-        font-weight: 900;
+        font-size: 8.8px;
+        font-weight: 700;
       }
       .summaryRedLabel {
         fill: ${sideThemes[1].label};
-        font-size: 11.5px;
-        font-weight: 900;
+        font-size: 8.8px;
+        font-weight: 700;
       }
       .time {
         fill: #ffffff;
@@ -311,7 +311,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
       }
       .versus {
         fill: #ffd620;
-        font-size: 42px;
+        font-size: 39px;
         font-weight: 900;
       }
       .footer {
@@ -323,7 +323,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   </defs>
   <rect width="${width}" height="${height}" fill="#000000"/>
   ${topPanels}
-  <text x="395" y="77" text-anchor="middle" dominant-baseline="middle" class="versus" filter="url(#textGlow)">VS</text>
+  <text x="395" y="73" text-anchor="middle" dominant-baseline="middle" class="versus" filter="url(#textGlow)">VS</text>
   ${rows}
   <rect x="2" y="${footerY}" width="${width - 4}" height="${footerHeight}" fill="#233f29" stroke="#3d6244" stroke-width="2"/>
   <text x="12" y="${footerY + footerHeight / 2 + 1}" dominant-baseline="middle" class="footer">${escapeXml(match.footerText)}</text>
@@ -341,11 +341,12 @@ function renderTopPanel(player, sideIndex, y, height) {
   const statsClass = isLeft ? 'summaryBlueLabel' : 'summaryRedLabel';
 
   return `
-  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${theme.topGradient})" stroke="${theme.border}" stroke-width="2"/>
+  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="${theme.border}" stroke-width="5" opacity="0.18"/>
+  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${theme.topGradient})" stroke="${theme.border}" stroke-width="1.5"/>
   <text x="${textX}" y="${y + 22}" text-anchor="${textAnchor}" class="username">${escapeXml(player.username.toUpperCase())}</text>
   <text x="${scoreX}" y="${y + 56}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${formatInteger(player.wins)}</text>
   <text x="${textX}" y="${y + height - 12}" text-anchor="${textAnchor}">
-    ${renderInlineStats(player.stats, 'summaryValue', statsClass)}
+    ${renderInlineStats(player.stats, 'summaryValue', statsClass, { compact: true })}
   </text>`;
 }
 
@@ -381,8 +382,11 @@ function renderRoundSide(side, sideIndex, y, height) {
   </text>`;
 }
 
-function renderInlineStats(stats, valueClass, labelClass) {
-  return `<tspan class="${valueClass}">${escapeXml(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="3">APM</tspan><tspan class="${valueClass}" dx="7">-</tspan><tspan class="${valueClass}" dx="7">${escapeXml(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="3">PPS</tspan><tspan class="${valueClass}" dx="7">-</tspan><tspan class="${valueClass}" dx="7">${escapeXml(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="3">VS</tspan>`;
+function renderInlineStats(stats, valueClass, labelClass, options = {}) {
+  const labelGap = options.compact ? 2 : 3;
+  const separatorGap = options.compact ? 4 : 7;
+  const valueGap = options.compact ? 4 : 7;
+  return `<tspan class="${valueClass}">${escapeXml(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan><tspan class="${valueClass}" dx="${separatorGap}">-</tspan><tspan class="${valueClass}" dx="${valueGap}">${escapeXml(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan><tspan class="${valueClass}" dx="${separatorGap}">-</tspan><tspan class="${valueClass}" dx="${valueGap}">${escapeXml(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>`;
 }
 
 function normalizeRecordIndex(value) {
