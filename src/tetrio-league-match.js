@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import sharp from 'sharp';
 
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
@@ -9,6 +9,9 @@ const tetrioBoldFontUrl = `${tetrioGameBaseUrl}/res/font/cb.ttf`;
 const localRegularFontPath = fileURLToPath(new URL('../assets/fonts/cr.ttf', import.meta.url));
 const localBoldFontPath = fileURLToPath(new URL('../assets/fonts/cb.ttf', import.meta.url));
 const localHunFontPath = fileURLToPath(new URL('../assets/fonts/hun2.ttf', import.meta.url));
+const localRegularFontUrl = pathToFileURL(localRegularFontPath).href;
+const localBoldFontUrl = pathToFileURL(localBoldFontPath).href;
+const localHunFontUrl = pathToFileURL(localHunFontPath).href;
 const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO league match card',
   'X-Session-ID': 'discord-bot-tetrio-league-match',
@@ -384,9 +387,11 @@ function renderRoundSide(side, sideIndex, y, height) {
 
 function renderInlineStats(stats, valueClass, labelClass, options = {}) {
   const labelGap = options.compact ? 2 : 3;
-  const separatorGap = options.compact ? 4 : 7;
-  const valueGap = options.compact ? 4 : 7;
-  return `<tspan class="${valueClass}">${escapeXml(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan><tspan class="${valueClass}" dx="${separatorGap}">-</tspan><tspan class="${valueClass}" dx="${valueGap}">${escapeXml(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan><tspan class="${valueClass}" dx="${separatorGap}">-</tspan><tspan class="${valueClass}" dx="${valueGap}">${escapeXml(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>`;
+  const separatorGap = options.compact ? 4 : 6;
+  const valueGap = options.compact ? 4 : 6;
+  const separatorSize = options.compact ? 7 : 10;
+  const separator = `<tspan class="${labelClass}" dx="${separatorGap}" font-size="${separatorSize}" font-weight="900">&#9635;</tspan>`;
+  return `<tspan class="${valueClass}">${escapeXml(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${escapeXml(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${escapeXml(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>`;
 }
 
 function normalizeRecordIndex(value) {
@@ -448,7 +453,14 @@ function fetchTetrioFontDataUris() {
     readLocalFontDataUri(localBoldFontPath)
       .then((localFont) => localFont ?? fetchFontDataUri(tetrioBoldFontUrl)),
     readLocalFontDataUri(localHunFontPath),
-  ]).then(([regular, bold, hun]) => ({ regular, bold, hun }));
+  ]).then(([regular, bold, hun]) => ({
+    bold,
+    boldFileUrl: localBoldFontUrl,
+    hun,
+    hunFileUrl: localHunFontUrl,
+    regular,
+    regularFileUrl: localRegularFontUrl,
+  }));
   return tetrioFontDataUrisPromise;
 }
 
@@ -524,40 +536,47 @@ function formatInteger(value) {
 function renderTetrioFontFace(fontDataUris = {}) {
   const rules = [];
 
-  if (fontDataUris.regular) {
+  if (fontDataUris.regular || fontDataUris.regularFileUrl) {
     rules.push(`@font-face {
         font-family: "C";
-        src: url("${fontDataUris.regular}") format("truetype");
+        src: ${renderFontSources(fontDataUris.regularFileUrl, fontDataUris.regular)};
         font-weight: 500;
         font-style: normal;
       }`);
   }
 
-  if (fontDataUris.bold) {
+  if (fontDataUris.bold || fontDataUris.boldFileUrl) {
     rules.push(`@font-face {
         font-family: "C";
-        src: url("${fontDataUris.bold}") format("truetype");
+        src: ${renderFontSources(fontDataUris.boldFileUrl, fontDataUris.bold)};
         font-weight: 900;
         font-style: normal;
       }`);
   }
 
-  if (fontDataUris.hun) {
+  if (fontDataUris.hun || fontDataUris.hunFileUrl) {
     rules.push(`@font-face {
         font-family: "HUN2";
-        src: url("${fontDataUris.hun}") format("truetype");
+        src: ${renderFontSources(fontDataUris.hunFileUrl, fontDataUris.hun)};
         font-weight: 400 900;
         font-style: normal;
       }
       @font-face {
         font-family: "HUN";
-        src: url("${fontDataUris.hun}") format("truetype");
+        src: ${renderFontSources(fontDataUris.hunFileUrl, fontDataUris.hun)};
         font-weight: 400 900;
         font-style: normal;
       }`);
   }
 
   return rules.join('\n      ');
+}
+
+function renderFontSources(fileUrl, dataUri) {
+  return [fileUrl, dataUri]
+    .filter(Boolean)
+    .map((source) => `url("${source}") format("truetype")`)
+    .join(', ');
 }
 
 function escapeXml(value) {
