@@ -31,6 +31,7 @@ import {
   createQuickPlayAltitudeCard,
   createQuickPlayRecentAltitudeCard,
 } from './tetrio-quickplay.js';
+import { createTetrioLeagueMatchCard } from './tetrio-league-match.js';
 import { createTetrioRankCutImage } from './tetrio-rankcut.js';
 import { fetchTetrioStatsCardData } from './tetrio-stats.js';
 import { createTetrioStatsCard } from './tetrio-stats-card.js';
@@ -236,6 +237,7 @@ const percentCommandAliases = {
   tetrioVersusGraph: ['vs'],
   minomuncher: ['munch'],
   tetr: ['tetr', 'tetoranks'],
+  tetrioLeagueMatch: ['tetra'],
   quickplay: ['qp'],
   expertQuickplay: ['exqp'],
   fortyLines: ['40l'],
@@ -466,6 +468,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (interaction.commandName === '랭크컷') {
       await showTetrioRankCut(interaction);
+      return;
+    }
+
+    if (interaction.commandName === '전적') {
+      await showTetrioLeagueMatch(interaction);
       return;
     }
 
@@ -971,6 +978,11 @@ async function handlePercentMessageCommand(message) {
 
   if (command === 'minomuncher') {
     await showMinomuncherAnalysisMessage(message, input);
+    return true;
+  }
+
+  if (command === 'tetrioLeagueMatch') {
+    await handleTetrioLeagueMatchMessage(message, input);
     return true;
   }
 
@@ -2014,6 +2026,7 @@ function getHelpMessage() {
     '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여줍니다. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시합니다.',
     '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석합니다. 파일이 없으면 `ttrm파일 달라냥!`을 보냅니다.',
     '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여줍니다.',
+    '`/전적 닉네임:[TETR.IO 닉네임] 숫자:[경기 번호]` 또는 `%tetra 닉네임 [경기 번호]` - TETRA LEAGUE 최근 경기 전적을 이미지로 보여줍니다. 닉네임을 생략하면 연동된 계정을 사용합니다.',
     '`/체스비교 플랫폼:<체닷|리체스> 타임컨트롤:<래피드|블리츠|불렛> 닉네임1:<이름> 닉네임2:<이름>` - 두 사람의 점수와 예상 승률을 비교합니다.',
     '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산합니다.',
     '`/알람 내용:<알람 내용> 분:<1~10080>` - 지정한 분 뒤에 멘션으로 알려줍니다.',
@@ -2537,6 +2550,45 @@ async function showTetrioRankCut(interaction) {
   }
 }
 
+async function showTetrioLeagueMatch(interaction) {
+  const input = interaction.options.getString('닉네임')?.trim();
+  const matchIndex = interaction.options.getInteger('숫자') ?? 1;
+
+  await interaction.deferReply();
+
+  try {
+    const username = input
+      ? input
+      : await findTetrioUsernameByDiscordId(interaction.user.id);
+
+    if (!username) {
+      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.');
+      return;
+    }
+
+    const card = await createTetrioLeagueMatchCard(username, matchIndex);
+    const attachment = new AttachmentBuilder(card.image, {
+      name: getTetrioLeagueMatchAttachmentName(card.username, matchIndex),
+    });
+
+    await interaction.editReply({
+      content: `https://ch.tetr.io/u/${encodeURIComponent(card.username)}/league`,
+      files: [attachment],
+    });
+  } catch (error) {
+    console.error(`Failed to fetch TETRA LEAGUE match for ${input ?? 'linked account'} at position ${matchIndex}:`);
+    console.error(error);
+
+    const knownErrorMessage = await getTetrioLeagueMatchKnownErrorMessage(error, input, !input);
+    if (knownErrorMessage) {
+      await interaction.editReply(knownErrorMessage);
+      return;
+    }
+
+    await interaction.editReply('TETRA LEAGUE 전적을 가져오지 못했어요. 잠시 후 다시 시도해주세요.');
+  }
+}
+
 async function showQuickPlayAltitude(interaction) {
   const leaderboard = normalizeQuickPlayLeaderboard(interaction.options.getString('recent')) ?? 'top';
   const input = interaction.options.getString('닉네임')?.trim();
@@ -2828,6 +2880,220 @@ function getTetrioPersonalRecordErrorMessage(mode) {
   }
 
   return '퀵플레이 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+}
+
+function getTetrioLeagueMatchAttachmentName(username, matchIndex) {
+  return `tetrio-league-${formatAttachmentSafeName(username)}-${matchIndex}.png`;
+}
+
+async function getTetrioLeagueMatchKnownErrorMessage(error, username = null, assumeExistingUser = false) {
+  if (error.code !== 'NO_RECORD' && error.status !== 404) {
+    return null;
+  }
+
+  if (assumeExistingUser) {
+    return 'TETRA LEAGUE 전적이 아직 없어요.';
+  }
+
+  if (username) {
+    const resolvedUsername = await findTetrioUsername(username).catch((lookupError) => {
+      console.error(`Failed to verify TETR.IO user ${username} after league match lookup failed:`);
+      console.error(lookupError);
+      return undefined;
+    });
+
+    if (resolvedUsername) {
+      return 'TETRA LEAGUE 전적이 아직 없어요.';
+    }
+
+    if (resolvedUsername === null) {
+      return '그런 유저는 없다에요';
+    }
+  }
+
+  if (error.code === 'NO_RECORD') {
+    return 'TETRA LEAGUE 전적이 아직 없어요.';
+  }
+
+  return '그런 유저는 없다에요';
+}
+
+async function handleTetrioLeagueMatchMessage(message, input) {
+  const parsedInput = parseTetrioLeagueMatchMessageInput(input);
+  if (!parsedInput) {
+    await message.reply({
+      content: '사용법: `%tetra 닉네임 [숫자]`, `%tetra @멘션 [숫자]`, `%tetra [숫자]`',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  if (parsedInput.ambiguousNumericInput) {
+    await handleAmbiguousNumericTetrioLeagueMatchMessage(
+      message,
+      parsedInput.targetText,
+      parsedInput.fallbackMatchIndex
+    );
+    return;
+  }
+
+  const repliedUser = await getRepliedUserFromTetrioMessage(message);
+  if (repliedUser) {
+    await showLinkedTetrioLeagueMatchMessage(message, repliedUser, parsedInput.matchIndex);
+    return;
+  }
+
+  if (!parsedInput.targetText) {
+    await showLinkedTetrioLeagueMatchMessage(message, message.author, parsedInput.matchIndex);
+    return;
+  }
+
+  const mentionedUser = getSingleMentionedUserFromTetrioInput(message, parsedInput.targetText);
+  if (mentionedUser) {
+    await showLinkedTetrioLeagueMatchMessage(message, mentionedUser, parsedInput.matchIndex);
+    return;
+  }
+
+  const tetrioValidationResult = validateTetrioMessageInput(parsedInput.targetText);
+  if (tetrioValidationResult === 'too_long') {
+    await message.reply({
+      content: '닉네임이 너무 길어요.',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  if (tetrioValidationResult === 'ignore') {
+    return;
+  }
+
+  await showTetrioLeagueMatchMessage(message, parsedInput.targetText, parsedInput.matchIndex);
+}
+
+async function handleAmbiguousNumericTetrioLeagueMatchMessage(message, input, matchIndex) {
+  try {
+    await message.channel.sendTyping();
+    const username = await findTetrioUsername(input);
+
+    if (username) {
+      await showTetrioLeagueMatchMessage(message, username, 1, true);
+      return;
+    }
+
+    if (isTrollingNumericInput(input)) {
+      await message.reply({
+        content: '분탕치지마세요!',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (!matchIndex) {
+      await message.reply({
+        content: '분탕치지마세요!',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    await showLinkedTetrioLeagueMatchMessage(message, message.author, matchIndex);
+  } catch (error) {
+    console.error(`Failed to resolve numeric TETRA LEAGUE input ${input}:`);
+    console.error(error);
+
+    await message.reply({
+      content: 'TETRA LEAGUE 전적을 가져오지 못했어요. 잠시 후 다시 시도해주세요.',
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+
+function parseTetrioLeagueMatchMessageInput(input) {
+  const trimmed = String(input ?? '').trim();
+  if (!trimmed) {
+    return { targetText: null, matchIndex: 1 };
+  }
+
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
+
+  if (tokens.length === 1) {
+    const matchIndex = parsePositiveIntegerToken(tokens[0]);
+    if (isAmbiguousNumericTetrioInput(tokens[0])) {
+      return {
+        targetText: tokens[0],
+        matchIndex: 1,
+        ambiguousNumericInput: true,
+        fallbackMatchIndex: matchIndex,
+      };
+    }
+
+    return matchIndex
+      ? { targetText: null, matchIndex }
+      : { targetText: tokens[0], matchIndex: 1 };
+  }
+
+  if (tokens.length === 2) {
+    const matchIndex = parsePositiveIntegerToken(tokens[1]);
+    if (!matchIndex) {
+      return null;
+    }
+
+    return {
+      targetText: tokens[0],
+      matchIndex,
+    };
+  }
+
+  return null;
+}
+
+async function showLinkedTetrioLeagueMatchMessage(message, user, matchIndex) {
+  try {
+    await message.channel.sendTyping();
+    const username = await findTetrioUsernameByDiscordId(user.id);
+
+    if (!username) {
+      await sendUnlinkedTetrioImage(message);
+      return;
+    }
+
+    await showTetrioLeagueMatchMessage(message, username, matchIndex, true);
+  } catch (error) {
+    console.error(`Failed to find linked TETR.IO profile for Discord user ${user.id}:`);
+    console.error(error);
+
+    await message.reply({
+      content: 'TETR.IO 연동 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요.',
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+
+async function showTetrioLeagueMatchMessage(message, username, matchIndex, assumeExistingUser = false) {
+  try {
+    await message.channel.sendTyping();
+    const card = await createTetrioLeagueMatchCard(username, matchIndex);
+    const attachment = new AttachmentBuilder(card.image, {
+      name: getTetrioLeagueMatchAttachmentName(card.username, matchIndex),
+    });
+
+    await message.reply({
+      content: `https://ch.tetr.io/u/${encodeURIComponent(card.username)}/league`,
+      files: [attachment],
+      allowedMentions: { repliedUser: false },
+    });
+  } catch (error) {
+    console.error(`Failed to fetch TETRA LEAGUE match for ${username} at position ${matchIndex}:`);
+    console.error(error);
+
+    const content = (await getTetrioLeagueMatchKnownErrorMessage(error, username, assumeExistingUser))
+      ?? 'TETRA LEAGUE 전적을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+
+    await message.reply({
+      content,
+      allowedMentions: { repliedUser: false },
+    });
+  }
 }
 
 async function handleQuickPlayAltitudeMessage(message, input, mode = 'zenith') {

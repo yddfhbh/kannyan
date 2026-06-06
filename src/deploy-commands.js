@@ -94,6 +94,23 @@ const commands = [
     .setDescription('TETRA LEAGUE 랭크컷 이미지를 보여줍니다.')
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('전적')
+    .setDescription('TETR.IO TETRA LEAGUE 최근 경기 전적을 이미지로 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('숫자')
+        .setDescription('가져올 경기 순번, 기본값은 1')
+        .setRequired(false)
+        .setMinValue(1)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('체스비교')
     .setDescription('두 사람의 체스 레이팅과 예상 승률을 비교합니다.')
     .addStringOption((option) =>
