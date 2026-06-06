@@ -11,7 +11,7 @@ const tetrioHeaders = {
   'X-Session-ID': 'discord-bot-tetrio-league-match',
 };
 const tetrioRecordPageSize = 100;
-const leagueFontFamily = '"HUN", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const leagueFontFamily = '"HUN2", "HUN", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
 const sideThemes = [
   {
     name: 'blue',
@@ -264,7 +264,7 @@ function renderLeagueMatchSvg(match, hunFontDataUri = null) {
       .username {
         fill: #f6f2ef;
         font-size: 17px;
-        font-weight: 900;
+        font-weight: 800;
       }
       .score {
         fill: #ffffff;
@@ -274,32 +274,32 @@ function renderLeagueMatchSvg(match, hunFontDataUri = null) {
       .summaryValue {
         fill: #fbf4f2;
         font-size: 11.5px;
-        font-weight: 900;
+        font-weight: 700;
       }
       .roundValue {
         fill: #fbf4f2;
         font-size: 13.6px;
-        font-weight: 900;
+        font-weight: 700;
       }
       .blueLabel {
         fill: ${sideThemes[0].label};
         font-size: 13.6px;
-        font-weight: 900;
+        font-weight: 700;
       }
       .redLabel {
         fill: ${sideThemes[1].label};
         font-size: 13.6px;
-        font-weight: 900;
+        font-weight: 700;
       }
       .summaryBlueLabel {
         fill: ${sideThemes[0].label};
         font-size: 11.5px;
-        font-weight: 900;
+        font-weight: 700;
       }
       .summaryRedLabel {
         fill: ${sideThemes[1].label};
         font-size: 11.5px;
-        font-weight: 900;
+        font-weight: 700;
       }
       .time {
         fill: #ffffff;
@@ -309,12 +309,12 @@ function renderLeagueMatchSvg(match, hunFontDataUri = null) {
       .versus {
         fill: #ffd620;
         font-size: 42px;
-        font-weight: 900;
+        font-weight: 800;
       }
       .footer {
         fill: #d9e6d5;
         font-size: 16px;
-        font-weight: 900;
+        font-weight: 800;
       }
     </style>
   </defs>
@@ -515,6 +515,12 @@ function renderTetrioFontFace(fontDataUri) {
   }
 
   return `@font-face {
+        font-family: "HUN2";
+        src: url("${fontDataUri}") format("truetype");
+        font-weight: 400 900;
+        font-style: normal;
+      }
+      @font-face {
         font-family: "HUN";
         src: url("${fontDataUri}") format("truetype");
         font-weight: 400 900;
