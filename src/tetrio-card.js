@@ -727,7 +727,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         font-weight: 950;
         fill: #c9ffc8;
         stroke: rgba(182, 247, 184, 0.58);
-        stroke-width: 0.26px;
+        stroke-width: 0.30px;
         stroke-linejoin: round;
         paint-order: stroke fill;
       }
@@ -1592,7 +1592,7 @@ async function renderHeaderUsernameMarkup({
     await flushSegment();
 
     const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 1.26);
-    const underscoreHeight = roundSvgNumber(Math.max(3.8, fontSize * 0.085));
+    const underscoreHeight = roundSvgNumber(Math.max(5.0, fontSize * 0.11));
 
     // 위아래 위치는 이 값으로 조절
     const underscoreY = roundSvgNumber(y - fontSize * 0.045);
