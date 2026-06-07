@@ -496,7 +496,7 @@ function renderQuickPlayMetaLine(value, x, y, options = {}) {
   const text = String(value ?? '');
   const displayText = text
   .replace(/_(?=\s*·)/g, '  ')
-  .replaceAll('_', '  ');
+  .replaceAll('_', ' ');
   const fontSize = 34;
   const fillAttr = options.fill ? ` fill="${options.fill}"` : '';
   const opacityAttr = options.opacity !== undefined ? ` opacity="${options.opacity}"` : '';
