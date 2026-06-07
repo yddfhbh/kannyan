@@ -731,7 +731,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         font-weight: 950;
         fill: #c9ffc8;
         stroke: rgba(182, 247, 184, 0.58);
-        stroke-width: 0.30px;
+        stroke-width: 0.35px;
         stroke-linejoin: round;
         paint-order: stroke fill;
       }
@@ -760,14 +760,14 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         fill: #fbfff8;
         filter: url(#headerNameShadow);
         stroke: rgba(251,255,248,0.54);
-        stroke-width: 0.62px;
+        stroke-width: 0.70px;
         paint-order: stroke fill;
       }
 
       .headerNameUnderscore {
         fill: #fbfff8;
         stroke: rgba(251,255,248,0.54);
-        stroke-width: 0.54px;
+        stroke-width: 0.60px;
         paint-order: stroke fill;
         filter: url(#headerUnderscoreShadow);
       }
