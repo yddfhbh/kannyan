@@ -7,8 +7,8 @@ export const tetrioHunDinFontUrl = pathToFileURL(tetrioHunDinFontPath).href;
 export const tetrioFontFamily = '"HUN-din 1451", "HUN", "HUN2", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
 export const tetrioTextStrokeWidth = '0.32px';
 export const tetrioPhraseWordSpacing = '0.16em';
-export const tetrioTightCommaDx = '-0.24em';
-export const tetrioTightTextCommaDx = '-0.12em';
+export const tetrioTightCommaDx = '-0.34em';
+export const tetrioTightTextCommaDx = '-0.22em';
 export const tetrioTightILeftDx = '-0.08em';
 export const tetrioTightIRightDx = '-0.12em';
 
