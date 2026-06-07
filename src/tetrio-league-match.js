@@ -396,10 +396,12 @@ function renderTopPanel(player, sideIndex, y, height, centerX) {
   const isLeft = sideIndex === 0;
   const panelWidth = 350;
   const svgWidth = centerX * 2;
-  const x = isLeft ? 18 : svgWidth - panelWidth-2;
+  const sideMargin = 18;
+  const x = isLeft ? sideMargin : svgWidth - panelWidth - sideMargin; 
   const textX = isLeft ? x + panelWidth - 10 : x + 10;
   const textAnchor = isLeft ? 'end' : 'start';
-  const scoreX = isLeft ? x + panelWidth - 15 : x + 13;
+  const scorePadding = 15;
+  const scoreX = isLeft ? x + panelWidth - scorePadding : x + scorePadding;
   const statsClass = isLeft ? 'summaryBlueLabel' : 'summaryRedLabel';
   const glowFilter = isLeft ? 'bluePanelGlow' : 'redPanelGlow';
 
