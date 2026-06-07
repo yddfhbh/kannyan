@@ -494,7 +494,9 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
 
 function renderQuickPlayMetaLine(value, x, y, options = {}) {
   const text = String(value ?? '');
-  const displayText = text.replaceAll('_', '  ');
+  const displayText = text
+  .replace(/_(?=\s*·)/g, '   ')
+  .replaceAll('_', '  ');
   const fontSize = 34;
   const fillAttr = options.fill ? ` fill="${options.fill}"` : '';
   const opacityAttr = options.opacity !== undefined ? ` opacity="${options.opacity}"` : '';
@@ -504,23 +506,27 @@ function renderQuickPlayMetaLine(value, x, y, options = {}) {
   let cursorX = x;
   const underlines = [];
 
-  for (const char of text) {
-    if (char === '_') {
-      const rectWidth = roundSvgNumber(fontSize * 0.44);
-      const rectHeight = roundSvgNumber(Math.max(3.2, fontSize * 0.095));
-      const rectX = roundSvgNumber(cursorX + fontSize * 0.26);
-      const rectY = roundSvgNumber(y + fontSize * 0.34);
+  for (let index = 0; index < text.length; index += 1) {
+  const char = text[index];
 
-      underlines.push(
-        `<rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}"${fillAttr || ' fill="#b0e1af"'}${opacityAttr}/>`
-      );
+  if (char === '_') {
+    const rectWidth = roundSvgNumber(fontSize * 0.44);
+    const rectHeight = roundSvgNumber(Math.max(3.2, fontSize * 0.095));
+    const rectX = roundSvgNumber(cursorX + fontSize * 0.26);
+    const rectY = roundSvgNumber(y + fontSize * 0.34);
 
-      cursorX += estimateQuickPlayMetaCharWidth('  ', fontSize);
-      continue;
-    }
+    underlines.push(
+      `<rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}"${fillAttr || ' fill="#b0e1af"'}${opacityAttr}/>`
+    );
 
-    cursorX += estimateQuickPlayMetaCharWidth(char, fontSize);
+    const isBeforeSeparator = /^\s*·/.test(text.slice(index + 1));
+    const spaceCount = isBeforeSeparator ? 3 : 2;
+    cursorX += estimateQuickPlayMetaCharWidth(' ', fontSize) * spaceCount;
+    continue;
   }
+
+  cursorX += estimateQuickPlayMetaCharWidth(char, fontSize);
+}
 
   return `<g>${baseText}${underlines.join('')}</g>`;
 }
