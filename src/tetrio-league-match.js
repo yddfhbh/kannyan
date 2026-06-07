@@ -396,7 +396,7 @@ function renderTopPanel(player, sideIndex, y, height, centerX) {
   const isLeft = sideIndex === 0;
   const panelWidth = 350;
   const svgWidth = centerX * 2;
-  const sideMargin = 6;
+  const sideMargin = 2;
   const x = isLeft ? sideMargin : svgWidth - panelWidth - sideMargin; 
   const textX = isLeft ? x + panelWidth - 10 : x + 10;
   const textAnchor = isLeft ? 'end' : 'start';
