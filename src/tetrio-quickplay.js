@@ -476,9 +476,54 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
   <text x="${roundSvgNumber(statsValueX)}" y="${baselineY}" text-anchor="end" dominant-baseline="middle" class="statsValue">${renderQuickPlayStatsNumberMarkup(row.value)}</text>`;
   }).join('')}
   <rect x="8" y="${playedAtPanelY}" width="1384" height="${playedAtPanelHeight}" rx="3" fill="#254726" stroke="#3d6640" stroke-width="4"/>
-  <text x="34" y="${playedAtPanelY + playedAtPanelHeight / 2 + 2}" dominant-baseline="middle" class="metaText" fill="#000000" opacity="0.32">${renderQuickPlayMetaTextMarkup(playedAtText)}</text>
-<text x="32" y="${playedAtPanelY + playedAtPanelHeight / 2}" dominant-baseline="middle" class="metaText">${renderQuickPlayMetaTextMarkup(playedAtText)}</text>
+  ${renderQuickPlayMetaLine(playedAtText, 34, playedAtPanelY + playedAtPanelHeight / 2 + 2, {
+  fill: '#000000',
+  opacity: 0.32,
+  })}
+  ${renderQuickPlayMetaLine(playedAtText, 32, playedAtPanelY + playedAtPanelHeight / 2)}
 </svg>`;
+}
+
+function renderQuickPlayMetaLine(value, x, y, options = {}) {
+  const text = String(value ?? '');
+  const displayText = text.replaceAll('_', ' ');
+  const fontSize = 34;
+  const fillAttr = options.fill ? ` fill="${options.fill}"` : '';
+  const opacityAttr = options.opacity !== undefined ? ` opacity="${options.opacity}"` : '';
+
+  const baseText = `<text x="${x}" y="${y}" dominant-baseline="middle" class="metaText"${fillAttr}${opacityAttr}>${escapeXml(displayText)}</text>`;
+
+  let cursorX = x;
+  const underlines = [];
+
+  for (const char of text) {
+    if (char === '_') {
+      const rectWidth = roundSvgNumber(fontSize * 0.45);
+      const rectHeight = roundSvgNumber(fontSize * 0.11);
+      const rectX = roundSvgNumber(cursorX + fontSize * 0.03);
+      const rectY = roundSvgNumber(y + fontSize * 0.14);
+
+      underlines.push(
+        `<rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}"${fillAttr || ' fill="#b0e1af"'}${opacityAttr}/>`
+      );
+
+      cursorX += estimateQuickPlayMetaCharWidth(' ', fontSize);
+      continue;
+    }
+
+    cursorX += estimateQuickPlayMetaCharWidth(char, fontSize);
+  }
+
+  return `<g>${baseText}${underlines.join('')}</g>`;
+}
+
+function estimateQuickPlayMetaCharWidth(char, fontSize = 34) {
+  if (char === ' ') return fontSize * 0.34 + 10;
+  if (char === '·') return fontSize * 0.34;
+  if (char === 'I' || char === '1' || char === '.') return fontSize * 0.28;
+  if (char === ',') return fontSize * 0.22;
+  if (/\d/.test(char)) return fontSize * 0.52;
+  return fontSize * 0.58 + 1.5;
 }
 
 function renderQuickPlayMainValueMarkup({
