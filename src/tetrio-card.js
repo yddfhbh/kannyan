@@ -594,7 +594,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   const avatarSize = 96;
   const nameX = avatarX + avatarSize + 16;
   const headerNameFontSize = 46;
-  const headerNameFontWeight = 700;
+  const headerNameFontWeight = 900;
   const headerUsername = String(user.username ?? '').toUpperCase();
   const headerNameWidth = await measureHeaderNameWidth(
     headerUsername,
