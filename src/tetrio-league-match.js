@@ -502,22 +502,24 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
   }
 
   // 빨간쪽: "APM" 글자 시작 위치를 기준으로 정렬
-  const apmLabelX = x + 60;
+    // 빨간쪽: APM 숫자 시작 위치를 기준으로 정렬
+  const redApmValueX = x + 18;
 
   const items = [
-    { x: apmLabelX - 12, anchor: 'end', className: valueClass, text: apmText, numeric: true },
-    { x: apmLabelX, anchor: 'start', className: labelClass, text: 'APM' },
-    { x: apmLabelX + 31, anchor: 'middle', className: valueClass, text: '-' },
+    { x: redApmValueX, anchor: 'start', className: valueClass, text: apmText, numeric: true },
+    { x: x + 74, anchor: 'start', className: labelClass, text: 'APM' },
+    { x: x + 105, anchor: 'middle', className: valueClass, text: '-' },
 
-    { x: apmLabelX + 63, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
-    { x: apmLabelX + 71, anchor: 'start', className: labelClass, text: 'PPS' },
-    { x: apmLabelX + 96, anchor: 'middle', className: valueClass, text: '-' },
+    { x: x + 119, anchor: 'start', className: valueClass, text: ppsText, numeric: true },
+    { x: x + 153, anchor: 'start', className: labelClass, text: 'PPS' },
+    { x: x + 184, anchor: 'middle', className: valueClass, text: '-' },
 
-    { x: apmLabelX + 139, anchor: 'end', className: valueClass, text: vsText, numeric: true },
-    { x: apmLabelX + 147, anchor: 'start', className: labelClass, text: 'VS' },
+    { x: x + 199, anchor: 'start', className: valueClass, text: vsText, numeric: true },
+    { x: x + 249, anchor: 'start', className: labelClass, text: 'VS' },
   ];
 
   return items.map(renderItem).join('\n  ');
+
 }
 
 function renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass) {
