@@ -1160,8 +1160,8 @@ function renderStaffDistinguishmentBanner(distinguishment, y, x = 14, width = 93
     <polygon points="${renderStaffBannerPanelPoints(x + width - 158, y + 8, 146, height - 16, true)}" fill="${theme.panelFill}" opacity="0.24"/>
     ${renderStaffBannerPanelLines(x + 20, y + 9, 120, height - 18, theme.panelLine, false)}
     ${renderStaffBannerPanelLines(x + width - 140, y + 9, 120, height - 18, theme.panelLine, true)}
-    <text x="${x + width / 2}" y="${y + (isAlumni ? 35 : 31)}" text-anchor="middle" font-size="${isAlumni ? 18 : 17}" font-weight="900" fill="${theme.titleFill}" stroke="${theme.titleStroke}" stroke-width="0.65" paint-order="stroke fill" letter-spacing="0.9" textLength="${width - 300}" lengthAdjust="spacingAndGlyphs">${escapeXml(displayTitle)}</text>
-    ${!isAlumni && footer ? `<text x="${x + width / 2}" y="${y + 46}" text-anchor="middle" font-size="14" font-weight="900" fill="${theme.footerFill}" letter-spacing="0.35" textLength="${Math.max(1, width - 390)}" lengthAdjust="spacingAndGlyphs">${escapeXml(footer)}</text>` : ''}
+    <text x="${x + width / 2}" y="${y + (isAlumni ? 35 : 31)}" text-anchor="middle" font-size="${isAlumni ? 18 : 17}" font-weight="900" fill="${theme.titleFill}" stroke="${theme.titleStroke}" stroke-width="0.65" paint-order="stroke fill" letter-spacing="0.9">${escapeXml(displayTitle)}</text>
+    ${!isAlumni && footer ? `<text x="${x + width / 2}" y="${y + 46}" text-anchor="middle" font-size="14" font-weight="900" fill="${theme.footerFill}" letter-spacing="0.35">${escapeXml(footer)}</text>` : ''}
   </g>`;
 }
 
@@ -1249,8 +1249,8 @@ function renderTwcDistinguishmentBanner(distinguishment, y, x = 14, width = 932)
     <polygon points="${renderStaffBannerPanelPoints(x + width - 188, y + 10, 170, height - 20, true)}" fill="#7a3f11" opacity="0.22"/>
     ${renderStaffBannerPanelLines(x + 26, y + 11, 136, height - 22, '#ffcf6a', false)}
     ${renderStaffBannerPanelLines(x + width - 162, y + 11, 136, height - 22, '#ffcf6a', true)}
-    <text x="${x + width / 2}" y="${y + 30}" text-anchor="middle" font-size="22" font-weight="900" fill="#fff6dc" stroke="#5e2800" stroke-width="1.2" paint-order="stroke fill" letter-spacing="1.1" textLength="${width - 180}" lengthAdjust="spacingAndGlyphs">TETR.IO WORLD CHAMPION</text>
-    <text x="${x + width / 2}" y="${y + 46}" text-anchor="middle" font-size="13.5" font-weight="900" fill="#ffd86f" letter-spacing="0.55" textLength="${width - 260}" lengthAdjust="spacingAndGlyphs">${escapeXml(subtitle)}</text>
+    <text x="${x + width / 2}" y="${y + 30}" text-anchor="middle" font-size="22" font-weight="900" fill="#fff6dc" stroke="#5e2800" stroke-width="1.2" paint-order="stroke fill" letter-spacing="1.1">TETR.IO WORLD CHAMPION</text>
+    <text x="${x + width / 2}" y="${y + 46}" text-anchor="middle" font-size="13.5" font-weight="900" fill="#ffd86f" letter-spacing="0.55">${escapeXml(subtitle)}</text>
   </g>`;
 }
 
@@ -1265,8 +1265,8 @@ function renderGenericDistinguishmentBanner(distinguishment, y, x = 14, width = 
     <rect x="${x + 2}" y="${y + 2}" width="${width - 4}" height="${height - 4}" fill="#183329" stroke="#7ec98d" stroke-width="2"/>
     <rect x="${x + 2}" y="${y + 7}" width="${width - 4}" height="2" fill="#b6ffb0" opacity="0.88"/>
     <rect x="${x + 2}" y="${y + height - 9}" width="${width - 4}" height="2" fill="#b6ffb0" opacity="0.88"/>
-    <text x="${x + width / 2}" y="${y + (subtitle ? 30 : 36)}" text-anchor="middle" font-size="${subtitle ? 22 : 24}" font-weight="900" fill="#f4fff2" stroke="#163524" stroke-width="0.9" paint-order="stroke fill" letter-spacing="1" textLength="${width - 140}" lengthAdjust="spacingAndGlyphs">${escapeXml(title)}</text>
-    ${subtitle ? `<text x="${x + width / 2}" y="${y + 46}" text-anchor="middle" font-size="13.5" font-weight="900" fill="#b8efb8" letter-spacing="0.4" textLength="${width - 240}" lengthAdjust="spacingAndGlyphs">${escapeXml(subtitle)}</text>` : ''}
+    <text x="${x + width / 2}" y="${y + (subtitle ? 30 : 36)}" text-anchor="middle" font-size="${subtitle ? 22 : 24}" font-weight="900" fill="#f4fff2" stroke="#163524" stroke-width="0.9" paint-order="stroke fill" letter-spacing="1">${escapeXml(title)}</text>
+    ${subtitle ? `<text x="${x + width / 2}" y="${y + 46}" text-anchor="middle" font-size="13.5" font-weight="900" fill="#b8efb8" letter-spacing="0.4">${escapeXml(subtitle)}</text>` : ''}
   </g>`;
 }
 
