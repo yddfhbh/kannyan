@@ -495,13 +495,13 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
 function renderQuickPlayMetaLine(value, x, y, options = {}) {
   const text = String(value ?? '');
   const displayText = text
-  .replace(/_(?=\s*·)/g, '   ')
+  .replace(/_(?=\s*·)/g, '     ')
   .replaceAll('_', '  ');
   const fontSize = 34;
   const fillAttr = options.fill ? ` fill="${options.fill}"` : '';
   const opacityAttr = options.opacity !== undefined ? ` opacity="${options.opacity}"` : '';
 
-  const baseText = `<text x="${x}" y="${y}" dominant-baseline="middle" class="metaText"${fillAttr}${opacityAttr}>${escapeXml(displayText)}</text>`;
+  const baseText = `<text x="${x}" y="${y}" dominant-baseline="middle" class="metaText"${fillAttr}${opacityAttr} xml:space="preserve">${escapeXml(displayText)}</text>`;
 
   let cursorX = x;
   const underlines = [];
@@ -520,7 +520,7 @@ function renderQuickPlayMetaLine(value, x, y, options = {}) {
     );
 
     const isBeforeSeparator = /^\s*·/.test(text.slice(index + 1));
-    const spaceCount = isBeforeSeparator ? 5 : 2;
+    const spaceCount = isBeforeSeparator ? 3 : 2;
     cursorX += estimateQuickPlayMetaCharWidth(' ', fontSize) * spaceCount;
     continue;
   }
