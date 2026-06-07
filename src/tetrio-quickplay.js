@@ -500,7 +500,7 @@ function renderQuickPlayMetaLine(value, x, y, options = {}) {
     if (char === '_') {
       const rectWidth = roundSvgNumber(fontSize * 0.44);
       const rectHeight = roundSvgNumber(Math.max(3.2, fontSize * 0.095));
-      const rectX = roundSvgNumber(cursorX + fontSize * 0.22);
+      const rectX = roundSvgNumber(cursorX + fontSize * 0.26);
       const rectY = roundSvgNumber(y + fontSize * 0.34);
 
       underlines.push(
