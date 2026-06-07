@@ -749,8 +749,8 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         fill: #d8ffd2;
         opacity: 0.66;
       }
-      .sub { font-size: 11.9px; font-weight: 900; fill: #9ed99a; text-shadow: 0 1px 2px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
-      .subMetric { font-size: 11.9px; font-family: ${cardFontFamily}; text-shadow: 0 1px 2px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
+      .sub { font-size: 13.2px; font-weight: 900; fill: #9ed99a; text-shadow: 0 1px 2px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
+      .subMetric { font-size: 13.2px; font-family: ${cardFontFamily}; text-shadow: 0 1px 2px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
       .subMetricValue { fill: #c2efbc; font-weight: 900; letter-spacing: 0.18px; }
       .subMetricLabel { fill: #739d71; font-weight: 800; letter-spacing: 0.8px; opacity: 0.96; }
       .leagueAux { fill: #c5efbc; }
@@ -2074,7 +2074,7 @@ function renderStatCard(x, y, width, label, rank, value, subtext, options = {}) 
   const iconValueFontSize = valueFontSize;
   const rankMarkup = renderRankLabel(x, y, width, rank, options);
   const subtextMarkup = options.subtextMarkup
-    ?? `<text x="${x + width / 2}" y="${y + 85}" text-anchor="middle" class="sub">${renderTetrioTextMarkup(subtext)}</text>`;
+  ?? `<text x="${x + width / 2}" y="${y + 85}" text-anchor="middle" class="sub">${renderTetrioCardDecimalTextMarkup(subtext)}</text>`;
   const valueMarkup = renderStatCardValueMarkup(x, y, width, valueY, value, valueFontSize, iconValueFontSize, options);
 
   return `
@@ -2139,6 +2139,31 @@ function renderStatCardValueMarkup(x, y, width, valueY, value, valueFontSize, ic
     ${renderStatValueText(x + 86, valueY, value, iconValueFontSize, 'start')}`;
 }
 
+function renderTetrioCardDecimalTextMarkup(value, options = {}) {
+  const text = String(value ?? '');
+  const dotFontSize = options.dotFontSize ?? '1.4em';
+  const dotDyEm = options.dotDyEm ?? 0.02;
+
+  let markup = '';
+  let resetDyEm = 0;
+
+  for (const char of text) {
+    if (char === '.') {
+      markup += `<tspan dy="${dotDyEm}em" font-family="Arial, Helvetica, sans-serif" font-size="${dotFontSize}" stroke="none">.</tspan>`;
+      resetDyEm = dotDyEm;
+      continue;
+    }
+
+    const dy = resetDyEm ? ` dy="${roundSvgNumber(-resetDyEm)}em"` : '';
+    markup += dy
+      ? `<tspan${dy}>${escapeXml(char)}</tspan>`
+      : escapeXml(char);
+
+    resetDyEm = 0;
+  }
+
+  return markup;
+}
 
 function renderTetrioCardDecimalNumberMarkup(value, options = {}) {
   const text = String(value ?? '');
