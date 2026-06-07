@@ -789,13 +789,13 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       .bioTitle {
         fill: #679d63;
         opacity: 0.88;
-        word-spacing: 5px;
+        word-spacing: 4px;
       }
 
       .bioText {
         fill: #a7e0a0;
         text-shadow: 0 1px 2px #07150a;
-        word-spacing: 4px;
+        word-spacing: 2px;
       }
     </style>
   </defs>

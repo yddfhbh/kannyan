@@ -426,11 +426,23 @@ client.on(Events.InteractionCreate, async (interaction) => {
     );
 
     if (interaction.commandName === '도움말') {
-      await interaction.reply('안알랴줌');
-      await wait(5_000);
-      await interaction.editReply(getHelpMessage());
-      return;
-    }
+  await interaction.reply('안알랴줌');
+  await wait(5_000);
+
+  const helpMessage = getHelpMessage();
+  const chunks = splitDiscordMessage(helpMessage, 1900);
+
+  await interaction.editReply(chunks[0]);
+
+  for (const chunk of chunks.slice(1)) {
+    await interaction.followUp({
+      content: chunk,
+      flags: MessageFlags.Ephemeral,
+    });
+  }
+
+  return;
+}
 
     if (interaction.commandName === '체닷') {
       await showChessComRatings(interaction);
@@ -922,14 +934,30 @@ async function handlePercentMessageCommand(message) {
 
   const { command, input } = parsedCommand;
   if (command === 'help') {
-    const reply = await message.reply({
-      content: '안알랴줌',
-      allowedMentions: { repliedUser: false },
+  const reply = await message.reply({
+    content: '안알랴줌',
+    allowedMentions: { repliedUser: false },
+  });
+
+  await wait(5_000);
+
+  const helpMessage = getHelpMessage();
+  const chunks = splitDiscordMessage(helpMessage, 1900);
+
+  await reply.edit({
+    content: chunks[0],
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+
+  for (const chunk of chunks.slice(1)) {
+    await message.channel.send({
+      content: chunk,
+      allowedMentions: { parse: [] },
     });
-    await wait(5_000);
-    await reply.edit(getHelpMessage());
-    return true;
   }
+
+  return true;
+}
 
   if (command === 'chesscom') {
     if (!input) {
@@ -1044,6 +1072,35 @@ async function handlePercentMessageCommand(message) {
   await showTetrioProfileMessage(message, input);
   return true;
 } 
+
+
+function splitDiscordMessage(text, maxLength = 1900) {
+  const lines = String(text ?? '').split('\n');
+  const chunks = [];
+  let current = '';
+
+  for (const line of lines) {
+    const next = current ? `${current}\n${line}` : line;
+
+    if (next.length > maxLength) {
+      if (current) {
+        chunks.push(current);
+        current = line;
+      } else {
+        chunks.push(line.slice(0, maxLength));
+        current = line.slice(maxLength);
+      }
+    } else {
+      current = next;
+    }
+  }
+
+  if (current) {
+    chunks.push(current);
+  }
+
+  return chunks;
+}
 
 async function handleGeminiFallbackMessage(message) {
   let rawPrompt = parseGeminiFallbackPrompt(message.content);
