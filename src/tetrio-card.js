@@ -687,10 +687,8 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       <stop offset="0.5" stop-color="#25412d"/>
       <stop offset="1" stop-color="#1b2f23"/>
     </linearGradient>
+
     <filter id="headerNameShadow" x="-20%" y="-35%" width="160%" height="220%">
-    <filter id="headerUnderscoreShadow" x="-120%" y="-500%" width="340%" height="1100%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="4.8" stdDeviation="4.2" flood-color="#071109" flood-opacity="0.58"/>
-    </filter>
       <feOffset in="SourceAlpha" dx="0" dy="5" result="shadowOffset"/>
       <feGaussianBlur in="shadowOffset" stdDeviation="4.2" result="shadowBlur"/>
       <feFlood flood-color="#071109" flood-opacity="0.58" result="shadowColor"/>
@@ -700,6 +698,10 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
+
+  <filter id="headerUnderscoreShadow" x="-120%" y="-500%" width="340%" height="1100%" color-interpolation-filters="sRGB">
+    <feDropShadow dx="0" dy="4.8" stdDeviation="4.2" flood-color="#071109" flood-opacity="0.58"/>
+  </filter>
     <filter id="statValueGlowWide" x="-28%" y="-82%" width="156%" height="264%" color-interpolation-filters="sRGB">
       <feGaussianBlur in="SourceGraphic" stdDeviation="4.1"/>
     </filter>
@@ -750,6 +752,14 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       .leagueAux { fill: #c5efbc; }
       .leagueAuxMuted { fill: #c5efbc; }
       .white { fill: #f6fff5; text-shadow: 0 2px 4px #061009; }
+      .headerName {
+        fill: #fbfff8;
+        filter: url(#headerNameShadow);
+        stroke: rgba(251,255,248,0.54);
+        stroke-width: 0.54px;
+        paint-order: stroke fill;
+      }
+
       .headerNameUnderscore {
         fill: #fbfff8;
         stroke: rgba(251,255,248,0.54);
@@ -757,11 +767,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         paint-order: stroke fill;
         filter: url(#headerUnderscoreShadow);
       }
-      .headerNameUnderscore {
-        fill: #fbfff8;
-        stroke: none;
-        filter: url(#headerNameShadow);
-      }
+
       .noBannerHeaderNameUnderscore {
         fill: #b7d9af;
       }
