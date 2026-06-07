@@ -252,20 +252,27 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
       <stop offset="1" stop-color="#090103"/>
     </linearGradient>
     <linearGradient id="blueRow" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0" stop-color="#010407"/>
-      <stop offset="1" stop-color="#0b2e5d"/>
+      <stop offset="0" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="0.35" stop-color="#031224" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#0b2f61" stop-opacity="1"/>
     </linearGradient>
+
     <linearGradient id="blueRowWin" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0" stop-color="#07101b"/>
-      <stop offset="1" stop-color="#2b74dd"/>
+      <stop offset="0" stop-color="#07101b" stop-opacity="0.92"/>
+      <stop offset="0.58" stop-color="#0d376f" stop-opacity="1"/>
+      <stop offset="1" stop-color="#3a82ec" stop-opacity="1"/>
     </linearGradient>
+
     <linearGradient id="redRow" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0" stop-color="#571116"/>
-      <stop offset="1" stop-color="#050101"/>
+      <stop offset="0" stop-color="#641419" stop-opacity="1"/>
+      <stop offset="0.56" stop-color="#230507" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
     </linearGradient>
+
     <linearGradient id="redRowWin" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0" stop-color="#cf272e"/>
-      <stop offset="1" stop-color="#220407"/>
+      <stop offset="0" stop-color="#e22a32" stop-opacity="1"/>
+      <stop offset="0.52" stop-color="#7a161b" stop-opacity="1"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
     </linearGradient>
     <filter id="textGlow" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="1.8" result="blur"/>
@@ -367,7 +374,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   ${topPanels}
   <text x="${centerX}" y="73" text-anchor="middle" dominant-baseline="middle" class="versus" filter="url(#textGlow)">VS</text>
   ${rows}
-  <rect x="2" y="${footerY}" width="${width - 4}" height="${footerHeight}" fill="#203c27" stroke="#48704d" stroke-width="2"/>
+  <rect x="2" y="${footerY}" width="${width - 4}" height="${footerHeight}" fill="#203c27" stroke="#48704d" stroke-width="1"/>
   <text x="12" y="${footerY + footerHeight / 2 + 1}" dominant-baseline="middle" class="footer" xml:space="preserve">${renderFooterTextMarkup(match.footerText)}</text>
 </svg>`;
 }
@@ -383,8 +390,8 @@ function renderTopPanel(player, sideIndex, y, height, centerX) {
   const statsClass = isLeft ? 'summaryBlueLabel' : 'summaryRedLabel';
 
   return `
-  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="${theme.border}" stroke-width="5" opacity="0.18"/>
-  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${theme.topGradient})" stroke="${theme.border}" stroke-width="1.5"/>
+  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="${theme.border}" stroke-width="4" opacity="0.16"/>
+  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${theme.topGradient})" stroke="${theme.border}" stroke-width="1.0"/>
   <text x="${textX}" y="${y + 20}" text-anchor="${textAnchor}" class="username">${escapeXml(player.username.toUpperCase())}</text>
   <text x="${scoreX}" y="${y + 52}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${renderTetrioNumericTextMarkup(formatInteger(player.wins))}</text>
   ${renderSummaryStatsMarkup(player.stats, x, width, y + height - 14, sideIndex, 'summaryValue', statsClass)}`;
@@ -403,19 +410,24 @@ function renderRoundRow(round, y, height, centerX) {
 function renderRoundSide(side, sideIndex, y, height, centerX) {
   const theme = sideThemes[sideIndex] ?? sideThemes[0];
   const isLeft = sideIndex === 0;
-  const width = 276;
-  const gapFromCenter = 19;
+
+  // 목표 이미지처럼 왼쪽 바를 조금 더 길게
+  const width = isLeft ? 294 : 276;
+  const gapFromCenter = isLeft ? 16 : 22;
+
   const x = isLeft ? centerX - gapFromCenter - width : centerX + gapFromCenter;
   const fill = side.alive ? theme.rowWinGradient : theme.rowGradient;
-  const border = side.alive ? theme.border : theme.mutedBorder;
-  const opacity = side.alive ? 1 : 0.76;
   const labelClass = sideIndex === 0 ? 'blueLabel' : 'redLabel';
-  const innerLineX = isLeft ? x + width : x;
-  const innerLineColor = side.alive ? '#ffffff' : theme.border;
+
+  // 목표 이미지처럼 가운데 쪽에 붙는 세로 하이라이트
+  const stripeX = isLeft ? x + width - 4 : x;
+  const stripeColor = side.alive ? '#ffffff' : theme.border;
+  const stripeOpacity = side.alive ? 0.96 : 0.42;
 
   return `
-  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${fill})" stroke="${border}" stroke-width="1.4" opacity="${opacity}"/>
-  <line x1="${innerLineX}" y1="${y}" x2="${innerLineX}" y2="${y + height}" stroke="${innerLineColor}" stroke-width="2.4" opacity="${opacity}"/>
+  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${fill})" opacity="${side.alive ? 1 : 0.92}"/>
+  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="${theme.border}" stroke-width="0.55" opacity="${side.alive ? 0.42 : 0.14}"/>
+  <rect x="${roundSvgNumber(stripeX)}" y="${y}" width="4" height="${height}" fill="${stripeColor}" opacity="${stripeOpacity}"/>
   ${renderRoundStatsMarkup(side.stats, x, width, y + height / 2 + 1, sideIndex, 'roundValue', labelClass)}`;
 }
 
