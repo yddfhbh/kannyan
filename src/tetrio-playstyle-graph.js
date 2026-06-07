@@ -1,5 +1,6 @@
 import {
   renderTetrioSvgToPng,
+  renderTetrioTextWeightCss,
 } from './tetrio-font.js';
 
 const graphWidth = 600;
