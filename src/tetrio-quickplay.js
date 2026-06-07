@@ -476,8 +476,8 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
   <text x="${roundSvgNumber(statsValueX)}" y="${baselineY}" text-anchor="end" dominant-baseline="middle" class="statsValue">${renderQuickPlayStatsNumberMarkup(row.value)}</text>`;
   }).join('')}
   <rect x="8" y="${playedAtPanelY}" width="1384" height="${playedAtPanelHeight}" rx="3" fill="#254726" stroke="#3d6640" stroke-width="4"/>
-  <text x="34" y="${playedAtPanelY + playedAtPanelHeight / 2 + 2}" dominant-baseline="middle" class="metaText" fill="#000000" opacity="0.32">${escapeXml(playedAtText)}</text>
-  <text x="32" y="${playedAtPanelY + playedAtPanelHeight / 2}" dominant-baseline="middle" class="metaText">${escapeXml(playedAtText)}</text>
+  <text x="34" y="${playedAtPanelY + playedAtPanelHeight / 2 + 2}" dominant-baseline="middle" class="metaText" fill="#000000" opacity="0.32">${renderQuickPlayMetaTextMarkup(playedAtText)}</text>
+<text x="32" y="${playedAtPanelY + playedAtPanelHeight / 2}" dominant-baseline="middle" class="metaText">${renderQuickPlayMetaTextMarkup(playedAtText)}</text>
 </svg>`;
 }
 
