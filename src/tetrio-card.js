@@ -1537,36 +1537,73 @@ async function renderHeaderUsernameMarkup({
   y,
 }) {
   const rawText = String(text ?? '').toUpperCase();
-  const displayText = rawText.replaceAll('_', '');
-  const textMarkup = `<text x="${x}" y="${y}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderTetrioTextMarkup(displayText)}</text>`;
-  const underscoreIndexes = [];
-  for (let index = 0; index < rawText.length; index += 1) {
-    if (rawText[index] === '_') {
-      underscoreIndexes.push(index);
-    }
-  }
 
-  if (!underscoreIndexes.length) {
-    return textMarkup;
+  if (!rawText.includes('_')) {
+    return `<text x="${x}" y="${y}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderTetrioTextMarkup(rawText)}</text>`;
   }
 
   const underscoreClassName = className.includes('noBannerHeaderName')
     ? 'headerNameUnderscore noBannerHeaderNameUnderscore'
     : 'headerNameUnderscore';
-  const underscoreWidth = getHeaderCharUnits('_') * fontSize * 1.18;
-  const underscoreHeight = roundSvgNumber(Math.max(3.8, fontSize * 0.088));
-  const underscoreY = roundSvgNumber(y + fontSize * 0.1);
-  const lines = await Promise.all(underscoreIndexes.map(async (index) => {
-    const prefix = rawText.slice(0, index).replaceAll('_', '');
-    const prefixWidth = prefix
-      ? await measureHeaderNameWidth(prefix, fontSize, fontDataUri, fontWeight)
-      : 0;
-    const rectX = roundSvgNumber(x + prefixWidth - underscoreWidth * 0.52);
-    const rectWidth = roundSvgNumber(underscoreWidth * 0.88);
-    return `<rect x="${rectX}" y="${underscoreY}" width="${rectWidth}" height="${underscoreHeight}" class="${underscoreClassName}"/>`;
-  }));
 
-  return `<g>${textMarkup}${lines.join('')}</g>`;
+  const parts = [];
+  let cursorX = x;
+  let segment = '';
+  let segmentX = x;
+
+  const flushSegment = async () => {
+    if (!segment) return;
+
+    parts.push(
+      `<text x="${roundSvgNumber(segmentX)}" y="${roundSvgNumber(y)}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderTetrioTextMarkup(segment)}</text>`,
+    );
+
+    const segmentWidth = await measureHeaderNameWidth(
+      segment,
+      fontSize,
+      fontDataUri,
+      fontWeight,
+    );
+
+    cursorX += segmentWidth;
+    segment = '';
+    segmentX = cursorX;
+  };
+
+  for (const char of rawText) {
+    if (char !== '_') {
+      if (!segment) {
+        segmentX = cursorX;
+      }
+
+      segment += char;
+      continue;
+    }
+
+    await flushSegment();
+
+    const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 0.82);
+    const underscoreHeight = roundSvgNumber(Math.max(3.8, fontSize * 0.085));
+
+    // 위아래 위치는 이 값으로 조절
+    const underscoreY = roundSvgNumber(y + fontSize * 0.035);
+
+    // 앞 글자와 언더바 사이 간격
+    const underscoreGap = fontSize * 0.035;
+
+    const rectX = roundSvgNumber(cursorX + underscoreGap);
+
+    parts.push(
+      `<rect x="${rectX}" y="${underscoreY}" width="${underscoreWidth}" height="${underscoreHeight}" rx="${roundSvgNumber(underscoreHeight / 2)}" class="${underscoreClassName}"/>`,
+    );
+
+    cursorX += underscoreGap + underscoreWidth + fontSize * 0.06;
+    segmentX = cursorX;
+  }
+
+  await flushSegment();
+
+  return `<g>${parts.join('')}</g>`;
 }
 
 function estimateHeaderNameWidth(username, fontSize) {
