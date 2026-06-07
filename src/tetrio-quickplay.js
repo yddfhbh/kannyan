@@ -520,7 +520,7 @@ function renderQuickPlayMetaLine(value, x, y, options = {}) {
     );
 
     const isBeforeSeparator = /^\s*·/.test(text.slice(index + 1));
-    const spaceCount = isBeforeSeparator ? 3 : 2;
+    const spaceCount = isBeforeSeparator ? 4 : 2;
     cursorX += estimateQuickPlayMetaCharWidth(' ', fontSize) * spaceCount;
     continue;
   }
