@@ -677,3 +677,9 @@ function escapeXml(value) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
 }
+
+function roundSvgNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Number(number.toFixed(2)) : 0;
+}
+
