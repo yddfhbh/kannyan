@@ -2139,6 +2139,39 @@ function renderStatCardValueMarkup(x, y, width, valueY, value, valueFontSize, ic
     ${renderStatValueText(x + 86, valueY, value, iconValueFontSize, 'start')}`;
 }
 
+
+function renderTetrioCardDecimalNumberMarkup(value, options = {}) {
+  const text = String(value ?? '');
+  const dotFontSize = options.dotFontSize ?? '1.35em';
+  const dotDyEm = options.dotDyEm ?? 0.02;
+
+  let markup = '';
+  let resetDyEm = 0;
+  let tightenNext = false;
+
+  for (const char of text) {
+    if (char === '.') {
+      markup += `<tspan dy="${dotDyEm}em" font-family="Arial, Helvetica, sans-serif" font-size="${dotFontSize}" stroke="none">.</tspan>`;
+      resetDyEm = dotDyEm;
+      tightenNext = false;
+      continue;
+    }
+
+    const dx = tightenNext && /\d/.test(char) ? ' dx="-0.18em"' : '';
+    const dy = resetDyEm ? ` dy="${roundSvgNumber(-resetDyEm)}em"` : '';
+
+    markup += dx || dy
+      ? `<tspan${dx}${dy}>${escapeXml(char)}</tspan>`
+      : escapeXml(char);
+
+    resetDyEm = 0;
+    tightenNext = char === ',';
+  }
+
+  return markup;
+}
+
+
 function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options) {
   const iconSize = Math.max(0, options.valueIconSize ?? 35);
   const iconGap = 6;
@@ -2183,7 +2216,7 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
       <line x1="${auxBracketRightX}" y1="${auxBracketTopY}" x2="${auxBracketRightX}" y2="${auxBracketBottomY}"/>
       <line x1="${auxBracketRightInnerX}" y1="${auxBracketBottomY}" x2="${auxBracketRightX}" y2="${auxBracketBottomY}"/>
     </g>
-    <text x="${auxCenterX}" y="${glickoY}" text-anchor="middle" class="leagueAux" font-size="11.3" font-weight="900">${renderTetrioNumericTextMarkup(glickoText)}</text>
+   <text x="${auxCenterX}" y="${glickoY}" text-anchor="middle" class="leagueAux" font-size="11.3" font-weight="900">${renderTetrioCardDecimalNumberMarkup(glickoText)}</text>
     ${renderLeagueRdAuxText(auxCenterX + 2, rdY, rdText)}`;
 }
 
@@ -2205,7 +2238,7 @@ function renderLeagueRdAuxText(centerX, y, rdText) {
       <line x1="${symbolCenterX}" y1="${roundSvgNumber(plusY - verticalHalf)}" x2="${symbolCenterX}" y2="${roundSvgNumber(plusY + verticalHalf)}"/>
       <line x1="${roundSvgNumber(symbolCenterX - horizontalHalf)}" y1="${minusY}" x2="${roundSvgNumber(symbolCenterX + horizontalHalf)}" y2="${minusY}"/>
     </g>
-    <text x="${textX}" y="${y}" text-anchor="start" class="leagueAuxMuted" font-size="11.3" font-weight="900">${renderTetrioNumericTextMarkup(rdText)}</text>
+    <text x="${textX}" y="${y}" text-anchor="start" class="leagueAuxMuted" font-size="11.3" font-weight="900">${renderTetrioCardDecimalNumberMarkup(rdText)}</text>
   </g>`;
 }
 
@@ -2229,11 +2262,11 @@ function getLeagueIconRenderMetrics(options, iconSize) {
 
 function renderLeagueMetricsSubtext(x, y, width, league) {
   return `<text x="${x + width / 2}" y="${y + 85}" text-anchor="middle" class="subMetric">
-    <tspan class="subMetricValue">${renderTetrioNumericTextMarkup(formatDecimal(league?.apm, 2))}</tspan>
+    <tspan class="subMetricValue">${renderTetrioCardDecimalNumberMarkup(formatDecimal(league?.apm, 2))}</tspan>
     <tspan dx="0.9" class="subMetricLabel">APM</tspan>
-    <tspan dx="4.5" class="subMetricValue">${renderTetrioNumericTextMarkup(formatDecimal(league?.pps, 2))}</tspan>
+    <tspan dx="4.5" class="subMetricValue">${renderTetrioCardDecimalNumberMarkup(formatDecimal(league?.pps, 2))}</tspan>
     <tspan dx="0.9" class="subMetricLabel">PPS</tspan>
-    <tspan dx="4.5" class="subMetricValue">${renderTetrioNumericTextMarkup(formatDecimal(league?.vs, 2))}</tspan>
+    <tspan dx="4.5" class="subMetricValue">${renderTetrioCardDecimalNumberMarkup(formatDecimal(league?.vs, 2))}</tspan>
     <tspan dx="0.9" class="subMetricLabel">VS</tspan>
   </text>`;
 }
