@@ -7,7 +7,10 @@ export const tetrioHunDinFontUrl = pathToFileURL(tetrioHunDinFontPath).href;
 export const tetrioFontFamily = '"HUN-din 1451", "HUN", "HUN2", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
 export const tetrioTextStrokeWidth = '0.32px';
 export const tetrioPhraseWordSpacing = '0.16em';
-export const tetrioTightCommaDx = '-0.42em';
+export const tetrioTightCommaDx = '-0.24em';
+export const tetrioTightTextCommaDx = '-0.12em';
+export const tetrioTightILeftDx = '-0.08em';
+export const tetrioTightIRightDx = '-0.12em';
 
 let tetrioHunDinFontDataUriPromise = null;
 
@@ -56,29 +59,89 @@ export function renderTetrioTextWeightCss() {
 }
 
 export function renderTetrioNumericTextMarkup(value) {
+  return renderTetrioAdjustedTextMarkup(value, {
+    commaDx: tetrioTightCommaDx,
+    tightenI: false,
+  });
+}
+
+export function renderTetrioTextMarkup(value) {
+  return renderTetrioAdjustedTextMarkup(value, {
+    commaDx: tetrioTightTextCommaDx,
+    tightenI: true,
+  });
+}
+
+function renderTetrioAdjustedTextMarkup(value, options = {}) {
   const text = String(value ?? '');
+  const commaDx = options.commaDx ?? tetrioTightCommaDx;
+  const tightenI = options.tightenI === true;
   let markup = '';
-  let tightenNext = false;
+  let tightenAfterComma = false;
+  let tightenAfterI = false;
 
-  for (const char of text) {
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
     const escaped = escapeXml(char);
+    const dxValues = [];
+
+    if (tightenAfterComma && char === ' ' && /\d/.test(findNextNonSpace(text, index + 1))) {
+      continue;
+    }
+
+    if (tightenAfterComma && /\d/.test(char)) {
+      dxValues.push(commaDx);
+      tightenAfterComma = false;
+    } else if (tightenAfterComma && char !== ' ') {
+      tightenAfterComma = false;
+    }
+
+    if (tightenAfterI && char !== ' ') {
+      dxValues.push(tetrioTightIRightDx);
+    }
+    tightenAfterI = false;
+
+    if (tightenI && char === 'I') {
+      dxValues.push(tetrioTightILeftDx);
+      tightenAfterI = true;
+    }
+
+    const dx = formatCombinedEmDx(dxValues);
     if (char === '.') {
-      markup += `<tspan dx="0.01em" font-family="Arial, sans-serif" font-size="0.72em" stroke="none">${escaped}</tspan>`;
-      tightenNext = false;
+      markup += `<tspan${dx ? ` dx="${dx}"` : ' dx="0.01em"'} font-family="Arial, sans-serif" font-size="0.9em" stroke="none">${escaped}</tspan>`;
       continue;
     }
 
-    if (tightenNext && /\d/.test(char)) {
-      markup += `<tspan dx="${tetrioTightCommaDx}">${escaped}</tspan>`;
-      tightenNext = false;
+    if (char === ',') {
+      markup += `<tspan${dx ? ` dx="${dx}"` : ''} font-family="Arial, sans-serif" font-size="0.9em" stroke="none">${escaped}</tspan>`;
+      tightenAfterComma = true;
       continue;
     }
 
-    markup += escaped;
-    tightenNext = char === ',';
+    markup += dx ? `<tspan dx="${dx}">${escaped}</tspan>` : escaped;
+    tightenAfterComma = char === ',';
   }
 
   return markup;
+}
+
+function findNextNonSpace(text, startIndex) {
+  for (let index = startIndex; index < text.length; index += 1) {
+    if (text[index] !== ' ') {
+      return text[index];
+    }
+  }
+
+  return '';
+}
+
+function formatCombinedEmDx(values) {
+  const sum = values.reduce((total, value) => total + Number.parseFloat(value), 0);
+  if (Math.abs(sum) < 0.001) {
+    return '';
+  }
+
+  return `${Number(sum.toFixed(3))}em`;
 }
 
 export function getTetrioHunDinFontDataUri() {

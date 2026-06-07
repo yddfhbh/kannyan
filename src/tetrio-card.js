@@ -5,6 +5,7 @@ import {
   getTetrioHunDinFontDataUri,
   renderTetrioHunDinFontFace,
   renderTetrioNumericTextMarkup,
+  renderTetrioTextMarkup,
   renderTetrioTextWeightCss,
   renderTetrioSvgToPng,
   tetrioFontFamily,
@@ -602,6 +603,15 @@ async function renderTetrioCardSvg(user, summaries, assets) {
     headerNameFontWeight
   );
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
+  const headerNameMarkup = await renderHeaderUsernameMarkup({
+    className: headerNameClass,
+    fontDataUri: assets.hunFont,
+    fontSize: headerNameFontSize,
+    fontWeight: headerNameFontWeight,
+    text: headerUsername,
+    x: nameX,
+    y: bannerY + 52,
+  });
   const headerMetaClass = assets.banner ? 'meta' : 'meta noBannerMeta';
   const flag = getCountryFlag(user.country, assets.flag);
   const joined = user.ts ? `JOINED ${formatRelativeDate(user.ts).toUpperCase()}` : 'JOIN DATE HIDDEN';
@@ -744,6 +754,14 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         stroke-width: 0.54px;
         paint-order: stroke fill;
       }
+      .headerNameUnderscore {
+        fill: #fbfff8;
+        stroke: none;
+        filter: url(#headerNameShadow);
+      }
+      .noBannerHeaderNameUnderscore {
+        fill: #b7d9af;
+      }
       .meta { fill: #d4f7ff; text-shadow: 0 2px 3px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
       .noBannerHeaderName { fill: #b7d9af; }
       .noBannerMeta { fill: #82aa7e; }
@@ -770,9 +788,9 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   ${assets.avatar ? `<image href="${assets.avatar}" x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatarClip)"/>` : `<text x="${avatarX + avatarSize / 2}" y="${avatarY + 55}" text-anchor="middle" font-size="38" font-weight="900" fill="#9eeaa4">${escapeXml(user.username[0]?.toUpperCase() ?? '?')}</text>`}
   <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="8" fill="none" stroke="#d9ffe2" stroke-width="2" opacity="0.25"/>
 
-  <text x="${nameX}" y="${bannerY + 52}" class="${headerNameClass}" font-size="${headerNameFontSize}" font-weight="${headerNameFontWeight}">${escapeXml(headerUsername)}</text>
+  ${headerNameMarkup}
   ${renderHeaderFlag(flag, nameX, bannerY + 28, headerNameWidth)}
-  <text x="${avatarX + avatarSize + 18}" y="${bannerY + 77}" class="${headerMetaClass}" font-size="14" font-weight="800" xml:space="preserve">${escapeXml(joined)} - ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))} FRIENDS</text>
+  <text x="${avatarX + avatarSize + 18}" y="${bannerY + 77}" class="${headerMetaClass}" font-size="14" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))} ${renderTetrioTextMarkup('FRIENDS')}</text>
   ${renderLevelTag(levelTag, contentX, levelTagY)}
   ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
   ${supporterBadge ? renderSupporterBadgeMarkup(supporterBadge) : ''}
@@ -1509,6 +1527,48 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
   }
 }
 
+async function renderHeaderUsernameMarkup({
+  className,
+  fontDataUri,
+  fontSize,
+  fontWeight,
+  text,
+  x,
+  y,
+}) {
+  const rawText = String(text ?? '').toUpperCase();
+  const displayText = rawText.replaceAll('_', '');
+  const textMarkup = `<text x="${x}" y="${y}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderTetrioTextMarkup(displayText)}</text>`;
+  const underscoreIndexes = [];
+  for (let index = 0; index < rawText.length; index += 1) {
+    if (rawText[index] === '_') {
+      underscoreIndexes.push(index);
+    }
+  }
+
+  if (!underscoreIndexes.length) {
+    return textMarkup;
+  }
+
+  const underscoreClassName = className.includes('noBannerHeaderName')
+    ? 'headerNameUnderscore noBannerHeaderNameUnderscore'
+    : 'headerNameUnderscore';
+  const underscoreWidth = getHeaderCharUnits('_') * fontSize * 1.18;
+  const underscoreHeight = roundSvgNumber(Math.max(3.8, fontSize * 0.088));
+  const underscoreY = roundSvgNumber(y + fontSize * 0.1);
+  const lines = await Promise.all(underscoreIndexes.map(async (index) => {
+    const prefix = rawText.slice(0, index).replaceAll('_', '');
+    const prefixWidth = prefix
+      ? await measureHeaderNameWidth(prefix, fontSize, fontDataUri, fontWeight)
+      : 0;
+    const rectX = roundSvgNumber(x + prefixWidth - underscoreWidth * 0.52);
+    const rectWidth = roundSvgNumber(underscoreWidth * 0.88);
+    return `<rect x="${rectX}" y="${underscoreY}" width="${rectWidth}" height="${underscoreHeight}" class="${underscoreClassName}"/>`;
+  }));
+
+  return `<g>${textMarkup}${lines.join('')}</g>`;
+}
+
 function estimateHeaderNameWidth(username, fontSize) {
   const text = String(username ?? '').toUpperCase();
   let units = 0;
@@ -1944,14 +2004,14 @@ function renderStatCard(x, y, width, label, rank, value, subtext, options = {}) 
   const iconValueFontSize = valueFontSize;
   const rankMarkup = renderRankLabel(x, y, width, rank, options);
   const subtextMarkup = options.subtextMarkup
-    ?? `<text x="${x + width / 2}" y="${y + 85}" text-anchor="middle" class="sub">${escapeXml(subtext)}</text>`;
+    ?? `<text x="${x + width / 2}" y="${y + 85}" text-anchor="middle" class="sub">${renderTetrioTextMarkup(subtext)}</text>`;
   const valueMarkup = renderStatCardValueMarkup(x, y, width, valueY, value, valueFontSize, iconValueFontSize, options);
 
   return `
   <g>
     <rect x="${x}" y="${y}" width="${width}" height="${cardHeight}" fill="${tetrioPalette.panelBg}"/>
     <rect x="${x + 1}" y="${y + 1}" width="${width - 2}" height="${cardHeight - 2}" fill="none" stroke="${tetrioPalette.panelBorder}" stroke-width="2"/>
-    <text x="${x + 12}" y="${y + 21}" class="label">${escapeXml(label)}</text>
+    <text x="${x + 12}" y="${y + 21}" class="label">${renderTetrioTextMarkup(label)}</text>
     ${rankMarkup}
     ${valueMarkup}
     <line x1="${x + 28}" y1="${lineY}" x2="${x + width - 28}" y2="${lineY}" stroke="${tetrioPalette.divider}" stroke-width="2"/>
@@ -2063,8 +2123,8 @@ function renderLeagueRdAuxText(centerX, y, rdText) {
   const rdTextWidth = estimateLeagueAuxTextWidth(rdText, 11.3);
   const rowLeftX = centerX - (symbolWidth + symbolGap + rdTextWidth) / 2;
   const symbolCenterX = roundSvgNumber(rowLeftX + 2.9);
-  const plusY = roundSvgNumber(y - 8.4);
-  const minusY = roundSvgNumber(y - 3);
+  const plusY = roundSvgNumber(y - 6.1);
+  const minusY = roundSvgNumber(y - 0.7);
   const horizontalHalf = 2.4;
   const verticalHalf = 2.1;
   const textX = roundSvgNumber(rowLeftX + symbolWidth + symbolGap);
@@ -2207,7 +2267,7 @@ function getWorldRankBadgeStyle(rank) {
 }
 
 function renderPlainRankText(x, y, value, anchor = 'end') {
-  return `<text x="${x}" y="${y}" text-anchor="${anchor}" class="plainRank">${value}</text>`;
+  return `<text x="${x}" y="${y}" text-anchor="${anchor}" class="plainRank">${renderTetrioTextMarkup(value)}</text>`;
 }
 
 function renderOrdinalRankText(x, y, rankText, options = {}) {
@@ -2233,7 +2293,7 @@ function renderOrdinalRankText(x, y, rankText, options = {}) {
   return `<g>
     <text x="${roundSvgNumber(leftX)}" y="${roundSvgNumber(y)}"${textAttributes}>N</text>
     <circle cx="${roundSvgNumber(degreeCx)}" cy="${roundSvgNumber(degreeCy)}" r="${roundSvgNumber(degreeRadius)}" fill="none" stroke="${degreeStroke}" stroke-width="${roundSvgNumber(Math.max(0.85, fontSize * 0.07))}"/>
-    <text x="${roundSvgNumber(numberX)}" y="${roundSvgNumber(y)}"${textAttributes}>${escapeXml(rankText)}</text>
+    <text x="${roundSvgNumber(numberX)}" y="${roundSvgNumber(y)}"${textAttributes}>${renderTetrioNumericTextMarkup(rankText)}</text>
   </g>`;
 }
 
