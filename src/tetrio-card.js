@@ -731,7 +731,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         font-weight: 950;
         fill: #c9ffc8;
         stroke: rgba(182, 247, 184, 0.58);
-        stroke-width: 0.8px;
+        stroke-width: 1.0px;
         stroke-linejoin: round;
         paint-order: stroke fill;
       }

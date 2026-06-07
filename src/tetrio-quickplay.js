@@ -486,7 +486,7 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
 
 function renderQuickPlayMetaLine(value, x, y, options = {}) {
   const text = String(value ?? '');
-  const displayText = text.replaceAll('_', ' ');
+  const displayText = text.replaceAll('_', '  ');
   const fontSize = 34;
   const fillAttr = options.fill ? ` fill="${options.fill}"` : '';
   const opacityAttr = options.opacity !== undefined ? ` opacity="${options.opacity}"` : '';
@@ -507,7 +507,7 @@ function renderQuickPlayMetaLine(value, x, y, options = {}) {
         `<rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}"${fillAttr || ' fill="#b0e1af"'}${opacityAttr}/>`
       );
 
-      cursorX += estimateQuickPlayMetaCharWidth(' ', fontSize);
+      cursorX += estimateQuickPlayMetaCharWidth('  ', fontSize);
       continue;
     }
 
