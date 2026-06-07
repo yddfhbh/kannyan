@@ -720,6 +720,9 @@ async function renderTetrioCardSvg(user, summaries, assets) {
     <style>
       ${renderTetrioFontFace(assets.hunFont)}
       text { font-family: ${cardFontFamily}; letter-spacing: 0; ${renderTetrioTextWeightCss()} }
+      .legacyBannerFont text {
+      font-family: Arial, Helvetica, sans-serif;
+      }
       .tiny { font-size: 11px; font-weight: 900; fill: #a8e7a7; text-shadow: 0 1px 2px #061009; }
       .plainRank { font-size: 13px; font-weight: 900; fill: #a8e7a7; text-shadow: 0 1px 2px #061009; }
       .label { font-size: 14.5px; font-weight: 900; fill: #5d915c; opacity: 0.84; word-spacing: ${tetrioPhraseWordSpacing}; }
@@ -907,7 +910,7 @@ function renderSupporterBadgeMarkup(layout) {
     <polygon points="${labelPoints}" fill="url(#supporterLabelGradient)"/>
     <polygon points="${getSupporterLabelPoints(labelX + 2, labelWidth - 4, height, { verticalInset: 3 })}" fill="url(#supporterLabelInnerGradient)" opacity="0.62"/>
     ${stars}
-    <text x="${labelX + labelWidth / 2 - 1.5}" y="18.15" text-anchor="middle" font-family="HUN" font-size="15.8" font-weight="900" letter-spacing="0.12" fill="#fffaf3" stroke="#cc6a27" stroke-width="0.24" paint-order="stroke fill">SUPPORTER</text>
+    <text x="${labelX + labelWidth / 2 - 1.5}" y="18.15" text-anchor="middle" font-family="HUN" font-size="15.8" font-weight="900" letter-spacing="0.12" fill="#fffaf3" stroke="#cc6a27" stroke-width="0.3" paint-order="stroke fill">SUPPORTER</text>
   </g>`;
 }
 
@@ -1039,7 +1042,7 @@ function getStarPoints(cx, cy, outerRadius, innerRadius) {
 }
 function renderBadStandingBanner(y = 204) {
   return `
-  <g>
+  <g class="legacyBannerFont">
     <rect x="14" y="${y}" width="932" height="62" fill="url(#dangerStripe)"/>
     <rect x="14" y="${y}" width="932" height="62" fill="none" stroke="#ff1d1d" stroke-width="4"/>
     <text x="480" y="${y + 32}" text-anchor="middle" class="dangerTitle" font-size="24.3" font-weight="900">BAD STANDING</text>
@@ -1049,7 +1052,7 @@ function renderBadStandingBanner(y = 204) {
 
 function renderBannedBanner(y = 204) {
   return `
-  <g>
+  <g class="legacyBannerFont">
     <rect x="14" y="${y}" width="932" height="62" fill="url(#dangerStripe)"/>
     <rect x="14" y="${y}" width="932" height="62" fill="#190000" opacity="0.32"/>
     <rect x="14" y="${y}" width="932" height="62" fill="none" stroke="#ff1d1d" stroke-width="4"/>
@@ -1148,7 +1151,7 @@ function renderStaffDistinguishmentBanner(distinguishment, y, x = 14, width = 93
     : title;
 
   return `
-  <g>
+   <g class="legacyBannerFont">
     <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${theme.outerFill}"/>
     <rect x="${x + 2}" y="${y + 2}" width="${width - 4}" height="${height - 4}" fill="${theme.innerFill}" stroke="${theme.border}" stroke-width="2"/>
     <rect x="${x + 2}" y="${y + 7}" width="${width - 4}" height="2" fill="${theme.accent}"/>
@@ -1191,7 +1194,7 @@ function renderChampionDistinguishmentBanner(distinguishment, y, x = 14, width =
   ].join(' ');
 
   return `
-  <g>
+  <g class="legacyBannerFont">
     <defs>
       <linearGradient id="${idSuffix}-outer" x1="0" x2="0" y1="0" y2="1">
         <stop offset="0" stop-color="${theme.caa}"/>
@@ -1238,7 +1241,7 @@ function renderTwcDistinguishmentBanner(distinguishment, y, x = 14, width = 932)
     : 'TETR.IO WORLD CHAMPIONSHIP';
 
   return `
-  <g>
+  <g class="legacyBannerFont">
     <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="#25130a"/>
     <rect x="${x + 3}" y="${y + 3}" width="${width - 6}" height="${height - 6}" fill="#40200d" stroke="#ffb12a" stroke-width="2"/>
     <rect x="${x + 3}" y="${y + 3}" width="${width - 6}" height="${height - 6}" fill="none" stroke="#ffe08b" stroke-width="1" opacity="0.72"/>
@@ -1257,7 +1260,7 @@ function renderGenericDistinguishmentBanner(distinguishment, y, x = 14, width = 
   const subtitle = normalizeDistinguishmentText(distinguishment.footer || '');
 
   return `
-  <g>
+  <g class="legacyBannerFont">
     <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="#10261d"/>
     <rect x="${x + 2}" y="${y + 2}" width="${width - 4}" height="${height - 4}" fill="#183329" stroke="#7ec98d" stroke-width="2"/>
     <rect x="${x + 2}" y="${y + 7}" width="${width - 4}" height="2" fill="#b6ffb0" opacity="0.88"/>
@@ -1517,7 +1520,10 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
     const measurementSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
   <defs>
-    <style>${renderTetrioFontFace(fontDataUri)}</style>
+    <style>
+      ${renderTetrioFontFace(fontDataUri)}
+      text { font-family: ${cardFontFamily}; letter-spacing: 0; ${renderTetrioTextWeightCss()} }
+    </style>
   </defs>
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
   <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff">${escapeXml(normalizedText)}</text>
