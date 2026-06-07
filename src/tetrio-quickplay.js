@@ -495,7 +495,7 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
 function renderQuickPlayMetaLine(value, x, y, options = {}) {
   const text = String(value ?? '');
   const displayText = text
-  .replace(/_(?=\s*·)/g, '     ')
+  .replace(/_(?=\s*·)/g, '  ')
   .replaceAll('_', '  ');
   const fontSize = 34;
   const fillAttr = options.fill ? ` fill="${options.fill}"` : '';
