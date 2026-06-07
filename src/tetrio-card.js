@@ -730,7 +730,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       .value {
         font-weight: 950;
         fill: #c9ffc8;
-        stroke: rgba(182, 247, 184, 0.78);
+        stroke: rgba(190, 245, 190, 0.82);
         stroke-width: 1.35px;
         stroke-linejoin: round;
         paint-order: stroke fill;
@@ -742,12 +742,12 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       .valueGlowWide {
         font-weight: 900;
         fill: #7fe985;
-        opacity: 0.54;
+        opacity: 0.38;
       }
       .valueGlowTight {
         font-weight: 900;
         fill: #d8ffd2;
-        opacity: 0.78;
+        opacity: 0.82;
       }
       .sub { font-size: 14px; font-weight: 900; fill: #9ed99a; text-shadow: 0 1px 2px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
       .subMetric { font-size: 14px; font-family: ${cardFontFamily}; text-shadow: 0 1px 2px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
