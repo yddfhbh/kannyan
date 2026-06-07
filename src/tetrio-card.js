@@ -1582,11 +1582,11 @@ async function renderHeaderUsernameMarkup({
 
     await flushSegment();
 
-    const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 1.20);
+    const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 1.26);
     const underscoreHeight = roundSvgNumber(Math.max(3.8, fontSize * 0.085));
 
     // 위아래 위치는 이 값으로 조절
-    const underscoreY = roundSvgNumber(y + fontSize * 0.005);
+    const underscoreY = roundSvgNumber(y + fontSize * 0.000);
 
     // 앞 글자와 언더바 사이 간격
     const underscoreGap = fontSize * 0.035;
