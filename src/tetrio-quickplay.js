@@ -584,7 +584,7 @@ function renderQuickPlayMetaTextMarkup(value) {
 function renderQuickPlayMainNumberMarkup(value) {
   return renderQuickPlayNumberMarkup(value, {
     decimalDyEm: 0.30,
-    decimalFollowingDyEm: 0.16,
+    decimalFollowingDyEm: 0.08,
     decimalFontSize: '0.74em',
     tightenComma: true,
   });
