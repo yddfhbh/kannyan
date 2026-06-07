@@ -463,7 +463,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
 
 function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
   const blockWidth = 220;
-  const blockX = sideIndex === 0 ? x + width - blockWidth - 12 : x + 2;
+  const blockX = sideIndex === 0 ? x + width - blockWidth - 12 : x - 2 ;
   const columns = [
     { valueX: 54, labelX: 62, label: 'APM', value: formatDecimal(stats?.apm, 2) },
     { separatorX: 91, separator: '-' },
