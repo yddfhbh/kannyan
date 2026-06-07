@@ -523,6 +523,19 @@ function renderQuickPlayMainValueMarkup({
   </g>`;
 }
 
+function renderQuickPlayMetaTextMarkup(value) {
+  return String(value ?? '')
+    .split('')
+    .map((char) => {
+      if (char === '_') {
+        return '<tspan font-family="Arial, Helvetica, sans-serif" font-size="0.95em" dy="-0.02em">_</tspan>';
+      }
+
+      return escapeXml(char);
+    })
+    .join('');
+}
+
 function renderQuickPlayMainNumberMarkup(value) {
   return renderQuickPlayNumberMarkup(value, {
     decimalDyEm: 0.42,
