@@ -498,10 +498,10 @@ function renderQuickPlayMetaLine(value, x, y, options = {}) {
 
   for (const char of text) {
     if (char === '_') {
-      const rectWidth = roundSvgNumber(fontSize * 0.45);
-      const rectHeight = roundSvgNumber(fontSize * 0.11);
-      const rectX = roundSvgNumber(cursorX + fontSize * 0.03);
-      const rectY = roundSvgNumber(y + fontSize * 0.14);
+      const rectWidth = roundSvgNumber(fontSize * 0.44);
+      const rectHeight = roundSvgNumber(Math.max(3.2, fontSize * 0.095));
+      const rectX = roundSvgNumber(cursorX + fontSize * 0.22);
+      const rectY = roundSvgNumber(y + fontSize * 0.34);
 
       underlines.push(
         `<rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}"${fillAttr || ' fill="#b0e1af"'}${opacityAttr}/>`
