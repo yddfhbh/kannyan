@@ -688,6 +688,9 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       <stop offset="1" stop-color="#1b2f23"/>
     </linearGradient>
     <filter id="headerNameShadow" x="-20%" y="-35%" width="160%" height="220%">
+    <filter id="headerUnderscoreShadow" x="-120%" y="-500%" width="340%" height="1100%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4.8" stdDeviation="4.2" flood-color="#071109" flood-opacity="0.58"/>
+    </filter>
       <feOffset in="SourceAlpha" dx="0" dy="5" result="shadowOffset"/>
       <feGaussianBlur in="shadowOffset" stdDeviation="4.2" result="shadowBlur"/>
       <feFlood flood-color="#071109" flood-opacity="0.58" result="shadowColor"/>
@@ -747,12 +750,12 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       .leagueAux { fill: #c5efbc; }
       .leagueAuxMuted { fill: #c5efbc; }
       .white { fill: #f6fff5; text-shadow: 0 2px 4px #061009; }
-      .headerName {
+      .headerNameUnderscore {
         fill: #fbfff8;
-        filter: url(#headerNameShadow);
         stroke: rgba(251,255,248,0.54);
         stroke-width: 0.54px;
         paint-order: stroke fill;
+        filter: url(#headerUnderscoreShadow);
       }
       .headerNameUnderscore {
         fill: #fbfff8;
@@ -1589,7 +1592,7 @@ async function renderHeaderUsernameMarkup({
     const underscoreY = roundSvgNumber(y + fontSize * 0.000);
 
     // 앞 글자와 언더바 사이 간격
-    const underscoreGap = fontSize * 0.035;
+    const underscoreGap = fontSize * 0.08;
 
     const rectX = roundSvgNumber(cursorX + underscoreGap);
 
@@ -1601,7 +1604,7 @@ async function renderHeaderUsernameMarkup({
       height="${underscoreHeight}"
       rx="0"
      class="${underscoreClassName}"
-     filter="url(#headerNameShadow)"
+     filter="url(#headerUnderscoreShadow)"
    />`,
   );
 
