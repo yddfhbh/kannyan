@@ -8,7 +8,7 @@ export const tetrioFontFamily = '"HUN-din 1451", "HUN", "HUN2", "Noto Sans CJK K
 export const tetrioTextStrokeWidth = '0.32px';
 export const tetrioPhraseWordSpacing = '0.16em';
 export const tetrioTightCommaDx = '-0.40em';
-export const tetrioTightTextCommaDx = '-0.40em';
+export const tetrioTightTextCommaDx = '-0.44em';
 export const tetrioTightILeftDx = '-0.08em';
 export const tetrioTightIRightDx = '-0.12em';
 
