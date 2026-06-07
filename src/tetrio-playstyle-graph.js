@@ -1,8 +1,5 @@
 import {
-  renderTetrioHunDinFontFace,
-  renderTetrioTextWeightCss,
   renderTetrioSvgToPng,
-  tetrioFontFamily,
 } from './tetrio-font.js';
 
 const graphWidth = 600;
@@ -15,7 +12,7 @@ const graphStep = 0.25;
 const outerRadius = 124;
 const centerX = graphWidth / 2;
 const centerY = 208;
-const graphFontFamily = tetrioFontFamily;
+const graphFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
 
 const graphAxes = [
   { key: 'opener', label: 'OPENER', dx: 0, dy: -1, labelX: centerX, labelY: centerY - outerRadius - 16, anchor: 'middle' },
@@ -58,7 +55,6 @@ function renderTetrioPlaystyleGraphSvg(input) {
 <svg xmlns="http://www.w3.org/2000/svg" width="${graphOutputWidth}" height="${graphOutputHeight}" viewBox="0 0 ${graphWidth} ${graphHeight}">
   <defs>
     <style>
-      ${renderTetrioHunDinFontFace()}
       text {
         font-family: ${graphFontFamily};
         letter-spacing: 0;
