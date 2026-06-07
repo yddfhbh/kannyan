@@ -2269,7 +2269,7 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
       <line x1="${auxBracketRightX}" y1="${auxBracketTopY}" x2="${auxBracketRightX}" y2="${auxBracketBottomY}"/>
       <line x1="${auxBracketRightInnerX}" y1="${auxBracketBottomY}" x2="${auxBracketRightX}" y2="${auxBracketBottomY}"/>
     </g>
-   <text x="${auxCenterX}" y="${glickoY}" text-anchor="middle" class="leagueAux" font-size="11.3" font-weight="900">${renderTetrioCardDecimalNumberMarkup(glickoText)}</text>
+   <text x="${auxCenterX}" y="${glickoY}" text-anchor="middle" class="leagueAux" font-size="13" font-weight="900">${renderTetrioCardDecimalNumberMarkup(glickoText)}</text>
     ${renderLeagueRdAuxText(auxCenterX + 2, rdY, rdText)}`;
 }
 
@@ -2291,7 +2291,7 @@ function renderLeagueRdAuxText(centerX, y, rdText) {
       <line x1="${symbolCenterX}" y1="${roundSvgNumber(plusY - verticalHalf)}" x2="${symbolCenterX}" y2="${roundSvgNumber(plusY + verticalHalf)}"/>
       <line x1="${roundSvgNumber(symbolCenterX - horizontalHalf)}" y1="${minusY}" x2="${roundSvgNumber(symbolCenterX + horizontalHalf)}" y2="${minusY}"/>
     </g>
-    <text x="${textX}" y="${y}" text-anchor="start" class="leagueAuxMuted" font-size="11.3" font-weight="900">${renderTetrioCardDecimalNumberMarkup(rdText)}</text>
+    <text x="${textX}" y="${y}" text-anchor="start" class="leagueAuxMuted" font-size="13" font-weight="900">${renderTetrioCardDecimalNumberMarkup(rdText)}</text>
   </g>`;
 }
 
