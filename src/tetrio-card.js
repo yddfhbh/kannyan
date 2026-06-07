@@ -1582,7 +1582,7 @@ async function renderHeaderUsernameMarkup({
 
     await flushSegment();
 
-    const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 0.82);
+    const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 1.20);
     const underscoreHeight = roundSvgNumber(Math.max(3.8, fontSize * 0.085));
 
     // 위아래 위치는 이 값으로 조절
@@ -1594,8 +1594,16 @@ async function renderHeaderUsernameMarkup({
     const rectX = roundSvgNumber(cursorX + underscoreGap);
 
     parts.push(
-      `<rect x="${rectX}" y="${underscoreY}" width="${underscoreWidth}" height="${underscoreHeight}" rx="${roundSvgNumber(underscoreHeight / 2)}" class="${underscoreClassName}"/>`,
-    );
+    `<rect
+     x="${rectX}"
+     y="${underscoreY}"
+     width="${underscoreWidth}"
+      height="${underscoreHeight}"
+      rx="0"
+     class="${underscoreClassName}"
+     filter="url(#headerNameShadow)"
+   />`,
+  );
 
     cursorX += underscoreGap + underscoreWidth + fontSize * 0.06;
     segmentX = cursorX;
