@@ -419,10 +419,13 @@ function renderRoundRow(round, y, height, centerX) {
   const left = round.sides[0] ?? {};
   const right = round.sides[1] ?? {};
 
+  // 라운드 전체 가로 위치 보정
+  const roundCenterX = centerX + 5;
+
   return `
-  ${renderRoundSide(left, 0, y, height, centerX)}
-  <text x="${centerX}" y="${y + height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" class="time">${escapeXml(round.timeText)}</text>
-  ${renderRoundSide(right, 1, y, height, centerX)}`;
+  ${renderRoundSide(left, 0, y, height, roundCenterX)}
+  <text x="${roundCenterX}" y="${y + height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" class="time">${escapeXml(round.timeText)}</text>
+  ${renderRoundSide(right, 1, y, height, roundCenterX)}`;
 }
 
 function renderRoundSide(side, sideIndex, y, height, centerX) {
