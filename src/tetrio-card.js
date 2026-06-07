@@ -699,8 +699,8 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       </feMerge>
     </filter>
 
-  <filter id="headerUnderscoreShadow" x="-120%" y="-500%" width="340%" height="1100%" color-interpolation-filters="sRGB">
-    <feDropShadow dx="0" dy="4.8" stdDeviation="4.2" flood-color="#071109" flood-opacity="0.58"/>
+  <filter id="headerUnderscoreShadow" x="-140%" y="-600%" width="380%" height="1300%" color-interpolation-filters="sRGB">
+    <feDropShadow dx="0" dy="5.2" stdDeviation="4.2" flood-color="#071109" flood-opacity="0.58"/>
   </filter>
     <filter id="statValueGlowWide" x="-28%" y="-82%" width="156%" height="264%" color-interpolation-filters="sRGB">
       <feGaussianBlur in="SourceGraphic" stdDeviation="4.1"/>
@@ -2239,8 +2239,8 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
   const glickoText = formatGlickoValue(options.glicko);
   const rdText = formatRdValue(options.rd);
   const auxTextWidth = Math.max(
-    estimateLeagueAuxTextWidth(glickoText, 11.3),
-    estimateLeagueAuxTextWidth(`+/-${rdText}`, 11.3),
+    estimateLeagueAuxTextWidth(glickoText, 13),
+    estimateLeagueAuxTextWidth(`+/-${rdText}`, 13),
   );
   const auxBlockWidth = (auxBracketArmLength * 2) + (auxBracketInnerPaddingX * 2) + auxTextWidth + auxBracketRightPaddingX;
   const groupWidth = iconMetrics.renderedWidth + iconGap + valueWidth + valueAuxGap + auxBlockWidth;
@@ -2281,8 +2281,8 @@ function renderLeagueRdAuxText(centerX, y, rdText) {
   const symbolCenterX = roundSvgNumber(rowLeftX + 2.9);
   const plusY = roundSvgNumber(y - 6.1);
   const minusY = roundSvgNumber(y - 0.7);
-  const horizontalHalf = 2.4;
-  const verticalHalf = 2.1;
+  const horizontalHalf = 2.6;
+  const verticalHalf = 2.6;
   const textX = roundSvgNumber(rowLeftX + symbolWidth + symbolGap);
 
   return `<g>
