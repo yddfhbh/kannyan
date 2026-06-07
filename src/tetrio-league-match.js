@@ -499,7 +499,7 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
   }
 
   // 빨간쪽: "APM" 글자 시작 위치를 기준으로 정렬
-  const apmLabelX = x + 70;
+  const apmLabelX = x + 60;
 
   const items = [
     { x: apmLabelX - 12, anchor: 'end', className: valueClass, text: apmText, numeric: true },
