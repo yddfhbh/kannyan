@@ -396,7 +396,7 @@ function renderTopPanel(player, sideIndex, y, height, centerX) {
   const isLeft = sideIndex === 0;
   const panelWidth = 350;
   const svgWidth = centerX * 2;
-  const sideMargin = 18;
+  const sideMargin = 10;
   const x = isLeft ? sideMargin : svgWidth - panelWidth - sideMargin; 
   const textX = isLeft ? x + panelWidth - 10 : x + 10;
   const textAnchor = isLeft ? 'end' : 'start';
@@ -463,7 +463,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
 
 function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
   const blockWidth = 220;
-  const blockX = sideIndex === 0 ? x + width - blockWidth - 12 : x + 12;
+  const blockX = sideIndex === 0 ? x + width - blockWidth - 12 : x + 6;
   const columns = [
     { valueX: 54, labelX: 62, label: 'APM', value: formatDecimal(stats?.apm, 2) },
     { separatorX: 91, separator: '-' },
