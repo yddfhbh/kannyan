@@ -795,7 +795,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       .bioText {
         fill: #a7e0a0;
         text-shadow: 0 1px 2px #07150a;
-        word-spacing: 6px;
+        word-spacing: 4px;
       }
     </style>
   </defs>

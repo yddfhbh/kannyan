@@ -410,9 +410,13 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
         word-spacing: ${tetrioPhraseWordSpacing};
       }
       .value {
-        fill: #bcf8bc;
+        fill: #c9ffc8;
         font-size: ${valueFontSize}px;
-        font-weight: 800;
+        font-weight: 950;
+        stroke: rgba(205, 255, 205, 0.78);
+        stroke-width: 1.45px;
+        stroke-linejoin: round;
+        paint-order: stroke fill;
       }
       .unit {
         fill: #9fc79b;
@@ -422,7 +426,11 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
       .unitInline {
         fill: #9fc79b;
         font-size: ${unitFontSize}px;
-        font-weight: 700;
+        font-weight: 850;
+        stroke: rgba(159, 199, 155, 0.45);
+        stroke-width: 0.75px;
+        stroke-linejoin: round;
+        paint-order: stroke fill;
       }
       .statsTitle {
         fill: #b0e1af;
@@ -583,8 +591,8 @@ function renderQuickPlayMetaTextMarkup(value) {
 
 function renderQuickPlayMainNumberMarkup(value) {
   return renderQuickPlayNumberMarkup(value, {
-    decimalDyEm: 0.30,
-    decimalFollowingDyEm: 0.09,
+    decimalDyEm: 0.18,
+    decimalFollowingDyEm: 0.06,
     decimalFontSize: '0.74em',
     tightenComma: true,
   });
@@ -630,7 +638,8 @@ function renderQuickPlayNumberMarkup(value, options = {}) {
       continue;
     }
 
-    const dx = tightenNext && /\d/.test(char) ? ' dx="-0.42em"' : '';
+    const commaDx = char === '1' ? '-0.62em' : '-0.42em';
+    const dx = tightenNext && /\d/.test(char) ? ` dx="${commaDx}"` : '';
     const dy = resetDyEm ? ` dy="${roundSvgNumber(decimalFollowingDyEm - resetDyEm)}em"` : '';
     markup += dx || dy ? `<tspan${dx}${dy}>${escaped}</tspan>` : escaped;
     resetDyEm = 0;
