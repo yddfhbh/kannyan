@@ -289,14 +289,19 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
+    <filter id="bluePanelGlow" x="-8%" y="-18%" width="116%" height="150%" color-interpolation-filters="sRGB">
+  <feDropShadow dx="0" dy="0" stdDeviation="3.2" flood-color="#1684f7" flood-opacity="0.62"/>
+</filter>
+
+<filter id="redPanelGlow" x="-8%" y="-18%" width="116%" height="150%" color-interpolation-filters="sRGB">
+  <feDropShadow dx="0" dy="0" stdDeviation="3.2" flood-color="#f5232a" flood-opacity="0.62"/>
+</filter>
     <style>
       ${renderTetrioFontFace(fontDataUris)}
-      text {
-        font-family: ${leagueFontFamily};
-        letter-spacing: 0;
-        ${renderTetrioTextWeightCss()}
-        stroke: rgba(255,255,255,0.72);
-        stroke-width: 1.08px;
+     text {
+      font-family: ${leagueFontFamily};
+     letter-spacing: 0;
+      ${renderTetrioTextWeightCss()}
       }
       .username {
         fill: #f6f2ef;
@@ -304,20 +309,27 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
         font-weight: 900;
       }
       .score {
-        fill: #ffffff;
-        font-size: 60px;
-        font-weight: 650;
-      }
+  fill: #ffffff;
+  font-size: 60px;
+  font-weight: 650;
+  stroke: rgba(255,255,255,0.45);
+  stroke-width: 0.7px;
+  paint-order: stroke fill;
+}
+
       .summaryValue {
         fill: #f0f3fa;
         font-size: 8.8px;
         font-weight: 900;
       }
       .roundValue {
-        fill: #f0f3fa;
-        font-size: 11.8px;
-        font-weight: 900;
-      }
+  fill: #f0f3fa;
+  font-size: 11.8px;
+  font-weight: 900;
+  stroke: rgba(255,255,255,0.35);
+  stroke-width: 0.35px;
+  paint-order: stroke fill;
+}
       .blueLabel {
         fill: ${sideThemes[0].label};
         stroke: rgba(74,139,228,0.58);
@@ -374,27 +386,31 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   ${topPanels}
   <text x="${centerX}" y="73" text-anchor="middle" dominant-baseline="middle" class="versus" filter="url(#textGlow)">VS</text>
   ${rows}
-  <rect x="2" y="${footerY}" width="${width - 4}" height="${footerHeight}" fill="#203c27" stroke="#48704d" stroke-width="1"/>
-  <text x="12" y="${footerY + footerHeight / 2 + 1}" dominant-baseline="middle" class="footer" xml:space="preserve">${renderFooterTextMarkup(match.footerText)}</text>
+  <rect x="12" y="${footerY}" width="${width - 24}" height="${footerHeight}" fill="#203c27" stroke="#48704d" stroke-width="0.8"/>
+  <text x="24" y="${footerY + footerHeight / 2 + 1}" dominant-baseline="middle" class="footer" xml:space="preserve">${renderFooterTextMarkup(match.footerText)}</text>
 </svg>`;
 }
 
 function renderTopPanel(player, sideIndex, y, height, centerX) {
   const theme = sideThemes[sideIndex] ?? sideThemes[0];
   const isLeft = sideIndex === 0;
-  const width = 350;
-  const x = isLeft ? 2 : centerX * 2 - 2 - width;
-  const textX = isLeft ? x + width - 10 : x + 10;
+  const panelWidth = 350;
+  const svgWidth = centerX * 2;
+  const x = isLeft ? 18 : svgWidth - panelWidth-2;
+  const textX = isLeft ? x + panelWidth - 10 : x + 10;
   const textAnchor = isLeft ? 'end' : 'start';
-  const scoreX = isLeft ? x + width - 13 : x + 12;
+  const scoreX = isLeft ? x + panelWidth - 15 : x + 13;
   const statsClass = isLeft ? 'summaryBlueLabel' : 'summaryRedLabel';
+  const glowFilter = isLeft ? 'bluePanelGlow' : 'redPanelGlow';
 
   return `
-  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="${theme.border}" stroke-width="4" opacity="0.16"/>
-  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${theme.topGradient})" stroke="${theme.border}" stroke-width="1.0"/>
+  <g filter="url(#${glowFilter})">
+    <rect x="${x}" y="${y}" width="${panelWidth}" height="${height}" fill="url(#${theme.topGradient})" stroke="${theme.border}" stroke-width="1.05"/>
+    <line x1="${x}" y1="${y + height - 1}" x2="${x + panelWidth}" y2="${y + height - 1}" stroke="${theme.border}" stroke-width="1.5" opacity="0.85"/>
+  </g>
   <text x="${textX}" y="${y + 20}" text-anchor="${textAnchor}" class="username">${escapeXml(player.username.toUpperCase())}</text>
-  <text x="${scoreX}" y="${y + 52}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${renderTetrioNumericTextMarkup(formatInteger(player.wins))}</text>
-  ${renderSummaryStatsMarkup(player.stats, x, width, y + height - 14, sideIndex, 'summaryValue', statsClass)}`;
+  <text x="${scoreX}" y="${y + 53}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${renderTetrioNumericTextMarkup(formatInteger(player.wins))}</text>
+  ${renderSummaryStatsMarkup(player.stats, x, panelWidth, y + height - 14, sideIndex, 'summaryValue', statsClass)}`;
 }
 
 function renderRoundRow(round, y, height, centerX) {
@@ -411,23 +427,20 @@ function renderRoundSide(side, sideIndex, y, height, centerX) {
   const theme = sideThemes[sideIndex] ?? sideThemes[0];
   const isLeft = sideIndex === 0;
 
-  // 목표 이미지처럼 왼쪽 바를 조금 더 길게
-  const width = isLeft ? 294 : 276;
-  const gapFromCenter = isLeft ? 16 : 22;
-
+  const width = 290;
+  const gapFromCenter = isLeft ? 8 : 34;
   const x = isLeft ? centerX - gapFromCenter - width : centerX + gapFromCenter;
+
   const fill = side.alive ? theme.rowWinGradient : theme.rowGradient;
   const labelClass = sideIndex === 0 ? 'blueLabel' : 'redLabel';
 
-  // 목표 이미지처럼 가운데 쪽에 붙는 세로 하이라이트
-  const stripeX = isLeft ? x + width - 4 : x;
+  const stripeX = isLeft ? x + width - 3 : x;
   const stripeColor = side.alive ? '#ffffff' : theme.border;
-  const stripeOpacity = side.alive ? 0.96 : 0.42;
+  const stripeOpacity = side.alive ? 0.95 : 0.28;
 
   return `
-  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${fill})" opacity="${side.alive ? 1 : 0.92}"/>
-  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="${theme.border}" stroke-width="0.55" opacity="${side.alive ? 0.42 : 0.14}"/>
-  <rect x="${roundSvgNumber(stripeX)}" y="${y}" width="4" height="${height}" fill="${stripeColor}" opacity="${stripeOpacity}"/>
+  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${fill})" opacity="${side.alive ? 1 : 0.94}"/>
+  <rect x="${roundSvgNumber(stripeX)}" y="${y}" width="3" height="${height}" fill="${stripeColor}" opacity="${stripeOpacity}"/>
   ${renderRoundStatsMarkup(side.stats, x, width, y + height / 2 + 1, sideIndex, 'roundValue', labelClass)}`;
 }
 
@@ -447,7 +460,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
 
 function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
   const blockWidth = 220;
-  const blockX = sideIndex === 0 ? x + width - blockWidth - 12 : x + 12;
+  const blockX = sideIndex === 0 ? x + width - blockWidth - 15 : x + 12;
   const columns = [
     { valueX: 54, labelX: 62, label: 'APM', value: formatDecimal(stats?.apm, 2) },
     { separatorX: 91, separator: '-' },
