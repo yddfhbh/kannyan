@@ -760,7 +760,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         fill: #fbfff8;
         filter: url(#headerNameShadow);
         stroke: rgba(251,255,248,0.54);
-        stroke-width: 1.45px;
+        stroke-width: 1.8px;
         paint-order: stroke fill;
       }
 
@@ -1614,7 +1614,7 @@ async function renderHeaderUsernameMarkup({
     const underscoreY = roundSvgNumber(y - fontSize * 0.045);
 
     // 앞 글자와 언더바 사이 간격
-    const underscoreGap = fontSize * 0.08;
+    const underscoreGap = fontSize * 0.13;
 
     const rectX = roundSvgNumber(cursorX + underscoreGap);
 
