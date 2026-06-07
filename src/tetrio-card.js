@@ -2229,11 +2229,11 @@ function getLeagueIconRenderMetrics(options, iconSize) {
 
 function renderLeagueMetricsSubtext(x, y, width, league) {
   return `<text x="${x + width / 2}" y="${y + 85}" text-anchor="middle" class="subMetric">
-    <tspan class="subMetricValue">${escapeXml(formatDecimal(league?.apm, 2))}</tspan>
+    <tspan class="subMetricValue">${renderTetrioNumericTextMarkup(formatDecimal(league?.apm, 2))}</tspan>
     <tspan dx="0.9" class="subMetricLabel">APM</tspan>
-    <tspan dx="4.5" class="subMetricValue">${escapeXml(formatDecimal(league?.pps, 2))}</tspan>
+    <tspan dx="4.5" class="subMetricValue">${renderTetrioNumericTextMarkup(formatDecimal(league?.pps, 2))}</tspan>
     <tspan dx="0.9" class="subMetricLabel">PPS</tspan>
-    <tspan dx="4.5" class="subMetricValue">${escapeXml(formatDecimal(league?.vs, 2))}</tspan>
+    <tspan dx="4.5" class="subMetricValue">${renderTetrioNumericTextMarkup(formatDecimal(league?.vs, 2))}</tspan>
     <tspan dx="0.9" class="subMetricLabel">VS</tspan>
   </text>`;
 }
