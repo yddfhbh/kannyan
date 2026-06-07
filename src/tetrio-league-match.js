@@ -462,17 +462,59 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
 }
 
 function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
-  const blockWidth = 220;
-  const blockX = sideIndex === 0 ? x + width - blockWidth - 12 : x - 12 ;
-  const columns = [
-    { valueX: 54, labelX: 62, label: 'APM', value: formatDecimal(stats?.apm, 2) },
-    { separatorX: 91, separator: '-' },
-    { valueX: 122, labelX: 130, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
-    { separatorX: 153, separator: '-' },
-    { valueX: 198, labelX: 206, label: 'VS', value: formatDecimal(stats?.vsscore, 2) },
+  const isLeft = sideIndex === 0;
+
+  const apmText = formatDecimal(stats?.apm, 2);
+  const ppsText = formatDecimal(stats?.pps, 2);
+  const vsText = formatDecimal(stats?.vsscore, 2);
+
+  const renderItem = (item) => {
+    const className = item.className ?? valueClass;
+    const anchor = item.anchor ?? 'start';
+    const content = item.numeric
+      ? renderTetrioNumericTextMarkup(item.text)
+      : escapeXml(item.text);
+
+    return `<text x="${roundSvgNumber(item.x)}" y="${baselineY}" text-anchor="${anchor}" dominant-baseline="middle" class="${className}">${content}</text>`;
+  };
+
+  if (isLeft) {
+    // 파란쪽: 마지막 "VS"의 S 끝을 기준으로 정렬
+    const vsEndX = x + width - 12;
+
+    const items = [
+      { x: vsEndX - 166, anchor: 'end', className: valueClass, text: apmText, numeric: true },
+      { x: vsEndX - 158, anchor: 'start', className: labelClass, text: 'APM' },
+      { x: vsEndX - 129, anchor: 'middle', className: valueClass, text: '-' },
+
+      { x: vsEndX - 98, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
+      { x: vsEndX - 90, anchor: 'start', className: labelClass, text: 'PPS' },
+      { x: vsEndX - 67, anchor: 'middle', className: valueClass, text: '-' },
+
+      { x: vsEndX - 25, anchor: 'end', className: valueClass, text: vsText, numeric: true },
+      { x: vsEndX, anchor: 'end', className: labelClass, text: 'VS' },
+    ];
+
+    return items.map(renderItem).join('\n  ');
+  }
+
+  // 빨간쪽: "APM" 글자 시작 위치를 기준으로 정렬
+  const apmLabelX = x + 70;
+
+  const items = [
+    { x: apmLabelX - 12, anchor: 'end', className: valueClass, text: apmText, numeric: true },
+    { x: apmLabelX, anchor: 'start', className: labelClass, text: 'APM' },
+    { x: apmLabelX + 31, anchor: 'middle', className: valueClass, text: '-' },
+
+    { x: apmLabelX + 63, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
+    { x: apmLabelX + 71, anchor: 'start', className: labelClass, text: 'PPS' },
+    { x: apmLabelX + 96, anchor: 'middle', className: valueClass, text: '-' },
+
+    { x: apmLabelX + 139, anchor: 'end', className: valueClass, text: vsText, numeric: true },
+    { x: apmLabelX + 147, anchor: 'start', className: labelClass, text: 'VS' },
   ];
 
-  return renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass);
+  return items.map(renderItem).join('\n  ');
 }
 
 function renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass) {
