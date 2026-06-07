@@ -750,32 +750,41 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         opacity: 0.82;
       }
       .sub {
-  font-size: 14px;
+  font-size: 15.2px;
   font-weight: 950;
-  fill: #9ed99a;
-  stroke: rgba(158, 217, 154, 0.45);
-  stroke-width: 0.35px;
+  fill: #c3f2bc;
+  stroke: rgba(195, 242, 188, 0.62);
+  stroke-width: 0.42px;
   paint-order: stroke fill;
   text-shadow: 0 1px 2px #061009;
   word-spacing: ${tetrioPhraseWordSpacing};
 }
-      .subMetric { font-size: 14px; font-family: ${cardFontFamily}; text-shadow: 0 1px 2px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
-      .subMetricValue {
-  fill: #c2efbc;
+
+.subMetric {
+  font-size: 15.2px;
+  font-family: ${cardFontFamily};
   font-weight: 950;
-  stroke: rgba(194, 239, 188, 0.45);
-  stroke-width: 0.3px;
+  text-shadow: 0 1px 2px #061009;
+  word-spacing: ${tetrioPhraseWordSpacing};
+}
+
+.subMetricValue {
+  fill: #d2ffc9;
+  font-weight: 950;
+  stroke: rgba(210, 255, 201, 0.62);
+  stroke-width: 0.38px;
   paint-order: stroke fill;
   letter-spacing: 0.18px;
 }
-      .subMetricLabel {
-  fill: #739d71;
-  font-weight: 900;
-  stroke: rgba(115, 157, 113, 0.35);
-  stroke-width: 0.25px;
+
+.subMetricLabel {
+  fill: #9ed99a;
+  font-weight: 950;
+  stroke: rgba(158, 217, 154, 0.5);
+  stroke-width: 0.32px;
   paint-order: stroke fill;
   letter-spacing: 0.8px;
-  opacity: 0.96;
+  opacity: 1;
 }
       .leagueAux { fill: #c5efbc; }
       .leagueAuxMuted { fill: #c5efbc; }
