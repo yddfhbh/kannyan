@@ -722,6 +722,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       text { font-family: ${cardFontFamily}; letter-spacing: 0; ${renderTetrioTextWeightCss()} }
       .legacyBannerFont text {
       font-family: Arial, Helvetica, sans-serif;
+      word-spacing: 8px;
       }
       .tiny { font-size: 11px; font-weight: 900; fill: #a8e7a7; text-shadow: 0 1px 2px #061009; }
       .plainRank { font-size: 13px; font-weight: 900; fill: #a8e7a7; text-shadow: 0 1px 2px #061009; }
@@ -785,8 +786,17 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       .profileBoxSeparator { fill: #5a875d; opacity: 0.92; }
       .dangerTitle { fill: #fff8f0; text-shadow: 0 2px 3px #5d0000; }
       .dangerSub { fill: #fff4ec; text-shadow: 0 2px 3px #5d0000; }
-      .bioTitle { fill: #679d63; opacity: 0.88; }
-      .bioText { fill: #a7e0a0; text-shadow: 0 1px 2px #07150a; }
+      .bioTitle {
+        fill: #679d63;
+        opacity: 0.88;
+        word-spacing: 5px;
+      }
+
+      .bioText {
+        fill: #a7e0a0;
+        text-shadow: 0 1px 2px #07150a;
+        word-spacing: 6px;
+      }
     </style>
   </defs>
 
