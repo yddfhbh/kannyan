@@ -96,7 +96,7 @@ function renderTetrioAdjustedTextMarkup(value, options = {}) {
       tightenAfterComma = false;
     }
 
-    if (tightenAfterI && char !== ' ') {
+    if (tightenAfterI && char !== ' ' && char !== '_') {
       dxValues.push(tetrioTightIRightDx);
     }
     tightenAfterI = false;
