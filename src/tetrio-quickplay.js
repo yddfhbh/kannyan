@@ -528,7 +528,7 @@ function renderQuickPlayMetaTextMarkup(value) {
     .split('')
     .map((char) => {
       if (char === '_') {
-        return '<tspan font-family="Arial, Helvetica, sans-serif" font-size="0.95em" dy="-0.02em">_</tspan>';
+        return '<tspan style="font-family: Arial, Helvetica, sans-serif !important;" font-size="1em" dy="-0.06em">_</tspan>';
       }
 
       return escapeXml(char);
