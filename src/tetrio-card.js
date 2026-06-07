@@ -2142,7 +2142,7 @@ function renderStatCardValueMarkup(x, y, width, valueY, value, valueFontSize, ic
 
 function renderTetrioCardDecimalNumberMarkup(value, options = {}) {
   const text = String(value ?? '');
-  const dotFontSize = options.dotFontSize ?? '1.35em';
+  const dotFontSize = options.dotFontSize ?? '1.6em';
   const dotDyEm = options.dotDyEm ?? 0.02;
 
   let markup = '';
