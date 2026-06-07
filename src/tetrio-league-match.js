@@ -1,6 +1,14 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import sharp from 'sharp';
+import {
+  getTetrioHunDinFontDataUri,
+  renderTetrioHunDinFontFace,
+  renderTetrioNumericTextMarkup,
+  renderTetrioTextWeightCss,
+  renderTetrioSvgToPng,
+  tetrioFontFamily,
+  tetrioHunDinFontUrl,
+} from './tetrio-font.js';
 
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioGameBaseUrl = 'https://tetr.io';
@@ -8,16 +16,15 @@ const tetrioRegularFontUrl = `${tetrioGameBaseUrl}/res/font/cr.ttf`;
 const tetrioBoldFontUrl = `${tetrioGameBaseUrl}/res/font/cb.ttf`;
 const localRegularFontPath = fileURLToPath(new URL('../assets/fonts/cr.ttf', import.meta.url));
 const localBoldFontPath = fileURLToPath(new URL('../assets/fonts/cb.ttf', import.meta.url));
-const localHunFontPath = fileURLToPath(new URL('../assets/fonts/hun2.ttf', import.meta.url));
 const localRegularFontUrl = pathToFileURL(localRegularFontPath).href;
 const localBoldFontUrl = pathToFileURL(localBoldFontPath).href;
-const localHunFontUrl = pathToFileURL(localHunFontPath).href;
+const localHunFontUrl = tetrioHunDinFontUrl;
 const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO league match card',
   'X-Session-ID': 'discord-bot-tetrio-league-match',
 };
 const tetrioRecordPageSize = 100;
-const leagueFontFamily = '"HUN", "HUN2", "C", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const leagueFontFamily = `${tetrioFontFamily}, "C"`;
 const sideThemes = [
   {
     name: 'blue',
@@ -44,6 +51,20 @@ const sideThemes = [
 let tetrioFontDataUrisPromise = null;
 
 export async function createTetrioLeagueMatchCard(username, matchIndex = 1) {
+  const card = await createTetrioLeagueMatchCardSvg(username, matchIndex);
+  const image = renderTetrioSvgToPng(card.svg);
+
+  return {
+    image,
+    matchIndex: card.matchIndex,
+    opponent: card.opponent,
+    replayId: card.replayId,
+    ts: card.ts,
+    username: card.username,
+  };
+}
+
+export async function createTetrioLeagueMatchCardSvg(username, matchIndex = 1) {
   const normalizedUsername = normalizeTetrioUsername(username);
   const normalizedMatchIndex = normalizeRecordIndex(matchIndex);
 
@@ -64,10 +85,9 @@ export async function createTetrioLeagueMatchCard(username, matchIndex = 1) {
   const match = buildLeagueMatchView(record, normalizedUsername, normalizedMatchIndex);
   const fontDataUris = await fetchTetrioFontDataUris();
   const svg = renderLeagueMatchSvg(match, fontDataUris);
-  const image = await sharp(Buffer.from(svg)).png().toBuffer();
 
   return {
-    image,
+    svg,
     matchIndex: normalizedMatchIndex,
     opponent: match.opponent?.username ?? null,
     replayId: record.replayid ?? null,
@@ -203,6 +223,7 @@ function normalizeNaturalOrder(player) {
 
 function renderLeagueMatchSvg(match, fontDataUris = {}) {
   const width = 790;
+  const centerX = width / 2;
   const topY = 4;
   const topHeight = 112;
   const rowStartY = 147;
@@ -214,9 +235,9 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
     + Math.max(0, match.rounds.length - 1) * rowGap
     + 28;
   const height = footerY + footerHeight + 8;
-  const topPanels = match.players.map((player, index) => renderTopPanel(player, index, topY, topHeight)).join('');
+  const topPanels = match.players.map((player, index) => renderTopPanel(player, index, topY, topHeight, centerX)).join('');
   const rows = match.rounds
-    .map((round, index) => renderRoundRow(round, rowStartY + index * (rowHeight + rowGap), rowHeight))
+    .map((round, index) => renderRoundRow(round, rowStartY + index * (rowHeight + rowGap), rowHeight, centerX))
     .join('');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -266,6 +287,9 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
       text {
         font-family: ${leagueFontFamily};
         letter-spacing: 0;
+        ${renderTetrioTextWeightCss()}
+        stroke: rgba(255,255,255,0.72);
+        stroke-width: 1.08px;
       }
       .username {
         fill: #f6f2ef;
@@ -275,42 +299,46 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
       .score {
         fill: #ffffff;
         font-size: 60px;
-        font-weight: 500;
+        font-weight: 650;
       }
       .summaryValue {
         fill: #f0f3fa;
         font-size: 8.8px;
-        font-weight: 700;
+        font-weight: 900;
       }
       .roundValue {
         fill: #f0f3fa;
-        font-size: 13px;
-        font-weight: 700;
+        font-size: 11.8px;
+        font-weight: 900;
       }
       .blueLabel {
         fill: ${sideThemes[0].label};
-        font-size: 13px;
-        font-weight: 700;
+        stroke: rgba(74,139,228,0.58);
+        font-size: 11.8px;
+        font-weight: 900;
       }
       .redLabel {
         fill: ${sideThemes[1].label};
-        font-size: 13px;
-        font-weight: 700;
+        stroke: rgba(216,58,63,0.58);
+        font-size: 11.8px;
+        font-weight: 900;
       }
       .summaryBlueLabel {
         fill: ${sideThemes[0].label};
+        stroke: rgba(74,139,228,0.58);
         font-size: 8.8px;
-        font-weight: 700;
+        font-weight: 900;
       }
       .summaryRedLabel {
         fill: ${sideThemes[1].label};
+        stroke: rgba(216,58,63,0.58);
         font-size: 8.8px;
-        font-weight: 700;
+        font-weight: 900;
       }
       .time {
         fill: #ffffff;
-        font-size: 14px;
-        font-weight: 650;
+        font-size: 12px;
+        font-weight: 900;
       }
       .versus {
         fill: #ffd620;
@@ -318,26 +346,37 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
         font-weight: 900;
       }
       .footer {
-        fill: #d9e6d5;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 900;
+      }
+      .footerName {
+        fill: #f1fff0;
+        stroke: rgba(241,255,240,0.55);
+      }
+      .footerKeyword {
+        fill: #82bd86;
+        stroke: rgba(130,189,134,0.55);
+      }
+      .footerDate {
+        fill: #a8d9aa;
+        stroke: rgba(168,217,170,0.5);
       }
     </style>
   </defs>
   <rect width="${width}" height="${height}" fill="#000000"/>
   ${topPanels}
-  <text x="395" y="73" text-anchor="middle" dominant-baseline="middle" class="versus" filter="url(#textGlow)">VS</text>
+  <text x="${centerX}" y="73" text-anchor="middle" dominant-baseline="middle" class="versus" filter="url(#textGlow)">VS</text>
   ${rows}
-  <rect x="2" y="${footerY}" width="${width - 4}" height="${footerHeight}" fill="#233f29" stroke="#3d6244" stroke-width="2"/>
-  <text x="12" y="${footerY + footerHeight / 2 + 1}" dominant-baseline="middle" class="footer">${escapeXml(match.footerText)}</text>
+  <rect x="2" y="${footerY}" width="${width - 4}" height="${footerHeight}" fill="#203c27" stroke="#48704d" stroke-width="2"/>
+  <text x="12" y="${footerY + footerHeight / 2 + 1}" dominant-baseline="middle" class="footer" xml:space="preserve">${renderFooterTextMarkup(match.footerText)}</text>
 </svg>`;
 }
 
-function renderTopPanel(player, sideIndex, y, height) {
+function renderTopPanel(player, sideIndex, y, height, centerX) {
   const theme = sideThemes[sideIndex] ?? sideThemes[0];
   const isLeft = sideIndex === 0;
-  const x = isLeft ? 2 : 436;
   const width = 350;
+  const x = isLeft ? 2 : centerX * 2 - 2 - width;
   const textX = isLeft ? x + width - 10 : x + 10;
   const textAnchor = isLeft ? 'end' : 'start';
   const scoreX = isLeft ? x + width - 13 : x + 12;
@@ -347,29 +386,26 @@ function renderTopPanel(player, sideIndex, y, height) {
   <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="${theme.border}" stroke-width="5" opacity="0.18"/>
   <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${theme.topGradient})" stroke="${theme.border}" stroke-width="1.5"/>
   <text x="${textX}" y="${y + 20}" text-anchor="${textAnchor}" class="username">${escapeXml(player.username.toUpperCase())}</text>
-  <text x="${scoreX}" y="${y + 52}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${formatInteger(player.wins)}</text>
-  <text x="${textX}" y="${y + height - 14}" text-anchor="${textAnchor}">
-    ${renderInlineStats(player.stats, 'summaryValue', statsClass, { compact: true })}
-  </text>`;
+  <text x="${scoreX}" y="${y + 52}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${renderTetrioNumericTextMarkup(formatInteger(player.wins))}</text>
+  ${renderSummaryStatsMarkup(player.stats, x, width, y + height - 14, sideIndex, 'summaryValue', statsClass)}`;
 }
 
-function renderRoundRow(round, y, height) {
+function renderRoundRow(round, y, height, centerX) {
   const left = round.sides[0] ?? {};
   const right = round.sides[1] ?? {};
 
   return `
-  ${renderRoundSide(left, 0, y, height)}
-  <text x="395" y="${y + height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" class="time">${escapeXml(round.timeText)}</text>
-  ${renderRoundSide(right, 1, y, height)}`;
+  ${renderRoundSide(left, 0, y, height, centerX)}
+  <text x="${centerX}" y="${y + height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" class="time">${escapeXml(round.timeText)}</text>
+  ${renderRoundSide(right, 1, y, height, centerX)}`;
 }
 
-function renderRoundSide(side, sideIndex, y, height) {
+function renderRoundSide(side, sideIndex, y, height, centerX) {
   const theme = sideThemes[sideIndex] ?? sideThemes[0];
   const isLeft = sideIndex === 0;
-  const x = isLeft ? 82 : 414;
-  const width = 292;
-  const textX = isLeft ? x + width - 10 : x + 10;
-  const textAnchor = isLeft ? 'end' : 'start';
+  const width = 276;
+  const gapFromCenter = 19;
+  const x = isLeft ? centerX - gapFromCenter - width : centerX + gapFromCenter;
   const fill = side.alive ? theme.rowWinGradient : theme.rowGradient;
   const border = side.alive ? theme.border : theme.mutedBorder;
   const opacity = side.alive ? 1 : 0.76;
@@ -380,19 +416,71 @@ function renderRoundSide(side, sideIndex, y, height) {
   return `
   <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${fill})" stroke="${border}" stroke-width="1.4" opacity="${opacity}"/>
   <line x1="${innerLineX}" y1="${y}" x2="${innerLineX}" y2="${y + height}" stroke="${innerLineColor}" stroke-width="2.4" opacity="${opacity}"/>
-  <text x="${textX}" y="${y + height / 2 + 1}" text-anchor="${textAnchor}" dominant-baseline="middle">
-    ${renderInlineStats(side.stats, 'roundValue', labelClass)}
-  </text>`;
+  ${renderRoundStatsMarkup(side.stats, x, width, y + height / 2 + 1, sideIndex, 'roundValue', labelClass)}`;
+}
+
+function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
+  const blockWidth = 224;
+  const blockX = sideIndex === 0 ? x + width - blockWidth - 20 : x + 20;
+  const columns = [
+    { valueX: 48, labelX: 55, label: 'APM', value: formatDecimal(stats?.apm, 2) },
+    { separatorX: 83, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.8 },
+    { valueX: 112, labelX: 119, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
+    { separatorX: 150, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.8 },
+    { valueX: 194, labelX: 201, label: 'VS', value: formatDecimal(stats?.vsscore, 2) },
+  ];
+
+  return renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass);
+}
+
+function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
+  const blockWidth = 220;
+  const blockX = sideIndex === 0 ? x + width - blockWidth - 12 : x + 12;
+  const columns = [
+    { valueX: 54, labelX: 62, label: 'APM', value: formatDecimal(stats?.apm, 2) },
+    { separatorX: 91, separator: '-' },
+    { valueX: 122, labelX: 130, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
+    { separatorX: 153, separator: '-' },
+    { valueX: 198, labelX: 206, label: 'VS', value: formatDecimal(stats?.vsscore, 2) },
+  ];
+
+  return renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass);
+}
+
+function renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass) {
+  return columns.map((column) => {
+    if (Number.isFinite(column.separatorX)) {
+      const fontSize = Number.isFinite(column.fontSize) ? ` font-size="${column.fontSize}"` : '';
+      return `<text x="${blockX + column.separatorX}" y="${baselineY}" text-anchor="middle" dominant-baseline="middle" class="${column.separatorClass ?? valueClass}"${fontSize}>${column.separator ?? '-'}</text>`;
+    }
+
+    return `<text x="${blockX + column.valueX}" y="${baselineY}" text-anchor="end" dominant-baseline="middle" class="${valueClass}">${renderTetrioNumericTextMarkup(column.value)}</text>
+  <text x="${blockX + column.labelX}" y="${baselineY}" text-anchor="start" dominant-baseline="middle" class="${labelClass}">${column.label}</text>`;
+  }).join('\n  ');
+}
+
+function renderFooterTextMarkup(text) {
+  const match = String(text ?? '').match(/^(.+?) VERSUS (.+?) PLAYED ON (.+)$/);
+  if (!match) {
+    return `<tspan class="footerName">${escapeXml(text)}</tspan>`;
+  }
+
+  const dateMatch = match[3].match(/^(.+?),\s+(.+?)\s+(AM|PM)$/i);
+  const dateMarkup = dateMatch
+    ? `<tspan dx="7" class="footerDate">${escapeXml(dateMatch[1])},</tspan><tspan dx="7" class="footerDate">${escapeXml(dateMatch[2])}</tspan><tspan dx="5" class="footerDate">${escapeXml(dateMatch[3].toUpperCase())}</tspan>`
+    : `<tspan dx="7" class="footerDate">${escapeXml(match[3])}</tspan>`;
+
+  return `<tspan class="footerName">${escapeXml(match[1])}</tspan><tspan dx="8" class="footerKeyword">VERSUS</tspan><tspan dx="8" class="footerName">${escapeXml(match[2])}</tspan><tspan dx="8" class="footerKeyword">PLAYED</tspan><tspan dx="5" class="footerKeyword">ON</tspan>${dateMarkup}`;
 }
 
 function renderInlineStats(stats, valueClass, labelClass, options = {}) {
-  const labelGap = options.compact ? 2 : 3;
-  const separatorGap = options.compact ? 4 : 5;
-  const valueGap = options.compact ? 4 : 5;
+  const labelGap = options.compact ? 2.5 : 5;
+  const separatorGap = options.compact ? 4.5 : 7;
+  const valueGap = options.compact ? 4.5 : 7;
   const separator = options.compact
     ? `<tspan class="${labelClass}" dx="${separatorGap}" font-size="7" font-weight="900">&#9635;</tspan>`
     : `<tspan class="${valueClass}" dx="${separatorGap}">-</tspan>`;
-  return `<tspan class="${valueClass}">${escapeXml(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${escapeXml(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${escapeXml(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>`;
+  return `<tspan class="${valueClass}">${renderTetrioNumericTextMarkup(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${renderTetrioNumericTextMarkup(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${renderTetrioNumericTextMarkup(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>`;
 }
 
 function normalizeRecordIndex(value) {
@@ -453,7 +541,7 @@ function fetchTetrioFontDataUris() {
       .then((localFont) => localFont ?? fetchFontDataUri(tetrioRegularFontUrl)),
     readLocalFontDataUri(localBoldFontPath)
       .then((localFont) => localFont ?? fetchFontDataUri(tetrioBoldFontUrl)),
-    readLocalFontDataUri(localHunFontPath),
+    getTetrioHunDinFontDataUri(),
   ]).then(([regular, bold, hun]) => ({
     bold,
     boldFileUrl: localBoldFontUrl,
@@ -556,18 +644,7 @@ function renderTetrioFontFace(fontDataUris = {}) {
   }
 
   if (fontDataUris.hun || fontDataUris.hunFileUrl) {
-    rules.push(`@font-face {
-        font-family: "HUN2";
-        src: ${renderFontSources(fontDataUris.hunFileUrl, fontDataUris.hun)};
-        font-weight: 400 900;
-        font-style: normal;
-      }
-      @font-face {
-        font-family: "HUN";
-        src: ${renderFontSources(fontDataUris.hunFileUrl, fontDataUris.hun)};
-        font-weight: 400 900;
-        font-style: normal;
-      }`);
+    rules.push(renderTetrioHunDinFontFace(fontDataUris.hun ?? fontDataUris.hunFileUrl));
   }
 
   return rules.join('\n      ');

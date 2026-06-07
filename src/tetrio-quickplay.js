@@ -1,17 +1,21 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import sharp from 'sharp';
+import {
+  getTetrioHunDinFontDataUri,
+  renderTetrioHunDinFontFace,
+  renderTetrioTextWeightCss,
+  renderTetrioSvgToPng,
+  tetrioFontFamily,
+  tetrioPhraseWordSpacing,
+} from './tetrio-font.js';
 
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
-const tetrioGameBaseUrl = 'https://tetr.io';
-const tetrioHunFontUrl = `${tetrioGameBaseUrl}/res/font/hun2.ttf?v=6`;
-const localHunFontPath = fileURLToPath(new URL('../assets/fonts/hun2.ttf', import.meta.url));
 const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO quick play altitude',
   'X-Session-ID': 'discord-bot-tetrio-quickplay',
 };
 const tetrioRecordPageSize = 100;
-const quickPlayFontFamily = '"HUN", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const quickPlayFontFamily = tetrioFontFamily;
 const tetrioQuickPlayModes = {
   zenith: {
     code: 'zenith',
@@ -174,7 +178,7 @@ async function createTetrioAltitudeCard(username, recordIndex = 1, mode = 'zenit
     title: modeInfo.title,
     unit: modeInfo.unit,
   });
-  const image = await sharp(Buffer.from(svg)).png().toBuffer();
+  const image = renderTetrioSvgToPng(svg);
 
   return {
     image,
@@ -301,32 +305,8 @@ function getBlitzScore(record) {
 }
 
 function fetchTetrioHunFontDataUri() {
-  tetrioHunFontDataUriPromise ??= readLocalFontDataUri(localHunFontPath)
-    .then((localFont) => localFont ?? fetchFontDataUri(tetrioHunFontUrl));
+  tetrioHunFontDataUriPromise ??= getTetrioHunDinFontDataUri();
   return tetrioHunFontDataUriPromise;
-}
-
-async function readLocalFontDataUri(path) {
-  try {
-    const buffer = await readFile(path);
-    return `data:font/ttf;base64,${buffer.toString('base64')}`;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchFontDataUri(url) {
-  try {
-    const response = await fetch(url, { headers: tetrioHeaders });
-    if (!response.ok) {
-      return null;
-    }
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-    return `data:font/ttf;base64,${buffer.toString('base64')}`;
-  } catch {
-    return null;
-  }
 }
 
 async function fetchQuickPlayModIcons(record) {
@@ -350,10 +330,11 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
   const statsRows = options.statsRows ?? buildQuickPlayStatsRows(record);
   const mainValueFormat = options.mainValueFormat ?? 'plain';
   const valueFontSize = 109;
+  const unitFontSize = mainUnit ? 68 : 0;
   const valueGroupCenterX = 700;
-  const valueGap = mainUnit ? 5 : 0;
+  const valueGap = mainUnit ? -46 : 0;
   const valueWidth = mainUnit ? estimateQuickPlayValueWidth(mainText, valueFontSize) : 0;
-  const unitWidth = mainUnit ? estimateQuickPlayUnitWidth(mainUnit, 64) : 0;
+  const unitWidth = mainUnit ? estimateQuickPlayUnitWidth(mainUnit, unitFontSize) : 0;
   const valueGroupWidth = valueWidth + valueGap + unitWidth;
   const valueGroupLeftX = valueGroupCenterX - valueGroupWidth / 2;
   const valueX = valueGroupLeftX + valueWidth;
@@ -419,12 +400,14 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
       text {
         font-family: ${quickPlayFontFamily};
         letter-spacing: 0;
+        ${renderTetrioTextWeightCss()}
       }
       .title {
         fill: #b0e1af;
         font-size: 52px;
         font-weight: 650;
         letter-spacing: 2px;
+        word-spacing: ${tetrioPhraseWordSpacing};
       }
       .value {
         fill: #bcf8bc;
@@ -433,7 +416,12 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
       }
       .unit {
         fill: #9fc79b;
-        font-size: 56px;
+        font-size: ${unitFontSize}px;
+        font-weight: 700;
+      }
+      .unitInline {
+        fill: #9fc79b;
+        font-size: ${unitFontSize}px;
         font-weight: 700;
       }
       .statsTitle {
@@ -441,24 +429,28 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
         font-size: 50px;
         font-weight: 650;
         letter-spacing: 2px;
+        word-spacing: ${tetrioPhraseWordSpacing};
       }
       .statsLabel {
         fill: #95bc92;
         font-size: 30px;
         font-weight: 450;
         letter-spacing: 2px;
+        word-spacing: ${tetrioPhraseWordSpacing};
       }
       .statsValue {
         fill: #d6f0d5;
         font-size: 30px;
         font-weight: 650;
         letter-spacing: 0.5px;
+        word-spacing: ${tetrioPhraseWordSpacing};
       }
       .metaText {
         fill: #b0e1af;
         font-size: 34px;
         font-weight: 650;
         letter-spacing: 1px;
+        word-spacing: ${tetrioPhraseWordSpacing};
       }
     </style>
   </defs>
@@ -477,10 +469,11 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
   ${statsRows.map((row, index) => {
     const rowY = statsInnerBoxY + index * statsRowHeight;
     const baselineY = rowY + statsRowHeight / 2;
+    const statsValueX = statsInnerBoxX + statsInnerBoxWidth - 12 + getQuickPlayStatsRightCompensation(row.value);
     return `
   ${index < statsRows.length - 1 ? `<line x1="${statsInnerBoxX + 7}" y1="${rowY + statsRowHeight}" x2="${statsInnerBoxX + statsInnerBoxWidth - 7}" y2="${rowY + statsRowHeight}" stroke="#ffffff" stroke-opacity="0.18" stroke-width="2.5"/>` : ''}
   <text x="${statsInnerBoxX + 12}" y="${baselineY}" dominant-baseline="middle" class="statsLabel">${escapeXml(row.label)}</text>
-  <text x="${statsInnerBoxX + statsInnerBoxWidth - 12}" y="${baselineY}" text-anchor="end" dominant-baseline="middle" class="statsValue">${escapeXml(row.value)}</text>`;
+  <text x="${roundSvgNumber(statsValueX)}" y="${baselineY}" text-anchor="end" dominant-baseline="middle" class="statsValue">${renderQuickPlayStatsNumberMarkup(row.value)}</text>`;
   }).join('')}
   <rect x="8" y="${playedAtPanelY}" width="1384" height="${playedAtPanelHeight}" rx="3" fill="#254726" stroke="#3d6640" stroke-width="4"/>
   <text x="34" y="${playedAtPanelY + playedAtPanelHeight / 2 + 2}" dominant-baseline="middle" class="metaText" fill="#000000" opacity="0.32">${escapeXml(playedAtText)}</text>
@@ -505,27 +498,107 @@ function renderQuickPlayMainValueMarkup({
     if (format === 'timeSplitDecimal') {
       const splitIndex = normalizedText.lastIndexOf('.');
       if (splitIndex > 0 && splitIndex < normalizedText.length - 1) {
+        const decimalDotDyEm = 0.42;
+        const fractionBaselineDyEm = 0.28;
+        const fractionDyEm = fractionBaselineDyEm - decimalDotDyEm;
         return `<g filter="url(#valueGlow)">
     <text x="${centerX}" y="${valueY}" text-anchor="middle" dominant-baseline="middle" class="value">
-      <tspan>${escapeXml(normalizedText.slice(0, splitIndex))}</tspan><tspan font-size="${getQuickPlayTimedDecimalFontSize(fontSize)}" dy="0.13em">${escapeXml(normalizedText.slice(splitIndex))}</tspan>
+      <tspan>${renderQuickPlayMainNumberMarkup(normalizedText.slice(0, splitIndex))}</tspan><tspan dy="${decimalDotDyEm}em" font-family="Arial, sans-serif" font-size="0.58em" stroke="none">.</tspan><tspan font-size="${getQuickPlayTimedDecimalFontSize(fontSize)}" dy="${fractionDyEm}em">${renderQuickPlayMainNumberMarkup(normalizedText.slice(splitIndex + 1))}</tspan>
     </text>
   </g>`;
       }
     }
 
+    const adjustedCenterX = centerX + getQuickPlayMainCenterCompensation(normalizedText, fontSize);
     return `<g filter="url(#valueGlow)">
-    <text x="${centerX}" y="${valueY}" text-anchor="middle" dominant-baseline="middle" class="value">${escapeXml(normalizedText)}</text>
+    <text x="${roundSvgNumber(adjustedCenterX)}" y="${valueY}" text-anchor="middle" dominant-baseline="middle" class="value">${renderQuickPlayMainNumberMarkup(normalizedText)}</text>
   </g>`;
   }
 
+  const unitDx = getQuickPlayInlineUnitDx(normalizedText);
+  const unitDyEm = getQuickPlayInlineUnitDyEm(normalizedText);
+  const unitDy = unitDyEm ? ` dy="${unitDyEm}em"` : '';
   return `<g filter="url(#valueGlow)">
-    <text x="${valueX}" y="${valueY}" text-anchor="end" dominant-baseline="middle" class="value">${escapeXml(normalizedText)}</text>
-  </g>
-  <text x="${unitX}" y="${unitY + getQuickPlayUnitBottomAlignmentOffset(fontSize)}" text-anchor="start" dominant-baseline="middle" class="unit">${escapeXml(unit)}</text>`;
+    <text x="${centerX}" y="${valueY}" text-anchor="middle" dominant-baseline="middle" class="value">${renderQuickPlayMainNumberMarkup(normalizedText)}<tspan class="unitInline" dx="${unitDx}"${unitDy}>${escapeXml(unit)}</tspan></text>
+  </g>`;
+}
+
+function renderQuickPlayMainNumberMarkup(value) {
+  return renderQuickPlayNumberMarkup(value, {
+    decimalDyEm: 0.42,
+    decimalFollowingDyEm: 0.2,
+    decimalFontSize: '0.58em',
+    tightenComma: true,
+  });
+}
+
+function renderQuickPlayStatsNumberMarkup(value) {
+  return renderQuickPlayNumberMarkup(value, {
+    decimalDyEm: 0.06,
+    decimalFontSize: '1.12em',
+    tightenComma: true,
+  });
+}
+
+function getQuickPlayStatsRightCompensation(value) {
+  const commaMatches = String(value ?? '').match(/,(?=\d)/g);
+  const commaCount = commaMatches?.length ?? 0;
+  return commaCount * 0.42 * 30;
+}
+
+function getQuickPlayMainCenterCompensation(value, fontSize) {
+  const commaMatches = String(value ?? '').match(/,(?=\d)/g);
+  const commaCount = commaMatches?.length ?? 0;
+  return commaCount * fontSize * 0.14;
+}
+
+function renderQuickPlayNumberMarkup(value, options = {}) {
+  const text = String(value ?? '');
+  const decimalDyEm = Number(options.decimalDyEm) || 0;
+  const decimalFollowingDyEm = Number(options.decimalFollowingDyEm) || 0;
+  const decimalFontSize = options.decimalFontSize ?? '1em';
+  const tightenComma = options.tightenComma === true;
+  let markup = '';
+  let resetDyEm = 0;
+  let tightenNext = false;
+
+  for (const char of text) {
+    const escaped = escapeXml(char);
+    if (char === '.') {
+      const dy = decimalDyEm ? ` dy="${decimalDyEm}em"` : '';
+      markup += `<tspan${dy} font-family="Arial, sans-serif" font-size="${decimalFontSize}" stroke="none">${escaped}</tspan>`;
+      resetDyEm = decimalDyEm;
+      tightenNext = false;
+      continue;
+    }
+
+    const dx = tightenNext && /\d/.test(char) ? ' dx="-0.42em"' : '';
+    const dy = resetDyEm ? ` dy="${roundSvgNumber(decimalFollowingDyEm - resetDyEm)}em"` : '';
+    markup += dx || dy ? `<tspan${dx}${dy}>${escaped}</tspan>` : escaped;
+    resetDyEm = 0;
+    tightenNext = tightenComma && char === ',';
+  }
+
+  return markup;
 }
 
 function getQuickPlayTimedDecimalFontSize(fontSize) {
   return Math.max(1, Math.round(fontSize * 0.7));
+}
+
+function getQuickPlayInlineUnitDyEm(value) {
+  return /\.\d+$/.test(String(value ?? '')) ? 0.18 : 0.17;
+}
+
+function getQuickPlayInlineUnitDx(value) {
+  const text = String(value ?? '');
+  if (/1$/.test(text)) {
+    return -12;
+  }
+  if (/[0]$/.test(text)) {
+    return 4;
+  }
+  return -4;
 }
 
 function getQuickPlayUnitBottomAlignmentOffset(fontSize) {
@@ -537,12 +610,7 @@ function renderTetrioFontFace(fontDataUri) {
     return '';
   }
 
-  return `@font-face {
-        font-family: "HUN";
-        src: url("${fontDataUri}") format("truetype");
-        font-weight: 400 900;
-        font-style: normal;
-      }`;
+  return renderTetrioHunDinFontFace(fontDataUri);
 }
 
 function buildQuickPlayStatsRows(record) {

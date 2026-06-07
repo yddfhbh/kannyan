@@ -1,15 +1,22 @@
 ﻿import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import {
+  getTetrioHunDinFontDataUri,
+  renderTetrioHunDinFontFace,
+  renderTetrioNumericTextMarkup,
+  renderTetrioTextWeightCss,
+  renderTetrioSvgToPng,
+  tetrioFontFamily,
+  tetrioPhraseWordSpacing,
+} from './tetrio-font.js';
 
-const localHunFontPath = fileURLToPath(new URL('../assets/fonts/hun2.ttf', import.meta.url));
 const bannedAvatarPath = fileURLToPath(new URL('../assets/avatar-banned.png', import.meta.url));
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioContentBaseUrl = 'https://tetr.io/user-content';
 const tetrioGameBaseUrl = 'https://tetr.io';
-const tetrioHunFontUrl = `${tetrioGameBaseUrl}/res/font/hun2.ttf?v=6`;
 const twemojiBaseUrl = 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72';
-const cardFontFamily = '"HUN", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const cardFontFamily = tetrioFontFamily;
 const tetrioPalette = {
   pageBg: '#07100a',
   cardBg: '#21421f',
@@ -68,6 +75,16 @@ const emojiPresentationPattern = /\p{Emoji_Presentation}/u;
 const extendedPictographicPattern = /\p{Extended_Pictographic}/u;
 
 export async function createTetrioProfileCard(username) {
+  const card = await createTetrioProfileCardSvg(username);
+  const image = renderTetrioSvgToPng(card.svg);
+
+  return {
+    image,
+    username: card.username,
+  };
+}
+
+export async function createTetrioProfileCardSvg(username) {
   const normalizedUsername = normalizeTetrioUsername(username);
 
   if (!normalizedUsername) {
@@ -85,10 +102,9 @@ export async function createTetrioProfileCard(username) {
   const summaries = summariesResponse.data;
   const assets = await fetchTetrioAssets(user, summaries);
   const svg = await renderTetrioCardSvg(user, summaries, assets);
-  const image = await sharp(Buffer.from(svg)).png().toBuffer();
 
   return {
-    image,
+    svg,
     username: user.username,
   };
 }
@@ -546,8 +562,7 @@ async function trimTransparentImageBuffer(buffer, contentType) {
 }
 
 function fetchTetrioHunFontDataUri() {
-  tetrioHunFontDataUriPromise ??= readLocalFontDataUri(localHunFontPath)
-    .then((localFont) => localFont ?? fetchFontDataUri(tetrioHunFontUrl));
+  tetrioHunFontDataUriPromise ??= getTetrioHunDinFontDataUri();
   return tetrioHunFontDataUriPromise;
 }
 
@@ -561,31 +576,6 @@ async function readLocalImageDataUri(path, mimeType) {
     const buffer = await readFile(path);
     return `data:${mimeType};base64,${buffer.toString('base64')}`;
   } catch {
-    return null;
-  }
-}
-
-async function readLocalFontDataUri(path) {
-  try {
-    const buffer = await readFile(path);
-    return `data:font/ttf;base64,${buffer.toString('base64')}`;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchFontDataUri(url) {
-  try { 
-    const response = await fetch(url, { headers: tetrioHeaders });
-    if (!response.ok) {
-      console.error('TETR.IO font download failed:', response.status);
-      return null;
-    }
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-    return `data:font/ttf;base64,${buffer.toString('base64')}`;
-  } catch (error) {
-    console.error('TETR.IO font download error:', error);
     return null;
   }
 }
@@ -714,15 +704,15 @@ async function renderTetrioCardSvg(user, summaries, assets) {
     ${renderSupporterBadgeDefs()}
     <style>
       ${renderTetrioFontFace(assets.hunFont)}
-      text { font-family: ${cardFontFamily}; letter-spacing: 0; }
+      text { font-family: ${cardFontFamily}; letter-spacing: 0; ${renderTetrioTextWeightCss()} }
       .tiny { font-size: 11px; font-weight: 900; fill: #a8e7a7; text-shadow: 0 1px 2px #061009; }
       .plainRank { font-size: 13px; font-weight: 900; fill: #a8e7a7; text-shadow: 0 1px 2px #061009; }
-      .label { font-size: 14.5px; font-weight: 900; fill: #5d915c; opacity: 0.84; }
+      .label { font-size: 14.5px; font-weight: 900; fill: #5d915c; opacity: 0.84; word-spacing: ${tetrioPhraseWordSpacing}; }
       .value {
-        font-weight: 900;
+        font-weight: 950;
         fill: #c9ffc8;
         stroke: rgba(182, 247, 184, 0.58);
-        stroke-width: 0.14px;
+        stroke-width: 0.22px;
         stroke-linejoin: round;
         paint-order: stroke fill;
       }
@@ -740,15 +730,21 @@ async function renderTetrioCardSvg(user, summaries, assets) {
         fill: #d8ffd2;
         opacity: 0.66;
       }
-      .sub { font-size: 11.9px; font-weight: 900; fill: #9ed99a; text-shadow: 0 1px 2px #061009; }
-      .subMetric { font-size: 11.9px; font-family: ${cardFontFamily}; text-shadow: 0 1px 2px #061009; }
+      .sub { font-size: 11.9px; font-weight: 900; fill: #9ed99a; text-shadow: 0 1px 2px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
+      .subMetric { font-size: 11.9px; font-family: ${cardFontFamily}; text-shadow: 0 1px 2px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
       .subMetricValue { fill: #c2efbc; font-weight: 900; letter-spacing: 0.18px; }
       .subMetricLabel { fill: #739d71; font-weight: 800; letter-spacing: 0.8px; opacity: 0.96; }
       .leagueAux { fill: #c5efbc; }
       .leagueAuxMuted { fill: #c5efbc; }
       .white { fill: #f6fff5; text-shadow: 0 2px 4px #061009; }
-      .headerName { fill: #fbfff8; filter: url(#headerNameShadow); }
-      .meta { fill: #d4f7ff; text-shadow: 0 2px 3px #061009; }
+      .headerName {
+        fill: #fbfff8;
+        filter: url(#headerNameShadow);
+        stroke: rgba(251,255,248,0.54);
+        stroke-width: 0.54px;
+        paint-order: stroke fill;
+      }
+      .meta { fill: #d4f7ff; text-shadow: 0 2px 3px #061009; word-spacing: ${tetrioPhraseWordSpacing}; }
       .noBannerHeaderName { fill: #b7d9af; }
       .noBannerMeta { fill: #82aa7e; }
       .xp { fill: #f7fff1; text-shadow: 0 2px 3px #061009; }
@@ -776,7 +772,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
 
   <text x="${nameX}" y="${bannerY + 52}" class="${headerNameClass}" font-size="${headerNameFontSize}" font-weight="${headerNameFontWeight}">${escapeXml(headerUsername)}</text>
   ${renderHeaderFlag(flag, nameX, bannerY + 28, headerNameWidth)}
-  <text x="${avatarX + avatarSize + 18}" y="${bannerY + 77}" class="${headerMetaClass}" font-size="15.5" font-weight="800">${escapeXml(joined)} - ${formatNumber(user.friend_count ?? user.friendcount ?? 0)} FRIENDS</text>
+  <text x="${avatarX + avatarSize + 18}" y="${bannerY + 77}" class="${headerMetaClass}" font-size="14" font-weight="800" xml:space="preserve">${escapeXml(joined)} - ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))} FRIENDS</text>
   ${renderLevelTag(levelTag, contentX, levelTagY)}
   ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
   ${supporterBadge ? renderSupporterBadgeMarkup(supporterBadge) : ''}
@@ -790,7 +786,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   ${renderStatCard(28, topStatY, 296, 'TETRA LEAGUE', `#${formatRank(league?.standing)}`, `${formatTrNumber(league?.tr)}TR`, `${formatDecimal(league?.apm, 2)} APM   ${formatDecimal(league?.pps, 2)} PPS   ${formatDecimal(league?.vs, 2)} VS`, {
     valueIcon: assets.leagueRankIcon?.image,
     valueIconHeight: assets.leagueRankIcon?.height,
-    valueFontSize: 32.3,
+    valueFontSize: 34.2,
     valueAlign: 'center',
     valueIconSize: 26,
     valueIconWidth: assets.leagueRankIcon?.width,
@@ -804,15 +800,15 @@ async function renderTetrioCardSvg(user, summaries, assets) {
     subtextMarkup: renderLeagueMetricsSubtext(28, topStatY, 296, league),
   })}
   ${renderStatCard(332, topStatY, 296, '40 LINES', `#${formatRank(fortyLines?.rank)}`, formatTime(fortyLines?.record?.results?.stats?.finaltime), formatAgo(fortyLines?.record?.ts), {
-    valueFontSize: 32.3,
+    valueFontSize: 34.2,
     valueFormat: 'timeSplitDecimal',
     flag,
     localRank: fortyLines?.rank_local,
     worldRank: fortyLines?.rank,
   })}
-  ${renderStatCard(636, topStatY, 296, 'BLITZ', `#${formatRank(blitz?.rank)}`, formatNumber(blitz?.record?.results?.stats?.score), formatAgo(blitz?.record?.ts), { valueFontSize: 32.3, flag, localRank: blitz?.rank_local, worldRank: blitz?.rank })}
-  ${renderStatCard(28, bottomStatY, 448, 'QUICK PLAY', `#${formatRank(zenith?.rank)}`, `${formatAltitude(zenith?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenith?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenith?.best?.rank)})`, { valueFontSize: 33.4, unitFontSize: 28.4, valueFormat: 'altitudeWithUnit', flag, localRank: zenith?.rank_local, worldRank: zenith?.rank })}
-  ${renderStatCard(484, bottomStatY, 448, 'EXPERT QUICK PLAY', `#${formatRank(zenithEx?.rank)}`, `${formatAltitude(zenithEx?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenithEx?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenithEx?.best?.rank)})`, { valueFontSize: 33.4, unitFontSize: 28.4, valueFormat: 'altitudeWithUnit', flag, localRank: zenithEx?.rank_local, worldRank: zenithEx?.rank })}
+  ${renderStatCard(636, topStatY, 296, 'BLITZ', `#${formatRank(blitz?.rank)}`, formatNumber(blitz?.record?.results?.stats?.score), formatAgo(blitz?.record?.ts), { valueFontSize: 34.2, flag, localRank: blitz?.rank_local, worldRank: blitz?.rank })}
+  ${renderStatCard(28, bottomStatY, 448, 'QUICK PLAY', `#${formatRank(zenith?.rank)}`, `${formatAltitude(zenith?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenith?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenith?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 30.6, valueFormat: 'altitudeWithUnit', flag, localRank: zenith?.rank_local, worldRank: zenith?.rank })}
+  ${renderStatCard(484, bottomStatY, 448, 'EXPERT QUICK PLAY', `#${formatRank(zenithEx?.rank)}`, `${formatAltitude(zenithEx?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenithEx?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenithEx?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 30.6, valueFormat: 'altitudeWithUnit', flag, localRank: zenithEx?.rank_local, worldRank: zenithEx?.rank })}
 
 </svg>`;
 }
@@ -852,12 +848,7 @@ function renderTetrioFontFace(fontDataUri) {
     return '';
   }
 
-  return `@font-face {
-        font-family: "HUN";
-        src: url("${fontDataUri}") format("truetype");
-        font-weight: 400 900;
-        font-style: normal;
-      }`;
+  return renderTetrioHunDinFontFace(fontDataUri);
 }
 
 function renderSupporterBadgeMarkup(layout) {
@@ -977,6 +968,13 @@ function renderProfileStatsBox(items, x, y, options = {}) {
   const baselineY = y + 17;
   const boxWidth = getCompactProfileStatsBoxWidth(items, options);
   const boxMarkup = `<rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" rx="4" fill="${tetrioPalette.panelBg}" stroke="${tetrioPalette.panelBg}" stroke-width="1.5"/>`;
+  if (items.length === 3 && items[1]?.separator === 'slash') {
+    const slashX = x + boxWidth / 2;
+    return `${boxMarkup}${renderProfileStatsValue(items[0], (x + slashX) / 2, baselineY)}
+      <text x="${slashX}" y="${baselineY}" text-anchor="middle" class="profileBoxSeparator" font-size="16" font-weight="900">/</text>
+      ${renderProfileStatsValue(items[2], (slashX + x + boxWidth) / 2, baselineY)}`;
+  }
+
   const contentWidth = items.reduce((sum, item) => sum + item.width, 0);
   let cursorX = x + (boxWidth - contentWidth) / 2;
   let body = '';
@@ -988,14 +986,18 @@ function renderProfileStatsBox(items, x, y, options = {}) {
       continue;
     }
 
-    const valueMarkup = item.suffix
-      ? `${escapeXml(item.value)}<tspan class="${item.suffixClassName ?? 'profileBoxValueSuffix'}">${escapeXml(item.suffix)}</tspan>`
-      : escapeXml(item.value);
-    body += `<text x="${cursorX + item.width / 2}" y="${baselineY}" text-anchor="middle" class="profileBoxValue ${item.className}" font-size="${item.fontSize}" font-weight="900">${valueMarkup}</text>`;
+    body += renderProfileStatsValue(item, cursorX + item.width / 2, baselineY);
     cursorX += item.width;
   }
 
   return `${boxMarkup}${body}`;
+}
+
+function renderProfileStatsValue(item, x, y) {
+  const valueMarkup = item.suffix
+    ? `${renderTetrioNumericTextMarkup(item.value)}<tspan class="${item.suffixClassName ?? 'profileBoxValueSuffix'}">${escapeXml(item.suffix)}</tspan>`
+    : renderTetrioNumericTextMarkup(item.value);
+  return `<text x="${x}" y="${y}" text-anchor="middle" class="profileBoxValue ${item.className}" font-size="${item.fontSize}" font-weight="900">${valueMarkup}</text>`;
 }
 
 function getStarPoints(cx, cy, outerRadius, innerRadius) {
@@ -1493,7 +1495,7 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
   <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff">${escapeXml(normalizedText)}</text>
 </svg>`;
-    const { info } = await sharp(Buffer.from(measurementSvg))
+    const { info } = await sharp(renderTetrioSvgToPng(measurementSvg))
       .png()
       .trim()
       .toBuffer({ resolveWithObject: true });
@@ -1642,7 +1644,7 @@ function renderLevelTag(tag, x, y) {
   <g transform="translate(${x} ${y})">
     <polygon points="${getLevelTagBodyPoints(tag.golden ? 'golden' : tag.shape, bodyWidth, height, unit)}" fill="${fill}" opacity="${tag.nullTag ? 0.65 : 1}"/>
     <polygon points="${getLevelTagItemPoints(tag.golden ? 'golden' : tag.shape, itemX, height, unit)}" fill="${itemFill}" opacity="${tag.nullTag ? 0.65 : 1}"/>
-    <text x="9" y="20.5" font-size="19" font-weight="900" fill="${textFill}" opacity="${textOpacity}">${escapeXml(tag.text)}</text>
+    <text x="9" y="22.4" font-size="22" font-weight="900" fill="${textFill}" opacity="${textOpacity}">${escapeXml(tag.text)}</text>
   </g>`;
 }
 
@@ -2008,12 +2010,12 @@ function renderStatCardValueMarkup(x, y, width, valueY, value, valueFontSize, ic
 }
 
 function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options) {
-  const iconSize = Math.max(0, (options.valueIconSize ?? 35) - 1);
-  const iconGap = 8;
+  const iconSize = Math.max(0, options.valueIconSize ?? 35);
+  const iconGap = 6;
   const iconMetrics = getLeagueIconRenderMetrics(options, iconSize);
   const unitFontSize = getTimedDecimalFontSize(fontSize);
   const valueWidth = estimateLeagueMainValueWidth(value, fontSize, unitFontSize);
-  const valueNudgeX = 8;
+  const valueNudgeX = 6;
   const valueAuxGap = 6;
   const auxBracketArmLength = 4;
   const auxBracketInnerPaddingX = 2;
@@ -2022,7 +2024,7 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
   const rdText = formatRdValue(options.rd);
   const auxTextWidth = Math.max(
     estimateLeagueAuxTextWidth(glickoText, 11.3),
-    estimateLeagueAuxTextWidth(`±${rdText}`, 11.3),
+    estimateLeagueAuxTextWidth(`+/-${rdText}`, 11.3),
   );
   const auxBlockWidth = (auxBracketArmLength * 2) + (auxBracketInnerPaddingX * 2) + auxTextWidth + auxBracketRightPaddingX;
   const groupWidth = iconMetrics.renderedWidth + iconGap + valueWidth + valueAuxGap + auxBlockWidth;
@@ -2031,7 +2033,6 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
   const iconY = roundSvgNumber(getStatValueVisualBottomY(valueY, fontSize) - iconSize + 1);
   const valueRightX = roundSvgNumber(groupLeftX + iconMetrics.renderedWidth + iconGap + valueWidth + valueNudgeX);
   const auxBlockLeftX = roundSvgNumber(valueRightX + valueAuxGap);
-  const auxTextX = roundSvgNumber(auxBlockLeftX + auxBracketArmLength + auxBracketInnerPaddingX);
   const auxOffsetY = -1;
   const glickoY = roundSvgNumber(valueY - 13 + auxOffsetY);
   const rdY = roundSvgNumber(valueY + 1 + auxOffsetY);
@@ -2040,6 +2041,7 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
   const auxBracketRightX = roundSvgNumber(auxBlockLeftX + auxBlockWidth - 1);
   const auxBracketLeftInnerX = roundSvgNumber(auxBlockLeftX + auxBracketArmLength);
   const auxBracketRightInnerX = roundSvgNumber(auxBracketRightX - auxBracketArmLength);
+  const auxCenterX = roundSvgNumber((auxBlockLeftX + auxBracketRightX) / 2);
 
   return `<image href="${options.valueIcon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMax meet"/>
     ${renderLeagueTrStatValueText(valueRightX, valueY, value, fontSize, unitFontSize, 'end')}
@@ -2051,8 +2053,30 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
       <line x1="${auxBracketRightX}" y1="${auxBracketTopY}" x2="${auxBracketRightX}" y2="${auxBracketBottomY}"/>
       <line x1="${auxBracketRightInnerX}" y1="${auxBracketBottomY}" x2="${auxBracketRightX}" y2="${auxBracketBottomY}"/>
     </g>
-    <text x="${auxTextX}" y="${glickoY}" text-anchor="start" class="leagueAux" font-size="11.3" font-weight="900">${escapeXml(glickoText)}</text>
-    <text x="${auxTextX}" y="${rdY}" text-anchor="start" class="leagueAuxMuted" font-weight="900"><tspan font-size="13">${escapeXml('±')}</tspan><tspan font-size="11.3">${escapeXml(rdText)}</tspan></text>`;
+    <text x="${auxCenterX}" y="${glickoY}" text-anchor="middle" class="leagueAux" font-size="11.3" font-weight="900">${renderTetrioNumericTextMarkup(glickoText)}</text>
+    ${renderLeagueRdAuxText(auxCenterX + 2, rdY, rdText)}`;
+}
+
+function renderLeagueRdAuxText(centerX, y, rdText) {
+  const symbolWidth = 6.6;
+  const symbolGap = 1.3;
+  const rdTextWidth = estimateLeagueAuxTextWidth(rdText, 11.3);
+  const rowLeftX = centerX - (symbolWidth + symbolGap + rdTextWidth) / 2;
+  const symbolCenterX = roundSvgNumber(rowLeftX + 2.9);
+  const plusY = roundSvgNumber(y - 8.4);
+  const minusY = roundSvgNumber(y - 3);
+  const horizontalHalf = 2.4;
+  const verticalHalf = 2.1;
+  const textX = roundSvgNumber(rowLeftX + symbolWidth + symbolGap);
+
+  return `<g>
+    <g stroke="#c5efbc" stroke-width="1.15" stroke-linecap="square" opacity="0.98">
+      <line x1="${roundSvgNumber(symbolCenterX - horizontalHalf)}" y1="${plusY}" x2="${roundSvgNumber(symbolCenterX + horizontalHalf)}" y2="${plusY}"/>
+      <line x1="${symbolCenterX}" y1="${roundSvgNumber(plusY - verticalHalf)}" x2="${symbolCenterX}" y2="${roundSvgNumber(plusY + verticalHalf)}"/>
+      <line x1="${roundSvgNumber(symbolCenterX - horizontalHalf)}" y1="${minusY}" x2="${roundSvgNumber(symbolCenterX + horizontalHalf)}" y2="${minusY}"/>
+    </g>
+    <text x="${textX}" y="${y}" text-anchor="start" class="leagueAuxMuted" font-size="11.3" font-weight="900">${renderTetrioNumericTextMarkup(rdText)}</text>
+  </g>`;
 }
 
 function getLeagueIconRenderMetrics(options, iconSize) {
@@ -2091,7 +2115,7 @@ function renderRankLabel(x, y, width, fallbackRank, options) {
   const plainFlagWidth = 18;
   const plainFlagHeight = 13;
   const rightX = x + width - 10;
-  const worldText = `N&#176;${formatRank(options.worldRank)}`;
+  const worldText = formatRank(options.worldRank);
   const worldBadge = hasWorldRank
     ? renderWorldRankBadge(options.worldRank, worldText, rightX, y + 8)
     : null;
@@ -2103,23 +2127,23 @@ function renderRankLabel(x, y, width, fallbackRank, options) {
   if (!options.flag || !hasLocalRank) {
     return worldBadge
       ? worldBadge.markup
-      : renderPlainRankText(rightX, y + 22, worldText, 'end');
+      : renderOrdinalRankText(rightX, y + 22, worldText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize });
   }
 
-  const localText = `N&#176;${formatRank(options.localRank)}`;
-  const localWidth = estimateRankTextWidth(localText, plainRankFontSize);
+  const localText = formatRank(options.localRank);
+  const localWidth = estimateOrdinalRankWidth(localText, plainRankFontSize);
   const worldMarkup = worldBadge
     ? worldBadge.markup
-    : renderPlainRankText(rightX, y + 22, worldText, 'end');
+    : renderOrdinalRankText(rightX, y + 22, worldText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize });
   const worldLeftX = worldBadge
     ? worldBadge.leftX
-    : rightX - estimateRankTextWidth(worldText, plainRankFontSize);
+    : rightX - estimateOrdinalRankWidth(worldText, plainRankFontSize);
   const localTextX = worldLeftX - 8;
   const flagX = localTextX - localWidth - plainFlagWidth - 4;
 
   return `
     <image href="${options.flag.image}" x="${flagX}" y="${y + 10}" width="${plainFlagWidth}" height="${plainFlagHeight}" preserveAspectRatio="xMidYMid meet"/>
-    ${renderPlainRankText(localTextX, y + 22, localText, 'end')}
+    ${renderOrdinalRankText(localTextX, y + 22, localText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize })}
     ${worldMarkup}`;
 }
 
@@ -2130,7 +2154,7 @@ function renderWorldRankBadge(rank, label, rightX, y) {
   }
 
   const badgeFontSize = 12.5;
-  const textWidth = estimateRankTextWidth(label, badgeFontSize);
+  const textWidth = estimateOrdinalRankWidth(label, badgeFontSize);
   const badgeWidth = Math.max(36, textWidth + 13);
   const badgeHeight = 15.2;
   const leftX = rightX - badgeWidth;
@@ -2146,7 +2170,7 @@ function renderWorldRankBadge(rank, label, rightX, y) {
     leftX,
     markup: `
     <polygon points="${points}" fill="${badgeStyle.fill}"/>
-    <text x="${leftX + badgeWidth / 2 + 0.9}" y="${y + 11.8}" text-anchor="middle" font-size="${badgeFontSize}" font-weight="900" fill="${badgeStyle.textFill}">${label}</text>`,
+    ${renderOrdinalRankText(leftX + badgeWidth / 2 + 0.9, y + 11.8, label, { anchor: 'middle', fontSize: badgeFontSize, fill: badgeStyle.textFill })}`,
   };
 }
 
@@ -2186,8 +2210,35 @@ function renderPlainRankText(x, y, value, anchor = 'end') {
   return `<text x="${x}" y="${y}" text-anchor="${anchor}" class="plainRank">${value}</text>`;
 }
 
-function estimateRankTextWidth(value, fontSize = 11) {
-  return Math.ceil(String(value).replaceAll('&#176;', 'o').length * fontSize * 0.64);
+function renderOrdinalRankText(x, y, rankText, options = {}) {
+  const fontSize = Number.isFinite(options.fontSize) ? options.fontSize : 13;
+  const fontWeight = Number.isFinite(options.fontWeight) ? options.fontWeight : 900;
+  const anchor = options.anchor ?? 'end';
+  const width = estimateOrdinalRankWidth(rankText, fontSize);
+  const leftX = anchor === 'middle'
+    ? x - width / 2
+    : anchor === 'end'
+      ? x - width
+      : x;
+  const nWidth = fontSize * 0.66;
+  const numberX = leftX + nWidth + fontSize * 0.33;
+  const degreeRadius = Math.max(1.1, fontSize * 0.095);
+  const degreeCx = leftX + nWidth + fontSize * 0.15;
+  const degreeCy = y - fontSize * 0.68;
+  const textClass = options.className ? ` class="${options.className}"` : '';
+  const textFill = options.fill ? ` fill="${options.fill}"` : '';
+  const degreeStroke = options.stroke ?? options.fill ?? '#a8e7a7';
+  const textAttributes = `${textClass}${textFill} font-size="${fontSize}" font-weight="${fontWeight}"`;
+
+  return `<g>
+    <text x="${roundSvgNumber(leftX)}" y="${roundSvgNumber(y)}"${textAttributes}>N</text>
+    <circle cx="${roundSvgNumber(degreeCx)}" cy="${roundSvgNumber(degreeCy)}" r="${roundSvgNumber(degreeRadius)}" fill="none" stroke="${degreeStroke}" stroke-width="${roundSvgNumber(Math.max(0.85, fontSize * 0.07))}"/>
+    <text x="${roundSvgNumber(numberX)}" y="${roundSvgNumber(y)}"${textAttributes}>${escapeXml(rankText)}</text>
+  </g>`;
+}
+
+function estimateOrdinalRankWidth(rankText, fontSize = 11) {
+  return Math.ceil(fontSize * 0.99 + String(rankText ?? '').length * fontSize * 0.58);
 }
 
 function estimateStatValueWidth(value, fontSize) {
@@ -2277,8 +2328,8 @@ function renderTimedStatValueText(x, y, value, fontSize, anchor = 'middle') {
   }
 
   const segments = [
-    { text: text.slice(0, splitIndex), fontSize },
-    { text: text.slice(splitIndex), fontSize: getTimedDecimalFontSize(fontSize) },
+    { text: text.slice(0, splitIndex + 1), fontSize },
+    { text: text.slice(splitIndex + 1), fontSize: getTimedDecimalFontSize(fontSize) },
   ];
 
   return renderStatValueTextLayers(x, y, anchor, segments);
@@ -2334,7 +2385,7 @@ function renderStatValueTextLayers(x, y, anchor, segments) {
 
 function renderCompositeStatValueText(x, y, anchor, className, segments, attributes = '') {
   const segmentMarkup = segments
-    .map(({ text, fontSize }) => `<tspan font-size="${fontSize}">${escapeXml(text)}</tspan>`)
+    .map(({ text, fontSize }) => `<tspan font-size="${fontSize}">${renderTetrioNumericTextMarkup(text)}</tspan>`)
     .join('');
   const attributesMarkup = attributes ? ` ${attributes}` : '';
   return `<text x="${x}" y="${y}" text-anchor="${anchor}" class="${className}"${attributesMarkup}>${segmentMarkup}</text>`;
@@ -2609,7 +2660,7 @@ async function measureBioSampleWidth(text, fontSize, fontDataUri = null) {
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
   <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="800" fill="#ffffff">${escapeXml(normalizedText)}</text>
 </svg>`;
-  const { info } = await sharp(Buffer.from(measurementSvg))
+  const { info } = await sharp(renderTetrioSvgToPng(measurementSvg))
     .png()
     .trim()
     .toBuffer({ resolveWithObject: true });
