@@ -427,8 +427,9 @@ function renderRoundSide(side, sideIndex, y, height, centerX) {
   const theme = sideThemes[sideIndex] ?? sideThemes[0];
   const isLeft = sideIndex === 0;
 
-  const width = 290;
-  const gapFromCenter = isLeft ? 8 : 34;
+  // 원래 구조에 가까운 안정값
+  const width = 276;
+  const gapFromCenter = 19;
   const x = isLeft ? centerX - gapFromCenter - width : centerX + gapFromCenter;
 
   const fill = side.alive ? theme.rowWinGradient : theme.rowGradient;
@@ -436,10 +437,10 @@ function renderRoundSide(side, sideIndex, y, height, centerX) {
 
   const stripeX = isLeft ? x + width - 3 : x;
   const stripeColor = side.alive ? '#ffffff' : theme.border;
-  const stripeOpacity = side.alive ? 0.95 : 0.28;
+  const stripeOpacity = side.alive ? 0.9 : 0.32;
 
   return `
-  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${fill})" opacity="${side.alive ? 1 : 0.94}"/>
+  <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="url(#${fill})" opacity="${side.alive ? 1 : 0.9}"/>
   <rect x="${roundSvgNumber(stripeX)}" y="${y}" width="3" height="${height}" fill="${stripeColor}" opacity="${stripeOpacity}"/>
   ${renderRoundStatsMarkup(side.stats, x, width, y + height / 2 + 1, sideIndex, 'roundValue', labelClass)}`;
 }
@@ -460,7 +461,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
 
 function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
   const blockWidth = 220;
-  const blockX = sideIndex === 0 ? x + width - blockWidth - 15 : x + 12;
+  const blockX = sideIndex === 0 ? x + width - blockWidth - 12 : x + 12;
   const columns = [
     { valueX: 54, labelX: 62, label: 'APM', value: formatDecimal(stats?.apm, 2) },
     { separatorX: 91, separator: '-' },
