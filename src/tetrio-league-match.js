@@ -305,27 +305,13 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
       }
       .username {
   fill: #f6f2ef;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 950;
   stroke: rgba(246,242,239,0.68);
-  stroke-width: 0.58px;
+  stroke-width: 0.62px;
   paint-order: stroke fill;
 }
-  .usernameUnderscore {
-  fill: #f6f2ef;
-  stroke: rgba(255,255,255,0.55);
-  stroke-width: 0.35px;
-  opacity: 1;
-}
-
-.versus {
-  fill: #ffd620;
-  font-size: 39px;
-  font-weight: 950;
-  stroke: rgba(255,214,32,0.72);
-  stroke-width: 0.65px;
-  paint-order: stroke fill;
-}
+  
 
 .score {
   fill: #ffffff;
