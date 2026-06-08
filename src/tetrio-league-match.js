@@ -516,7 +516,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
   const blockWidth = 166;
   const blockX = isLeft ? x + width - blockWidth - 20 : x - 12;
 
-  const blueLabelNudge = -6;   // 파란 APM/PPS/VS 라벨만 왼쪽
+  const blueLabelNudge = -5.5;   // 파란 APM/PPS/VS 라벨만 왼쪽
   const redValueNudge = 3;     // 빨간 하얀 숫자만 오른쪽
 
   const labelNudge = isLeft ? blueLabelNudge : 0;
@@ -527,7 +527,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
     { separatorX: 73, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
 
     { valueX: 96 + valueNudge, labelX: 103 + labelNudge, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
-    { separatorX: isLeft ? 128 : 125, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
+    { separatorX: isLeft ? 123 : 125, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
 
     { valueX: 160 + valueNudge, labelX: 167 + labelNudge, label: 'VS', value: formatDecimal(stats?.vsscore, 2) },
   ];
