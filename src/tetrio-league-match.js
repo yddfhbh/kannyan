@@ -424,7 +424,14 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   stroke-width: 0.58px;
   paint-order: stroke fill;
 }
-
+.footerTime {
+  fill: #b8e7b8;
+  stroke: rgba(184,231,184,0.86);
+  stroke-width: 0.58px;
+  font-size: 14px;
+  font-weight: 950;
+  paint-order: stroke fill;
+}
 .footerKeyword {
   fill: #82bd86;
   stroke: rgba(130,189,134,0.86);
@@ -622,7 +629,7 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
   // APM 그룹: 조금 더 왼쪽
   { x: vsEndX - 184, anchor: 'end', className: valueClass, text: apmText, numeric: true },
   { x: vsEndX - 175, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: vsEndX - 141, anchor: 'middle', className: valueClass, text: '-' },
+  { x: vsEndX - 142, anchor: 'middle', className: valueClass, text: '-' },
 
   // PPS 그룹: 살짝 왼쪽
   { x: vsEndX - 111, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
@@ -703,12 +710,12 @@ function measureFooterTextWidth(text, fontSize = 14) {
   }, 0);
 }
 
-function renderFooterPlainText(text, x, y, className) {
+function renderFooterPlainText(text, x, y, className, fontSize = 14) {
   const value = String(text ?? '');
 
   return {
     markup: `<text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer ${className}">${escapeXml(value)}</text>`,
-    width: measureFooterTextWidth(value),
+    width: measureFooterTextWidth(value, fontSize),
   };
 }
 
@@ -723,7 +730,7 @@ function renderFooterNameText(text, x, y) {
     const prefixText = raw.slice(0, i).replaceAll('_', '');
     const prefixWidth = measureFooterTextWidth(prefixText);
 
-    const rectX = x + prefixWidth + 1.6;
+    const rectX = x + prefixWidth + 3.8;
     const rectY = y + 5.1;
     const rectWidth = 8.8;
     const rectHeight = 1.7;
@@ -757,27 +764,27 @@ function renderFooterLineMarkup(text, x, y) {
     cursorX += part.width;
   };
 
-  const addText = (value, className, gap = 0) => {
-    cursorX += gap;
-    const part = renderFooterPlainText(value, cursorX, y, className);
-    parts.push(part.markup);
-    cursorX += part.width;
-  };
+  const addText = (value, className, gap = 0, fontSize = 14) => {
+  cursorX += gap;
+  const part = renderFooterPlainText(value, cursorX, y, className, fontSize);
+  parts.push(part.markup);
+  cursorX += part.width;
+};
 
   addName(match[1]);
   addText('VERSUS', 'footerKeyword', 8);
   addName(match[2], 8);
   addText('PLAYED', 'footerKeyword', 8);
-  addText('ON', 'footerKeyword', 5);
+  addText('ON', 'footerKeyword', 12);
 
   const dateMatch = match[3].match(/^(.+?),\s+(.+?)\s+(AM|PM)$/i);
   if (dateMatch) {
-    addText(`${dateMatch[1]},`, 'footerDate', 7);
-    addText(dateMatch[2], 'footerDate', 7);
-    addText(dateMatch[3].toUpperCase(), 'footerDate', 5);
-  } else {
-    addText(match[3], 'footerDate', 7);
-  }
+  addText(`${dateMatch[1]},`, 'footerDate', 7);
+  addText(dateMatch[2], 'footerTime', 5, 15.5);
+  addText(dateMatch[3].toUpperCase(), 'footerDate', 3);
+} else {
+  addText(match[3], 'footerDate', 7);
+}
 
   return `<g>${parts.join('\n  ')}</g>`;
 }
