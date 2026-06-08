@@ -510,8 +510,8 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
   const blockWidth = 166;
   const blockX = isLeft ? x + width - blockWidth - 20 : x - 12;
 
-  const blueLabelNudge = -4;   // 파란 APM/PPS/VS 라벨만 왼쪽
-  const redValueNudge = 5;     // 빨간 하얀 숫자만 오른쪽
+  const blueLabelNudge = -6;   // 파란 APM/PPS/VS 라벨만 왼쪽
+  const redValueNudge = 3;     // 빨간 하얀 숫자만 오른쪽
 
   const labelNudge = isLeft ? blueLabelNudge : 0;
   const valueNudge = isLeft ? 0 : redValueNudge;
