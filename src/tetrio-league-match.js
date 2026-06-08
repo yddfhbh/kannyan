@@ -338,7 +338,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 
 .summaryValue {
   fill: #f0f3fa;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 950;
   stroke: rgba(255,255,255,0.55);
   stroke-width: 0.5px;
