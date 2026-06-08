@@ -402,10 +402,12 @@ function renderTopPanel(player, sideIndex, y, height, centerX) {
   const svgWidth = centerX * 2;
   const sideMargin = 2;
   const x = isLeft ? sideMargin : svgWidth - panelWidth - sideMargin; 
-  const textX = isLeft ? x + panelWidth - 10 : x + 10;
-  const textAnchor = isLeft ? 'end' : 'start';
-  const scorePadding = 15;
-  const scoreX = isLeft ? x + panelWidth - scorePadding : x + scorePadding;
+ const namePadding = 4;
+const scorePadding = 8;
+
+const textX = isLeft ? x + panelWidth - namePadding : x + namePadding;
+const textAnchor = isLeft ? 'end' : 'start';
+const scoreX = isLeft ? x + panelWidth - scorePadding : x + scorePadding;
   const statsClass = isLeft ? 'summaryBlueLabel' : 'summaryRedLabel';
   const glowFilter = isLeft ? 'bluePanelGlow' : 'redPanelGlow';
 
