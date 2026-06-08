@@ -1127,10 +1127,13 @@ async function handleReactionRequestMessage(message) {
   }
 
   const emoji = await resolveReactionEmojiFromMessage(message, content);
-  if (!emoji) {
-    await replyReactionFailure(message);
-    return { handled: true, shouldContinueToGemini: false };
-  }
+if (!emoji) {
+  return {
+    handled: true,
+    shouldContinueToGemini: true,
+    forcedPrompt: '사용자가 이모지를 지정하지 않고 반응을 달아달라고 했다. 실제 반응은 아직 달 수 없으니, 어떤 이모지를 달아주면 좋을지 짧고 자연스럽게 물어봐. 실패했다고 말하지 말고 귀엽게 답해줘.',
+  };
+}
 
   const targetMessage = await resolveReactionTargetMessage(message, content);
   if (!targetMessage) {
