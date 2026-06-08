@@ -2197,7 +2197,7 @@ function renderStatSubtextMarkup(value) {
       continue;
     }
 
-    const dx = tightenNext && /\d/.test(char) ? ' dx="-0.30em"' : '';
+    const dx = tightenNext && /\d/.test(char) ? ' dx="-0.42em"' : '';
     const dy = resetDyEm ? ` dy="${roundSvgNumber(-resetDyEm)}em"` : '';
 
     markup += dx || dy
