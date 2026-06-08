@@ -322,6 +322,11 @@ client.on(Events.MessageCreate, async (message) => {
     return;
   }
 
+  const reactionHandled = await handleReactionRequestMessage(message);
+  if (reactionHandled) {
+   return;
+  }
+  
   const handled = await handlePercentMessageCommand(message);
   if (handled) {
     return;
@@ -1100,6 +1105,167 @@ function splitDiscordMessage(text, maxLength = 1900) {
   }
 
   return chunks;
+}
+
+const reactionFailureMessage = '나는 할수없다냥...능이버섯이다냥...';
+
+async function handleReactionRequestMessage(message) {
+  const content = message.content?.trim() ?? '';
+
+  if (!content.startsWith('%')) {
+    return false;
+  }
+
+  // "반응", "리액션", "달아줘", "달아" 같은 요청일 때만 잡기
+  if (!isReactionRequestText(content)) {
+    return false;
+  }
+
+  const emoji = await resolveReactionEmojiFromMessage(message, content);
+  if (!emoji) {
+    await replyReactionFailure(message);
+    return true;
+  }
+
+  const targetMessage = await resolveReactionTargetMessage(message, content);
+  if (!targetMessage) {
+    await replyReactionFailure(message);
+    return true;
+  }
+
+  try {
+    await targetMessage.react(emoji);
+    return true;
+  } catch (error) {
+    console.error('Failed to add reaction:');
+    console.error(error);
+    await replyReactionFailure(message);
+    return true;
+  }
+}
+
+function isReactionRequestText(content) {
+  const text = String(content ?? '').replace(/^%+/, '').trim();
+
+  return /(?:반응|리액션|reaction|react)/i.test(text)
+    || /(?:달아줘|달아주|달아|붙여줘|찍어줘|추가해줘)/i.test(text);
+}
+
+async function replyReactionFailure(message) {
+  await message.reply({
+    content: reactionFailureMessage,
+    allowedMentions: { repliedUser: false },
+  });
+}
+
+async function resolveReactionEmojiFromMessage(message, content) {
+  const text = String(content ?? '');
+
+  // 1) 디스코드 커스텀 이모지: <:name:id> / <a:name:id>
+  const customEmojiMatch = text.match(/<a?:([a-zA-Z0-9_]{2,32}):(\d{17,20})>/);
+  if (customEmojiMatch) {
+    const emojiId = customEmojiMatch[2];
+
+    const cachedEmoji = message.guild?.emojis.cache.get(emojiId);
+    if (cachedEmoji) {
+      return cachedEmoji;
+    }
+
+    const fetchedEmoji = await message.guild?.emojis.fetch(emojiId).catch(() => null);
+    if (fetchedEmoji) {
+      return fetchedEmoji;
+    }
+
+    return null;
+  }
+
+  // 2) :seahorse: 같은 이름 입력 지원
+  const namedEmojiMatch = text.match(/:([a-zA-Z0-9_]{2,32}):/);
+  if (namedEmojiMatch) {
+    const emojiName = namedEmojiMatch[1];
+    const foundEmoji = message.guild?.emojis.cache.find((emoji) => emoji.name === emojiName);
+
+    if (foundEmoji) {
+      return foundEmoji;
+    }
+
+    return null;
+  }
+
+  // 3) 일반 유니코드 이모지
+  const unicodeEmoji = extractFirstUnicodeEmoji(text);
+  if (unicodeEmoji) {
+    return unicodeEmoji;
+  }
+
+  return null;
+}
+
+function extractFirstUnicodeEmoji(text) {
+  const cleanText = String(text ?? '')
+    .replace(/<a?:[a-zA-Z0-9_]{2,32}:\d{17,20}>/g, ' ')
+    .replace(/https?:\/\/\S+/g, ' ');
+
+  // grapheme 단위로 봐야 복합 이모지/국기/ZWJ 이모지가 덜 깨짐
+  const segments = typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'
+    ? Array.from(new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(cleanText), (item) => item.segment)
+    : Array.from(cleanText);
+
+  for (const segment of segments) {
+    if (/\p{Emoji_Presentation}/u.test(segment) || /\p{Extended_Pictographic}/u.test(segment)) {
+      return segment;
+    }
+  }
+
+  return null;
+}
+
+async function resolveReactionTargetMessage(message, content) {
+  const text = String(content ?? '');
+
+  // 1) 메시지 링크 지원
+  const linkMatch = text.match(
+    /https?:\/\/(?:canary\.|ptb\.)?discord(?:app)?\.com\/channels\/(\d{17,20})\/(\d{17,20})\/(\d{17,20})/
+  );
+
+  if (linkMatch) {
+    const [, guildId, channelId, messageId] = linkMatch;
+
+    // 다른 서버 링크는 일단 막는 게 안전함
+    if (message.guildId && guildId !== message.guildId) {
+      return null;
+    }
+
+    const targetChannel = channelId === message.channelId
+      ? message.channel
+      : await message.client.channels.fetch(channelId).catch(() => null);
+
+    if (!targetChannel?.messages?.fetch) {
+      return null;
+    }
+
+    return targetChannel.messages.fetch(messageId).catch(() => null);
+  }
+
+  // 2) 메시지 ID만 준 경우. 커스텀 이모지 ID랑 헷갈리지 않게 먼저 제거
+  const idSearchText = text
+    .replace(/<a?:[a-zA-Z0-9_]{2,32}:\d{17,20}>/g, ' ')
+    .replace(/https?:\/\/\S+/g, ' ');
+
+  const idMatch = idSearchText.match(/\b(\d{17,20})\b/);
+  if (idMatch) {
+    const messageId = idMatch[1];
+
+    return message.channel.messages.fetch(messageId).catch(() => null);
+  }
+
+  // 3) 답장 원문에 반응
+  if (message.reference?.messageId) {
+    return message.fetchReference().catch(() => null);
+  }
+
+  // 4) 아무 대상도 없으면 현재 요청 메시지에 반응
+  return message;
 }
 
 async function handleGeminiFallbackMessage(message) {
