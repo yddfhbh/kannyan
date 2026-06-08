@@ -726,10 +726,10 @@ async function renderTetrioCardSvg(user, summaries, assets) {
     <feDropShadow dx="0" dy="5.2" stdDeviation="4.2" flood-color="#071109" flood-opacity="0.58"/>
   </filter>
     <filter id="statValueGlowWide" x="-28%" y="-82%" width="156%" height="264%" color-interpolation-filters="sRGB">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="4.1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.7"/>
     </filter>
     <filter id="statValueGlowTight" x="-22%" y="-62%" width="144%" height="224%" color-interpolation-filters="sRGB">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="1.45"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.9"/>
     </filter>
     <filter id="featuredAchievementShadow" x="-18%" y="-18%" width="136%" height="146%" color-interpolation-filters="sRGB">
       <feDropShadow dx="0" dy="2.4" stdDeviation="2.2" flood-color="#061009" flood-opacity="0.72"/>
@@ -753,24 +753,30 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       .value {
         font-weight: 950;
         fill: #c9ffc8;
-        stroke: rgba(190, 245, 190, 0.82);
-        stroke-width: 1.35px;
+        stroke: rgba(182, 247, 184, 0.58);
+        stroke-width: 0.28px;
         stroke-linejoin: round;
         paint-order: stroke fill;
       }
       .valueShadow {
         font-weight: 900;
-        fill: rgba(218, 255, 213, 0.2);
+        fill: rgba(5, 16, 7, 0.54);
+        stroke: none;
+        paint-order: fill;
       }
       .valueGlowWide {
         font-weight: 900;
         fill: #7fe985;
-        opacity: 0.38;
+        opacity: 0.24;
+        stroke: none;
+        paint-order: fill;
       }
       .valueGlowTight {
         font-weight: 900;
         fill: #d8ffd2;
-        opacity: 0.82;
+        opacity: 0.36;
+        stroke: none;
+        paint-order: fill;
       }
       .sub {
   font-size: 15.2px;
