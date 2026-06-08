@@ -460,6 +460,12 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
         letter-spacing: 1px;
         word-spacing: ${tetrioPhraseWordSpacing};
       }
+      .metaName {
+  fill: #f6fff5;
+  stroke: rgba(246, 255, 245, 0.45);
+  stroke-width: 0.35px;
+  paint-order: stroke fill;
+}
     </style>
   </defs>
 
@@ -492,6 +498,19 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
 </svg>`;
 }
 
+function renderQuickPlayPlayedByMarkup(value) {
+  const text = String(value ?? '');
+  const match = text.match(/^(PLAYED BY\s+)(.*?)(\s*·\s*.+)$/);
+
+  if (!match) {
+    return escapeXml(text);
+  }
+
+  const [, prefix, name, suffix] = match;
+
+  return `${escapeXml(prefix)}<tspan class="metaName">${escapeXml(name)}</tspan>${escapeXml(suffix)}`;
+}
+
 function renderQuickPlayMetaLine(value, x, y, options = {}) {
   const text = String(value ?? '');
   const displayText = text
@@ -501,7 +520,12 @@ function renderQuickPlayMetaLine(value, x, y, options = {}) {
   const fillAttr = options.fill ? ` fill="${options.fill}"` : '';
   const opacityAttr = options.opacity !== undefined ? ` opacity="${options.opacity}"` : '';
 
-  const baseText = `<text x="${x}" y="${y}" dominant-baseline="middle" class="metaText"${fillAttr}${opacityAttr} xml:space="preserve">${escapeXml(displayText)}</text>`;
+ const shouldHighlightName = !options.fill && options.highlightName !== false;
+const baseTextContent = shouldHighlightName
+  ? renderQuickPlayPlayedByMarkup(displayText)
+  : escapeXml(displayText);
+
+const baseText = `<text x="${x}" y="${y}" dominant-baseline="middle" class="metaText"${fillAttr}${opacityAttr} xml:space="preserve">${baseTextContent}</text>`;
 
   let cursorX = x;
   const underlines = [];
@@ -515,9 +539,11 @@ function renderQuickPlayMetaLine(value, x, y, options = {}) {
     const rectX = roundSvgNumber(cursorX + fontSize * 0.26);
     const rectY = roundSvgNumber(y + fontSize * 0.34);
 
-    underlines.push(
-      `<rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}"${fillAttr || ' fill="#b0e1af"'}${opacityAttr}/>`
-    );
+   const underlineFillAttr = fillAttr || (shouldHighlightName ? ' fill="#f6fff5"' : ' fill="#b0e1af"');
+
+underlines.push(
+  `<rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}"${underlineFillAttr}${opacityAttr}/>`
+);
 
     const isBeforeSeparator = /^\s*·/.test(text.slice(index + 1));
     const spaceCount = isBeforeSeparator ? 3 : 2;
