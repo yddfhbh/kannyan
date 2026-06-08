@@ -182,7 +182,7 @@ async function fetchTetrioJson(path) {
     console.log(`[TETR.IO PENDING HIT] ${path}`);
     return tetrioJsonPendingPromises.get(path);
   }
-
+  console.log(`[TETR.IO CACHE MISS] ${path}`);
   const promise = fetchTetrioJsonUncached(path)
     .finally(() => {
       tetrioJsonPendingPromises.delete(path);
