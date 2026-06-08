@@ -497,11 +497,11 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
     const items = [
   { x: vsEndX - 178, anchor: 'end', className: valueClass, text: apmText, numeric: true },
   { x: vsEndX - 169, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: vsEndX - 137, anchor: 'middle', className: valueClass, text: '-' },
+  { x: vsEndX - 141, anchor: 'middle', className: valueClass, text: '-' },
 
   { x: vsEndX - 106, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
   { x: vsEndX - 97, anchor: 'start', className: labelClass, text: 'PPS' },
-  { x: vsEndX - 70, anchor: 'middle', className: valueClass, text: '-' },
+  { x: vsEndX - 72, anchor: 'middle', className: valueClass, text: '-' },
 
   { x: vsEndX - 25, anchor: 'end', className: valueClass, text: vsText, numeric: true },
   { x: vsEndX, anchor: 'end', className: labelClass, text: 'VS' },
@@ -519,11 +519,11 @@ const redApmValueX = x + 18 + redRoundNudge;
 const items = [
   { x: redApmValueX, anchor: 'start', className: valueClass, text: apmText, numeric: true },
   { x: x + 60 + redRoundNudge, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: x + 92 + redRoundNudge, anchor: 'middle', className: valueClass, text: '-' },
+  { x: x + 96 + redRoundNudge, anchor: 'middle', className: valueClass, text: '-' },
 
   { x: x + 107 + redRoundNudge, anchor: 'start', className: valueClass, text: ppsText, numeric: true },
   { x: x + 141 + redRoundNudge, anchor: 'start', className: labelClass, text: 'PPS' },
-  { x: x + 172 + redRoundNudge, anchor: 'middle', className: valueClass, text: '-' },
+  { x: x + 176 + redRoundNudge, anchor: 'middle', className: valueClass, text: '-' },
 
   { x: x + 188 + redRoundNudge, anchor: 'start', className: valueClass, text: vsText, numeric: true },
   { x: x + 238 + redRoundNudge, anchor: 'start', className: labelClass, text: 'VS' },
