@@ -1807,7 +1807,7 @@ function renderLevelTag(tag, x, y) {
   <g transform="translate(${x} ${y})">
     <polygon points="${getLevelTagBodyPoints(tag.golden ? 'golden' : tag.shape, bodyWidth, height, unit)}" fill="${fill}" opacity="${tag.nullTag ? 0.65 : 1}"/>
     <polygon points="${getLevelTagItemPoints(tag.golden ? 'golden' : tag.shape, itemX, height, unit)}" fill="${itemFill}" opacity="${tag.nullTag ? 0.65 : 1}"/>
-    <text x="9" y="22.4" font-size="22" font-weight="900" fill="${textFill}" opacity="${textOpacity}">${escapeXml(tag.text)}</text>
+    <text x="9" y="22.4" font-size="21" font-weight="950" fill="${textFill}" opacity="${textOpacity}">${escapeXml(tag.text)}</text>
   </g>`;
 }
 
