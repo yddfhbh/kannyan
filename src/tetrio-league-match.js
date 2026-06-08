@@ -508,8 +508,8 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
   const blockWidth = 166;
 
   // 줄 전체 위치만 보정
-  const leftBlockNudge = -6;   // 파란쪽 전체를 왼쪽으로
-  const rightBlockNudge = 6;   // 빨간쪽 전체를 오른쪽으로
+  const leftBlockNudge = -12;   // 파란쪽 전체를 왼쪽으로
+  const rightBlockNudge = 12;   // 빨간쪽 전체를 오른쪽으로
 
   const blockX = isLeft
     ? x + width - blockWidth - 20 + leftBlockNudge
