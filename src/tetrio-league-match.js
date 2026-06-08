@@ -308,6 +308,11 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
         font-size: 17px;
         font-weight: 900;
       }
+        .usernameUnderscore {
+  fill: #f6f2ef;
+  stroke: rgba(255,255,255,0.35);
+  stroke-width: 0.35px;
+}
       .score {
   fill: #ffffff;
   font-size: 60px;
@@ -423,7 +428,7 @@ const scoreX = isLeft ? x + panelWidth - scorePadding : x + scorePadding;
     : `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + height}" stroke="${theme.border}" stroke-width="1.05" opacity="0.9"/>`
   }
 </g>
- <text x="${textX}" y="${y + 20}" text-anchor="${textAnchor}" class="username">${renderLeagueUsernameMarkup(player.username.toUpperCase())}</text>
+ ${renderLeagueUsernameLabel(player.username, textX, y + 20, textAnchor)}
   <text x="${scoreX}" y="${y + 53}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${renderTetrioNumericTextMarkup(formatInteger(player.wins))}</text>
   ${renderSummaryStatsMarkup(player.stats, x, panelWidth, y + height - 14, sideIndex, 'summaryValue', statsClass)}`;
 }
@@ -566,6 +571,53 @@ function renderFooterTextMarkup(text) {
     : `<tspan dx="7" class="footerDate">${escapeXml(match[3])}</tspan>`;
 
   return `<tspan class="footerName">${renderLeagueUsernameMarkup(match[1])}</tspan><tspan dx="8" class="footerKeyword">VERSUS</tspan><tspan dx="8" class="footerName">${renderLeagueUsernameMarkup(match[2])}</tspan><tspan dx="8" class="footerKeyword">PLAYED</tspan><tspan dx="5" class="footerKeyword">ON</tspan>${dateMarkup}`;}
+
+
+function estimateLeagueUsernameCharWidth(char, fontSize = 17) {
+  if (char === ' ') return fontSize * 0.33;
+  if (char === 'I' || char === '1' || char === 'L') return fontSize * 0.34;
+  if (char === 'M' || char === 'W') return fontSize * 0.9;
+  return fontSize * 0.64;
+}
+
+function measureLeagueUsernameWidth(text, fontSize = 17) {
+  return [...String(text ?? '')].reduce((sum, char) => {
+    if (char === '_') return sum;
+    return sum + estimateLeagueUsernameCharWidth(char, fontSize);
+  }, 0);
+}
+
+function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
+  const raw = String(text ?? '').toUpperCase();
+  const displayText = raw.replaceAll('_', '');
+  const fontSize = 17;
+  const totalWidth = measureLeagueUsernameWidth(displayText, fontSize);
+
+  const textMarkup = `<text x="${x}" y="${y}" text-anchor="${anchor}" class="username">${escapeXml(displayText)}</text>`;
+
+  const rects = [];
+
+  for (let i = 0; i < raw.length; i += 1) {
+    if (raw[i] !== '_') continue;
+
+    const prefixText = raw.slice(0, i).replaceAll('_', '');
+    const prefixWidth = measureLeagueUsernameWidth(prefixText, fontSize);
+
+    const rectWidth = 10.5;
+    const rectHeight = 2.2;
+    const rectY = y + 2.2;
+
+    const rectX = anchor === 'end'
+      ? x - totalWidth + prefixWidth + 1.2
+      : x + prefixWidth + 1.2;
+
+    rects.push(
+      `<rect x="${roundSvgNumber(rectX)}" y="${roundSvgNumber(rectY)}" width="${rectWidth}" height="${rectHeight}" class="usernameUnderscore"/>`
+    );
+  }
+
+  return `<g>${textMarkup}${rects.join('')}</g>`;
+}
 
 function renderLeagueUsernameMarkup(value) {
   const text = String(value ?? '');
