@@ -208,12 +208,27 @@ async function fetchTetrioJsonUncached(path) {
   return body;
 }
 
+function getTetrioJsonCacheTtlCapMs(path) {
+  if (path.endsWith('/summaries')) {
+    return 30_000; // 스탯 반영용: 최대 30초
+  }
+
+  if (/^\/users\/[^/]+$/.test(path)) {
+    return 60_000; // 프로필 기본 정보: 최대 60초
+  }
+
+  return 300_000; // 디스코드 ID 검색 등은 5분 유지
+}
+
 function cacheTetrioJsonResult(path, body) {
-  const expiresAt = Number(body?.cache?.cached_until);
-  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+  const apiExpiresAt = Number(body?.cache?.cached_until);
+  if (!Number.isFinite(apiExpiresAt) || apiExpiresAt <= Date.now()) {
     console.log(`[TETR.IO CACHE SKIP] ${path}`);
     return;
   }
+
+  const ttlCapMs = getTetrioJsonCacheTtlCapMs(path);
+  const expiresAt = Math.min(apiExpiresAt, Date.now() + ttlCapMs);
 
   console.log(`[TETR.IO CACHE SAVE] ${path} ttl=${Math.round((expiresAt - Date.now()) / 1000)}s`);
 
