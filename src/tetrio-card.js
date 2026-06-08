@@ -722,20 +722,21 @@ async function renderTetrioCardSvg(user, summaries, assets) {
       </feMerge>
     </filter>
 
-  <filter id="headerUnderscoreShadow" x="-140%" y="-600%" width="380%" height="1300%" color-interpolation-filters="sRGB">
-    <feDropShadow dx="0" dy="5.2" stdDeviation="4.2" flood-color="#071109" flood-opacity="0.58"/>
-  </filter>
-    <filter id="statValueGlowWide" x="-28%" y="-82%" width="156%" height="264%" color-interpolation-filters="sRGB">
-      <filter id="statValueGlowWide" x="-28%" y="-82%" width="156%" height="264%" color-interpolation-filters="sRGB">
+ <filter id="headerUnderscoreShadow" x="-140%" y="-600%" width="380%" height="1300%" color-interpolation-filters="sRGB">
+  <feDropShadow dx="0" dy="5.2" stdDeviation="4.2" flood-color="#071109" flood-opacity="0.58"/>
+</filter>
+
+<filter id="statValueGlowWide" x="-28%" y="-82%" width="156%" height="264%" color-interpolation-filters="sRGB">
   <feGaussianBlur in="SourceGraphic" stdDeviation="4.1"/>
 </filter>
+
 <filter id="statValueGlowTight" x="-22%" y="-62%" width="144%" height="224%" color-interpolation-filters="sRGB">
   <feGaussianBlur in="SourceGraphic" stdDeviation="1.45"/>
 </filter>
-    </filter>
-    <filter id="featuredAchievementShadow" x="-18%" y="-18%" width="136%" height="146%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="2.4" stdDeviation="2.2" flood-color="#061009" flood-opacity="0.72"/>
-    </filter>
+
+<filter id="featuredAchievementShadow" x="-18%" y="-18%" width="136%" height="146%" color-interpolation-filters="sRGB">
+  <feDropShadow dx="0" dy="2.4" stdDeviation="2.2" flood-color="#061009" flood-opacity="0.72"/>
+</filter>
     <pattern id="dangerStripe" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
       <rect width="24" height="24" fill="#b50808"/>
       <rect width="9" height="24" fill="#8c0505"/>
