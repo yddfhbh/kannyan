@@ -77,7 +77,7 @@ const extendedPictographicPattern = /\p{Extended_Pictographic}/u;
 
 export async function createTetrioProfileCard(username) {
   const card = await createTetrioProfileCardSvg(username);
-  const image = renderTetrioSvgToPng(card.svg);
+  const image = renderTetrioSvgToPng(card.svg, { zoom: 2 });
 
   return {
     image,

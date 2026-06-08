@@ -14,8 +14,14 @@ export const tetrioTightIRightDx = '-0.12em';
 
 let tetrioHunDinFontDataUriPromise = null;
 
-export function renderTetrioSvgToPng(svg) {
+export function renderTetrioSvgToPng(svg, options = {}) {
+  const zoom = options.zoom ?? 2;
+
   return new Resvg(svg, {
+    fitTo: {
+      mode: 'zoom',
+      value: zoom,
+    },
     font: {
       fontFiles: [tetrioHunDinFontPath],
       defaultFontFamily: 'HUN-din 1451',
