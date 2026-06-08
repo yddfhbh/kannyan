@@ -455,7 +455,7 @@ function renderRoundSide(side, sideIndex, y, height, centerX) {
 }
 
 function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
-  const blockWidth = 198;
+  const blockWidth = 178;
   const blockX = sideIndex === 0 ? x + width - blockWidth - 20 : x + 20;
 
   const columns = [
