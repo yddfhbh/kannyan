@@ -516,20 +516,58 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
   const blockWidth = 166;
   const blockX = isLeft ? x + width - blockWidth - 20 : x - 12;
 
-  const blueLabelNudge = -5.5;   // 파란 APM/PPS/VS 라벨만 왼쪽
+  // 내부 간격 보정
+  const blueLabelNudge = -4;   // 파란 APM/PPS/VS 라벨만 왼쪽
   const redValueNudge = 3;     // 빨간 하얀 숫자만 오른쪽
+
+  // 구분자 보정
+  // sep1 = APM 뒤 / PPS 앞 구분자
+  // sep2 = PPS 뒤 / VS 앞 구분자
+  const blueSep1Nudge = -2;
+  const blueSep2Nudge = -2;
+  const redSep1Nudge = 0;
+  const redSep2Nudge = 0;
 
   const labelNudge = isLeft ? blueLabelNudge : 0;
   const valueNudge = isLeft ? 0 : redValueNudge;
+  const sep1Nudge = isLeft ? blueSep1Nudge : redSep1Nudge;
+  const sep2Nudge = isLeft ? blueSep2Nudge : redSep2Nudge;
 
   const columns = [
-    { valueX: 42 + valueNudge, labelX: 49 + labelNudge, label: 'APM', value: formatDecimal(stats?.apm, 2) },
-    { separatorX: 73, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
+    {
+      valueX: 42 + valueNudge,
+      labelX: 49 + labelNudge,
+      label: 'APM',
+      value: formatDecimal(stats?.apm, 2),
+    },
+    {
+      separatorX: 73 + sep1Nudge,
+      separator: '&#9635;',
+      separatorClass: labelClass,
+      fontSize: 6.5,
+      yOffset: -1.2,
+    },
 
-    { valueX: 96 + valueNudge, labelX: 103 + labelNudge, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
-    { separatorX: isLeft ? 123 : 125, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
+    {
+      valueX: 96 + valueNudge,
+      labelX: 103 + labelNudge,
+      label: 'PPS',
+      value: formatDecimal(stats?.pps, 2),
+    },
+    {
+      separatorX: 125 + sep2Nudge,
+      separator: '&#9635;',
+      separatorClass: labelClass,
+      fontSize: 6.5,
+      yOffset: -1.2,
+    },
 
-    { valueX: 160 + valueNudge, labelX: 167 + labelNudge, label: 'VS', value: formatDecimal(stats?.vsscore, 2) },
+    {
+      valueX: 160 + valueNudge,
+      labelX: 167 + labelNudge,
+      label: 'VS',
+      value: formatDecimal(stats?.vsscore, 2),
+    },
   ];
 
   return renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass);
