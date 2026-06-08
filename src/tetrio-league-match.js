@@ -318,16 +318,20 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 }
 
       .summaryValue {
-        fill: #f0f3fa;
-        font-size: 8.8px;
-        font-weight: 900;
-      }
-      .roundValue {
   fill: #f0f3fa;
-  font-size: 11.8px;
+  font-size: 9.4px;
   font-weight: 900;
-  stroke: rgba(255,255,255,0.35);
-  stroke-width: 0.35px;
+  stroke: rgba(255,255,255,0.28);
+  stroke-width: 0.22px;
+  paint-order: stroke fill;
+}
+
+.roundValue {
+  fill: #f0f3fa;
+  font-size: 12.2px;
+  font-weight: 900;
+  stroke: rgba(255,255,255,0.42);
+  stroke-width: 0.42px;
   paint-order: stroke fill;
 }
       .blueLabel {
@@ -475,8 +479,8 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
     const className = item.className ?? valueClass;
     const anchor = item.anchor ?? 'start';
     const content = item.numeric
-      ? renderTetrioNumericTextMarkup(item.text)
-      : escapeXml(item.text);
+    ? renderLeagueNumberMarkup(item.text)
+    : escapeXml(item.text);
 
     return `<text x="${roundSvgNumber(item.x)}" y="${baselineY}" text-anchor="${anchor}" dominant-baseline="middle" class="${className}">${content}</text>`;
   };
@@ -529,7 +533,7 @@ function renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass) 
       return `<text x="${blockX + column.separatorX}" y="${baselineY}" text-anchor="middle" dominant-baseline="middle" class="${column.separatorClass ?? valueClass}"${fontSize}>${column.separator ?? '-'}</text>`;
     }
 
-    return `<text x="${blockX + column.valueX}" y="${baselineY}" text-anchor="end" dominant-baseline="middle" class="${valueClass}">${renderTetrioNumericTextMarkup(column.value)}</text>
+    return `<text x="${blockX + column.valueX}" y="${baselineY}" text-anchor="end" dominant-baseline="middle" class="${valueClass}">${renderLeagueNumberMarkup(column.value)}</text>
   <text x="${blockX + column.labelX}" y="${baselineY}" text-anchor="start" dominant-baseline="middle" class="${labelClass}">${column.label}</text>`;
   }).join('\n  ');
 }
@@ -546,6 +550,30 @@ function renderFooterTextMarkup(text) {
     : `<tspan dx="7" class="footerDate">${escapeXml(match[3])}</tspan>`;
 
   return `<tspan class="footerName">${escapeXml(match[1])}</tspan><tspan dx="8" class="footerKeyword">VERSUS</tspan><tspan dx="8" class="footerName">${escapeXml(match[2])}</tspan><tspan dx="8" class="footerKeyword">PLAYED</tspan><tspan dx="5" class="footerKeyword">ON</tspan>${dateMarkup}`;
+}
+
+function renderLeagueNumberMarkup(value) {
+  const text = String(value ?? '-');
+  let markup = '';
+  let resetDyEm = 0;
+
+  for (const char of text) {
+    if (char === '.') {
+      const dy = resetDyEm ? ` dy="${roundSvgNumber(-resetDyEm)}em"` : '';
+      markup += `<tspan${dy} font-family="Arial, Helvetica, sans-serif" font-size="1.18em" stroke="none">.</tspan>`;
+      resetDyEm = 0.03;
+      continue;
+    }
+
+    const dy = resetDyEm ? ` dy="${roundSvgNumber(-resetDyEm)}em"` : '';
+    markup += dy
+      ? `<tspan${dy}>${escapeXml(char)}</tspan>`
+      : escapeXml(char);
+
+    resetDyEm = 0;
+  }
+
+  return markup;
 }
 
 function renderInlineStats(stats, valueClass, labelClass, options = {}) {
