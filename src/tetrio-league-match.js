@@ -379,7 +379,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   fill: ${sideThemes[0].label};
   stroke: rgba(74,139,228,0.86);
   stroke-width: 0.36px;
-  font-size: 8.8px;
+  font-size: 11.8px;
   font-weight: 950;
   paint-order: stroke fill;
   opacity: 1;
@@ -389,7 +389,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   fill: #ff6a6a;
   stroke: rgba(120,20,24,0.65);
   stroke-width: 0.36px;
-  font-size: 8.8px;
+  font-size: 11.8px;
   font-weight: 950;
   paint-order: stroke fill;
   opacity: 1;
