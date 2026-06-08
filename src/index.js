@@ -1171,8 +1171,23 @@ function hasReactionEmojiLikeText(content) {
 function isReactionRequestText(content) {
   const text = String(content ?? '').replace(/^%+/, '').trim();
 
-  return /(?:반응|리액션|reaction|react)/i.test(text)
-    || /(?:달아줘|달아주|달아|붙여줘|찍어줘|추가해줘)/i.test(text);
+  const hasReactionWord =
+    /(?:반응|리액션|reaction|react|이모지|emoji)/i.test(text);
+
+  const hasAddWord =
+    /(?:달아줘|달아주|달아|붙여줘|찍어줘|추가해줘)/i.test(text);
+
+  const hasEmojiLikeText = hasReactionEmojiLikeText(text);
+
+  return hasAddWord && (hasReactionWord || hasEmojiLikeText);
+}
+
+function hasReactionEmojiLikeText(content) {
+  const text = String(content ?? '');
+
+  return /<a?:[a-zA-Z0-9_]{2,32}:\d{17,20}>/.test(text)
+    || /:([a-zA-Z0-9_]{2,32}):/.test(text)
+    || Boolean(extractFirstUnicodeEmoji(text));
 }
 
 async function replyReactionFailure(message) {
