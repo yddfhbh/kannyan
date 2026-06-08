@@ -455,8 +455,8 @@ function renderRoundSide(side, sideIndex, y, height, centerX) {
 }
 
 function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
-  const blockWidth = 168;
-  const blockX = sideIndex === 0 ? x + width - blockWidth - 20 : x - 10 ;
+  const blockWidth = 166;
+  const blockX = sideIndex === 0 ? x + width - blockWidth - 20 : x - 12 ;
 
   const columns = [
     { valueX: 42, labelX: 49, label: 'APM', value: formatDecimal(stats?.apm, 2) },
@@ -511,19 +511,20 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
   // 빨간쪽: "APM" 글자 시작 위치를 기준으로 정렬
     // 빨간쪽: APM 숫자 시작 위치를 기준으로 정렬
 
-  const redApmValueX = x + 18;
+  const redRoundNudge = -8;
+const redApmValueX = x + 18 + redRoundNudge;
 
 const items = [
   { x: redApmValueX, anchor: 'start', className: valueClass, text: apmText, numeric: true },
-  { x: x + 60, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: x + 92, anchor: 'middle', className: valueClass, text: '-' },
+  { x: x + 60 + redRoundNudge, anchor: 'start', className: labelClass, text: 'APM' },
+  { x: x + 92 + redRoundNudge, anchor: 'middle', className: valueClass, text: '-' },
 
-  { x: x + 107, anchor: 'start', className: valueClass, text: ppsText, numeric: true },
-  { x: x + 141, anchor: 'start', className: labelClass, text: 'PPS' },
-  { x: x + 172, anchor: 'middle', className: valueClass, text: '-' },
+  { x: x + 107 + redRoundNudge, anchor: 'start', className: valueClass, text: ppsText, numeric: true },
+  { x: x + 141 + redRoundNudge, anchor: 'start', className: labelClass, text: 'PPS' },
+  { x: x + 172 + redRoundNudge, anchor: 'middle', className: valueClass, text: '-' },
 
-  { x: x + 188, anchor: 'start', className: valueClass, text: vsText, numeric: true },
-  { x: x + 238, anchor: 'start', className: labelClass, text: 'VS' },
+  { x: x + 188 + redRoundNudge, anchor: 'start', className: valueClass, text: vsText, numeric: true },
+  { x: x + 238 + redRoundNudge, anchor: 'start', className: labelClass, text: 'VS' },
 ];
 
   return items.map(renderItem).join('\n  ');
