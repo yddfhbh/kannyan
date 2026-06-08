@@ -509,7 +509,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
   const blockX = isLeft ? x + width - blockWidth - 20 : x - 12;
 
   // 보정값
-  const blueLabelNudge = -3;   // 파란쪽 APM/PPS/VS 라벨을 왼쪽으로
+  const blueLabelNudge = -4;   // 파란쪽 APM/PPS/VS 라벨을 왼쪽으로
   const redValueNudge = 3;     // 빨간쪽 숫자를 오른쪽으로
 
   const columns = [
