@@ -307,23 +307,17 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   fill: #f6f2ef;
   font-size: 17px;
   font-weight: 950;
-  stroke: rgba(246,242,239,0.55);
-  stroke-width: 0.42px;
+  stroke: rgba(246,242,239,0.68);
+  stroke-width: 0.58px;
   paint-order: stroke fill;
-}
-
-.usernameUnderscore {
-  fill: #f6f2ef;
-  stroke: rgba(255,255,255,0.45);
-  stroke-width: 0.35px;
 }
 
 .score {
   fill: #ffffff;
   font-size: 60px;
-  font-weight: 700;
-  stroke: rgba(255,255,255,0.62);
-  stroke-width: 0.9px;
+  font-weight: 720;
+  stroke: rgba(255,255,255,0.72);
+  stroke-width: 1.15px;
   paint-order: stroke fill;
 }
 
@@ -331,8 +325,8 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   fill: #f0f3fa;
   font-size: 9.4px;
   font-weight: 950;
-  stroke: rgba(255,255,255,0.42);
-  stroke-width: 0.34px;
+  stroke: rgba(255,255,255,0.55);
+  stroke-width: 0.46px;
   paint-order: stroke fill;
 }
 
@@ -340,15 +334,15 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   fill: #f0f3fa;
   font-size: 12.2px;
   font-weight: 950;
-  stroke: rgba(255,255,255,0.58);
-  stroke-width: 0.55px;
+  stroke: rgba(255,255,255,0.72);
+  stroke-width: 0.72px;
   paint-order: stroke fill;
 }
 
 .blueLabel {
   fill: ${sideThemes[0].label};
-  stroke: rgba(74,139,228,0.72);
-  stroke-width: 0.36px;
+  stroke: rgba(74,139,228,0.86);
+  stroke-width: 0.48px;
   font-size: 11.8px;
   font-weight: 950;
   paint-order: stroke fill;
@@ -356,8 +350,8 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 
 .redLabel {
   fill: ${sideThemes[1].label};
-  stroke: rgba(216,58,63,0.72);
-  stroke-width: 0.36px;
+  stroke: rgba(216,58,63,0.86);
+  stroke-width: 0.48px;
   font-size: 11.8px;
   font-weight: 950;
   paint-order: stroke fill;
@@ -365,8 +359,8 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 
 .summaryBlueLabel {
   fill: ${sideThemes[0].label};
-  stroke: rgba(74,139,228,0.72);
-  stroke-width: 0.28px;
+  stroke: rgba(74,139,228,0.86);
+  stroke-width: 0.36px;
   font-size: 8.8px;
   font-weight: 950;
   paint-order: stroke fill;
@@ -374,8 +368,8 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 
 .summaryRedLabel {
   fill: ${sideThemes[1].label};
-  stroke: rgba(216,58,63,0.72);
-  stroke-width: 0.28px;
+  stroke: rgba(216,58,63,0.86);
+  stroke-width: 0.36px;
   font-size: 8.8px;
   font-weight: 950;
   paint-order: stroke fill;
@@ -385,17 +379,8 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   fill: #ffffff;
   font-size: 12px;
   font-weight: 950;
-  stroke: rgba(255,255,255,0.48);
-  stroke-width: 0.35px;
-  paint-order: stroke fill;
-}
-
-.versus {
-  fill: #ffd620;
-  font-size: 39px;
-  font-weight: 950;
-  stroke: rgba(255,214,32,0.55);
-  stroke-width: 0.5px;
+  stroke: rgba(255,255,255,0.62);
+  stroke-width: 0.48px;
   paint-order: stroke fill;
 }
 
@@ -406,22 +391,22 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 
 .footerName {
   fill: #f1fff0;
-  stroke: rgba(241,255,240,0.72);
-  stroke-width: 0.45px;
+  stroke: rgba(241,255,240,0.86);
+  stroke-width: 0.58px;
   paint-order: stroke fill;
 }
 
 .footerKeyword {
   fill: #82bd86;
-  stroke: rgba(130,189,134,0.72);
-  stroke-width: 0.4px;
+  stroke: rgba(130,189,134,0.86);
+  stroke-width: 0.52px;
   paint-order: stroke fill;
 }
 
 .footerDate {
   fill: #a8d9aa;
-  stroke: rgba(168,217,170,0.68);
-  stroke-width: 0.38px;
+  stroke: rgba(168,217,170,0.82);
+  stroke-width: 0.5px;
   paint-order: stroke fill;
 }
     </style>
