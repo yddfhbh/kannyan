@@ -538,25 +538,23 @@ function renderRoundSide(side, sideIndex, y, height, centerX) {
 
 function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
   const isLeft = sideIndex === 0;
-  const blockWidth = 166;
+  const blockWidth = 174;
   const blockX = isLeft ? x + width - blockWidth - 20 : x - 12;
 
-  // 위치 보정
   const blueLabelNudge = -4;
   const redValueNudge = 3;
 
-  const blueSep1Nudge = -4;
-  const blueSep2Nudge = -4;
-  const redSep1Nudge = 1;
-  const redSep2Nudge = 1;
+  const blueSep1Nudge = -2;
+  const blueSep2Nudge = -2;
+  const redSep1Nudge = 0;
+  const redSep2Nudge = 0;
 
   const labelNudge = isLeft ? blueLabelNudge : 0;
   const valueNudge = isLeft ? 0 : redValueNudge;
   const sep1Nudge = isLeft ? blueSep1Nudge : redSep1Nudge;
   const sep2Nudge = isLeft ? blueSep2Nudge : redSep2Nudge;
 
-  // 좌우 동일하게 통일
-  const separatorFontSize = 6.8;
+  const separatorFontSize = 7.2;
   const separatorYOffset = -1.2;
 
   const columns = [
@@ -567,7 +565,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
       value: formatDecimal(stats?.apm, 2),
     },
     {
-      separatorX: 73 + sep1Nudge,
+      separatorX: 79 + sep1Nudge,
       separator: '&#9635;',
       separatorClass: labelClass,
       fontSize: separatorFontSize,
@@ -575,13 +573,13 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
     },
 
     {
-      valueX: 96 + valueNudge,
-      labelX: 103 + labelNudge,
+      valueX: 104 + valueNudge,
+      labelX: 112 + labelNudge,
       label: 'PPS',
       value: formatDecimal(stats?.pps, 2),
     },
     {
-      separatorX: 125 + sep2Nudge,
+      separatorX: 138 + sep2Nudge,
       separator: '&#9635;',
       separatorClass: labelClass,
       fontSize: separatorFontSize,
@@ -589,8 +587,8 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
     },
 
     {
-      valueX: 160 + valueNudge,
-      labelX: 167 + labelNudge,
+      valueX: 173 + valueNudge,
+      labelX: 181 + labelNudge,
       label: 'VS',
       value: formatDecimal(stats?.vsscore, 2),
     },
@@ -624,7 +622,7 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
   // APM 그룹: 조금 더 왼쪽
   { x: vsEndX - 184, anchor: 'end', className: valueClass, text: apmText, numeric: true },
   { x: vsEndX - 175, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: vsEndX - 138, anchor: 'middle', className: valueClass, text: '-' },
+  { x: vsEndX - 141, anchor: 'middle', className: valueClass, text: '-' },
 
   // PPS 그룹: 살짝 왼쪽
   { x: vsEndX - 111, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
