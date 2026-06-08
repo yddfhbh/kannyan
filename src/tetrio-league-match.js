@@ -455,8 +455,8 @@ function renderRoundSide(side, sideIndex, y, height, centerX) {
 }
 
 function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
-  const blockWidth = 188;
-  const blockX = sideIndex === 0 ? x + width - blockWidth - 20 : x + 10;
+  const blockWidth = 178;
+  const blockX = sideIndex === 0 ? x + width - blockWidth - 20 : x ;
 
   const columns = [
     { valueX: 42, labelX: 49, label: 'APM', value: formatDecimal(stats?.apm, 2) },
