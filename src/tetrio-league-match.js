@@ -264,16 +264,16 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
     </linearGradient>
 
     <linearGradient id="redRow" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0" stop-color="#641419" stop-opacity="1"/>
-      <stop offset="0.56" stop-color="#230507" stop-opacity="0.92"/>
-      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
-    </linearGradient>
+  <stop offset="0" stop-color="#641419" stop-opacity="1"/>
+  <stop offset="0.72" stop-color="#230507" stop-opacity="0.95"/>
+  <stop offset="1" stop-color="#000000" stop-opacity="0.12"/>
+</linearGradient>
 
-    <linearGradient id="redRowWin" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0" stop-color="#e22a32" stop-opacity="1"/>
-      <stop offset="0.52" stop-color="#7a161b" stop-opacity="1"/>
-      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
-    </linearGradient>
+<linearGradient id="redRowWin" x1="0" x2="1" y1="0" y2="0">
+  <stop offset="0" stop-color="#e22a32" stop-opacity="1"/>
+  <stop offset="0.70" stop-color="#7a161b" stop-opacity="1"/>
+  <stop offset="1" stop-color="#000000" stop-opacity="0.10"/>
+</linearGradient>
     <filter id="textGlow" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="1.8" result="blur"/>
       <feColorMatrix
@@ -413,9 +413,16 @@ const scoreX = isLeft ? x + panelWidth - scorePadding : x + scorePadding;
 
   return `
   <g filter="url(#${glowFilter})">
-    <rect x="${x}" y="${y}" width="${panelWidth}" height="${height}" fill="url(#${theme.topGradient})" stroke="${theme.border}" stroke-width="1.05"/>
-    <line x1="${x}" y1="${y + height - 1}" x2="${x + panelWidth}" y2="${y + height - 1}" stroke="${theme.border}" stroke-width="1.5" opacity="0.85"/>
-  </g>
+  <rect x="${x}" y="${y}" width="${panelWidth}" height="${height}" fill="url(#${theme.topGradient})"/>
+
+  <line x1="${x}" y1="${y}" x2="${x + panelWidth}" y2="${y}" stroke="${theme.border}" stroke-width="1.05" opacity="0.9"/>
+  <line x1="${x}" y1="${y + height - 1}" x2="${x + panelWidth}" y2="${y + height - 1}" stroke="${theme.border}" stroke-width="1.5" opacity="0.85"/>
+
+  ${isLeft
+    ? `<line x1="${x + panelWidth}" y1="${y}" x2="${x + panelWidth}" y2="${y + height}" stroke="${theme.border}" stroke-width="1.05" opacity="0.9"/>`
+    : `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + height}" stroke="${theme.border}" stroke-width="1.05" opacity="0.9"/>`
+  }
+</g>
   <text x="${textX}" y="${y + 20}" text-anchor="${textAnchor}" class="username">${escapeXml(player.username.toUpperCase())}</text>
   <text x="${scoreX}" y="${y + 53}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${renderTetrioNumericTextMarkup(formatInteger(player.wins))}</text>
   ${renderSummaryStatsMarkup(player.stats, x, panelWidth, y + height - 14, sideIndex, 'summaryValue', statsClass)}`;
@@ -462,7 +469,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
 
   const columns = [
     { valueX: 42, labelX: 49, label: 'APM', value: formatDecimal(stats?.apm, 2) },
-    { separatorX: 72, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
+    { separatorX: 73, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
 
     { valueX: 96, labelX: 103, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
     { separatorX: 125, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
