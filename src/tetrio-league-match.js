@@ -455,14 +455,17 @@ function renderRoundSide(side, sideIndex, y, height, centerX) {
 }
 
 function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
-  const blockWidth = 224;
+  const blockWidth = 198;
   const blockX = sideIndex === 0 ? x + width - blockWidth - 20 : x + 20;
+
   const columns = [
-    { valueX: 48, labelX: 55, label: 'APM', value: formatDecimal(stats?.apm, 2) },
-    { separatorX: 83, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.8 },
-    { valueX: 112, labelX: 119, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
-    { separatorX: 150, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.8 },
-    { valueX: 194, labelX: 201, label: 'VS', value: formatDecimal(stats?.vsscore, 2) },
+    { valueX: 43, labelX: 50, label: 'APM', value: formatDecimal(stats?.apm, 2) },
+    { separatorX: 73, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5 },
+
+    { valueX: 100, labelX: 107, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
+    { separatorX: 129, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5 },
+
+    { valueX: 169, labelX: 176, label: 'VS', value: formatDecimal(stats?.vsscore, 2) },
   ];
 
   return renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass);
