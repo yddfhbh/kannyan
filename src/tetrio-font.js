@@ -82,6 +82,7 @@ function renderTetrioAdjustedTextMarkup(value, options = {}) {
   const text = String(value ?? '');
   const commaDx = options.commaDx ?? tetrioTightCommaDx;
   const tightenI = options.tightenI === true;
+
   let markup = '';
   let tightenAfterComma = false;
   let tightenAfterI = false;
@@ -102,7 +103,7 @@ function renderTetrioAdjustedTextMarkup(value, options = {}) {
       tightenAfterComma = false;
     }
 
-    if (tightenAfterI && char !== ' ' && char !== '_') {
+    if (tightenAfterI && char !== ' ') {
       dxValues.push(tetrioTightIRightDx);
     }
     tightenAfterI = false;
@@ -113,18 +114,13 @@ function renderTetrioAdjustedTextMarkup(value, options = {}) {
     }
 
     const dx = formatCombinedEmDx(dxValues);
-    if (char === '.') {
-      markup += `<tspan${dx ? ` dx="${dx}"` : ' dx="0.01em"'} font-family="Arial, sans-serif" font-size="0.9em" stroke="none">${escaped}</tspan>`;
-      continue;
+
+    if (dx) {
+      markup += `<tspan dx="${dx}">${escaped}</tspan>`;
+    } else {
+      markup += escaped;
     }
 
-    if (char === ',') {
-      markup += `<tspan${dx ? ` dx="${dx}"` : ''} font-family="Arial, sans-serif" font-size="0.9em" stroke="none">${escaped}</tspan>`;
-      tightenAfterComma = true;
-      continue;
-    }
-
-    markup += dx ? `<tspan dx="${dx}">${escaped}</tspan>` : escaped;
     tightenAfterComma = char === ',';
   }
 
