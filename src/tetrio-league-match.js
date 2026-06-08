@@ -394,10 +394,20 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 
 .time {
   fill: #ffffff;
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 950;
-  stroke: rgba(255,255,255,0.62);
-  stroke-width: 0.48px;
+  stroke: rgba(255,255,255,0.75);
+  stroke-width: 0.65px;
+  paint-order: stroke fill;
+}
+
+.timeColon {
+  fill: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.22em;
+  font-weight: 900;
+  stroke: rgba(255,255,255,0.75);
+  stroke-width: 0.45px;
   paint-order: stroke fill;
 }
 
@@ -443,6 +453,19 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 </svg>`;
 }
 
+function renderRoundTimeMarkup(value) {
+  return String(value ?? '-')
+    .split('')
+    .map((char) => {
+      if (char === ':') {
+        return '<tspan class="timeColon">:</tspan>';
+      }
+
+      return escapeXml(char);
+    })
+    .join('');
+}
+
 function renderTopPanel(player, sideIndex, y, height, centerX) {
   const theme = sideThemes[sideIndex] ?? sideThemes[0];
   const isLeft = sideIndex === 0;
@@ -485,7 +508,7 @@ function renderRoundRow(round, y, height, centerX) {
 
   return `
   ${renderRoundSide(left, 0, y, height, roundCenterX)}
-  <text x="${roundCenterX}" y="${y + height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" class="time">${escapeXml(round.timeText)}</text>
+ <text x="${roundCenterX}" y="${y + height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" class="time">${renderRoundTimeMarkup(round.timeText)}</text>
   ${renderRoundSide(right, 1, y, height, roundCenterX)}`;
 }
 
