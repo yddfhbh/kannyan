@@ -210,7 +210,7 @@ async function fetchTetrioJsonUncached(path) {
 
 function getTetrioJsonCacheTtlCapMs(path) {
   if (path.endsWith('/summaries')) {
-    return 30_000; // 스탯 반영용: 최대 30초
+    return 10_000; // 스탯 반영용: 최대 30초
   }
 
   if (/^\/users\/[^/]+$/.test(path)) {
