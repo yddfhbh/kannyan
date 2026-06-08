@@ -349,10 +349,10 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 
 .roundValue {
   fill: #f0f3fa;
-  font-size: 12.2px;
+  font-size: 13px;
   font-weight: 950;
-  stroke: rgba(255,255,255,0.72);
-  stroke-width: 0.72px;
+  stroke: rgba(255,255,255,0.82);
+  stroke-width: 0.85px;
   paint-order: stroke fill;
 }
 
@@ -384,14 +384,22 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 }
 
 .summaryRedLabel {
-  fill: ${sideThemes[1].label};
-  stroke: rgba(216,58,63,0.86);
-  stroke-width: 0.36px;
-  font-size: 8.8px;
-  font-weight: 950;
+  fill: #ff6a6a;
+  stroke: rgba(70, 0, 0, 0.55);
+  stroke-width: 0.35px;
   paint-order: stroke fill;
+  opacity: 1;
+  font-weight: 800;
 }
 
+.roundRedLabel {
+  fill: #ff6a6a;
+  stroke: rgba(70, 0, 0, 0.55);
+  stroke-width: 0.35px;
+  paint-order: stroke fill;
+  opacity: 1;
+  font-weight: 800;
+}
 .time {
   fill: #ffffff;
   font-size: 13.5px;
@@ -449,7 +457,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   <text x="${centerX}" y="73" text-anchor="middle" dominant-baseline="middle" class="versus" filter="url(#textGlow)">VS</text>
   ${rows}
   <rect x="12" y="${footerY}" width="${width - 24}" height="${footerHeight}" fill="#203c27" stroke="#48704d" stroke-width="0.8"/>
- <text x="24" y="${footerY + footerHeight / 2 + 1}" dominant-baseline="middle" class="footer" xml:space="preserve">${renderFooterTextMarkup(match.footerText)}</text>
+${renderFooterLineMarkup(match.footerText, 24, footerY + footerHeight / 2 + 1)}
 </svg>`;
 }
 
