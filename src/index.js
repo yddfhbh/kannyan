@@ -1182,13 +1182,6 @@ function isReactionRequestText(content) {
   return hasAddWord && (hasReactionWord || hasEmojiLikeText);
 }
 
-function hasReactionEmojiLikeText(content) {
-  const text = String(content ?? '');
-
-  return /<a?:[a-zA-Z0-9_]{2,32}:\d{17,20}>/.test(text)
-    || /:([a-zA-Z0-9_]{2,32}):/.test(text)
-    || Boolean(extractFirstUnicodeEmoji(text));
-}
 
 async function replyReactionFailure(message) {
   await message.reply({
