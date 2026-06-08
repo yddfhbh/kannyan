@@ -256,6 +256,11 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
       <stop offset="0.35" stop-color="#031224" stop-opacity="0.72"/>
       <stop offset="1" stop-color="#0b2f61" stop-opacity="1"/>
     </linearGradient>
+    <linearGradient id="blueRowWin" x1="0" x2="1" y1="0" y2="0">
+  <stop offset="0" stop-color="#07101b" stop-opacity="0.92"/>
+  <stop offset="0.58" stop-color="#0d376f" stop-opacity="1"/>
+  <stop offset="1" stop-color="#3a82ec" stop-opacity="1"/>
+</linearGradient>
 
     <linearGradient id="redRow" x1="0" x2="1" y1="0" y2="0">
   <stop offset="0" stop-color="#641419" stop-opacity="1"/>
@@ -269,11 +274,6 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   <stop offset="1" stop-color="#180305" stop-opacity="0.92"/>
 </linearGradient>
 
-<linearGradient id="redRowWin" x1="0" x2="1" y1="0" y2="0">
-  <stop offset="0" stop-color="#e22a32" stop-opacity="1"/>
-  <stop offset="0.70" stop-color="#7a161b" stop-opacity="1"/>
-  <stop offset="1" stop-color="#000000" stop-opacity="0.10"/>
-</linearGradient>
     <filter id="textGlow" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="1.8" result="blur"/>
       <feColorMatrix
