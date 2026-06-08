@@ -548,21 +548,21 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
   const blockX = isLeft ? x + width - blockWidth - 20 : x - 12;
 
   // 내부 간격 보정
-  const blueLabelNudge = -4;   // 파란 APM/PPS/VS 라벨만 왼쪽
-  const redValueNudge = 3;     // 빨간 하얀 숫자만 오른쪽
+  const blueLabelNudge = -4;   // 파란 라벨 약간 왼쪽
+  const redValueNudge = 3;     // 빨간 숫자 약간 오른쪽
 
   // 구분자 보정
-  // sep1 = APM 뒤 / PPS 앞 구분자
-  // sep2 = PPS 뒤 / VS 앞 구분자
-  const blueSep1Nudge = -2;
-  const blueSep2Nudge = -2;
-  const redSep1Nudge = 0;
-  const redSep2Nudge = 0;
+  const blueSep1Nudge = -4;    // 파란 첫 구분자 더 왼쪽
+  const blueSep2Nudge = -4;    // 파란 두번째 구분자 더 왼쪽
+  const redSep1Nudge = 3;      // 빨간 첫 구분자 오른쪽
+  const redSep2Nudge = 3;      // 빨간 두번째 구분자 오른쪽
 
   const labelNudge = isLeft ? blueLabelNudge : 0;
   const valueNudge = isLeft ? 0 : redValueNudge;
   const sep1Nudge = isLeft ? blueSep1Nudge : redSep1Nudge;
   const sep2Nudge = isLeft ? blueSep2Nudge : redSep2Nudge;
+
+  const separatorFontSize = isLeft ? 6.5 : 7.6;
 
   const columns = [
     {
@@ -575,7 +575,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
       separatorX: 73 + sep1Nudge,
       separator: '&#9635;',
       separatorClass: labelClass,
-      fontSize: 6.5,
+      fontSize: separatorFontSize,
       yOffset: -1.2,
     },
 
@@ -589,7 +589,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
       separatorX: 125 + sep2Nudge,
       separator: '&#9635;',
       separatorClass: labelClass,
-      fontSize: 6.5,
+      fontSize: separatorFontSize,
       yOffset: -1.2,
     },
 
@@ -626,14 +626,17 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
     const vsEndX = x + width - 12;
 
     const items = [
-  { x: vsEndX - 178, anchor: 'end', className: valueClass, text: apmText, numeric: true },
-  { x: vsEndX - 169, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: vsEndX - 133, anchor: 'middle', className: valueClass, text: '-' },
+  // APM 그룹: 조금 더 왼쪽
+  { x: vsEndX - 184, anchor: 'end', className: valueClass, text: apmText, numeric: true },
+  { x: vsEndX - 175, anchor: 'start', className: labelClass, text: 'APM' },
+  { x: vsEndX - 138, anchor: 'middle', className: valueClass, text: '-' },
 
-  { x: vsEndX - 106, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
-  { x: vsEndX - 97, anchor: 'start', className: labelClass, text: 'PPS' },
-  { x: vsEndX - 68, anchor: 'middle', className: valueClass, text: '-' },
+  // PPS 그룹: 살짝 왼쪽
+  { x: vsEndX - 111, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
+  { x: vsEndX - 102, anchor: 'start', className: labelClass, text: 'PPS' },
+  { x: vsEndX - 71, anchor: 'middle', className: valueClass, text: '-' },
 
+  // VS 그룹은 고정
   { x: vsEndX - 25, anchor: 'end', className: valueClass, text: vsText, numeric: true },
   { x: vsEndX, anchor: 'end', className: labelClass, text: 'VS' },
 ];
