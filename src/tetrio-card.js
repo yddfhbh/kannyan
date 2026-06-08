@@ -167,15 +167,19 @@ function normalizeTetrioUsername(input) {
 async function fetchTetrioJson(path) {
   const now = Date.now();
   const cached = tetrioJsonCache.get(path);
+
   if (cached && cached.expiresAt > now) {
+    console.log(`[TETR.IO CACHE HIT] ${path} ttl=${Math.round((cached.expiresAt - now) / 1000)}s`);
     return cached.body;
   }
 
   if (cached) {
+    console.log(`[TETR.IO CACHE EXPIRED] ${path}`);
     tetrioJsonCache.delete(path);
   }
 
   if (tetrioJsonPendingPromises.has(path)) {
+    console.log(`[TETR.IO PENDING HIT] ${path}`);
     return tetrioJsonPendingPromises.get(path);
   }
 
@@ -183,6 +187,7 @@ async function fetchTetrioJson(path) {
     .finally(() => {
       tetrioJsonPendingPromises.delete(path);
     });
+
   tetrioJsonPendingPromises.set(path, promise);
   return promise;
 }
@@ -206,8 +211,11 @@ async function fetchTetrioJsonUncached(path) {
 function cacheTetrioJsonResult(path, body) {
   const expiresAt = Number(body?.cache?.cached_until);
   if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+    console.log(`[TETR.IO CACHE SKIP] ${path}`);
     return;
   }
+
+  console.log(`[TETR.IO CACHE SAVE] ${path} ttl=${Math.round((expiresAt - Date.now()) / 1000)}s`);
 
   if (tetrioJsonCache.size >= tetrioJsonCacheMaxEntries) {
     tetrioJsonCache.delete(tetrioJsonCache.keys().next().value);
