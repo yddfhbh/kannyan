@@ -50,9 +50,11 @@ const sideThemes = [
 
 let tetrioFontDataUrisPromise = null;
 
+const leagueMatchCardRenderScale = 2;
+
 export async function createTetrioLeagueMatchCard(username, matchIndex = 1) {
   const card = await createTetrioLeagueMatchCardSvg(username, matchIndex);
-  const image = renderTetrioSvgToPng(card.svg);
+  const image = renderTetrioSvgToPng(card.svg, leagueMatchCardRenderScale);
 
   return {
     image,
