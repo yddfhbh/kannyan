@@ -322,10 +322,16 @@ client.on(Events.MessageCreate, async (message) => {
     return;
   }
 
-  const reactionHandled = await handleReactionRequestMessage(message);
-  if (reactionHandled) {
-   return;
+  const reactionResult = await handleReactionRequestMessage(message);
+if (reactionResult?.handled) {
+  if (reactionResult.shouldContinueToGemini) {
+    await handleGeminiFallbackMessage(message, {
+      forcedPrompt: '방금 사용자가 요청한 메시지에 이모지 반응을 성공적으로 달았다. 사용자에게 짧고 자연스럽게 알려줘.',
+    });
   }
+
+  return;
+}
   
   const handled = await handlePercentMessageCommand(message);
   if (handled) {
@@ -1113,34 +1119,33 @@ async function handleReactionRequestMessage(message) {
   const content = message.content?.trim() ?? '';
 
   if (!content.startsWith('%')) {
-    return false;
+    return { handled: false };
   }
 
-  // "반응", "리액션", "달아줘", "달아" 같은 요청일 때만 잡기
   if (!isReactionRequestText(content)) {
-    return false;
+    return { handled: false };
   }
 
   const emoji = await resolveReactionEmojiFromMessage(message, content);
   if (!emoji) {
     await replyReactionFailure(message);
-    return true;
+    return { handled: true, shouldContinueToGemini: false };
   }
 
   const targetMessage = await resolveReactionTargetMessage(message, content);
   if (!targetMessage) {
     await replyReactionFailure(message);
-    return true;
+    return { handled: true, shouldContinueToGemini: false };
   }
 
   try {
     await targetMessage.react(emoji);
-    return true;
+    return { handled: true, shouldContinueToGemini: true };
   } catch (error) {
     console.error('Failed to add reaction:');
     console.error(error);
     await replyReactionFailure(message);
-    return true;
+    return { handled: true, shouldContinueToGemini: false };
   }
 }
 
@@ -1268,8 +1273,8 @@ async function resolveReactionTargetMessage(message, content) {
   return message;
 }
 
-async function handleGeminiFallbackMessage(message) {
-  let rawPrompt = parseGeminiFallbackPrompt(message.content);
+async function handleGeminiFallbackMessage(message, options = {}) {
+  let rawPrompt = options.forcedPrompt ?? parseGeminiFallbackPrompt(message.content);
 
   // %만 보내고 이미지가 첨부됐거나, 이미지 메시지에 답장한 경우
   if (!rawPrompt) {
