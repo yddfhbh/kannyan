@@ -490,37 +490,38 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
     const vsEndX = x + width - 12;
 
     const items = [
-      { x: vsEndX - 166, anchor: 'end', className: valueClass, text: apmText, numeric: true },
-      { x: vsEndX - 158, anchor: 'start', className: labelClass, text: 'APM' },
-      { x: vsEndX - 129, anchor: 'middle', className: valueClass, text: '-' },
+  { x: vsEndX - 178, anchor: 'end', className: valueClass, text: apmText, numeric: true },
+  { x: vsEndX - 169, anchor: 'start', className: labelClass, text: 'APM' },
+  { x: vsEndX - 137, anchor: 'middle', className: valueClass, text: '-' },
 
-      { x: vsEndX - 98, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
-      { x: vsEndX - 90, anchor: 'start', className: labelClass, text: 'PPS' },
-      { x: vsEndX - 67, anchor: 'middle', className: valueClass, text: '-' },
+  { x: vsEndX - 106, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
+  { x: vsEndX - 97, anchor: 'start', className: labelClass, text: 'PPS' },
+  { x: vsEndX - 70, anchor: 'middle', className: valueClass, text: '-' },
 
-      { x: vsEndX - 25, anchor: 'end', className: valueClass, text: vsText, numeric: true },
-      { x: vsEndX, anchor: 'end', className: labelClass, text: 'VS' },
-    ];
+  { x: vsEndX - 25, anchor: 'end', className: valueClass, text: vsText, numeric: true },
+  { x: vsEndX, anchor: 'end', className: labelClass, text: 'VS' },
+];
 
     return items.map(renderItem).join('\n  ');
   }
 
   // 빨간쪽: "APM" 글자 시작 위치를 기준으로 정렬
     // 빨간쪽: APM 숫자 시작 위치를 기준으로 정렬
+
   const redApmValueX = x + 18;
 
-  const items = [
-    { x: redApmValueX, anchor: 'start', className: valueClass, text: apmText, numeric: true },
-    { x: x + 74, anchor: 'start', className: labelClass, text: 'APM' },
-    { x: x + 105, anchor: 'middle', className: valueClass, text: '-' },
+const items = [
+  { x: redApmValueX, anchor: 'start', className: valueClass, text: apmText, numeric: true },
+  { x: x + 60, anchor: 'start', className: labelClass, text: 'APM' },
+  { x: x + 92, anchor: 'middle', className: valueClass, text: '-' },
 
-    { x: x + 119, anchor: 'start', className: valueClass, text: ppsText, numeric: true },
-    { x: x + 153, anchor: 'start', className: labelClass, text: 'PPS' },
-    { x: x + 184, anchor: 'middle', className: valueClass, text: '-' },
+  { x: x + 107, anchor: 'start', className: valueClass, text: ppsText, numeric: true },
+  { x: x + 141, anchor: 'start', className: labelClass, text: 'PPS' },
+  { x: x + 172, anchor: 'middle', className: valueClass, text: '-' },
 
-    { x: x + 199, anchor: 'start', className: valueClass, text: vsText, numeric: true },
-    { x: x + 249, anchor: 'start', className: labelClass, text: 'VS' },
-  ];
+  { x: x + 188, anchor: 'start', className: valueClass, text: vsText, numeric: true },
+  { x: x + 238, anchor: 'start', className: labelClass, text: 'VS' },
+];
 
   return items.map(renderItem).join('\n  ');
 
