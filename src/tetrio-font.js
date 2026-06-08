@@ -15,7 +15,7 @@ export const tetrioTightIRightDx = '-0.12em';
 let tetrioHunDinFontDataUriPromise = null;
 
 export function renderTetrioSvgToPng(svg, options = {}) {
-  const zoom = options.zoom ?? 2;
+  const zoom = options.zoom ?? 1;
 
   return new Resvg(svg, {
     fitTo: {

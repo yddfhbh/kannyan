@@ -1571,7 +1571,7 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
   <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff">${escapeXml(normalizedText)}</text>
 </svg>`;
-    const { info } = await sharp(renderTetrioSvgToPng(measurementSvg))
+    const { info } = await sharp(renderTetrioSvgToPng(measurementSvg, { zoom: 1 }))
       .png()
       .trim()
       .toBuffer({ resolveWithObject: true });
@@ -2909,7 +2909,7 @@ async function measureBioSampleWidth(text, fontSize, fontDataUri = null) {
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
   <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="800" fill="#ffffff">${escapeXml(normalizedText)}</text>
 </svg>`;
-  const { info } = await sharp(renderTetrioSvgToPng(measurementSvg))
+  const { info } = await sharp(renderTetrioSvgToPng(measurementSvg, { zoom: 1 }))
     .png()
     .trim()
     .toBuffer({ resolveWithObject: true });
