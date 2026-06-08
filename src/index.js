@@ -326,7 +326,8 @@ client.on(Events.MessageCreate, async (message) => {
 if (reactionResult?.handled) {
   if (reactionResult.shouldContinueToGemini) {
     await handleGeminiFallbackMessage(message, {
-      forcedPrompt: '방금 사용자가 요청한 메시지에 이모지 반응을 성공적으로 달았다. 사용자에게 짧고 자연스럽게 알려줘.',
+      forcedPrompt: reactionResult.forcedPrompt
+        ?? '방금 사용자가 요청한 메시지에 이모지 반응을 성공적으로 달았다. 사용자에게 짧고 자연스럽게 알려줘.',
     });
   }
 
@@ -1128,6 +1129,13 @@ async function handleReactionRequestMessage(message) {
 
   const emoji = await resolveReactionEmojiFromMessage(message, content);
 if (!emoji) {
+  const hasEmojiLikeText = hasReactionEmojiLikeText(content);
+
+  if (hasEmojiLikeText) {
+    await replyReactionFailure(message);
+    return { handled: true, shouldContinueToGemini: false };
+  }
+
   return {
     handled: true,
     shouldContinueToGemini: true,
@@ -1150,6 +1158,14 @@ if (!emoji) {
     await replyReactionFailure(message);
     return { handled: true, shouldContinueToGemini: false };
   }
+}
+
+function hasReactionEmojiLikeText(content) {
+  const text = String(content ?? '');
+
+  return /<a?:[a-zA-Z0-9_]{2,32}:\d{17,20}>/.test(text)
+    || /:([a-zA-Z0-9_]{2,32}):/.test(text)
+    || Boolean(extractFirstUnicodeEmoji(text));
 }
 
 function isReactionRequestText(content) {
