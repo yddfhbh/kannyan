@@ -304,91 +304,126 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
       ${renderTetrioTextWeightCss()}
       }
       .username {
-        fill: #f6f2ef;
-        font-size: 17px;
-        font-weight: 900;
-      }
-        .usernameUnderscore {
   fill: #f6f2ef;
-  stroke: rgba(255,255,255,0.35);
-  stroke-width: 0.35px;
-}
-      .score {
-  fill: #ffffff;
-  font-size: 60px;
-  font-weight: 650;
-  stroke: rgba(255,255,255,0.45);
-  stroke-width: 0.7px;
+  font-size: 17px;
+  font-weight: 950;
+  stroke: rgba(246,242,239,0.55);
+  stroke-width: 0.42px;
   paint-order: stroke fill;
 }
 
-      .summaryValue {
+.usernameUnderscore {
+  fill: #f6f2ef;
+  stroke: rgba(255,255,255,0.45);
+  stroke-width: 0.35px;
+}
+
+.score {
+  fill: #ffffff;
+  font-size: 60px;
+  font-weight: 700;
+  stroke: rgba(255,255,255,0.62);
+  stroke-width: 0.9px;
+  paint-order: stroke fill;
+}
+
+.summaryValue {
   fill: #f0f3fa;
   font-size: 9.4px;
-  font-weight: 900;
-  stroke: rgba(255,255,255,0.28);
-  stroke-width: 0.22px;
+  font-weight: 950;
+  stroke: rgba(255,255,255,0.42);
+  stroke-width: 0.34px;
   paint-order: stroke fill;
 }
 
 .roundValue {
   fill: #f0f3fa;
   font-size: 12.2px;
-  font-weight: 900;
-  stroke: rgba(255,255,255,0.42);
-  stroke-width: 0.42px;
+  font-weight: 950;
+  stroke: rgba(255,255,255,0.58);
+  stroke-width: 0.55px;
   paint-order: stroke fill;
 }
-      .blueLabel {
-        fill: ${sideThemes[0].label};
-        stroke: rgba(74,139,228,0.58);
-        font-size: 11.8px;
-        font-weight: 900;
-      }
-      .redLabel {
-        fill: ${sideThemes[1].label};
-        stroke: rgba(216,58,63,0.58);
-        font-size: 11.8px;
-        font-weight: 900;
-      }
-      .summaryBlueLabel {
-        fill: ${sideThemes[0].label};
-        stroke: rgba(74,139,228,0.58);
-        font-size: 8.8px;
-        font-weight: 900;
-      }
-      .summaryRedLabel {
-        fill: ${sideThemes[1].label};
-        stroke: rgba(216,58,63,0.58);
-        font-size: 8.8px;
-        font-weight: 900;
-      }
-      .time {
-        fill: #ffffff;
-        font-size: 12px;
-        font-weight: 900;
-      }
-      .versus {
-        fill: #ffd620;
-        font-size: 39px;
-        font-weight: 900;
-      }
-      .footer {
-        font-size: 14px;
-        font-weight: 900;
-      }
-      .footerName {
-        fill: #f1fff0;
-        stroke: rgba(241,255,240,0.55);
-      }
-      .footerKeyword {
-        fill: #82bd86;
-        stroke: rgba(130,189,134,0.55);
-      }
-      .footerDate {
-        fill: #a8d9aa;
-        stroke: rgba(168,217,170,0.5);
-      }
+
+.blueLabel {
+  fill: ${sideThemes[0].label};
+  stroke: rgba(74,139,228,0.72);
+  stroke-width: 0.36px;
+  font-size: 11.8px;
+  font-weight: 950;
+  paint-order: stroke fill;
+}
+
+.redLabel {
+  fill: ${sideThemes[1].label};
+  stroke: rgba(216,58,63,0.72);
+  stroke-width: 0.36px;
+  font-size: 11.8px;
+  font-weight: 950;
+  paint-order: stroke fill;
+}
+
+.summaryBlueLabel {
+  fill: ${sideThemes[0].label};
+  stroke: rgba(74,139,228,0.72);
+  stroke-width: 0.28px;
+  font-size: 8.8px;
+  font-weight: 950;
+  paint-order: stroke fill;
+}
+
+.summaryRedLabel {
+  fill: ${sideThemes[1].label};
+  stroke: rgba(216,58,63,0.72);
+  stroke-width: 0.28px;
+  font-size: 8.8px;
+  font-weight: 950;
+  paint-order: stroke fill;
+}
+
+.time {
+  fill: #ffffff;
+  font-size: 12px;
+  font-weight: 950;
+  stroke: rgba(255,255,255,0.48);
+  stroke-width: 0.35px;
+  paint-order: stroke fill;
+}
+
+.versus {
+  fill: #ffd620;
+  font-size: 39px;
+  font-weight: 950;
+  stroke: rgba(255,214,32,0.55);
+  stroke-width: 0.5px;
+  paint-order: stroke fill;
+}
+
+.footer {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.footerName {
+  fill: #f1fff0;
+  stroke: rgba(241,255,240,0.72);
+  stroke-width: 0.45px;
+  paint-order: stroke fill;
+}
+
+.footerKeyword {
+  fill: #82bd86;
+  stroke: rgba(130,189,134,0.72);
+  stroke-width: 0.4px;
+  paint-order: stroke fill;
+}
+
+.footerDate {
+  fill: #a8d9aa;
+  stroke: rgba(168,217,170,0.68);
+  stroke-width: 0.38px;
+  paint-order: stroke fill;
+}
     </style>
   </defs>
   <rect width="${width}" height="${height}" fill="#000000"/>
