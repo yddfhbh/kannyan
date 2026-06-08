@@ -462,10 +462,10 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
 
   const columns = [
     { valueX: 42, labelX: 49, label: 'APM', value: formatDecimal(stats?.apm, 2) },
-    { separatorX: 70, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5 },
+    { separatorX: 72, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
 
     { valueX: 96, labelX: 103, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
-    { separatorX: 123, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5 },
+    { separatorX: 125, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
 
     { valueX: 160, labelX: 167, label: 'VS', value: formatDecimal(stats?.vsscore, 2) },
   ];
@@ -497,11 +497,11 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
     const items = [
   { x: vsEndX - 178, anchor: 'end', className: valueClass, text: apmText, numeric: true },
   { x: vsEndX - 169, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: vsEndX - 141, anchor: 'middle', className: valueClass, text: '-' },
+  { x: vsEndX - 133, anchor: 'middle', className: valueClass, text: '-' },
 
   { x: vsEndX - 106, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
   { x: vsEndX - 97, anchor: 'start', className: labelClass, text: 'PPS' },
-  { x: vsEndX - 72, anchor: 'middle', className: valueClass, text: '-' },
+  { x: vsEndX - 68, anchor: 'middle', className: valueClass, text: '-' },
 
   { x: vsEndX - 25, anchor: 'end', className: valueClass, text: vsText, numeric: true },
   { x: vsEndX, anchor: 'end', className: labelClass, text: 'VS' },
@@ -537,7 +537,9 @@ function renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass) 
   return columns.map((column) => {
     if (Number.isFinite(column.separatorX)) {
       const fontSize = Number.isFinite(column.fontSize) ? ` font-size="${column.fontSize}"` : '';
-      return `<text x="${blockX + column.separatorX}" y="${baselineY}" text-anchor="middle" dominant-baseline="middle" class="${column.separatorClass ?? valueClass}"${fontSize}>${column.separator ?? '-'}</text>`;
+      const separatorY = baselineY + (Number(column.yOffset) || 0);
+
+return `<text x="${blockX + column.separatorX}" y="${separatorY}" text-anchor="middle" dominant-baseline="middle" class="${column.separatorClass ?? valueClass}"${fontSize}>${column.separator ?? '-'}</text>`;
     }
 
     return `<text x="${blockX + column.valueX}" y="${baselineY}" text-anchor="end" dominant-baseline="middle" class="${valueClass}">${renderLeagueNumberMarkup(column.value)}</text>
