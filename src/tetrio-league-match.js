@@ -423,7 +423,7 @@ const scoreX = isLeft ? x + panelWidth - scorePadding : x + scorePadding;
     : `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + height}" stroke="${theme.border}" stroke-width="1.05" opacity="0.9"/>`
   }
 </g>
-  <text x="${textX}" y="${y + 20}" text-anchor="${textAnchor}" class="username">${escapeXml(player.username.toUpperCase())}</text>
+ <text x="${textX}" y="${y + 20}" text-anchor="${textAnchor}" class="username">${renderLeagueUsernameMarkup(player.username.toUpperCase())}</text>
   <text x="${scoreX}" y="${y + 53}" text-anchor="${textAnchor}" dominant-baseline="middle" class="score" filter="url(#textGlow)">${renderTetrioNumericTextMarkup(formatInteger(player.wins))}</text>
   ${renderSummaryStatsMarkup(player.stats, x, panelWidth, y + height - 14, sideIndex, 'summaryValue', statsClass)}`;
 }
@@ -557,7 +557,7 @@ return `<text x="${blockX + column.separatorX}" y="${separatorY}" text-anchor="m
 function renderFooterTextMarkup(text) {
   const match = String(text ?? '').match(/^(.+?) VERSUS (.+?) PLAYED ON (.+)$/);
   if (!match) {
-    return `<tspan class="footerName">${escapeXml(text)}</tspan>`;
+    return `<tspan class="footerName">${renderLeagueUsernameMarkup(text)}</tspan>`;
   }
 
   const dateMatch = match[3].match(/^(.+?),\s+(.+?)\s+(AM|PM)$/i);
@@ -565,7 +565,32 @@ function renderFooterTextMarkup(text) {
     ? `<tspan dx="7" class="footerDate">${escapeXml(dateMatch[1])},</tspan><tspan dx="7" class="footerDate">${escapeXml(dateMatch[2])}</tspan><tspan dx="5" class="footerDate">${escapeXml(dateMatch[3].toUpperCase())}</tspan>`
     : `<tspan dx="7" class="footerDate">${escapeXml(match[3])}</tspan>`;
 
-  return `<tspan class="footerName">${escapeXml(match[1])}</tspan><tspan dx="8" class="footerKeyword">VERSUS</tspan><tspan dx="8" class="footerName">${escapeXml(match[2])}</tspan><tspan dx="8" class="footerKeyword">PLAYED</tspan><tspan dx="5" class="footerKeyword">ON</tspan>${dateMarkup}`;
+  return `<tspan class="footerName">${renderLeagueUsernameMarkup(match[1])}</tspan><tspan dx="8" class="footerKeyword">VERSUS</tspan><tspan dx="8" class="footerName">${renderLeagueUsernameMarkup(match[2])}</tspan><tspan dx="8" class="footerKeyword">PLAYED</tspan><tspan dx="5" class="footerKeyword">ON</tspan>${dateMarkup}`;}
+
+function renderLeagueUsernameMarkup(value) {
+  const text = String(value ?? '');
+  let markup = '';
+  let currentOffsetEm = 0;
+
+  for (const char of text) {
+    const targetOffsetEm = char === '_' ? -0.08 : 0;
+    const deltaEm = targetOffsetEm - currentOffsetEm;
+    const dy = Math.abs(deltaEm) > 0.0001
+      ? ` dy="${roundSvgNumber(deltaEm)}em"`
+      : '';
+
+    if (char === '_') {
+      markup += `<tspan${dy} font-family="Arial, Helvetica, sans-serif" font-size="1.05em" font-weight="900" stroke="none">_</tspan>`;
+    } else {
+      markup += dy
+        ? `<tspan${dy}>${escapeXml(char)}</tspan>`
+        : escapeXml(char);
+    }
+
+    currentOffsetEm = targetOffsetEm;
+  }
+
+  return markup;
 }
 
 function renderLeagueNumberMarkup(value) {
