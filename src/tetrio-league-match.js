@@ -547,8 +547,8 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
 
   const blueSep1Nudge = -4;
   const blueSep2Nudge = -4;
-  const redSep1Nudge = 3;
-  const redSep2Nudge = 3;
+  const redSep1Nudge = 1;
+  const redSep2Nudge = 1;
 
   const labelNudge = isLeft ? blueLabelNudge : 0;
   const valueNudge = isLeft ? 0 : redValueNudge;
