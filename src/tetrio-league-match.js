@@ -366,12 +366,13 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 }
 
 .redLabel {
-  fill: ${sideThemes[1].label};
-  stroke: rgba(216,58,63,0.86);
+  fill: #ff6a6a;
+  stroke: rgba(120,20,24,0.65);
   stroke-width: 0.48px;
   font-size: 11.8px;
   font-weight: 950;
   paint-order: stroke fill;
+  opacity: 1;
 }
 
 .summaryBlueLabel {
@@ -381,24 +382,17 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   font-size: 8.8px;
   font-weight: 950;
   paint-order: stroke fill;
+  opacity: 1;
 }
 
 .summaryRedLabel {
   fill: #ff6a6a;
-  stroke: rgba(70, 0, 0, 0.55);
-  stroke-width: 0.35px;
+  stroke: rgba(120,20,24,0.65);
+  stroke-width: 0.36px;
+  font-size: 8.8px;
+  font-weight: 950;
   paint-order: stroke fill;
   opacity: 1;
-  font-weight: 800;
-}
-
-.roundRedLabel {
-  fill: #ff6a6a;
-  stroke: rgba(70, 0, 0, 0.55);
-  stroke-width: 0.35px;
-  paint-order: stroke fill;
-  opacity: 1;
-  font-weight: 800;
 }
 .time {
   fill: #ffffff;
@@ -547,22 +541,23 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
   const blockWidth = 166;
   const blockX = isLeft ? x + width - blockWidth - 20 : x - 12;
 
-  // 내부 간격 보정
-  const blueLabelNudge = -4;   // 파란 라벨 약간 왼쪽
-  const redValueNudge = 3;     // 빨간 숫자 약간 오른쪽
+  // 위치 보정
+  const blueLabelNudge = -4;
+  const redValueNudge = 3;
 
-  // 구분자 보정
-  const blueSep1Nudge = -4;    // 파란 첫 구분자 더 왼쪽
-  const blueSep2Nudge = -4;    // 파란 두번째 구분자 더 왼쪽
-  const redSep1Nudge = 3;      // 빨간 첫 구분자 오른쪽
-  const redSep2Nudge = 3;      // 빨간 두번째 구분자 오른쪽
+  const blueSep1Nudge = -4;
+  const blueSep2Nudge = -4;
+  const redSep1Nudge = 3;
+  const redSep2Nudge = 3;
 
   const labelNudge = isLeft ? blueLabelNudge : 0;
   const valueNudge = isLeft ? 0 : redValueNudge;
   const sep1Nudge = isLeft ? blueSep1Nudge : redSep1Nudge;
   const sep2Nudge = isLeft ? blueSep2Nudge : redSep2Nudge;
 
-  const separatorFontSize = isLeft ? 6.5 : 7.6;
+  // 좌우 동일하게 통일
+  const separatorFontSize = 6.8;
+  const separatorYOffset = -1.2;
 
   const columns = [
     {
@@ -576,7 +571,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
       separator: '&#9635;',
       separatorClass: labelClass,
       fontSize: separatorFontSize,
-      yOffset: -1.2,
+      yOffset: separatorYOffset,
     },
 
     {
@@ -590,7 +585,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
       separator: '&#9635;',
       separatorClass: labelClass,
       fontSize: separatorFontSize,
-      yOffset: -1.2,
+      yOffset: separatorYOffset,
     },
 
     {
