@@ -506,47 +506,23 @@ function renderRoundSide(side, sideIndex, y, height, centerX) {
 function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
   const isLeft = sideIndex === 0;
   const blockWidth = 166;
-  const blockX = isLeft ? x + width - blockWidth - 20 : x - 12;
 
-  // 보정값
-  const blueLabelNudge = -4;   // 파란쪽 APM/PPS/VS 라벨을 왼쪽으로
-  const redValueNudge = 3;     // 빨간쪽 숫자를 오른쪽으로
+  // 줄 전체 위치만 보정
+  const leftBlockNudge = -3;   // 파란쪽 전체를 왼쪽으로
+  const rightBlockNudge = 3;   // 빨간쪽 전체를 오른쪽으로
+
+  const blockX = isLeft
+    ? x + width - blockWidth - 20 + leftBlockNudge
+    : x - 12 + rightBlockNudge;
 
   const columns = [
-    {
-      valueX: 42 + (isLeft ? 0 : redValueNudge),
-      labelX: 49 + (isLeft ? blueLabelNudge : 0),
-      label: 'APM',
-      value: formatDecimal(stats?.apm, 2),
-    },
-    {
-      separatorX: 73,
-      separator: '&#9635;',
-      separatorClass: labelClass,
-      fontSize: 6.5,
-      yOffset: -1.2,
-    },
+    { valueX: 42, labelX: 49, label: 'APM', value: formatDecimal(stats?.apm, 2) },
+    { separatorX: 73, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
 
-    {
-      valueX: 96 + (isLeft ? 0 : redValueNudge),
-      labelX: 103 + (isLeft ? blueLabelNudge : 0),
-      label: 'PPS',
-      value: formatDecimal(stats?.pps, 2),
-    },
-    {
-      separatorX: 125,
-      separator: '&#9635;',
-      separatorClass: labelClass,
-      fontSize: 6.5,
-      yOffset: -1.2,
-    },
+    { valueX: 96, labelX: 103, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
+    { separatorX: 125, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
 
-    {
-      valueX: 160 + (isLeft ? 0 : redValueNudge),
-      labelX: 167 + (isLeft ? blueLabelNudge : 0),
-      label: 'VS',
-      value: formatDecimal(stats?.vsscore, 2),
-    },
+    { valueX: 160, labelX: 167, label: 'VS', value: formatDecimal(stats?.vsscore, 2) },
   ];
 
   return renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass);
