@@ -426,6 +426,12 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   stroke-width: 0.5px;
   paint-order: stroke fill;
 }
+  .footerUnderscore {
+  fill: #f1fff0;
+  stroke: rgba(241,255,240,0.65);
+  stroke-width: 0.25px;
+  opacity: 1;
+}
     </style>
   </defs>
   <rect width="${width}" height="${height}" fill="#000000"/>
@@ -433,7 +439,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   <text x="${centerX}" y="73" text-anchor="middle" dominant-baseline="middle" class="versus" filter="url(#textGlow)">VS</text>
   ${rows}
   <rect x="12" y="${footerY}" width="${width - 24}" height="${footerHeight}" fill="#203c27" stroke="#48704d" stroke-width="0.8"/>
-  <text x="24" y="${footerY + footerHeight / 2 + 1}" dominant-baseline="middle" class="footer" xml:space="preserve">${renderFooterTextMarkup(match.footerText)}</text>
+ <text x="24" y="${footerY + footerHeight / 2 + 1}" dominant-baseline="middle" class="footer" xml:space="preserve">${renderFooterTextMarkup(match.footerText)}</text>
 </svg>`;
 }
 
@@ -521,7 +527,7 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
     { separatorX: 73, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
 
     { valueX: 96 + valueNudge, labelX: 103 + labelNudge, label: 'PPS', value: formatDecimal(stats?.pps, 2) },
-    { separatorX: 125, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
+    { separatorX: isLeft ? 128 : 125, separator: '&#9635;', separatorClass: labelClass, fontSize: 6.5, yOffset: -1.2 },
 
     { valueX: 160 + valueNudge, labelX: 167 + labelNudge, label: 'VS', value: formatDecimal(stats?.vsscore, 2) },
   ];
@@ -616,6 +622,100 @@ function renderFooterTextMarkup(text) {
 
   return `<tspan class="footerName">${renderLeagueUsernameMarkup(match[1])}</tspan><tspan dx="8" class="footerKeyword">VERSUS</tspan><tspan dx="8" class="footerName">${renderLeagueUsernameMarkup(match[2])}</tspan><tspan dx="8" class="footerKeyword">PLAYED</tspan><tspan dx="5" class="footerKeyword">ON</tspan>${dateMarkup}`;}
 
+
+function estimateFooterCharWidth(char, fontSize = 14) {
+  if (char === ' ') return fontSize * 0.34;
+  if (char === 'I' || char === '1' || char === 'L') return fontSize * 0.34;
+  if (char === 'M' || char === 'W') return fontSize * 0.88;
+  if (/[0-9]/.test(char)) return fontSize * 0.58;
+  return fontSize * 0.62;
+}
+
+function measureFooterTextWidth(text, fontSize = 14) {
+  return [...String(text ?? '')].reduce((sum, char) => {
+    if (char === '_') return sum + 8.8;
+    return sum + estimateFooterCharWidth(char, fontSize);
+  }, 0);
+}
+
+function renderFooterPlainText(text, x, y, className) {
+  const value = String(text ?? '');
+
+  return {
+    markup: `<text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer ${className}">${escapeXml(value)}</text>`,
+    width: measureFooterTextWidth(value),
+  };
+}
+
+function renderFooterNameText(text, x, y) {
+  const raw = String(text ?? '');
+  const displayText = raw.replaceAll('_', '');
+  const rects = [];
+
+  for (let i = 0; i < raw.length; i += 1) {
+    if (raw[i] !== '_') continue;
+
+    const prefixText = raw.slice(0, i).replaceAll('_', '');
+    const prefixWidth = measureFooterTextWidth(prefixText);
+
+    const rectX = x + prefixWidth + 1.6;
+    const rectY = y + 5.1;
+    const rectWidth = 8.8;
+    const rectHeight = 1.7;
+
+    rects.push(
+      `<rect x="${roundSvgNumber(rectX)}" y="${roundSvgNumber(rectY)}" width="${rectWidth}" height="${rectHeight}" class="footerUnderscore"/>`
+    );
+  }
+
+  return {
+    markup: `<g><text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer footerName">${escapeXml(displayText)}</text>${rects.join('')}</g>`,
+    width: measureFooterTextWidth(raw),
+  };
+}
+
+function renderFooterLineMarkup(text, x, y) {
+  const match = String(text ?? '').match(/^(.+?) VERSUS (.+?) PLAYED ON (.+)$/);
+
+  if (!match) {
+    const fallback = renderFooterNameText(text, x, y);
+    return `<g>${fallback.markup}</g>`;
+  }
+
+  const parts = [];
+  let cursorX = x;
+
+  const addName = (value, gap = 0) => {
+    cursorX += gap;
+    const part = renderFooterNameText(value, cursorX, y);
+    parts.push(part.markup);
+    cursorX += part.width;
+  };
+
+  const addText = (value, className, gap = 0) => {
+    cursorX += gap;
+    const part = renderFooterPlainText(value, cursorX, y, className);
+    parts.push(part.markup);
+    cursorX += part.width;
+  };
+
+  addName(match[1]);
+  addText('VERSUS', 'footerKeyword', 8);
+  addName(match[2], 8);
+  addText('PLAYED', 'footerKeyword', 8);
+  addText('ON', 'footerKeyword', 5);
+
+  const dateMatch = match[3].match(/^(.+?),\s+(.+?)\s+(AM|PM)$/i);
+  if (dateMatch) {
+    addText(`${dateMatch[1]},`, 'footerDate', 7);
+    addText(dateMatch[2], 'footerDate', 7);
+    addText(dateMatch[3].toUpperCase(), 'footerDate', 5);
+  } else {
+    addText(match[3], 'footerDate', 7);
+  }
+
+  return `<g>${parts.join('\n  ')}</g>`;
+}
 
 function estimateLeagueUsernameCharWidth(char, fontSize = 17) {
   if (char === ' ') return fontSize * 0.33;
