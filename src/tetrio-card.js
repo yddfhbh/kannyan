@@ -1711,7 +1711,7 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
     if (/^_+$/.test(part)) {
       needsBaselineRestore = true;
 
-      return `<tspan font-family="DejaVu Sans Mono, Consolas, monospace" font-size="1.16em" font-weight="900" dy="${underscoreShiftEm}em" dx="${underscoreDxEm}em" letter-spacing="${underscoreLetterSpacingEm}em">${escapeXml(part)}</tspan>`;
+      return `<tspan font-family="DejaVu Sans Mono, Consolas, monospace" font-size="1em" font-weight="900" dy="${underscoreShiftEm}em" dx="${underscoreDxEm}em" letter-spacing="${underscoreLetterSpacingEm}em">${escapeXml(part)}</tspan>`;
     }
 
     const restoreDy = needsBaselineRestore
