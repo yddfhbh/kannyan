@@ -625,11 +625,10 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   fontDataUri: assets.hunFont,
   fontWeight: headerNameFontWeight,
 });
-const headerFlagNameWidth = adjustHeaderFlagNameWidth(
-  headerUsername,
-  headerNameWidth,
-  headerNameFontSize,
-);
+
+const headerFlagGap = 16;
+const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
+const headerFlagY = bannerY + 31;
   
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
   const headerNameMarkup = await renderHeaderUsernameMarkup({
@@ -879,7 +878,7 @@ const headerFlagNameWidth = adjustHeaderFlagNameWidth(
   <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="8" fill="none" stroke="#d9ffe2" stroke-width="2" opacity="0.25"/>
 
   ${headerNameMarkup}
-${renderHeaderFlag(flag, nameX, bannerY + 28, headerFlagNameWidth)}
+${renderHeaderFlag(flag, headerFlagX, headerFlagY)}
   <text x="${avatarX + avatarSize + 18}" y="${bannerY + 77}" class="${headerMetaClass}" font-size="14" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))} ${renderTetrioTextMarkup('FRIENDS')}</text>
   ${renderLevelTag(levelTag, contentX, levelTagY)}
   ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
@@ -1593,18 +1592,12 @@ function adjustHeaderFlagNameWidth(text, measuredWidth, fontSize) {
   return measuredWidth;
 }
 
-function renderHeaderFlag(flag, nameX, y, nameWidth) {
-  if (!flag) {
+function renderHeaderFlag(flag, x, y) {
+  if (!flag?.image) {
     return '';
   }
 
-  const flagWidth = 30;
-  const flagHeight = 20;
-  const maxX = 894;
-  const x = Math.min(nameX + nameWidth + 8, maxX);
-  const adjustedY = y - 5;
-
-  return `<image href="${flag.image}" x="${x}" y="${adjustedY}" width="${flagWidth}" height="${flagHeight}" preserveAspectRatio="xMidYMid meet"/>`;
+  return `<image href="${flag.image}" x="${x}" y="${y}" width="28" height="20" preserveAspectRatio="xMidYMid meet"/>`;
 }
 
 async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWeight = 700) {
