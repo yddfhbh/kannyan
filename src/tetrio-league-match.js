@@ -816,7 +816,22 @@ function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
   const fontSize = 17;
   const totalWidth = measureLeagueUsernameWidth(displayText, fontSize);
 
-  const textMarkup = `<text x="${x}" y="${y}" text-anchor="${anchor}" class="username">${escapeXml(displayText)}</text>`;
+  const rectWidth = 10;
+  const rectHeight = 2.0;
+  const rectY = y + 0.3;
+
+  // 왼쪽 패널(anchor=end)에서 닉네임이 _로 끝나면
+  // 언더바가 x 밖으로 나가므로 미리 오른쪽 여백을 확보
+  const trailingUnderscoreReserve =
+    anchor === 'end' && raw.endsWith('_')
+      ? rectWidth + 4
+      : 0;
+
+  const textX = anchor === 'end'
+    ? x - trailingUnderscoreReserve
+    : x;
+
+  const textMarkup = `<text x="${roundSvgNumber(textX)}" y="${y}" text-anchor="${anchor}" class="username">${escapeXml(displayText)}</text>`;
 
   const rects = [];
 
@@ -825,14 +840,13 @@ function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
 
     const prefixText = raw.slice(0, i).replaceAll('_', '');
     const prefixWidth = measureLeagueUsernameWidth(prefixText, fontSize);
+    const previousChar = raw[i - 1] ?? '';
 
-    const rectWidth = 10;
-    const rectHeight = 2.0;
-    const rectY = y + 0.3;
+    const nudgeX = getLeagueUsernameUnderscoreNudge(previousChar);
 
     const rectX = anchor === 'end'
-      ? x - totalWidth + prefixWidth + 6
-      : x + prefixWidth + 6;
+      ? textX - totalWidth + prefixWidth + nudgeX
+      : textX + prefixWidth + nudgeX;
 
     rects.push(
       `<rect x="${roundSvgNumber(rectX)}" y="${roundSvgNumber(rectY)}" width="${rectWidth}" height="${rectHeight}" class="usernameUnderscore"/>`
@@ -840,6 +854,17 @@ function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
   }
 
   return `<g>${textMarkup}${rects.join('')}</g>`;
+}
+
+function getLeagueUsernameUnderscoreNudge(previousChar) {
+  const char = String(previousChar ?? '').toUpperCase();
+
+  // I 뒤는 너무 오른쪽으로 밀면 밖으로 나가기 쉬움
+  if (char === 'I' || char === '1' || char === 'L') {
+    return 3.2;
+  }
+
+  return 5.6;
 }
 
 function renderLeagueUsernameMarkup(value) {
