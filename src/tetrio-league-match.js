@@ -727,29 +727,49 @@ function renderFooterPlainText(text, x, y, className, fontSize = 14) {
 }
 
 function renderFooterNameText(text, x, y) {
-  const raw = String(text ?? '');
-  const displayText = raw.replaceAll('_', '');
-  const rects = [];
+  const raw = String(text ?? '').toUpperCase();
 
-  for (let i = 0; i < raw.length; i += 1) {
-    if (raw[i] !== '_') continue;
+  if (!raw.includes('_')) {
+    return {
+      markup: `<text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer footerName">${escapeXml(raw)}</text>`,
+      width: measureFooterTextWidth(raw),
+    };
+  }
 
-    const prefixText = raw.slice(0, i).replaceAll('_', '');
-    const prefixWidth = measureFooterTextWidth(prefixText);
+  let cursorX = x;
+  let markup = '';
 
-    const rectX = x + prefixWidth + 3.8;
-    const rectY = y + 5.1;
-    const rectWidth = 8.8;
-    const rectHeight = 1.7;
+  for (const char of raw) {
+    if (char === '_') {
+      const metrics = getFooterUnderscoreMetrics();
 
-    rects.push(
-      `<rect x="${roundSvgNumber(rectX)}" y="${roundSvgNumber(rectY)}" width="${rectWidth}" height="${rectHeight}" class="footerUnderscore"/>`
-    );
+      markup += `<rect x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" width="${metrics.width}" height="${metrics.height}" class="footerUnderscore"/>`;
+      cursorX += metrics.advance;
+      continue;
+    }
+
+    markup += `<text x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer footerName">${escapeXml(char)}</text>`;
+    cursorX += estimateFooterCharWidth(char);
   }
 
   return {
-    markup: `<g><text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer footerName">${escapeXml(displayText)}</text>${rects.join('')}</g>`,
-    width: measureFooterTextWidth(raw),
+    markup: `<g>${markup}</g>`,
+    width: cursorX - x,
+  };
+}
+
+function getFooterUnderscoreMetrics() {
+  const beforeGap = 2.6;
+  const width = 8.8;
+  const afterGap = 2.4;
+
+  return {
+    beforeGap,
+    width,
+    afterGap,
+    advance: beforeGap + width + afterGap,
+    height: 1.7,
+    yOffset: 5.1,
   };
 }
 
@@ -812,48 +832,64 @@ function measureLeagueUsernameWidth(text, fontSize = 17) {
 
 function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
   const raw = String(text ?? '').toUpperCase();
-  const displayText = raw.replaceAll('_', '');
   const fontSize = 17;
-  const totalWidth = measureLeagueUsernameWidth(displayText, fontSize);
 
-  const rectWidth = 10;
-  const rectHeight = 2.0;
-  const rectY = y + 0.3;
-
-  // 왼쪽 패널(anchor=end)에서 닉네임이 _로 끝나면
-  // 언더바가 x 밖으로 나가므로 미리 오른쪽 여백을 확보
-  const trailingUnderscoreReserve =
-    anchor === 'end' && raw.endsWith('_')
-      ? rectWidth + 4
-      : 0;
-
-  const textX = anchor === 'end'
-    ? x - trailingUnderscoreReserve
-    : x;
-
-  const textMarkup = `<text x="${roundSvgNumber(textX)}" y="${y}" text-anchor="${anchor}" class="username">${escapeXml(displayText)}</text>`;
-
-  const rects = [];
-
-  for (let i = 0; i < raw.length; i += 1) {
-    if (raw[i] !== '_') continue;
-
-    const prefixText = raw.slice(0, i).replaceAll('_', '');
-    const prefixWidth = measureLeagueUsernameWidth(prefixText, fontSize);
-    const previousChar = raw[i - 1] ?? '';
-
-    const nudgeX = getLeagueUsernameUnderscoreNudge(previousChar);
-
-    const rectX = anchor === 'end'
-      ? textX - totalWidth + prefixWidth + nudgeX
-      : textX + prefixWidth + nudgeX;
-
-    rects.push(
-      `<rect x="${roundSvgNumber(rectX)}" y="${roundSvgNumber(rectY)}" width="${rectWidth}" height="${rectHeight}" class="usernameUnderscore"/>`
-    );
+  if (!raw.includes('_')) {
+    return `<text x="${roundSvgNumber(x)}" y="${y}" text-anchor="${anchor}" class="username">${escapeXml(raw)}</text>`;
   }
 
-  return `<g>${textMarkup}${rects.join('')}</g>`;
+  const totalWidth = measureLeagueUsernameRenderedWidth(raw, fontSize);
+  const startX = anchor === 'end'
+    ? x - totalWidth
+    : x;
+
+  let cursorX = startX;
+  let markup = '';
+
+  for (const char of raw) {
+    if (char === '_') {
+      const metrics = getLeagueUsernameUnderscoreMetrics(fontSize);
+
+      markup += `<rect x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" width="${metrics.width}" height="${metrics.height}" class="usernameUnderscore"/>`;
+      cursorX += metrics.advance;
+      continue;
+    }
+
+    markup += `<text x="${roundSvgNumber(cursorX)}" y="${y}" class="username">${escapeXml(char)}</text>`;
+    cursorX += estimateLeagueUsernameCharWidth(char, fontSize);
+  }
+
+  return `<g>${markup}</g>`;
+}
+
+function measureLeagueUsernameRenderedWidth(text, fontSize = 17) {
+  let width = 0;
+
+  for (const char of String(text ?? '').toUpperCase()) {
+    if (char === '_') {
+      width += getLeagueUsernameUnderscoreMetrics(fontSize).advance;
+      continue;
+    }
+
+    width += estimateLeagueUsernameCharWidth(char, fontSize);
+  }
+
+  return width;
+}
+
+function getLeagueUsernameUnderscoreMetrics(fontSize = 17) {
+  const beforeGap = fontSize * 0.18;
+  const width = fontSize * 0.58;
+  const afterGap = fontSize * 0.16;
+
+  return {
+    beforeGap,
+    width,
+    afterGap,
+    advance: beforeGap + width + afterGap,
+    height: 2.0,
+    yOffset: 0.3,
+  };
 }
 
 function getLeagueUsernameUnderscoreNudge(previousChar) {

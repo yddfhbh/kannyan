@@ -1811,12 +1811,12 @@ const underscoreAfterGap = underscore.afterGap;
 function getHeaderUnderscorePullback(previousChar, fontSize) {
   const char = String(previousChar ?? '').toUpperCase();
 
-  // 닉네임이 _로 시작하는 경우: 왼쪽으로 당기지 말고 오히려 오른쪽으로 밀기
-  // cursorX -= 반환값 구조라서 음수를 반환하면 오른쪽으로 감
+  // _ILIS 같은 시작 언더바는 오른쪽으로 밀어야 하니까 유지
   if (!char) {
     return fontSize * -0.12;
   }
 
+  // HEBI_, AIRI_ 같은 I 뒤 언더바는 거의 당기면 안 됨
   if (char === 'I' || char === '1') {
     return fontSize * 0.02;
   }
@@ -1825,7 +1825,8 @@ function getHeaderUnderscorePullback(previousChar, fontSize) {
     return fontSize * 0.07;
   }
 
-  return fontSize * 0.16;
+  // TENDO_ 같은 일반 케이스는 더 왼쪽으로 당김
+  return fontSize * 0.24;
 }
 
 function estimateHeaderNameWidth(username, fontSize) {
