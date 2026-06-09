@@ -1,4 +1,4 @@
-﻿import { readFile } from 'node:fs/promises';
+﻿﻿import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import {
@@ -626,7 +626,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   fontWeight: headerNameFontWeight,
 });
 
-const headerFlagGap = 30;
+const headerFlagGap = 44;
 const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
 const headerFlagY = bannerY + 31;
   
@@ -1646,7 +1646,12 @@ const trimOffsetLeft = Number.isFinite(info.trimOffsetLeft)
 
 const width = Math.max(
   0,
-  Math.ceil(trimOffsetLeft + info.width - horizontalPadding),
+  Math.ceil(
+    trimOffsetLeft
+    + info.width
+    - horizontalPadding
+    + getHeaderTrailingUnderscoreSpaceWidth(normalizedText, fontSize)
+  ),
 );
 
 cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, width);
@@ -1686,8 +1691,8 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
   const rawText = String(text ?? '').toUpperCase();
   const parts = rawText.split(/(_+)/);
 
- const underscoreShiftEm = -0.28;
-const underscoreWidthRate = 0.78;    // 언더바 1개당 폭. 더 길게 하려면 0.82~0.88
+  const underscoreShiftEm = -0.34; // 언더바 위로 올림
+  const underscoreDxEm = -0.13;    // 언더바를 살짝 왼쪽으로 당김
 
   let needsBaselineRestore = false;
 
@@ -1699,16 +1704,10 @@ const underscoreWidthRate = 0.78;    // 언더바 1개당 폭. 더 길게 하려
     if (/^_+$/.test(part)) {
       needsBaselineRestore = true;
 
-      const forcedWidth = roundSvgNumber(part.length * fontSize * underscoreWidthRate);
+      // 핵심: "_" 하나를 "_ "로 출력해서 언더바 사이/뒤 간격 확보
+      const displayUnderscores = '_ '.repeat(part.length);
 
-      return `<tspan
-        font-family="DejaVu Sans Mono, Consolas, monospace"
-        font-size="1.16em"
-        font-weight="900"
-        dy="${underscoreShiftEm}em"
-        textLength="${forcedWidth}"
-        lengthAdjust="spacingAndGlyphs"
-      >${escapeXml(part)}</tspan>`;
+      return `<tspan font-family="DejaVu Sans Mono, Consolas, monospace" font-size="1.16em" font-weight="900" dy="${underscoreShiftEm}em" dx="${underscoreDxEm}em">${escapeXml(displayUnderscores)}</tspan>`;
     }
 
     const restoreDy = needsBaselineRestore
@@ -1719,6 +1718,18 @@ const underscoreWidthRate = 0.78;    // 언더바 1개당 폭. 더 길게 하려
 
     return `<tspan${restoreDy}>${renderTetrioTextMarkup(part)}</tspan>`;
   }).join('');
+}
+
+function getHeaderTrailingUnderscoreSpaceWidth(text, fontSize) {
+  const rawText = String(text ?? '').toUpperCase();
+  const trailingUnderscores = rawText.match(/_+$/)?.[0]?.length ?? 0;
+
+  if (trailingUnderscores === 0) {
+    return 0;
+  }
+
+  // "_ "에서 마지막 공백은 sharp.trim()이 못 재니까 직접 더함
+  return fontSize * 0.62;
 }
 
 async function renderHeaderUsernameMarkup({
