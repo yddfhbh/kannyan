@@ -1707,15 +1707,21 @@ async function renderHeaderUsernameMarkup({
 function getHeaderUnderscorePullback(previousChar, fontSize) {
   const char = String(previousChar ?? '').toUpperCase();
 
+  // 닉네임이 _로 시작하는 경우: 왼쪽으로 당기지 말고 오히려 오른쪽으로 밀기
+  // cursorX -= 반환값 구조라서 음수를 반환하면 오른쪽으로 감
+  if (!char) {
+    return fontSize * -0.12;
+  }
+
   if (char === 'I' || char === '1') {
-    return fontSize * 0.04;
+    return fontSize * 0.02;
   }
 
   if (char === 'L' || char === 'J') {
-    return fontSize * 0.11;
+    return fontSize * 0.07;
   }
 
-  return fontSize * 0.55;
+  return fontSize * 0.16;
 }
 
 function estimateHeaderNameWidth(username, fontSize) {

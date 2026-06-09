@@ -861,7 +861,7 @@ function getLeagueUsernameUnderscoreNudge(previousChar) {
 
   // I 뒤는 너무 오른쪽으로 밀면 밖으로 나가기 쉬움
   if (char === 'I' || char === '1' || char === 'L') {
-    return 3.2;
+    return 3;
   }
 
   return 5.6;
