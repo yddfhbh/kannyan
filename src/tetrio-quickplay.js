@@ -539,11 +539,12 @@ function renderQuickPlayMetaName(rawName, startX, y, options = {}) {
   const fillAttr = isShadow ? ' fill="#000000"' : '';
   const underlineFillAttr = isShadow ? ' fill="#000000"' : ' fill="#f6fff5"';
 
+  const letterSpacing = 2.4; // 여기 숫자 키우면 자간 더 벌어짐
   const underscoreWidth = fontSize * 0.44;
   const underscoreHeight = Math.max(3.2, fontSize * 0.095);
   const underscoreYOffset = fontSize * 0.34;
   const underscoreNudgeX = fontSize * 0.24;
-  const underscoreAdvance = fontSize * 0.64;
+  const underscoreAdvance = fontSize * 0.64 + letterSpacing;
 
   let cursorX = startX;
   let markup = '';
@@ -556,19 +557,27 @@ function renderQuickPlayMetaName(rawName, startX, y, options = {}) {
     }
 
     markup += `<text x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="${textClass}"${fillAttr}${opacityAttr}>${escapeXml(char)}</text>`;
-    cursorX += estimateQuickPlayMetaCharWidth(char, fontSize);
+    cursorX += estimateQuickPlayMetaCharWidth(char, fontSize) + letterSpacing;
   }
 
   return markup;
 }
 
 function estimateQuickPlayMetaNameWidth(rawName, fontSize = 34) {
+  const text = String(rawName ?? '').toUpperCase();
+  const letterSpacing = 2.4;
   let width = 0;
 
-  for (const char of String(rawName ?? '').toUpperCase()) {
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+
     width += char === '_'
       ? fontSize * 0.64
       : estimateQuickPlayMetaCharWidth(char, fontSize);
+
+    if (i < text.length - 1) {
+      width += letterSpacing;
+    }
   }
 
   return width;
