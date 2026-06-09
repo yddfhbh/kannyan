@@ -1671,40 +1671,69 @@ async function renderHeaderUsernameMarkup({
 
 // 카드 헤더는 segmentWidth가 실제 렌더보다 살짝 크게 잡혀서
 // 언더바 앞이 벌어져 보이므로 보정
-if (parts.length > 0) {
-  cursorX -= fontSize * 0.45;
-}
+for (const char of rawText) {
+  if (char !== '_') {
+    if (!segment) {
+      segmentX = cursorX;
+    }
 
-const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 1.7);
-    const underscoreHeight = roundSvgNumber(Math.max(5.0, fontSize * 0.11));
+    segment += char;
+    continue;
+  }
 
-    // 위아래 위치는 이 값으로 조절
-    const underscoreY = roundSvgNumber(y - fontSize * 0.045);
+  const segmentBeforeUnderscore = segment;
 
-    // 앞 글자와 언더바 사이 간격
-    const underscoreBeforeGap = fontSize * 0.10;
-const underscoreAfterGap = fontSize * 0.15;
+  await flushSegment();
 
-const rectX = roundSvgNumber(cursorX + underscoreBeforeGap);
-    parts.push(
+  const previousChar = segmentBeforeUnderscore.at(-1) ?? '';
+  cursorX -= getHeaderUnderscorePullback(previousChar, fontSize);
+
+  const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 1.7);
+  const underscoreHeight = roundSvgNumber(Math.max(5.0, fontSize * 0.11));
+  const underscoreY = roundSvgNumber(y - fontSize * 0.045);
+
+  const underscoreBeforeGap = fontSize * 0.10;
+  const underscoreAfterGap = fontSize * 0.15;
+
+  const rectX = roundSvgNumber(cursorX + underscoreBeforeGap);
+
+  parts.push(
     `<rect
-     x="${rectX}"
-     y="${underscoreY}"
-     width="${underscoreWidth}"
+      x="${rectX}"
+      y="${underscoreY}"
+      width="${underscoreWidth}"
       height="${underscoreHeight}"
       rx="0"
-     class="${underscoreClassName}"
-     filter="url(#headerUnderscoreShadow)"
-   />`,
+      class="${underscoreClassName}"
+      filter="url(#headerUnderscoreShadow)"
+    />`,
   );
 
-    cursorX += underscoreBeforeGap + underscoreWidth + underscoreAfterGap;
-    segmentX = cursorX;
+  cursorX += underscoreBeforeGap + underscoreWidth + underscoreAfterGap;
+  segmentX = cursorX;
+}
   }
 
   await flushSegment();
 
   return `<g>${parts.join('')}</g>`;
+}
+
+function getHeaderUnderscorePullback(previousChar, fontSize) {
+  const char = String(previousChar ?? '').toUpperCase();
+
+  // I는 폭이 좁아서 추가로 많이 당기면 언더바가 과하게 앞으로 감
+  if (char === 'I' || char === '1') {
+    return fontSize * 0.02;
+  }
+
+  // L/J도 좁은 편이라 약하게만 당김
+  if (char === 'L' || char === 'J') {
+    return fontSize * 0.07;
+  }
+
+  // TENDO_ 같은 일반 케이스
+  return fontSize * 0.16;
 }
 
 function estimateHeaderNameWidth(username, fontSize) {
