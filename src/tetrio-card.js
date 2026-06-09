@@ -1633,14 +1633,22 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
     </style>
   </defs>
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
- <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff" xml:space="preserve">${renderTetrioTextMarkup(normalizedText)}</text>
+ <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff" xml:space="preserve">${renderHeaderUsernameInlineMarkup(normalizedText)}</text>
 </svg>`;
     const { info } = await sharp(renderTetrioSvgToPng(measurementSvg, { zoom: 1 }))
-      .png()
-      .trim()
-      .toBuffer({ resolveWithObject: true });
+  .png()
+  .trim()
+  .toBuffer({ resolveWithObject: true });
 
-    const width = info.width;
+const trimOffsetLeft = Number.isFinite(info.trimOffsetLeft)
+  ? info.trimOffsetLeft
+  : horizontalPadding;
+
+const width = Math.max(
+  0,
+  Math.ceil(trimOffsetLeft + info.width - horizontalPadding),
+);
+
 cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, width);
 return width;
   } catch {
@@ -1666,51 +1674,37 @@ async function measureRenderedHeaderUsernameWidth({
 }) {
   const rawText = String(text ?? '').toUpperCase();
 
-  if (!rawText.includes('_')) {
-    return measureHeaderNameWidth(rawText, fontSize, fontDataUri, fontWeight);
-  }
+  return measureHeaderNameWidth(
+    rawText,
+    fontSize,
+    fontDataUri,
+    fontWeight,
+  );
+}
 
-  let cursorX = 0;
-  let segment = '';
+function renderHeaderUsernameInlineMarkup(text) {
+  const rawText = String(text ?? '').toUpperCase();
+  const parts = rawText.split(/(_+)/);
 
-  const flushSegment = async () => {
-    if (!segment) return;
-
-    cursorX += await measureHeaderNameWidth(
-      segment,
-      fontSize,
-      fontDataUri,
-      fontWeight,
-    );
-
-    segment = '';
-  };
-
-  for (const char of rawText) {
-    if (char !== '_') {
-      segment += char;
-      continue;
+  return parts.map((part) => {
+    if (!part) {
+      return '';
     }
 
-    const segmentBeforeUnderscore = segment;
+    if (/^_+$/.test(part)) {
+      return Array.from(part)
+        .map(() => (
+          '<tspan font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-weight="900">_</tspan>'
+        ))
+        .join('');
+    }
 
-    await flushSegment();
-
-    const previousChar = segmentBeforeUnderscore.at(-1) ?? '';
-    cursorX -= getHeaderUnderscorePullback(previousChar, fontSize);
-
-    const underscore = getHeaderUnderscoreMetrics(fontSize);
-    cursorX += underscore.beforeGap + underscore.width + underscore.afterGap;
-  }
-
-  await flushSegment();
-
-  return cursorX;
+    return renderTetrioTextMarkup(part);
+  }).join('');
 }
 
 async function renderHeaderUsernameMarkup({
   className,
-  fontDataUri,
   fontSize,
   fontWeight,
   text,
@@ -1719,86 +1713,7 @@ async function renderHeaderUsernameMarkup({
 }) {
   const rawText = String(text ?? '').toUpperCase();
 
-  if (!rawText.includes('_')) {
-    return `<text x="${x}" y="${y}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderTetrioTextMarkup(rawText)}</text>`;
-  }
-
-  const underscoreClassName = className.includes('noBannerHeaderName')
-    ? 'headerNameUnderscore noBannerHeaderNameUnderscore'
-    : 'headerNameUnderscore';
-
-  const parts = [];
-  let cursorX = x;
-  let segment = '';
-  let segmentX = x;
-
-  const flushSegment = async () => {
-    if (!segment) return;
-
-    parts.push(
-      `<text x="${roundSvgNumber(segmentX)}" y="${roundSvgNumber(y)}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderTetrioTextMarkup(segment)}</text>`,
-    );
-
-    const segmentWidth = await measureHeaderNameWidth(
-      segment,
-      fontSize,
-      fontDataUri,
-      fontWeight,
-    );
-
-    cursorX += segmentWidth;
-    segment = '';
-    segmentX = cursorX;
-  };
-
-  for (const char of rawText) {
-    if (char !== '_') {
-      if (!segment) {
-        segmentX = cursorX;
-      }
-
-      segment += char;
-      continue;
-    }
-
-    const segmentBeforeUnderscore = segment;
-
-    await flushSegment();
-
-    const previousChar = segmentBeforeUnderscore.at(-1) ?? '';
-    cursorX -= getHeaderUnderscorePullback(previousChar, fontSize);
-
-    const underscore = getHeaderUnderscoreMetrics(fontSize);
-
-const underscoreWidth = roundSvgNumber(underscore.width);
-const underscoreHeight = roundSvgNumber(underscore.height);
-const underscoreBeforeGap = underscore.beforeGap;
-const underscoreAfterGap = underscore.afterGap;
-    const underscoreY = roundSvgNumber(y - fontSize * 0.045);
-
-    
-
-    const rectX = roundSvgNumber(cursorX + underscoreBeforeGap);
-
-    parts.push(
-      `<rect
-        x="${rectX}"
-        y="${underscoreY}"
-        width="${underscoreWidth}"
-        height="${underscoreHeight}"
-        rx="0"
-        class="${underscoreClassName}"
-        filter="url(#headerUnderscoreShadow)"
-      />`,
-    );
-
-    cursorX += underscoreBeforeGap + underscoreWidth + underscoreAfterGap;
-    segmentX = cursorX;
-  }
-
-  await flushSegment();
-
-  return `<g>${parts.join('')}</g>`;
+  return `<text x="${x}" y="${y}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderHeaderUsernameInlineMarkup(rawText)}</text>`;
 }
 
 function getHeaderUnderscorePullback(previousChar, fontSize) {
