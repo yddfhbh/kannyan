@@ -626,7 +626,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   fontWeight: headerNameFontWeight,
 });
 
-const headerFlagGap = 120;
+const headerFlagGap = 110;
 const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
 const headerFlagY = bannerY + 22;
   
