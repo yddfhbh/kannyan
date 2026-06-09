@@ -625,6 +625,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
     assets.hunFont,
     headerNameFontWeight
   );
+  const headerFlagNudgeX = getHeaderFlagNudgeX(headerUsername, headerNameFontSize);
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
   const headerNameMarkup = await renderHeaderUsernameMarkup({
     className: headerNameClass,
@@ -873,7 +874,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="8" fill="none" stroke="#d9ffe2" stroke-width="2" opacity="0.25"/>
 
   ${headerNameMarkup}
-  ${renderHeaderFlag(flag, nameX, bannerY + 28, headerNameWidth)}
+ ${renderHeaderFlag(flag, nameX, bannerY + 28, headerNameWidth + headerFlagNudgeX)}
   <text x="${avatarX + avatarSize + 18}" y="${bannerY + 77}" class="${headerMetaClass}" font-size="14" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))} ${renderTetrioTextMarkup('FRIENDS')}</text>
   ${renderLevelTag(levelTag, contentX, levelTagY)}
   ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
@@ -913,6 +914,18 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   ${renderStatCard(484, bottomStatY, 448, 'EXPERT QUICK PLAY', `#${formatRank(zenithEx?.rank)}`, `${formatAltitude(zenithEx?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenithEx?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenithEx?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 30.6, valueFormat: 'altitudeWithUnit', flag, localRank: zenithEx?.rank_local, worldRank: zenithEx?.rank })}
 
 </svg>`;
+}
+
+function getHeaderFlagNudgeX(text, fontSize) {
+  const rawText = String(text ?? '').toUpperCase();
+
+  // 닉네임이 _로 시작하면 renderHeaderUsernameMarkup 쪽에서
+  // 언더바/뒤 글자 전체를 오른쪽으로 밀었으므로 국기도 같이 밀기
+  if (rawText.startsWith('_')) {
+    return fontSize * 0.12;
+  }
+
+  return 0;
 }
 
 function getSupporterBadgeLayout(tier, rightEdge = 920, y = 160) {
