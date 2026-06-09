@@ -540,18 +540,20 @@ function renderQuickPlayMetaName(rawName, startX, y, options = {}) {
   const underlineFillAttr = isShadow ? ' fill="#000000"' : ' fill="#f6fff5"';
 
   const letterSpacing = 2.4; // 여기 숫자 키우면 자간 더 벌어짐
-  const underscoreWidth = fontSize * 0.44;
-  const underscoreHeight = Math.max(3.2, fontSize * 0.095);
-  const underscoreYOffset = fontSize * 0.34;
-  const underscoreNudgeX = fontSize * 0.24;
-  const underscoreAdvance = fontSize * 0.64 + letterSpacing;
+ const underscoreWidth = fontSize * 0.44;
+const underscoreHeight = Math.max(3.2, fontSize * 0.095);
+const underscoreYOffset = fontSize * 0.34;
 
+// 언더바 앞/뒤 간격 분리
+const underscoreBeforeGap = fontSize * 0.07;
+const underscoreAfterGap = fontSize * 0.13;
+const underscoreAdvance = underscoreBeforeGap + underscoreWidth + underscoreAfterGap + letterSpacing;
   let cursorX = startX;
   let markup = '';
 
   for (const char of text) {
     if (char === '_') {
-      markup += `<rect x="${roundSvgNumber(cursorX + underscoreNudgeX)}" y="${roundSvgNumber(y + underscoreYOffset)}" width="${roundSvgNumber(underscoreWidth)}" height="${roundSvgNumber(underscoreHeight)}" rx="${roundSvgNumber(underscoreHeight / 2)}"${underlineFillAttr}${opacityAttr}/>`;
+      markup += `<rect x="${roundSvgNumber(cursorX + underscoreBeforeGap)}" y="${roundSvgNumber(y + underscoreYOffset)}" width="${roundSvgNumber(underscoreWidth)}" height="${roundSvgNumber(underscoreHeight)}" rx="${roundSvgNumber(underscoreHeight / 2)}"${underlineFillAttr}${opacityAttr}/>`;
       cursorX += underscoreAdvance;
       continue;
     }
@@ -572,7 +574,7 @@ function estimateQuickPlayMetaNameWidth(rawName, fontSize = 34) {
     const char = text[i];
 
    width += char === '_'
-  ? fontSize * 0.64
+  ? fontSize * (0.07 + 0.44 + 0.13)
   : estimateQuickPlayMetaNameCharWidth(char, fontSize);
 
     if (i < text.length - 1) {

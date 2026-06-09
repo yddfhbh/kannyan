@@ -1676,10 +1676,10 @@ async function renderHeaderUsernameMarkup({
     const underscoreY = roundSvgNumber(y - fontSize * 0.045);
 
     // 앞 글자와 언더바 사이 간격
-    const underscoreGap = fontSize * 0.13;
+    const underscoreBeforeGap = fontSize * 0.04;
+const underscoreAfterGap = fontSize * 0.15;
 
-    const rectX = roundSvgNumber(cursorX + underscoreGap);
-
+const rectX = roundSvgNumber(cursorX + underscoreBeforeGap);
     parts.push(
     `<rect
      x="${rectX}"
@@ -1692,7 +1692,7 @@ async function renderHeaderUsernameMarkup({
    />`,
   );
 
-    cursorX += underscoreGap + underscoreWidth + fontSize * 0.06;
+    cursorX += underscoreBeforeGap + underscoreWidth + underscoreAfterGap;
     segmentX = cursorX;
   }
 
