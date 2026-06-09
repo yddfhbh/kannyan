@@ -982,7 +982,7 @@ function renderSupporterBadgeMarkup(layout) {
     <polygon points="${labelPoints}" fill="url(#supporterLabelGradient)"/>
     <polygon points="${getSupporterLabelPoints(labelX + 2, labelWidth - 4, height, { verticalInset: 3 })}" fill="url(#supporterLabelInnerGradient)" opacity="0.62"/>
     ${stars}
-    <text x="${labelX + labelWidth / 2 - 1.5}" y="18.15" text-anchor="middle" font-family="HUN" font-size="15.8" font-weight="900" letter-spacing="0.12" fill="#fffaf3" stroke="#cc6a27" stroke-width="0.3" paint-order="stroke fill">SUPPORTER</text>
+   <text x="${labelX + labelWidth / 2 - 1.5}" y="18.15" text-anchor="middle" font-family="HUN" font-size="15.8" font-weight="950" letter-spacing="0.06" fill="#fffaf3" stroke="rgba(255,250,243,0.58)" stroke-width="0.48" paint-order="stroke fill">SUPPORTER</text>
   </g>`;
 }
 

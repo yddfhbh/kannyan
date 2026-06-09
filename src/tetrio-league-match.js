@@ -935,6 +935,109 @@ async function fetchTetrioJson(path) {
   return body;
 }
 
+function renderModeFooterMarkup(username, playedAtText, x, y) {
+  const prefix = 'PLAYED BY ';
+  const separator = ' · ';
+  const fontSize = 14;
+
+  const prefixWidth = estimateFooterTextWidth(prefix, fontSize);
+  const nameWidth = estimateFooterTextWidthWithUnderscore(username, fontSize);
+  const separatorWidth = estimateFooterTextWidth(separator, fontSize);
+
+  const nameX = x + prefixWidth;
+  const separatorX = nameX + nameWidth;
+  const dateX = separatorX + separatorWidth;
+
+  return `
+    <g class="footer">
+      <text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" class="footerKeyword">${escapeXml(prefix)}</text>
+      ${renderFooterUsernameMarkup(username, nameX, y)}
+      <text x="${roundSvgNumber(separatorX)}" y="${roundSvgNumber(y)}" class="footerKeyword">${escapeXml(separator)}</text>
+      <text x="${roundSvgNumber(dateX)}" y="${roundSvgNumber(y)}" class="footerDate">${escapeXml(playedAtText)}</text>
+    </g>
+  `;
+}
+
+function renderFooterUsernameMarkup(username, startX, baselineY) {
+  const text = String(username ?? '').toUpperCase();
+
+  const underscoreWidth = 6.6;
+  const underscoreHeight = 1.9;
+  const underscoreYOffset = 2.1;
+  const underscoreAdvance = 7.2;
+  const underscoreNudgeX = 0.3;
+
+  let x = startX;
+  let markup = '';
+
+  for (const char of text) {
+    if (char === '_') {
+      markup += `
+        <rect
+          x="${roundSvgNumber(x + underscoreNudgeX)}"
+          y="${roundSvgNumber(baselineY + underscoreYOffset)}"
+          width="${underscoreWidth}"
+          height="${underscoreHeight}"
+          rx="${roundSvgNumber(underscoreHeight / 2)}"
+          class="footerUnderscore"
+        />`;
+      x += underscoreAdvance;
+      continue;
+    }
+
+    markup += `
+      <text
+        x="${roundSvgNumber(x)}"
+        y="${roundSvgNumber(baselineY)}"
+        class="footerName"
+      >${escapeXml(char)}</text>`;
+
+    x += estimateFooterCharWidth(char);
+  }
+
+  return markup;
+}
+
+function estimateFooterTextWidthWithUnderscore(text, fontSize = 14) {
+  let width = 0;
+
+  for (const char of String(text ?? '').toUpperCase()) {
+    if (char === '_') {
+      width += fontSize * 0.52;
+    } else {
+      width += estimateFooterCharWidth(char, fontSize);
+    }
+  }
+
+  return width;
+}
+
+function estimateFooterTextWidth(text, fontSize = 14) {
+  let width = 0;
+
+  for (const char of String(text ?? '')) {
+    width += estimateFooterCharWidth(char, fontSize);
+  }
+
+  return width;
+}
+
+function estimateFooterCharWidth(char, fontSize = 14) {
+  if (char === ' ') return fontSize * 0.34;
+  if (char === 'I') return fontSize * 0.28;
+  if (char === '1') return fontSize * 0.34;
+  if (char === '_') return fontSize * 0.52;
+  if (/[0-9]/.test(char)) return fontSize * 0.54;
+  if (/[A-Z]/.test(char)) return fontSize * 0.56;
+  if (char === ':') return fontSize * 0.22;
+  if (char === '.') return fontSize * 0.22;
+  if (char === ',') return fontSize * 0.24;
+  if (char === '-') return fontSize * 0.30;
+  if (char === '·') return fontSize * 0.28;
+
+  return fontSize * 0.54;
+}
+
 function formatPrisecter(prisecter) {
   const pri = Number(prisecter?.pri);
   const sec = Number(prisecter?.sec);
