@@ -1708,14 +1708,14 @@ function getHeaderUnderscorePullback(previousChar, fontSize) {
   const char = String(previousChar ?? '').toUpperCase();
 
   if (char === 'I' || char === '1') {
-    return fontSize * 0.03;
+    return fontSize * 0.04;
   }
 
   if (char === 'L' || char === 'J') {
-    return fontSize * 0.07;
+    return fontSize * 0.11;
   }
 
-  return fontSize * 0.22;
+  return fontSize * 0.3;
 }
 
 function estimateHeaderNameWidth(username, fontSize) {
