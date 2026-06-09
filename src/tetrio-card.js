@@ -1672,7 +1672,7 @@ async function renderHeaderUsernameMarkup({
 // 카드 헤더는 segmentWidth가 실제 렌더보다 살짝 크게 잡혀서
 // 언더바 앞이 벌어져 보이므로 보정
 if (parts.length > 0) {
-  cursorX -= fontSize * 0.3;
+  cursorX -= fontSize * 0.45;
 }
 
 const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 1.7);
