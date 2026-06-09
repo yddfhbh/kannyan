@@ -1647,9 +1647,9 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
       .trim()
       .toBuffer({ resolveWithObject: true });
 
-    const width = Math.max(fallbackWidth, info.width);
-    cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, width);
-    return width;
+    const width = info.width;
+cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, width);
+return width;
   } catch {
     cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, fallbackWidth);
     return fallbackWidth;
