@@ -1607,11 +1607,13 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
   }
 
   const cacheKey = [
+    'header-v2',
     fontSize,
     fontWeight,
     fontDataUri ? fontDataUri.length : 0,
     normalizedText,
   ].join('|');
+
   if (headerNameWidthCache.has(cacheKey)) {
     return headerNameWidthCache.get(cacheKey);
   }
@@ -1619,11 +1621,18 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
   const fallbackWidth = estimateHeaderNameWidth(normalizedText, fontSize);
 
   try {
-    const horizontalPadding = 32;
-    const verticalPadding = 24;
-    const svgWidth = Math.max(256, Math.ceil(fallbackWidth + horizontalPadding * 2 + fontSize));
-    const svgHeight = Math.max(96, Math.ceil(fontSize + verticalPadding * 2));
+    const horizontalPadding = 48;
+    const verticalPadding = 36;
+    const svgWidth = Math.max(
+      320,
+      Math.ceil(fallbackWidth + horizontalPadding * 2 + fontSize * 4),
+    );
+    const svgHeight = Math.max(
+      128,
+      Math.ceil(fontSize + verticalPadding * 2),
+    );
     const baselineY = verticalPadding + fontSize * 0.82;
+
     const measurementSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
   <defs>
@@ -1633,30 +1642,27 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
     </style>
   </defs>
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
- <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff" xml:space="preserve">${renderHeaderUsernameInlineMarkup(normalizedText, fontSize)}</text>
+  <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff" xml:space="preserve">${renderHeaderUsernameInlineMarkup(normalizedText, fontSize)}</text>
 </svg>`;
-    const { info } = await sharp(renderTetrioSvgToPng(measurementSvg, { zoom: 1 }))
-  .png()
-  .trim()
-  .toBuffer({ resolveWithObject: true });
 
-const trimOffsetLeft = Number.isFinite(info.trimOffsetLeft)
-  ? info.trimOffsetLeft
-  : horizontalPadding;
+    const { info } = await sharp(renderTetrioSvgToPng(measurementSvg, 1))
+      .png()
+      .trim()
+      .toBuffer({ resolveWithObject: true });
 
-const width = Math.max(
-  0,
-  Math.ceil(
-    trimOffsetLeft
-    + info.width
-    - horizontalPadding
-    + getHeaderTrailingUnderscoreSpaceWidth(normalizedText, fontSize)
-  ),
-);
+    const trimOffsetLeft = Number.isFinite(info.trimOffsetLeft)
+      ? info.trimOffsetLeft
+      : horizontalPadding;
 
-cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, width);
-return width;
-  } catch {
+    const width = Math.max(
+      0,
+      Math.ceil(trimOffsetLeft + info.width - horizontalPadding),
+    );
+
+    cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, width);
+    return width;
+  } catch (error) {
+    console.warn('[HEADER WIDTH FALLBACK]', normalizedText, error?.message ?? error);
     cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, fallbackWidth);
     return fallbackWidth;
   }
@@ -1692,7 +1698,7 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
   const parts = rawText.split(/(_+)/);
 
   const underscoreShiftEm = -0.26;        // 높이. 낮으면 -0.38, 높으면 -0.30
-  const underscoreDxEm = 0.04;            // 왼쪽으로 당기지 말고 살짝 오른쪽
+  const underscoreDxEm = 0.06;            // 왼쪽으로 당기지 말고 살짝 오른쪽
   const underscoreLetterSpacingEm = 0.18; // 언더바 사이 간격
 
   let needsBaselineRestore = false;
