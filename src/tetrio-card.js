@@ -628,7 +628,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
 
 const headerFlagGap = 120;
 const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
-const headerFlagY = bannerY + 25;
+const headerFlagY = bannerY + 22;
   
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
   const headerNameMarkup = await renderHeaderUsernameMarkup({
