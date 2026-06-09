@@ -1576,7 +1576,7 @@ function adjustHeaderFlagNameWidth(text, measuredWidth, fontSize) {
 
   // 언더바 없음: 측정폭이 실제보다 살짝 크게 잡혀서 국기가 멀어짐
   if (underscoreCount === 0) {
-    return measuredWidth - fontSize * 0.20;
+    return measuredWidth - fontSize * 0.28;
   }
 
   // _ILIS 같은 케이스: 시작 언더바 1개는 국기가 너무 가까움
@@ -1601,7 +1601,7 @@ function renderHeaderFlag(flag, nameX, y, nameWidth) {
   const flagWidth = 30;
   const flagHeight = 20;
   const maxX = 894;
-  const x = Math.min(nameX + nameWidth + 0, maxX);
+  const x = Math.min(nameX + nameWidth + 8, maxX);
   const adjustedY = y - 5;
 
   return `<image href="${flag.image}" x="${x}" y="${adjustedY}" width="${flagWidth}" height="${flagHeight}" preserveAspectRatio="xMidYMid meet"/>`;
