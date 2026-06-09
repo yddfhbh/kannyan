@@ -922,7 +922,7 @@ function getHeaderFlagNudgeX(text, fontSize) {
   // 닉네임이 _로 시작하면 renderHeaderUsernameMarkup 쪽에서
   // 언더바/뒤 글자 전체를 오른쪽으로 밀었으므로 국기도 같이 밀기
   if (rawText.startsWith('_')) {
-    return fontSize * 0.16;
+    return fontSize * 0.2;
   }
 
   return 0;
