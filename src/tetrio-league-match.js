@@ -699,6 +699,13 @@ function estimateFooterCharWidth(char, fontSize = 14) {
   if (char === ' ') return fontSize * 0.34;
   if (char === 'I' || char === '1' || char === 'L') return fontSize * 0.34;
   if (char === 'M' || char === 'W') return fontSize * 0.88;
+
+  // 추가
+  if (char === ':') return fontSize * 0.24;
+  if (char === '/') return fontSize * 0.34;
+  if (char === ',') return fontSize * 0.22;
+  if (char === '.') return fontSize * 0.22;
+
   if (/[0-9]/.test(char)) return fontSize * 0.58;
   return fontSize * 0.62;
 }
@@ -779,9 +786,9 @@ function renderFooterLineMarkup(text, x, y) {
 
   const dateMatch = match[3].match(/^(.+?),\s+(.+?)\s+(AM|PM)$/i);
   if (dateMatch) {
-  addText(`${dateMatch[1]},`, 'footerDate', 7);
-  addText(dateMatch[2], 'footerTime', 5, 15.5);
-  addText(dateMatch[3].toUpperCase(), 'footerDate', 3);
+ addText(`${dateMatch[1]},`, 'footerDate', 6);
+addText(dateMatch[2], 'footerTime', 3);
+addText(dateMatch[3].toUpperCase(), 'footerDate', 2);
 } else {
   addText(match[3], 'footerDate', 7);
 }
