@@ -851,8 +851,21 @@ const headerFlagY = bannerY + 18;
       .profileBoxValueSecondary { fill: #7aa076; }
       .profileBoxValueSuffix { fill: #86a683; }
       .profileBoxSeparator { fill: #5a875d; opacity: 0.92; }
-      .dangerTitle { fill: #fff8f0; text-shadow: 0 2px 3px #5d0000; }
-      .dangerSub { fill: #fff4ec; text-shadow: 0 2px 3px #5d0000; }
+      .dangerTitle {
+  fill: #fff8f0;
+  stroke: rgba(255, 248, 240, 0.65);
+  stroke-width: 0.75px;
+  paint-order: stroke fill;
+  text-shadow: 0 2px 3px #5d0000;
+}
+
+.dangerSub {
+  fill: #fff4ec;
+  stroke: rgba(255, 244, 236, 0.55);
+  stroke-width: 0.42px;
+  paint-order: stroke fill;
+  text-shadow: 0 2px 3px #5d0000;
+}
       .bioTitle {
         fill: #679d63;
         opacity: 0.88;
@@ -1249,7 +1262,7 @@ function renderStaffDistinguishmentBanner(distinguishment, y, x = 14, width = 93
     <polygon points="${renderStaffBannerPanelPoints(x + width - 158, y + 8, 146, height - 16, true)}" fill="${theme.panelFill}" opacity="0.24"/>
     ${renderStaffBannerPanelLines(x + 20, y + 9, 120, height - 18, theme.panelLine, false)}
     ${renderStaffBannerPanelLines(x + width - 140, y + 9, 120, height - 18, theme.panelLine, true)}
-    <text x="${x + width / 2}" y="${y + (isAlumni ? 35 : 31)}" text-anchor="middle" font-size="${isAlumni ? 18 : 17}" font-weight="900" fill="${theme.titleFill}" stroke="${theme.titleStroke}" stroke-width="0.65" paint-order="stroke fill" letter-spacing="0.9">${escapeXml(displayTitle)}</text>
+    <text x="${x + width / 2}" y="${y + (isAlumni ? 35 : 31)}" text-anchor="middle" font-size="${isAlumni ? 18 : 17}" font-weight="900" fill="${theme.titleFill}" stroke="${theme.titleStroke}" stroke-width="1" paint-order="stroke fill" letter-spacing="0.9">${escapeXml(displayTitle)}</text>
     ${!isAlumni && footer ? `<text x="${x + width / 2}" y="${y + 46}" text-anchor="middle" font-size="14" font-weight="900" fill="${theme.footerFill}" letter-spacing="0.35">${escapeXml(footer)}</text>` : ''}
   </g>`;
 }
@@ -1317,8 +1330,8 @@ function renderChampionDistinguishmentBanner(distinguishment, y, x = 14, width =
       <rect x="${innerX}" y="${y + height - 8}" width="${innerWidth}" height="3" fill="url(#${idSuffix}-stripe)"/>
     </g>
     <text x="${x + width / 2}" y="${y + height / 2 + 3}" text-anchor="middle" dominant-baseline="middle" font-size="28.8" font-weight="900" fill="${theme.cy}" opacity="0.34" letter-spacing="5.6">${escapeXml(title)}</text>
-    <text x="${x + width / 2}" y="${y + height / 2 + 3}" text-anchor="middle" dominant-baseline="middle" font-size="28.8" font-weight="900" fill="${theme.cyyy}" letter-spacing="5.6">${escapeXml(title)}</text>
-    <text x="${x + width / 2}" y="${y + height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" font-size="28.8" font-weight="900" fill="${theme.cyy}" letter-spacing="5.6">${escapeXml(title)}</text>
+    <text x="${x + width / 2}" y="${y + height / 2 + 3}" text-anchor="middle" dominant-baseline="middle" font-size="28.8" font-weight="900" fill="${theme.cyyy}" stroke="${theme.cyyy}" stroke-width="0.8" paint-order="stroke fill" letter-spacing="5.6">${escapeXml(title)}</text>
+<text x="${x + width / 2}" y="${y + height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" font-size="28.8" font-weight="900" fill="${theme.cyy}" stroke="${theme.cyy}" stroke-width="0.6" paint-order="stroke fill" letter-spacing="5.6">${escapeXml(title)}</text>
   </g>`;
 }
 
@@ -2341,7 +2354,7 @@ function renderTetrioCardDecimalNumberMarkup(value, options = {}) {
       continue;
     }
 
-    const dx = tightenNext && /\d/.test(char) ? ' dx="-0.18em"' : '';
+    const dx = tightenNext && /\d/.test(char) ? ' dx="-0.24em"' : '';
     const dy = resetDyEm ? ` dy="${roundSvgNumber(-resetDyEm)}em"` : '';
 
     markup += dx || dy
