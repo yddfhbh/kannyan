@@ -1691,8 +1691,8 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
   const rawText = String(text ?? '').toUpperCase();
   const parts = rawText.split(/(_+)/);
 
-  const underscoreShiftEm = -0.34;        // 높이. 낮으면 -0.38, 높으면 -0.30
-  const underscoreDxEm = 0.02;            // 왼쪽으로 당기지 말고 살짝 오른쪽
+  const underscoreShiftEm = -0.26;        // 높이. 낮으면 -0.38, 높으면 -0.30
+  const underscoreDxEm = 0.04;            // 왼쪽으로 당기지 말고 살짝 오른쪽
   const underscoreLetterSpacingEm = 0.18; // 언더바 사이 간격
 
   let needsBaselineRestore = false;
