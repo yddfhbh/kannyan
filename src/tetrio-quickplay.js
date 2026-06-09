@@ -535,7 +535,7 @@ function renderQuickPlayMetaName(rawName, startX, y, options = {}) {
   const isShadow = options.shadow === true;
   const opacityAttr = options.opacity !== undefined ? ` opacity="${options.opacity}"` : '';
 
-  const textClass = isShadow ? 'metaText' : 'metaName';
+  const textClass = isShadow ? 'metaText' : 'metaText metaName';
   const fillAttr = isShadow ? ' fill="#000000"' : '';
   const underlineFillAttr = isShadow ? ' fill="#000000"' : ' fill="#f6fff5"';
 
