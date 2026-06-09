@@ -557,7 +557,7 @@ function renderQuickPlayMetaName(rawName, startX, y, options = {}) {
     }
 
     markup += `<text x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="${textClass}"${fillAttr}${opacityAttr}>${escapeXml(char)}</text>`;
-    cursorX += estimateQuickPlayMetaCharWidth(char, fontSize) + letterSpacing;
+    cursorX += estimateQuickPlayMetaNameCharWidth(char, fontSize) + letterSpacing;
   }
 
   return markup;
@@ -571,9 +571,9 @@ function estimateQuickPlayMetaNameWidth(rawName, fontSize = 34) {
   for (let i = 0; i < text.length; i += 1) {
     const char = text[i];
 
-    width += char === '_'
-      ? fontSize * 0.64
-      : estimateQuickPlayMetaCharWidth(char, fontSize);
+   width += char === '_'
+  ? fontSize * 0.64
+  : estimateQuickPlayMetaNameCharWidth(char, fontSize);
 
     if (i < text.length - 1) {
       width += letterSpacing;
@@ -591,6 +591,13 @@ function estimateQuickPlayMetaTextWidth(text, fontSize = 34) {
   }
 
   return width;
+}
+
+function estimateQuickPlayMetaNameCharWidth(char, fontSize = 34) {
+  if (char === 'I' || char === '1') return fontSize * 0.44;
+  if (char === '.') return fontSize * 0.28;
+
+  return estimateQuickPlayMetaCharWidth(char, fontSize);
 }
 
 function estimateQuickPlayMetaCharWidth(char, fontSize = 34) {
