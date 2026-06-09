@@ -625,6 +625,11 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   fontDataUri: assets.hunFont,
   fontWeight: headerNameFontWeight,
 });
+const headerFlagNameWidth = adjustHeaderFlagNameWidth(
+  headerUsername,
+  headerNameWidth,
+  headerNameFontSize,
+);
   
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
   const headerNameMarkup = await renderHeaderUsernameMarkup({
@@ -874,7 +879,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="8" fill="none" stroke="#d9ffe2" stroke-width="2" opacity="0.25"/>
 
   ${headerNameMarkup}
- ${renderHeaderFlag(flag, nameX, bannerY + 28, headerNameWidth)}
+${renderHeaderFlag(flag, nameX, bannerY + 28, headerFlagNameWidth)}
   <text x="${avatarX + avatarSize + 18}" y="${bannerY + 77}" class="${headerMetaClass}" font-size="14" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))} ${renderTetrioTextMarkup('FRIENDS')}</text>
   ${renderLevelTag(levelTag, contentX, levelTagY)}
   ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
@@ -1562,6 +1567,30 @@ function getCountryFlag(country, image) {
   return code && image
     ? { code, image }
     : null;
+}
+
+function adjustHeaderFlagNameWidth(text, measuredWidth, fontSize) {
+  const rawText = String(text ?? '').toUpperCase();
+  const underscoreCount = (rawText.match(/_/g) ?? []).length;
+  const leadingUnderscoreCount = rawText.match(/^_*/)?.[0]?.length ?? 0;
+
+  // 언더바 없음: 측정폭이 실제보다 살짝 크게 잡혀서 국기가 멀어짐
+  if (underscoreCount === 0) {
+    return measuredWidth - fontSize * 0.20;
+  }
+
+  // _ILIS 같은 케이스: 시작 언더바 1개는 국기가 너무 가까움
+  if (leadingUnderscoreCount === 1 && underscoreCount === 1) {
+    return measuredWidth + fontSize * 0.12;
+  }
+
+  // ___NEKO 같은 케이스: 언더바가 여러 개면 폭이 과하게 커짐
+  if (underscoreCount >= 2) {
+    return measuredWidth - fontSize * (0.12 + 0.10 * underscoreCount);
+  }
+
+  // TENDO_ARISU 같은 일반 1개 언더바 케이스
+  return measuredWidth;
 }
 
 function renderHeaderFlag(flag, nameX, y, nameWidth) {
