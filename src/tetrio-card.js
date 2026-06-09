@@ -1715,7 +1715,7 @@ function getHeaderUnderscorePullback(previousChar, fontSize) {
     return fontSize * 0.11;
   }
 
-  return fontSize * 0.3;
+  return fontSize * 0.45;
 }
 
 function estimateHeaderNameWidth(username, fontSize) {
