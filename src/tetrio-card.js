@@ -626,9 +626,9 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   fontWeight: headerNameFontWeight,
 });
 
-const headerFlagGap = 130;
+const headerFlagGap = 120;
 const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
-const headerFlagY = bannerY + 31;
+const headerFlagY = bannerY + 25;
   
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
   const headerNameMarkup = await renderHeaderUsernameMarkup({
@@ -1597,7 +1597,7 @@ function renderHeaderFlag(flag, x, y) {
     return '';
   }
 
-  return `<image href="${flag.image}" x="${x}" y="${y}" width="28" height="20" preserveAspectRatio="xMidYMid meet"/>`;
+  return `<image href="${flag.image}" x="${x}" y="${y}" width="38" height="27" preserveAspectRatio="xMidYMid meet"/>`;
 }
 
 async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWeight = 700) {
