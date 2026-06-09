@@ -626,7 +626,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   fontWeight: headerNameFontWeight,
 });
 
-const headerFlagGap = 16;
+const headerFlagGap = 20;
 const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
 const headerFlagY = bannerY + 31;
   
@@ -1633,7 +1633,7 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
     </style>
   </defs>
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
- <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff" xml:space="preserve">${renderHeaderUsernameInlineMarkup(normalizedText)}</text>
+ <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff" xml:space="preserve">${renderHeaderUsernameInlineMarkup(normalizedText, fontSize)}</text>
 </svg>`;
     const { info } = await sharp(renderTetrioSvgToPng(measurementSvg, { zoom: 1 }))
   .png()
@@ -1682,9 +1682,14 @@ async function measureRenderedHeaderUsernameWidth({
   );
 }
 
-function renderHeaderUsernameInlineMarkup(text) {
+function renderHeaderUsernameInlineMarkup(text, fontSize) {
   const rawText = String(text ?? '').toUpperCase();
   const parts = rawText.split(/(_+)/);
+
+ const underscoreShiftEm = -0.36;
+const underscoreWidthRate = 1.05;    // 언더바 1개당 폭. 더 길게 하려면 0.82~0.88
+
+  let needsBaselineRestore = false;
 
   return parts.map((part) => {
     if (!part) {
@@ -1692,14 +1697,27 @@ function renderHeaderUsernameInlineMarkup(text) {
     }
 
     if (/^_+$/.test(part)) {
-      return Array.from(part)
-        .map(() => (
-          '<tspan font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-weight="900">_</tspan>'
-        ))
-        .join('');
+      needsBaselineRestore = true;
+
+      const forcedWidth = roundSvgNumber(part.length * fontSize * underscoreWidthRate);
+
+      return `<tspan
+        font-family="DejaVu Sans Mono, Consolas, monospace"
+        font-size="1.16em"
+        font-weight="900"
+        dy="${underscoreShiftEm}em"
+        textLength="${forcedWidth}"
+        lengthAdjust="spacingAndGlyphs"
+      >${escapeXml(part)}</tspan>`;
     }
 
-    return renderTetrioTextMarkup(part);
+    const restoreDy = needsBaselineRestore
+      ? ` dy="${Math.abs(underscoreShiftEm)}em"`
+      : '';
+
+    needsBaselineRestore = false;
+
+    return `<tspan${restoreDy}>${renderTetrioTextMarkup(part)}</tspan>`;
   }).join('');
 }
 
@@ -1713,7 +1731,7 @@ async function renderHeaderUsernameMarkup({
 }) {
   const rawText = String(text ?? '').toUpperCase();
 
-  return `<text x="${x}" y="${y}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderHeaderUsernameInlineMarkup(rawText)}</text>`;
+  return `<text x="${x}" y="${y}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderHeaderUsernameInlineMarkup(rawText, fontSize)}</text>`;
 }
 
 function getHeaderUnderscorePullback(previousChar, fontSize) {
