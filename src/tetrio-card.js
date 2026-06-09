@@ -1675,14 +1675,14 @@ if (parts.length > 0) {
   cursorX -= fontSize * 0.16;
 }
 
-const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 1.5);
+const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 1.7);
     const underscoreHeight = roundSvgNumber(Math.max(5.0, fontSize * 0.11));
 
     // 위아래 위치는 이 값으로 조절
     const underscoreY = roundSvgNumber(y - fontSize * 0.045);
 
     // 앞 글자와 언더바 사이 간격
-    const underscoreBeforeGap = fontSize * 0.08;
+    const underscoreBeforeGap = fontSize * 0.10;
 const underscoreAfterGap = fontSize * 0.15;
 
 const rectX = roundSvgNumber(cursorX + underscoreBeforeGap);
