@@ -626,7 +626,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   fontWeight: headerNameFontWeight,
 });
 
-const headerFlagGap = 44;
+const headerFlagGap = 64;
 const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
 const headerFlagY = bannerY + 31;
   
@@ -1698,7 +1698,7 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
   const parts = rawText.split(/(_+)/);
 
   const underscoreShiftEm = -0.26;        // 높이. 낮으면 -0.38, 높으면 -0.30
-  const underscoreDxEm = 0.06;            // 왼쪽으로 당기지 말고 살짝 오른쪽
+  const underscoreDxEm = 0.08;            // 왼쪽으로 당기지 말고 살짝 오른쪽
   const underscoreLetterSpacingEm = 0.18; // 언더바 사이 간격
 
   let needsBaselineRestore = false;
