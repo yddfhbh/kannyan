@@ -1826,7 +1826,7 @@ function getHeaderUnderscorePullback(previousChar, fontSize) {
   }
 
   // TENDO_ 같은 일반 케이스는 더 왼쪽으로 당김
-  return fontSize * 0.24;
+  return fontSize * 0.28;
 }
 
 function estimateHeaderNameWidth(username, fontSize) {

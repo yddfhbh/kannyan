@@ -749,13 +749,35 @@ function renderFooterNameText(text, x, y) {
     }
 
     markup += `<text x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer footerName">${escapeXml(char)}</text>`;
-    cursorX += estimateFooterCharWidth(char);
+    cursorX += estimateFooterNameCharWidth(char);
   }
 
   return {
-    markup: `<g>${markup}</g>`,
-    width: cursorX - x,
-  };
+  markup: `<g>${markup}</g>`,
+  width: measureFooterNameTextWidth(raw),
+};
+}
+
+function estimateFooterNameCharWidth(char, fontSize = 14) {
+  if (char === ' ') return fontSize * 0.34;
+  if (char === 'I' || char === '1') return fontSize * 0.46;
+  if (char === 'L') return fontSize * 0.38;
+  if (char === 'M' || char === 'W') return fontSize * 0.88;
+  return fontSize * 0.62;
+}
+
+function measureFooterNameTextWidth(text, fontSize = 14) {
+  let width = 0;
+
+  for (const char of String(text ?? '').toUpperCase()) {
+    if (char === '_') {
+      width += getFooterUnderscoreMetrics().advance;
+    } else {
+      width += estimateFooterNameCharWidth(char, fontSize);
+    }
+  }
+
+  return width;
 }
 
 function getFooterUnderscoreMetrics() {
@@ -772,6 +794,7 @@ function getFooterUnderscoreMetrics() {
     yOffset: 5.1,
   };
 }
+
 
 function renderFooterLineMarkup(text, x, y) {
   const match = String(text ?? '').match(/^(.+?) VERSUS (.+?) PLAYED ON (.+)$/);
@@ -818,7 +841,11 @@ addText(dateMatch[3].toUpperCase(), 'footerDate', 2);
 
 function estimateLeagueUsernameCharWidth(char, fontSize = 17) {
   if (char === ' ') return fontSize * 0.33;
-  if (char === 'I' || char === '1' || char === 'L') return fontSize * 0.34;
+
+  // I만 조금 더 넓게
+  if (char === 'I' || char === '1') return fontSize * 0.46;
+  if (char === 'L') return fontSize * 0.38;
+
   if (char === 'M' || char === 'W') return fontSize * 0.9;
   return fontSize * 0.64;
 }
