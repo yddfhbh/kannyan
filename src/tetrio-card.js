@@ -1601,7 +1601,7 @@ function renderHeaderFlag(flag, nameX, y, nameWidth) {
   const flagWidth = 30;
   const flagHeight = 20;
   const maxX = 894;
-  const x = Math.min(nameX + nameWidth + 4, maxX);
+  const x = Math.min(nameX + nameWidth + 0, maxX);
   const adjustedY = y - 5;
 
   return `<image href="${flag.image}" x="${x}" y="${adjustedY}" width="${flagWidth}" height="${flagHeight}" preserveAspectRatio="xMidYMid meet"/>`;
