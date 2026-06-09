@@ -628,7 +628,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
 
 const headerFlagGap = 110;
 const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
-const headerFlagY = bannerY + 22;
+const headerFlagY = bannerY + 18;
   
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
   const headerNameMarkup = await renderHeaderUsernameMarkup({
@@ -1597,7 +1597,7 @@ function renderHeaderFlag(flag, x, y) {
     return '';
   }
 
-  return `<image href="${flag.image}" x="${x}" y="${y}" width="38" height="27" preserveAspectRatio="xMidYMid meet"/>`;
+  return `<image href="${flag.image}" x="${x}" y="${y}" width="32" height="18" preserveAspectRatio="xMidYMid meet"/>`;
 }
 
 async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWeight = 700) {
