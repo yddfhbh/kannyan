@@ -1691,8 +1691,9 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
   const rawText = String(text ?? '').toUpperCase();
   const parts = rawText.split(/(_+)/);
 
-  const underscoreShiftEm = -0.34; // 언더바 위로 올림
-  const underscoreDxEm = -0.13;    // 언더바를 살짝 왼쪽으로 당김
+  const underscoreShiftEm = -0.34;        // 높이. 낮으면 -0.38, 높으면 -0.30
+  const underscoreDxEm = 0.02;            // 왼쪽으로 당기지 말고 살짝 오른쪽
+  const underscoreLetterSpacingEm = 0.18; // 언더바 사이 간격
 
   let needsBaselineRestore = false;
 
@@ -1704,10 +1705,7 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
     if (/^_+$/.test(part)) {
       needsBaselineRestore = true;
 
-      // 핵심: "_" 하나를 "_ "로 출력해서 언더바 사이/뒤 간격 확보
-      const displayUnderscores = '_ '.repeat(part.length);
-
-      return `<tspan font-family="DejaVu Sans Mono, Consolas, monospace" font-size="1.16em" font-weight="900" dy="${underscoreShiftEm}em" dx="${underscoreDxEm}em">${escapeXml(displayUnderscores)}</tspan>`;
+      return `<tspan font-family="DejaVu Sans Mono, Consolas, monospace" font-size="1.16em" font-weight="900" dy="${underscoreShiftEm}em" dx="${underscoreDxEm}em" letter-spacing="${underscoreLetterSpacingEm}em">${escapeXml(part)}</tspan>`;
     }
 
     const restoreDy = needsBaselineRestore
@@ -1720,17 +1718,6 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
   }).join('');
 }
 
-function getHeaderTrailingUnderscoreSpaceWidth(text, fontSize) {
-  const rawText = String(text ?? '').toUpperCase();
-  const trailingUnderscores = rawText.match(/_+$/)?.[0]?.length ?? 0;
-
-  if (trailingUnderscores === 0) {
-    return 0;
-  }
-
-  // "_ "에서 마지막 공백은 sharp.trim()이 못 재니까 직접 더함
-  return fontSize * 0.62;
-}
 
 async function renderHeaderUsernameMarkup({
   className,
