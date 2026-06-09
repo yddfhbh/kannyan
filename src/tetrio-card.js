@@ -619,13 +619,13 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   const headerNameFontSize = 46;
   const headerNameFontWeight = 900;
   const headerUsername = String(user.username ?? '').toUpperCase();
-  const headerNameWidth = await measureHeaderNameWidth(
-    headerUsername,
-    headerNameFontSize,
-    assets.hunFont,
-    headerNameFontWeight
-  );
-  const headerFlagNudgeX = getHeaderFlagNudgeX(headerUsername, headerNameFontSize);
+ const headerNameWidth = await measureRenderedHeaderUsernameWidth({
+  text: headerUsername,
+  fontSize: headerNameFontSize,
+  fontDataUri: assets.hunFont,
+  fontWeight: headerNameFontWeight,
+});
+  
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
   const headerNameMarkup = await renderHeaderUsernameMarkup({
     className: headerNameClass,
@@ -874,7 +874,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="8" fill="none" stroke="#d9ffe2" stroke-width="2" opacity="0.25"/>
 
   ${headerNameMarkup}
- ${renderHeaderFlag(flag, nameX, bannerY + 28, headerNameWidth + headerFlagNudgeX)}
+ ${renderHeaderFlag(flag, nameX, bannerY + 28, headerNameWidth)}
   <text x="${avatarX + avatarSize + 18}" y="${bannerY + 77}" class="${headerMetaClass}" font-size="14" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))} ${renderTetrioTextMarkup('FRIENDS')}</text>
   ${renderLevelTag(levelTag, contentX, levelTagY)}
   ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
@@ -1627,6 +1627,65 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
   }
 }
 
+function getHeaderUnderscoreMetrics(fontSize) {
+  return {
+    width: getHeaderCharUnits('_') * fontSize * 1.7,
+    height: Math.max(5.0, fontSize * 0.11),
+    beforeGap: fontSize * 0.10,
+    afterGap: fontSize * 0.15,
+  };
+}
+
+async function measureRenderedHeaderUsernameWidth({
+  text,
+  fontSize,
+  fontDataUri,
+  fontWeight,
+}) {
+  const rawText = String(text ?? '').toUpperCase();
+
+  if (!rawText.includes('_')) {
+    return measureHeaderNameWidth(rawText, fontSize, fontDataUri, fontWeight);
+  }
+
+  let cursorX = 0;
+  let segment = '';
+
+  const flushSegment = async () => {
+    if (!segment) return;
+
+    cursorX += await measureHeaderNameWidth(
+      segment,
+      fontSize,
+      fontDataUri,
+      fontWeight,
+    );
+
+    segment = '';
+  };
+
+  for (const char of rawText) {
+    if (char !== '_') {
+      segment += char;
+      continue;
+    }
+
+    const segmentBeforeUnderscore = segment;
+
+    await flushSegment();
+
+    const previousChar = segmentBeforeUnderscore.at(-1) ?? '';
+    cursorX -= getHeaderUnderscorePullback(previousChar, fontSize);
+
+    const underscore = getHeaderUnderscoreMetrics(fontSize);
+    cursorX += underscore.beforeGap + underscore.width + underscore.afterGap;
+  }
+
+  await flushSegment();
+
+  return cursorX;
+}
+
 async function renderHeaderUsernameMarkup({
   className,
   fontDataUri,
@@ -1687,12 +1746,15 @@ async function renderHeaderUsernameMarkup({
     const previousChar = segmentBeforeUnderscore.at(-1) ?? '';
     cursorX -= getHeaderUnderscorePullback(previousChar, fontSize);
 
-    const underscoreWidth = roundSvgNumber(getHeaderCharUnits('_') * fontSize * 1.7);
-    const underscoreHeight = roundSvgNumber(Math.max(5.0, fontSize * 0.11));
+    const underscore = getHeaderUnderscoreMetrics(fontSize);
+
+const underscoreWidth = roundSvgNumber(underscore.width);
+const underscoreHeight = roundSvgNumber(underscore.height);
+const underscoreBeforeGap = underscore.beforeGap;
+const underscoreAfterGap = underscore.afterGap;
     const underscoreY = roundSvgNumber(y - fontSize * 0.045);
 
-    const underscoreBeforeGap = fontSize * 0.10;
-    const underscoreAfterGap = fontSize * 0.15;
+    
 
     const rectX = roundSvgNumber(cursorX + underscoreBeforeGap);
 
