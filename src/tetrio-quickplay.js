@@ -498,63 +498,90 @@ function renderQuickPlayAltitudeSvg(record, username, mainText, modIcons = [], h
 </svg>`;
 }
 
-function renderQuickPlayPlayedByMarkup(value) {
+function renderQuickPlayMetaLine(value, x, y, options = {}) {
   const text = String(value ?? '');
   const match = text.match(/^(PLAYED BY\s+)(.*?)(\s*·\s*.+)$/);
 
   if (!match) {
-    return escapeXml(text);
+    return `<text x="${x}" y="${y}" dominant-baseline="middle" class="metaText"${getSvgOptionalAttrs(options)} xml:space="preserve">${escapeXml(text)}</text>`;
   }
 
-  const [, prefix, name, suffix] = match;
+  const [, prefix, rawName, suffix] = match;
+  const fontSize = 34;
+  const isShadow = Boolean(options.fill);
+  const opacityAttr = options.opacity !== undefined ? ` opacity="${options.opacity}"` : '';
+  const fillAttr = options.fill ? ` fill="${options.fill}"` : '';
 
-  return `${escapeXml(prefix)}<tspan class="metaName">${escapeXml(name)}</tspan>${escapeXml(suffix)}`;
+  const prefixX = x;
+  const nameX = prefixX + estimateQuickPlayMetaTextWidth(prefix, fontSize);
+  const suffixX = nameX + estimateQuickPlayMetaNameWidth(rawName, fontSize) + 10;
+
+  const prefixText = `<text x="${roundSvgNumber(prefixX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="metaText"${fillAttr}${opacityAttr} xml:space="preserve">${escapeXml(prefix)}</text>`;
+
+  const nameMarkup = renderQuickPlayMetaName(rawName, nameX, y, {
+    fontSize,
+    shadow: isShadow,
+    opacity: options.opacity,
+  });
+
+  const suffixText = `<text x="${roundSvgNumber(suffixX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="metaText"${fillAttr}${opacityAttr} xml:space="preserve">${escapeXml(suffix)}</text>`;
+
+  return `<g>${prefixText}${nameMarkup}${suffixText}</g>`;
 }
 
-function renderQuickPlayMetaLine(value, x, y, options = {}) {
-  const text = String(value ?? '');
-  const displayText = text
-  .replace(/_(?=\s*·)/g, '  ')
-  .replaceAll('_', ' ');
-  const fontSize = 34;
-  const fillAttr = options.fill ? ` fill="${options.fill}"` : '';
+function renderQuickPlayMetaName(rawName, startX, y, options = {}) {
+  const text = String(rawName ?? '').toUpperCase();
+  const fontSize = options.fontSize ?? 34;
+  const isShadow = options.shadow === true;
   const opacityAttr = options.opacity !== undefined ? ` opacity="${options.opacity}"` : '';
 
- const shouldHighlightName = !options.fill && options.highlightName !== false;
-const baseTextContent = shouldHighlightName
-  ? renderQuickPlayPlayedByMarkup(displayText)
-  : escapeXml(displayText);
+  const textClass = isShadow ? 'metaText' : 'metaName';
+  const fillAttr = isShadow ? ' fill="#000000"' : '';
+  const underlineFillAttr = isShadow ? ' fill="#000000"' : ' fill="#f6fff5"';
 
-const baseText = `<text x="${x}" y="${y}" dominant-baseline="middle" class="metaText"${fillAttr}${opacityAttr} xml:space="preserve">${baseTextContent}</text>`;
+  const underscoreWidth = fontSize * 0.44;
+  const underscoreHeight = Math.max(3.2, fontSize * 0.095);
+  const underscoreYOffset = fontSize * 0.34;
+  const underscoreNudgeX = fontSize * 0.24;
+  const underscoreAdvance = fontSize * 0.64;
 
-  let cursorX = x;
-  const underlines = [];
+  let cursorX = startX;
+  let markup = '';
 
-  for (let index = 0; index < text.length; index += 1) {
-  const char = text[index];
+  for (const char of text) {
+    if (char === '_') {
+      markup += `<rect x="${roundSvgNumber(cursorX + underscoreNudgeX)}" y="${roundSvgNumber(y + underscoreYOffset)}" width="${roundSvgNumber(underscoreWidth)}" height="${roundSvgNumber(underscoreHeight)}" rx="${roundSvgNumber(underscoreHeight / 2)}"${underlineFillAttr}${opacityAttr}/>`;
+      cursorX += underscoreAdvance;
+      continue;
+    }
 
-  if (char === '_') {
-    const rectWidth = roundSvgNumber(fontSize * 0.44);
-    const rectHeight = roundSvgNumber(Math.max(3.2, fontSize * 0.095));
-    const rectX = roundSvgNumber(cursorX + fontSize * 0.26);
-    const rectY = roundSvgNumber(y + fontSize * 0.34);
-
-   const underlineFillAttr = fillAttr || (shouldHighlightName ? ' fill="#f6fff5"' : ' fill="#b0e1af"');
-
-underlines.push(
-  `<rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}"${underlineFillAttr}${opacityAttr}/>`
-);
-
-    const isBeforeSeparator = /^\s*·/.test(text.slice(index + 1));
-    const spaceCount = isBeforeSeparator ? 3 : 2;
-    cursorX += estimateQuickPlayMetaCharWidth(' ', fontSize) * spaceCount;
-    continue;
+    markup += `<text x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="${textClass}"${fillAttr}${opacityAttr}>${escapeXml(char)}</text>`;
+    cursorX += estimateQuickPlayMetaCharWidth(char, fontSize);
   }
 
-  cursorX += estimateQuickPlayMetaCharWidth(char, fontSize);
+  return markup;
 }
 
-  return `<g>${baseText}${underlines.join('')}</g>`;
+function estimateQuickPlayMetaNameWidth(rawName, fontSize = 34) {
+  let width = 0;
+
+  for (const char of String(rawName ?? '').toUpperCase()) {
+    width += char === '_'
+      ? fontSize * 0.64
+      : estimateQuickPlayMetaCharWidth(char, fontSize);
+  }
+
+  return width;
+}
+
+function estimateQuickPlayMetaTextWidth(text, fontSize = 34) {
+  let width = 0;
+
+  for (const char of String(text ?? '')) {
+    width += estimateQuickPlayMetaCharWidth(char, fontSize);
+  }
+
+  return width;
 }
 
 function estimateQuickPlayMetaCharWidth(char, fontSize = 34) {
@@ -563,7 +590,14 @@ function estimateQuickPlayMetaCharWidth(char, fontSize = 34) {
   if (char === 'I' || char === '1' || char === '.') return fontSize * 0.28;
   if (char === ',') return fontSize * 0.22;
   if (/\d/.test(char)) return fontSize * 0.52;
-  return fontSize * 0.58 + 1.5;
+  if (/[A-Z]/.test(char)) return fontSize * 0.58 + 1.5;
+  return fontSize * 0.54;
+}
+
+function getSvgOptionalAttrs(options = {}) {
+  const fillAttr = options.fill ? ` fill="${options.fill}"` : '';
+  const opacityAttr = options.opacity !== undefined ? ` opacity="${options.opacity}"` : '';
+  return `${fillAttr}${opacityAttr}`;
 }
 
 function renderQuickPlayMainValueMarkup({

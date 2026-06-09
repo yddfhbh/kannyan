@@ -1022,21 +1022,6 @@ function estimateFooterTextWidth(text, fontSize = 14) {
   return width;
 }
 
-function estimateFooterCharWidth(char, fontSize = 14) {
-  if (char === ' ') return fontSize * 0.34;
-  if (char === 'I') return fontSize * 0.28;
-  if (char === '1') return fontSize * 0.34;
-  if (char === '_') return fontSize * 0.52;
-  if (/[0-9]/.test(char)) return fontSize * 0.54;
-  if (/[A-Z]/.test(char)) return fontSize * 0.56;
-  if (char === ':') return fontSize * 0.22;
-  if (char === '.') return fontSize * 0.22;
-  if (char === ',') return fontSize * 0.24;
-  if (char === '-') return fontSize * 0.30;
-  if (char === '·') return fontSize * 0.28;
-
-  return fontSize * 0.54;
-}
 
 function formatPrisecter(prisecter) {
   const pri = Number(prisecter?.pri);
