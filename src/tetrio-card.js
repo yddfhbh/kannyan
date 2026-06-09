@@ -1633,7 +1633,7 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
     </style>
   </defs>
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
-  <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff">${escapeXml(normalizedText)}</text>
+ <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff" xml:space="preserve">${renderTetrioTextMarkup(normalizedText)}</text>
 </svg>`;
     const { info } = await sharp(renderTetrioSvgToPng(measurementSvg, { zoom: 1 }))
       .png()
