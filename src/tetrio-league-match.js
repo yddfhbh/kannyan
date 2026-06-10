@@ -963,8 +963,8 @@ function renderLeagueNumberMarkup(value) {
   let resetDyEm = 0;
 
   // 여기만 조절
-  const dotFontSize = '1.28em'; // 점 크기, 기존 1.18em보다 큼
-  const dotDyEm = 0.03;         // 점만 아래로 내리는 정도
+  const dotFontSize = '1.23em'; // 점 크기, 기존 1.18em보다 큼
+  const dotDyEm = 0.01;         // 점만 아래로 내리는 정도
 
   for (const char of text) {
     if (char === '.') {
