@@ -839,15 +839,16 @@ addText(dateMatch[3].toUpperCase(), 'footerDate', 2);
   return `<g>${parts.join('\n  ')}</g>`;
 }
 
-function estimateLeagueUsernameCharWidth(char, fontSize = 17) {
+function estimateLeagueUsernameCharWidth(char, fontSize = 18) {
   if (char === ' ') return fontSize * 0.33;
 
-  // I만 조금 더 넓게
-  if (char === 'I' || char === '1') return fontSize * 0.46;
-  if (char === 'L') return fontSize * 0.38;
+  if (char === 'I' || char === '1') return fontSize * 0.36;
+  if (char === 'L') return fontSize * 0.46;
 
-  if (char === 'M' || char === 'W') return fontSize * 0.9;
-  return fontSize * 0.64;
+  // 기존 0.9가 너무 커서 M 뒤에 공백처럼 보임
+  if (char === 'M' || char === 'W') return fontSize * 0.72;
+
+  return fontSize * 0.60;
 }
 
 function measureLeagueUsernameWidth(text, fontSize = 17) {
@@ -859,7 +860,7 @@ function measureLeagueUsernameWidth(text, fontSize = 17) {
 
 function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
   const raw = String(text ?? '').toUpperCase();
-  const fontSize = 17;
+  const fontSize = 18;
 
   if (!raw.includes('_')) {
     return `<text x="${roundSvgNumber(x)}" y="${y}" text-anchor="${anchor}" class="username">${escapeXml(raw)}</text>`;
@@ -961,15 +962,24 @@ function renderLeagueNumberMarkup(value) {
   let markup = '';
   let resetDyEm = 0;
 
+  // 여기만 조절
+  const dotFontSize = '1.28em'; // 점 크기, 기존 1.18em보다 큼
+  const dotDyEm = 0.03;         // 점만 아래로 내리는 정도
+
   for (const char of text) {
     if (char === '.') {
-      const dy = resetDyEm ? ` dy="${roundSvgNumber(-resetDyEm)}em"` : '';
-      markup += `<tspan${dy} font-family="Arial, Helvetica, sans-serif" font-size="1.18em" stroke="none">.</tspan>`;
-      resetDyEm = 0.03;
+      // 점만 아래로 내림
+      markup += `<tspan dy="${dotDyEm}em" font-family="Arial, Helvetica, sans-serif" font-size="${dotFontSize}" stroke="none">.</tspan>`;
+
+      // 다음 숫자는 다시 원래 기준선으로 복귀
+      resetDyEm = dotDyEm;
       continue;
     }
 
-    const dy = resetDyEm ? ` dy="${roundSvgNumber(-resetDyEm)}em"` : '';
+    const dy = resetDyEm
+      ? ` dy="${roundSvgNumber(-resetDyEm)}em"`
+      : '';
+
     markup += dy
       ? `<tspan${dy}>${escapeXml(char)}</tspan>`
       : escapeXml(char);
