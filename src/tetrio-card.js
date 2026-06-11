@@ -622,7 +622,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
 const bannerX = 14 + bannerCutLeft;
 const bannerY = 18;
 const bannerHeight = 102;
-const bannerWidth = 932 - bannerCutLeft;
+const bannerWidth = 932 - bannerCutLeft+2;
 
 const headerOverlayHeight = 15;
 const headerOverlayTileWidth = 180; // 작을수록 더 자주 반복됨
@@ -632,8 +632,10 @@ const bannerEdgeCoverWidth = 4;   // 끝부분 가릴 폭
 const bannerEdgeCoverOffsetY = 5; // 아래로 4px 내림
 const bannerEdgeCoverY = headerOverlayY + bannerEdgeCoverOffsetY;
 const bannerEdgeCoverHeight = headerOverlayHeight;
+const bannerRightEdgeCoverHeight = 10;
+const bannerRightEdgeCoverY = bannerEdgeCoverY ;
   const avatarX = 28;
-  const avatarY = bannerY;
+  const avatarY = bannerY-14;
   const avatarSize = 96;
   const nameX = avatarX + avatarSize + 16;
   const headerNameFontSize = 46;
@@ -728,8 +730,8 @@ const headerFlagY = bannerY + 18;
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="${svgHeight}" viewBox="0 0 960 ${svgHeight}">
   <defs>
-    <clipPath id="avatarClip"><rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="8"/></clipPath>
-    <clipPath id="bannerClip"><rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" rx="4"/></clipPath>
+    <clipPath id="avatarClip"><rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="6"/></clipPath>
+    <clipPath id="bannerClip"><rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" rx="0"/></clipPath>
     <clipPath id="bioClip"><rect x="${contentX + bioTextInset}" y="${bioY + bioClipTopOffsetY}" width="${bioTextWidth}" height="${Math.max(0, bioHeight - bioClipTopOffsetY - bioClipBottomInset)}"/></clipPath>
     <linearGradient id="bannerFallback" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0" stop-color="#304e52"/>
@@ -915,6 +917,8 @@ const headerFlagY = bannerY + 18;
 ${assets.banner ? `<image href="${assets.banner}" x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#bannerClip)"/>` : ''}
 <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="#000000" opacity="0.18" clip-path="url(#bannerClip)"/>
 
+<rect x="12" y="-4" width="944" height="22" fill="#000000"/>
+
 ${renderHeaderOverlayStrip(
   assets.headerOverlay,
   bannerX + headerOverlayOffsetX,
@@ -928,7 +932,14 @@ ${renderHeaderOverlayStrip(
   y="${bannerEdgeCoverY}"
   width="${bannerEdgeCoverWidth}"
   height="${bannerEdgeCoverHeight}"
-  fill="${tetrioPalette.pageBg}"
+  fill="${tetrioPalette.cardBorder}"
+/>
+<rect
+  x="${bannerX + bannerWidth - bannerEdgeCoverWidth}"
+  y="${bannerRightEdgeCoverY}"
+  width="${bannerEdgeCoverWidth}"
+  height="${bannerRightEdgeCoverHeight}"
+  fill="${tetrioPalette.cardBorder}"
 />
 
 <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" fill="#26362c" clip-path="url(#avatarClip)"/>
@@ -1127,20 +1138,17 @@ function renderHeaderOverlayStrip(imageHref, x, y, totalWidth, height, options =
   let markup = '';
 
   for (let cursorX = x; cursorX < x + totalWidth; cursorX += tileWidth) {
-    const remainingWidth = x + totalWidth - cursorX;
-    const drawWidth = Math.min(tileWidth, remainingWidth);
-
-    markup += `<image
-      href="${imageHref}"
-      x="${cursorX}"
-      y="${y}"
-      width="${drawWidth}"
-      height="${height}"
-      preserveAspectRatio="none"
-      clip-path="${clipPath}"
-      filter="url(#headerOverlayTint)"
-    />`;
-  }
+  markup += `<image
+    href="${imageHref}"
+    x="${cursorX}"
+    y="${y}"
+    width="${tileWidth}"
+    height="${height}"
+    preserveAspectRatio="none"
+    clip-path="${clipPath}"
+    filter="url(#headerOverlayTint)"
+  />`;
+}
 
   return markup;
 }
