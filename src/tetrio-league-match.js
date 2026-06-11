@@ -824,7 +824,7 @@ function renderFooterLineMarkup(text, x, y) {
   if (dateMatch) {
  addText(`${dateMatch[1]},`, 'footerDate', 6);
 addText(dateMatch[2], 'footerTime', 3);
-addText(dateMatch[3].toUpperCase(), 'footerDate', 2);
+addText(dateMatch[3].toUpperCase(), 'footerDate', 7);
 } else {
   addText(match[3], 'footerDate', 7);
 }
