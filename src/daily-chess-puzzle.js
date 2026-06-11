@@ -1023,7 +1023,8 @@ function normalizeSanForCompare(value) {
     .replace(/0/g, 'O')
     .replace(/[+#]/g, '')
     .replace(/[?!]/g, '')
-    .replace(/\s+/g, '');
+    .replace(/\s+/g, '')
+    .toLowerCase();
 }
 
 function normalizeUci(value) {
@@ -1042,27 +1043,32 @@ function normalizeUci(value) {
 function normalizeLooseSanInput(value) {
   let input = String(value ?? '').trim();
 
+  if (!input) {
+    return input;
+  }
+
   input = input.replace(/0/g, 'O');
 
   if (/^o-o-o[+#]?$/i.test(input)) {
-    return input.toUpperCase().replace('O-O-O', 'O-O-O');
+    return input.replace(/o/gi, 'O');
   }
 
   if (/^o-o[+#]?$/i.test(input)) {
-    return input.toUpperCase().replace('O-O', 'O-O');
+    return input.replace(/o/gi, 'O');
   }
 
-  // qxh7+ -> Qxh7+, nf3 -> Nf3 같은 식으로 보정
-  input = input.replace(/^([kqrbn])(?=[a-hx1-8])/i, (match) => {
-    return match.toUpperCase();
-  });
+  const hasPiecePrefix = /^[kqrbn]/i.test(input);
 
-  // 프로모션 e8=q -> e8=Q
-  input = input.replace(/=([qrbn])$/i, (_, piece) => {
-    return `=${piece.toUpperCase()}`;
-  });
+  // G7 -> g7, EXD5 -> exd5, QXH7+ -> qxh7+ 로 일단 정리
+  input = input.toLowerCase();
 
-  input = input.replace(/=([qrbn])([+#])$/i, (_, piece, suffix) => {
+  // qxh7+ -> Qxh7+, nf3 -> Nf3
+  if (hasPiecePrefix) {
+    input = input[0].toUpperCase() + input.slice(1);
+  }
+
+  // e8=q -> e8=Q, axb8=n+ -> axb8=N+
+  input = input.replace(/=([qrbn])([+#])?$/i, (_, piece, suffix = '') => {
     return `=${piece.toUpperCase()}${suffix}`;
   });
 
