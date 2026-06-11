@@ -904,10 +904,17 @@ const headerFlagY = bannerY + 18;
       }
 
       .bioText {
-        fill: #a7e0a0;  
-        text-shadow: 0 1px 2px #07150a;
-        word-spacing: 0px;
-      }
+  font-family: Arial, Helvetica, sans-serif;
+  fill: #a7e0a0;
+  text-shadow: 0 1px 2px #07150a;
+  word-spacing: 0px;
+
+  stroke: rgba(255,255,255,0.22);
+  stroke-width: 0.12px;
+  font-weight: 700;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
     </style>
   </defs>
 
@@ -2179,6 +2186,19 @@ function renderBio(lines, emojiAssets, y, height, x = 36, width = 888) {
   </g>`;
 }
 
+function renderBioTextMarkup(value) {
+  return String(value ?? '')
+    .split('')
+    .map((char) => {
+      if (/[a-z_@#:/.]/.test(char)) {
+        return `<tspan font-family="Arial, Helvetica, sans-serif" font-weight="900" stroke="none">${escapeXml(char)}</tspan>`;
+      }
+
+      return escapeXml(char);
+    })
+    .join('');
+}
+
 function renderBioLine(line, emojiAssets, x, baselineY) {
   const parts = [];
   let cursorX = x;
@@ -2190,7 +2210,9 @@ function renderBioLine(line, emojiAssets, x, baselineY) {
       return;
     }
 
-    parts.push(`<text x="${roundSvgNumber(textRunX)}" y="${roundSvgNumber(baselineY)}" class="bioText" font-size="16" font-weight="800">${escapeXml(textRun)}</text>`);
+    parts.push(
+  `<text x="${roundSvgNumber(textRunX)}" y="${roundSvgNumber(baselineY)}" class="bioText" font-size="16" font-weight="800">${escapeXml(textRun)}</text>`
+);
     textRun = '';
   };
 
