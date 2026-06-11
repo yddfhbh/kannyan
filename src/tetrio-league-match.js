@@ -729,13 +729,6 @@ function renderFooterPlainText(text, x, y, className, fontSize = 14) {
 function renderFooterNameText(text, x, y) {
   const raw = String(text ?? '').toUpperCase();
 
-  if (!raw.includes('_')) {
-    return {
-      markup: `<text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer footerName">${escapeXml(raw)}</text>`,
-      width: measureFooterTextWidth(raw),
-    };
-  }
-
   let cursorX = x;
   let markup = '';
 
@@ -753,9 +746,9 @@ function renderFooterNameText(text, x, y) {
   }
 
   return {
-  markup: `<g>${markup}</g>`,
-  width: measureFooterNameTextWidth(raw),
-};
+    markup: `<g>${markup}</g>`,
+    width: cursorX - x,
+  };
 }
 
 function estimateFooterNameCharWidth(char, fontSize = 14) {
