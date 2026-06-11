@@ -22,7 +22,7 @@ const dailyPuzzleAdminIds = new Set([
 ]);
 
 const dailyPuzzlePostHour = clampInteger(
-  Number(process.env.DAILY_CHESS_PUZZLE_HOUR) || 12,
+  parseOptionalInteger(process.env.DAILY_CHESS_PUZZLE_HOUR, 12),
   0,
   23
 );
@@ -511,6 +511,20 @@ function createDailyPostContent(loadedState, puzzle, dateKey, yesterdayKey) {
     '',
     createLeaderboardText(loadedState, yesterdayKey),
   ].join('\n');
+}
+
+function parseOptionalInteger(value, fallback) {
+  if (value == null || String(value).trim() === '') {
+    return fallback;
+  }
+
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return fallback;
+  }
+
+  return Math.trunc(number);
 }
 
 function createLeaderboardText(loadedState, dateKey) {
