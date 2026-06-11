@@ -1175,10 +1175,18 @@ async function handleReactionRequestMessage(message) {
     remembered,
   });
 
-  if (emojiResult?.ask) {
-    await askReactionClarification(message, emojiResult.ask);
-    return { handled: true, shouldContinueToGemini: false };
-  }
+  if (emojiResult?.message) {
+  await message.reply({
+    content: emojiResult.message,
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+  return { handled: true, shouldContinueToGemini: false };
+}
+
+if (emojiResult?.ask) {
+  await askReactionClarification(message, emojiResult.ask);
+  return { handled: true, shouldContinueToGemini: false };
+}
 
   const emoji = emojiResult?.emoji;
   if (!emoji) {
@@ -1197,11 +1205,25 @@ async function handleReactionRequestMessage(message) {
     handled: true,
     shouldContinueToGemini: true,
     forcedPrompt: [
-      '방금 사용자가 요청한 메시지에 이모지 반응을 성공적으로 달았다.',
-      `사용자 요청: ${content}`,
-      `단 이모지: ${formatReactionEmojiForPrompt(emoji)}`,
-      '사용자에게 디스코드 채팅에 바로 보낼 짧고 자연스러운 답변 한 문장만 해줘.',
-      '너무 기계적으로 “요청하신 메시지에...”라고 하지 말고, 상황에 맞게 가볍게 말해줘.',
+      '방금 사용자가 Discord 메시지에 이모지 반응을 달아달라고 요청했고, 실제로 반응 달기에 성공했다.',
+      '',
+      '[중요]',
+      '아래 대상 메시지는 반응을 단 원본 메시지의 내용이다.',
+      '대상 메시지에 직접 답장하거나 평가하지 마라.',
+      '대상 메시지의 말투와 상황을 참고해서, 반응을 달았다는 사실만 자연스럽게 짧게 말해라.',
+      '훈계, 반박, 해석, 조언을 하지 마라.',
+      '“요청하신 메시지에”처럼 기계적으로 말하지 마라.',
+      '',
+      `[사용자 요청]\n${content}`,
+      '',
+      `[단 이모지]\n${formatReactionEmojiForPrompt(emoji)}`,
+      '',
+      `[반응을 단 대상 메시지]\n${formatReactionTargetForGemini(targetMessage)}`,
+      '',
+      '최종 답변은 디스코드 채팅에 바로 보낼 한 문장만 출력해.',
+      '예시: 달아뒀다냥.',
+      '예시: 거기에도 붙여뒀다냥.',
+      '예시: 별표 콕 달아놨다냥.',
     ].join('\n'),
   };
 } catch (error) {
@@ -1258,23 +1280,44 @@ async function resolveReactionEmojiFromMessage(message, content, options = {}) {
   const text = String(content ?? '');
   const { targetMessage, remembered } = options;
 
+  const customEmojiSyntaxMatch = text.match(/<a?:([a-zA-Z0-9_]{2,32}):(\d{17,20})>/);
+  const namedEmojiSyntaxMatch = text.match(/:([a-zA-Z0-9_]{2,32}):/);
+
   const directEmoji = await resolveDirectReactionEmoji(message, text);
   if (directEmoji) {
     return { emoji: directEmoji };
   }
 
-  const semanticEmojiText = findSemanticReactionEmojiText(text);
-  if (semanticEmojiText) {
-    const emoji = await resolveEmojiResolvableFromText(message, semanticEmojiText);
+  // <:name:id> 또는 :name:처럼 사용자가 직접 이모지를 지정했는데 못 찾은 경우
+  if (customEmojiSyntaxMatch || namedEmojiSyntaxMatch) {
+    const emojiName =
+      customEmojiSyntaxMatch?.[1]
+      ?? namedEmojiSyntaxMatch?.[1]
+      ?? '그';
+
+    return {
+      message: `${emojiName} 이모지는 지금 이 서버에서 못 찾았다냥. 다른 이모지나 정확한 서버 이모지 이름으로 말해달라냥.`,
+    };
+  }
+
+  const semanticEntry = findSemanticReactionEmojiEntry(text);
+  if (semanticEntry) {
+    const emoji = await resolveEmojiResolvableFromText(message, semanticEntry.emojiText);
     if (emoji) {
       return { emoji };
     }
+
+    // "해마 이모지 달아"처럼 자연어로 특정 이모지를 말했는데 못 찾은 경우
+    return {
+      message: `${semanticEntry.keyword} 이모지는 지금 이 서버에서 못 찾았다냥. 다른 이모지로 말해달라냥.`,
+    };
   }
 
   if (isPreviousReactionLikeText(text) && remembered?.emoji) {
     return { emoji: remembered.emoji };
   }
 
+  // 여기까지 왔을 때만 AI가 적절한 이모지를 고르게 함
   const aiResult = await suggestReactionEmojiWithGemini(message, content, targetMessage);
   if (aiResult?.emoji || aiResult?.ask) {
     return aiResult;
@@ -1327,16 +1370,20 @@ async function resolveDirectReactionEmoji(message, text) {
   return null;
 }
 
-function findSemanticReactionEmojiText(text) {
+function findSemanticReactionEmojiEntry(text) {
   const normalized = String(text ?? '').replace(/^%+/, '').trim().toLowerCase();
 
   for (const [keyword, emojiText] of semanticReactionEmojis) {
     if (normalized.includes(keyword.toLowerCase())) {
-      return emojiText;
+      return { keyword, emojiText };
     }
   }
 
   return null;
+}
+
+function findSemanticReactionEmojiText(text) {
+  return findSemanticReactionEmojiEntry(text)?.emojiText ?? null;
 }
 
 async function resolveEmojiResolvableFromText(message, value) {
@@ -1485,7 +1532,7 @@ function serializeReactionEmoji(emoji) {
     return emoji;
   }
 
-  return emoji?.id ?? emoji?.toString?.() ?? String(emoji);
+  return emoji?.toString?.() ?? emoji?.id ?? emoji?.name ?? String(emoji);
 }
 
 async function askReactionClarification(message, instruction) {
