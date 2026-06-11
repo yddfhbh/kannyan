@@ -82,12 +82,20 @@ export async function handleDailyPuzzleMessage(message) {
       return true;
     }
 
-    if (content.startsWith('%') || content.startsWith('/')) {
-      return false;
-    }
+    let answerText = content;
 
-    await handleDailyPuzzleAnswer(message, session);
-    return true;
+// DM에서 진행 중인 퍼즐이 있으면 %h5h7 같은 입력도 수로 처리
+if (answerText.startsWith('%') && !/^%일일퍼즐\s*$/i.test(answerText)) {
+  answerText = answerText.slice(1).trim();
+}
+
+// /로 시작하는 건 디스코드 명령어 취급
+if (answerText.startsWith('/')) {
+  return false;
+}
+
+await handleDailyPuzzleAnswer(message, session, answerText);
+return true;
   }
 
   if (!/^%일일퍼즐\s*$/i.test(content)) {
@@ -265,8 +273,8 @@ async function startDailyPuzzleForUser({
   };
 }
 
-async function handleDailyPuzzleAnswer(message, session) {
-  const rawInput = message.content?.trim() ?? '';
+async function handleDailyPuzzleAnswer(message, session, answerText = null) {
+  const rawInput = answerText ?? message.content?.trim() ?? '';
 
   if (!rawInput) {
     return;
@@ -637,16 +645,18 @@ function tryApplyUserMove(fen, rawInput) {
   }
 
   if (!move) {
+  const sanInput = normalizeLooseSanInput(input);
+
+  try {
+    move = chess.move(sanInput, { sloppy: true });
+  } catch {
     try {
-      move = chess.move(input, { sloppy: true });
+      move = chess.move(sanInput);
     } catch {
-      try {
-        move = chess.move(input);
-      } catch {
-        move = null;
-      }
+      move = null;
     }
   }
+}
 
   if (!move) {
     return null;
@@ -661,10 +671,7 @@ function tryApplyUserMove(fen, rawInput) {
 }
 
 function isMatchingExpectedMove(rawInput, expectedMove) {
-  const userMove = tryApplyUserMove(expectedMove ? expectedMove.nextFen.replace(/^.*$/, '') : '', rawInput);
-  void userMove;
-
-  const inputSan = normalizeSanForCompare(rawInput);
+  const inputSan = normalizeSanForCompare(normalizeLooseSanInput(rawInput));
   const inputUci = normalizeUci(rawInput);
 
   return (
@@ -1016,6 +1023,36 @@ function normalizeUci(value) {
   }
 
   return `${match[1]}${match[2]}${match[3] ?? ''}`;
+}
+
+function normalizeLooseSanInput(value) {
+  let input = String(value ?? '').trim();
+
+  input = input.replace(/0/g, 'O');
+
+  if (/^o-o-o[+#]?$/i.test(input)) {
+    return input.toUpperCase().replace('O-O-O', 'O-O-O');
+  }
+
+  if (/^o-o[+#]?$/i.test(input)) {
+    return input.toUpperCase().replace('O-O', 'O-O');
+  }
+
+  // qxh7+ -> Qxh7+, nf3 -> Nf3 같은 식으로 보정
+  input = input.replace(/^([kqrbn])(?=[a-hx1-8])/i, (match) => {
+    return match.toUpperCase();
+  });
+
+  // 프로모션 e8=q -> e8=Q
+  input = input.replace(/=([qrbn])$/i, (_, piece) => {
+    return `=${piece.toUpperCase()}`;
+  });
+
+  input = input.replace(/=([qrbn])([+#])$/i, (_, piece, suffix) => {
+    return `=${piece.toUpperCase()}${suffix}`;
+  });
+
+  return input;
 }
 
 function parseCommaSeparatedValues(value) {
