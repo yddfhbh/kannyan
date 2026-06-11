@@ -842,10 +842,9 @@ addText(dateMatch[3].toUpperCase(), 'footerDate', 2);
 function estimateLeagueUsernameCharWidth(char, fontSize = 18) {
   if (char === ' ') return fontSize * 0.33;
 
-  if (char === 'I' || char === '1') return fontSize * 0.36;
+  if (char === 'I' || char === '1') return fontSize * 0.44;
   if (char === 'L') return fontSize * 0.46;
 
-  // 기존 0.9가 너무 커서 M 뒤에 공백처럼 보임
   if (char === 'M' || char === 'W') return fontSize * 0.72;
 
   return fontSize * 0.60;
