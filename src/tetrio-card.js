@@ -13,6 +13,7 @@ import {
 } from './tetrio-font.js';
 
 const bannedAvatarPath = fileURLToPath(new URL('../assets/avatar-banned.png', import.meta.url));
+const headerOverlayPath = fileURLToPath(new URL('../assets/about-header-overlay.png', import.meta.url));
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioContentBaseUrl = 'https://tetr.io/user-content';
 const tetrioGameBaseUrl = 'https://tetr.io';
@@ -59,6 +60,7 @@ const achievementRankNames = new Map([
 ]);
 let tetrioHunFontDataUriPromise = null;
 let bannedAvatarDataUriPromise = null;
+let headerOverlayDataUriPromise = null;
 const bioHangulWidthCache = new Map();
 const tetrioJsonCache = new Map();
 const tetrioJsonPendingPromises = new Map();
@@ -260,7 +262,7 @@ async function fetchTetrioAssets(user, summaries) {
     ? summaries.league.rank
     : null;
   const uniqueBadges = getUniqueBadges(badges);
-  const [avatar, banner, flag, badgeIconEntries, featuredAchievementAssets, leagueRankIcon, hunFont] = await Promise.all([
+ const [avatar, banner, flag, badgeIconEntries, featuredAchievementAssets, leagueRankIcon, hunFont, headerOverlay] = await Promise.all([
     isBanned ? fetchBannedAvatarDataUri() : fetchImageDataUri(avatarUrl),
     fetchImageDataUri(bannerUrl),
     fetchImageDataUri(flagUrl),
@@ -274,6 +276,7 @@ async function fetchTetrioAssets(user, summaries) {
       trimTransparent: true,
     }),
     fetchTetrioHunFontDataUri(),
+    fetchHeaderOverlayDataUri(),
   ]);
 
   return {
@@ -284,6 +287,7 @@ async function fetchTetrioAssets(user, summaries) {
     featuredAchievements: featuredAchievementAssets.filter(Boolean),
     leagueRankIcon,
     hunFont,
+    headerOverlay,
   };
 }
 
@@ -595,6 +599,11 @@ function fetchBannedAvatarDataUri() {
   return bannedAvatarDataUriPromise;
 }
 
+function fetchHeaderOverlayDataUri() {
+  headerOverlayDataUriPromise ??= readLocalImageDataUri(headerOverlayPath, 'image/png');
+  return headerOverlayDataUriPromise;
+}
+
 async function readLocalImageDataUri(path, mimeType) {
   try {
     const buffer = await readFile(path);
@@ -608,10 +617,21 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   const contentX = 28;
   const contentWidth = 904;
   const contentRight = contentX + contentWidth;
-  const bannerX = 14;
-  const bannerY = 18;
-  const bannerHeight = 102;
-  const bannerWidth = 932;
+ const bannerCutLeft = -2; // 배너 영역 왼쪽을 12px 잘라냄
+
+const bannerX = 14 + bannerCutLeft;
+const bannerY = 18;
+const bannerHeight = 102;
+const bannerWidth = 932 - bannerCutLeft;
+
+const headerOverlayHeight = 15;
+const headerOverlayTileWidth = 180; // 작을수록 더 자주 반복됨
+const headerOverlayY = bannerY + bannerHeight - headerOverlayHeight;
+const headerOverlayOffsetX = -2; // 오른쪽으로 8px
+const bannerEdgeCoverWidth = 4;   // 끝부분 가릴 폭
+const bannerEdgeCoverOffsetY = 5; // 아래로 4px 내림
+const bannerEdgeCoverY = headerOverlayY + bannerEdgeCoverOffsetY;
+const bannerEdgeCoverHeight = headerOverlayHeight;
   const avatarX = 28;
   const avatarY = bannerY;
   const avatarSize = 96;
@@ -619,6 +639,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
   const headerNameFontSize = 46;
   const headerNameFontWeight = 900;
   const headerUsername = String(user.username ?? '').toUpperCase();
+  const bannerCropLeft = 0; // 왼쪽을  더 자름
  const headerNameWidth = await measureRenderedHeaderUsernameWidth({
   text: headerUsername,
   fontSize: headerNameFontSize,
@@ -737,6 +758,14 @@ const headerFlagY = bannerY + 18;
 
 <filter id="statValueGlowTight" x="-22%" y="-62%" width="144%" height="224%" color-interpolation-filters="sRGB">
   <feGaussianBlur in="SourceGraphic" stdDeviation="1.45"/>
+</filter>
+
+<filter id="headerOverlayTint" color-interpolation-filters="sRGB">
+  <feColorMatrix type="matrix" values="
+    0 0 0 0 0.1294
+    0 0 0 0 0.2588
+    0 0 0 0 0.1216
+    0 0 0 1 0"/>
 </filter>
 
 <filter id="featuredAchievementShadow" x="-18%" y="-18%" width="136%" height="146%" color-interpolation-filters="sRGB">
@@ -882,11 +911,27 @@ const headerFlagY = bannerY + 18;
 
   <rect width="960" height="${svgHeight}" fill="${tetrioPalette.pageBg}"/>
   <rect x="14" y="16" width="932" height="${cardHeight}" fill="${tetrioPalette.cardBg}" stroke="${tetrioPalette.cardBorder}" stroke-width="4" rx="3"/>
-  <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="url(#bannerFallback)" clip-path="url(#bannerClip)"/>
-  ${assets.banner ? `<image href="${assets.banner}" x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#bannerClip)"/>` : ''}
-  <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="#000000" opacity="0.18" clip-path="url(#bannerClip)"/>
+ <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="url(#bannerFallback)" clip-path="url(#bannerClip)"/>
+${assets.banner ? `<image href="${assets.banner}" x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#bannerClip)"/>` : ''}
+<rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="#000000" opacity="0.18" clip-path="url(#bannerClip)"/>
 
-  <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" fill="#26362c" clip-path="url(#avatarClip)"/>
+${renderHeaderOverlayStrip(
+  assets.headerOverlay,
+  bannerX + headerOverlayOffsetX,
+  headerOverlayY,
+  bannerWidth,
+  headerOverlayHeight,
+  { tileWidth: headerOverlayTileWidth }
+)}
+<rect
+  x="${bannerX}"
+  y="${bannerEdgeCoverY}"
+  width="${bannerEdgeCoverWidth}"
+  height="${bannerEdgeCoverHeight}"
+  fill="${tetrioPalette.pageBg}"
+/>
+
+<rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" fill="#26362c" clip-path="url(#avatarClip)"/>
   ${assets.avatar ? `<image href="${assets.avatar}" x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatarClip)"/>` : `<text x="${avatarX + avatarSize / 2}" y="${avatarY + 55}" text-anchor="middle" font-size="38" font-weight="900" fill="#9eeaa4">${escapeXml(user.username[0]?.toUpperCase() ?? '?')}</text>`}
   <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="8" fill="none" stroke="#d9ffe2" stroke-width="2" opacity="0.25"/>
 
@@ -1070,6 +1115,34 @@ function getSupporterLabelPoints(x, width, height, options = {}) {
     formatPoint([left + 3, bottom]),
     formatPoint([left - 5 + horizontalInset, height / 2]),
   ].join(' ');
+}
+
+function renderHeaderOverlayStrip(imageHref, x, y, totalWidth, height, options = {}) {
+  if (!imageHref) {
+    return '';
+  }
+
+  const tileWidth = options.tileWidth ?? 160;
+  const clipPath = options.clipPath ?? 'url(#bannerClip)';
+  let markup = '';
+
+  for (let cursorX = x; cursorX < x + totalWidth; cursorX += tileWidth) {
+    const remainingWidth = x + totalWidth - cursorX;
+    const drawWidth = Math.min(tileWidth, remainingWidth);
+
+    markup += `<image
+      href="${imageHref}"
+      x="${cursorX}"
+      y="${y}"
+      width="${drawWidth}"
+      height="${height}"
+      preserveAspectRatio="none"
+      clip-path="${clipPath}"
+      filter="url(#headerOverlayTint)"
+    />`;
+  }
+
+  return markup;
 }
 
 function renderProfileStats(stats, x = 720, y = 160) {
