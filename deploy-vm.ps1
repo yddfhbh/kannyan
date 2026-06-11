@@ -7,6 +7,7 @@ $archivePath = Join-Path $projectRoot $archiveName
 $includePaths = @(
   "src",
   "assets",
+  "scripts",
   "package.json",
   "package-lock.json",
   "ecosystem.config.cjs",
@@ -42,27 +43,65 @@ try {
   Write-Host 'cd ~'
   Write-Host 'ARCHIVE=discord-bot-vm.tar.gz'
   Write-Host 'APP_DIR=discord-bot-new'
+  Write-Host 'DATA_DIR="$HOME/discord-bot-data"'
+  Write-Host ''
+  Write-Host '# Stop old bot'
   Write-Host 'pm2 delete discord-bot || true'
   Write-Host 'pkill -f "[d]iscord-bot/src/index.js" || true'
   Write-Host 'pkill -f "[d]iscord-bot-new/src/index.js" || true'
+  Write-Host ''
+  Write-Host '# Preserve old persistent data if it was stored inside old app folders'
+  Write-Host 'mkdir -p "$DATA_DIR"'
+  Write-Host 'if [ -d "$APP_DIR/data" ] && [ ! -L "$APP_DIR/data" ]; then cp -a "$APP_DIR/data/." "$DATA_DIR/" 2>/dev/null || true; fi'
+  Write-Host 'if [ -d "$HOME/discord-bot/data" ] && [ ! -L "$HOME/discord-bot/data" ]; then cp -a "$HOME/discord-bot/data/." "$DATA_DIR/" 2>/dev/null || true; fi'
+  Write-Host ''
+  Write-Host '# Recreate app directory'
   Write-Host 'if [ -d "$APP_DIR" ]; then sudo chown -R "$USER:$USER" "$APP_DIR" 2>/dev/null || true; fi'
   Write-Host 'rm -rf "$APP_DIR" || sudo rm -rf "$APP_DIR"'
   Write-Host 'mkdir "$APP_DIR"'
   Write-Host 'tar -xzf "$ARCHIVE" -C "$APP_DIR"'
   Write-Host 'cd "$APP_DIR"'
-  Write-Host "# Run once on the VM if TETR.IO card text appears as square boxes:"
-  Write-Host "sudo apt update && sudo apt install -y fontconfig fonts-dejavu-core fonts-noto-cjk && sudo fc-cache -f && fc-match ""Noto Sans CJK KR"""
-  Write-Host "# If .env does not exist yet, create it with: cat > .env"
-  Write-Host "# Or copy an existing one with: cp ~/discord-bot/.env ~/discord-bot-new/.env"
-  Write-Host "npm ci --omit=dev"
-  Write-Host "npm run register"
-  Write-Host "pm2 start ecosystem.config.cjs --name discord-bot --update-env"
-  Write-Host "pm2 save"
-  Write-Host "pm2 status"
-  Write-Host "sleep 3"
-  Write-Host "curl -s http://127.0.0.1:8080/health"
+  Write-Host ''
+  Write-Host '# Link persistent data directory'
+  Write-Host 'rm -rf data'
+  Write-Host 'ln -sfn "$DATA_DIR" data'
+  Write-Host ''
+  Write-Host '# Copy existing .env if needed'
+  Write-Host 'if [ ! -f .env ] && [ -f "$HOME/discord-bot/.env" ]; then cp "$HOME/discord-bot/.env" .env; fi'
+  Write-Host 'if [ ! -f .env ] && [ -f "$HOME/discord-bot-new/.env" ]; then cp "$HOME/discord-bot-new/.env" .env; fi'
+  Write-Host '# If .env still does not exist, create it with: nano .env'
+  Write-Host ''
+  Write-Host '# Install system packages'
+  Write-Host 'sudo apt update'
+  Write-Host 'sudo apt install -y curl zstd fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-extra fonts-noto-cjk'
+  Write-Host 'sudo fc-cache -f'
+  Write-Host 'fc-match "Noto Sans CJK KR" || true'
+  Write-Host ''
+  Write-Host '# Install node dependencies'
+  Write-Host 'npm ci --omit=dev'
+  Write-Host ''
+  Write-Host '# Build Lichess puzzle pool if missing'
+  Write-Host 'if [ ! -f data/lichess_db_puzzle.csv.zst ]; then curl -L https://database.lichess.org/lichess_db_puzzle.csv.zst -o data/lichess_db_puzzle.csv.zst; fi'
+  Write-Host 'if [ ! -f data/lichess-puzzle-pool.jsonl ]; then LICHESS_PUZZLE_MIN_RATING=2000 LICHESS_PUZZLE_MAX_RATING=2600 LICHESS_PUZZLE_MAX_RD=120 LICHESS_PUZZLE_MIN_POPULARITY=60 LICHESS_PUZZLE_MIN_PLAYS=30 zstd -dc data/lichess_db_puzzle.csv.zst | node scripts/build-lichess-puzzle-pool.js; fi'
+  Write-Host 'wc -l data/lichess-puzzle-pool.jsonl || true'
+  Write-Host ''
+  Write-Host '# Register slash commands'
+  Write-Host 'npm run register'
+  Write-Host ''
+  Write-Host '# Start bot'
+  Write-Host 'pm2 start ecosystem.config.cjs --name discord-bot --update-env'
+  Write-Host 'pm2 save'
+  Write-Host 'pm2 status'
+  Write-Host 'sleep 3'
+  Write-Host 'curl -s http://127.0.0.1:8080/health || true'
+  Write-Host ''
+  Write-Host 'echo ""'
+  Write-Host 'echo "Persistent data directory:"'
+  Write-Host 'echo "$DATA_DIR"'
+  Write-Host 'ls -lah "$DATA_DIR"'
   Write-Host ""
   Write-Host "Note: .env is not included in the archive."
+  Write-Host "Note: persistent bot data is stored on the VM at ~/discord-bot-data."
 }
 finally {
   Pop-Location
