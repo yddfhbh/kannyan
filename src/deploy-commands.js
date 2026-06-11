@@ -20,6 +20,15 @@ const commands = [
     .setDescription('사용 가능한 명령어를 보여줍니다.')
     .toJSON(),
   new SlashCommandBuilder()
+  .setName('일일퍼즐지정')
+  .setDescription('이 채널을 매일 일일 체스 퍼즐 알림 채널로 지정합니다.')
+  .toJSON(),
+
+new SlashCommandBuilder()
+  .setName('일일퍼즐')
+  .setDescription('오늘의 일일 체스 퍼즐을 DM으로 받습니다.')
+  .toJSON(),
+  new SlashCommandBuilder()
     .setName('체닷')
     .setDescription('Chess.com 레이팅을 조회합니다.')
     .addStringOption((option) =>

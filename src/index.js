@@ -14,6 +14,7 @@ import {
   Events,
   GatewayIntentBits,
   MessageFlags,
+  Partials,
 } from 'discord.js';
 import {
   createTetrioProfileCard,
@@ -38,6 +39,12 @@ import { createTetrioStatsCard } from './tetrio-stats-card.js';
 import { createTetrioPlaystyleGraph } from './tetrio-playstyle-graph.js';
 import { createTetrioVersusGraph } from './tetrio-versus-graph.js';
 import { createMinomuncherAnalysis } from './minomuncher-analysis.js';
+import {
+  handleDailyPuzzleMessage,
+  handleDailyPuzzleRequestInteraction,
+  handleDailyPuzzleSetInteraction,
+  initDailyChessPuzzle,
+} from './daily-chess-puzzle.js';
 
 const execFileAsync = promisify(execFile);
 const customEmojis = {
@@ -291,7 +298,9 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.DirectMessages,
   ],
+  partials: [Partials.Channel],
 });
 
 client.once(Events.ClientReady, (readyClient) => {
@@ -302,6 +311,7 @@ client.once(Events.ClientReady, (readyClient) => {
   });
   console.log(`Logged in as ${readyClient.user.tag}`);
   startVmStatusUpdater(readyClient);
+  initDailyChessPuzzle(readyClient);
 });
 
 client.on(Events.Error, (error) => {
@@ -313,7 +323,10 @@ client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) {
     return;
   }
-
+  const dailyPuzzleHandled = await handleDailyPuzzleMessage(message);
+if (dailyPuzzleHandled) {
+  return;
+}
   if (isDirectBotMention(message)) {
     await message.reply({
       content: '애옹?',
@@ -321,7 +334,7 @@ client.on(Events.MessageCreate, async (message) => {
     });
     return;
   }
-
+  
   const reactionResult = await handleReactionRequestMessage(message);
 if (reactionResult?.handled) {
   if (reactionResult.shouldContinueToGemini) {
@@ -436,6 +449,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
     console.log(
       `Received /${interaction.commandName} from ${interaction.user.tag} in guild ${interaction.guildId ?? 'DM'}`
     );
+
+    if (interaction.commandName === '일일퍼즐지정') {
+  await handleDailyPuzzleSetInteraction(interaction);
+  return;
+}
+
+if (interaction.commandName === '일일퍼즐') {
+  await handleDailyPuzzleRequestInteraction(interaction);
+  return;
+}
 
     if (interaction.commandName === '도움말') {
   await interaction.reply('안알랴줌');
