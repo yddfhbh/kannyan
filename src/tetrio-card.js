@@ -661,7 +661,7 @@ const bannerEdgeCoverHeight = headerOverlayHeight;
 const bannerRightEdgeCoverHeight = 10;
 const bannerRightEdgeCoverY = bannerEdgeCoverY ;
   const avatarX = 28;
-  const avatarY = bannerY-14;
+  const avatarY = bannerY-22; //프사 높이 , 많이뺴면 올라감
   const avatarSize = 96;
   const nameX = avatarX + avatarSize + 16;
   const headerNameFontSize = 46;
@@ -951,7 +951,8 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
 ${assets.banner ? `<image href="${assets.banner}" x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#bannerClip)"/>` : ''}
 <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="#000000" opacity="0.18" clip-path="url(#bannerClip)"/>
 
-<rect x="${bannerX}" y="-4" width="${layoutWidth - bannerX - 4}" height="22" fill="#000000"/>
+<rect x="${bannerX}" y="-12" width="${layoutWidth - bannerX - 4}" height="30" fill="#000000"/> 
+//검은박스 조절
 
 ${renderHeaderOverlayStrip(
   assets.headerOverlay,
@@ -3479,7 +3480,7 @@ function scaleBioWidth(width) {
 
 function getBioCharWidth(char, hangulWidth = null) {
   if (/[\u3040-\u30ff\u31f0-\u31ff\uff66-\uff9f]/u.test(char)) {
-    return scaleBioWidth(18.2);
+    return hangulWidth ?? scaleBioWidth(9.6);
   }
 
   if (/[\u1100-\u11ff\u3130-\u318f\u3400-\u9fff\uf900-\ufaff\uac00-\ud7af]/u.test(char)) {
