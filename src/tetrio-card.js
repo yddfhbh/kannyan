@@ -725,7 +725,7 @@ const headerFlagY = bannerY + 18;
   const badgeBoxHeight = badgeLayout.boxHeight;
   const bioTextInset = 12;
   const bioTextWidth = contentWidth - bioTextInset * 2;
-  const bioWrapSafety = 12;
+  const bioWrapSafety = 64;
   const bioHangulWidth = await measureBioHangulWidth(16, assets.hunFont);
   const bioLines = await wrapBioText(user.bio, bioTextWidth - bioWrapSafety, {
     fontDataUri: assets.hunFont,
