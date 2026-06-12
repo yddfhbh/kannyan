@@ -735,13 +735,15 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
     noticeCursorY += noticeSlotHeight;
   }
   const badgeBoxY = noticeMarkup.length > 0 ? noticeCursorY : levelTagY + 46;
-  const badgeY = badgeBoxY + 10;
-  const badgeBoxHeight = badgeLayout.boxHeight;
-  const bioTextLeftInset = 12;
-  const bioTextRightInset = 0;
-  const bioTextWidth = contentWidth - bioTextLeftInset - bioTextRightInset;
-  const bioHangulWidth = await measureBioHangulWidth(bioTextFontSize, assets.hunFont);
-  console.log('[BIO WRAP]', {
+const badgeY = badgeBoxY + 10;
+const badgeBoxHeight = badgeLayout.boxHeight;
+const bioTextLeftInset = 12;
+const bioTextRightInset = 0;
+const bioTextWidth = contentWidth - bioTextLeftInset - bioTextRightInset;
+
+const bioHangulWidth = await measureBioHangulWidth(bioTextFontSize, assets.hunFont);
+
+console.log('[BIO WRAP]', {
   bioTextWidth,
   bioHangulWidth,
   bioTextFontSize,
@@ -755,19 +757,15 @@ const bioLines = await wrapBioText(user.bio, bioTextWidth, {
 });
 
 console.log('[BIO LINES]', bioLines.map((line) => line.text ?? line).join('\n'));
-  const bioLines = await wrapBioText(user.bio, bioTextWidth, {
-    fontDataUri: assets.hunFont,
-    fontSize: bioTextFontSize,
-    hangulWidth: bioHangulWidth,
-  });
-  const bioEmojiAssets = await fetchBioEmojiAssets(bioLines);
-  const hasBio = bioLines.length > 0;
-  const bioHeight = getBioHeight(bioLines);
-  const bioY = badgeBoxY + badgeBoxHeight + 8;
-  const topStatY = bioY + (hasBio ? bioHeight + 8 : 0);
-  const bottomStatY = topStatY + 100;
-  const svgHeight = bottomStatY + 126;
-  const cardHeight = svgHeight - 32;
+
+const bioEmojiAssets = await fetchBioEmojiAssets(bioLines);
+const hasBio = bioLines.length > 0;
+const bioHeight = getBioHeight(bioLines);
+const bioY = badgeBoxY + badgeBoxHeight + 8;
+const topStatY = bioY + (hasBio ? bioHeight + 8 : 0);
+const bottomStatY = topStatY + 100;
+const svgHeight = bottomStatY + 126;
+const cardHeight = svgHeight - 32;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${layoutWidth} ${svgHeight}">
