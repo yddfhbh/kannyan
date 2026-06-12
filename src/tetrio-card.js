@@ -10,6 +10,7 @@ import {
   renderTetrioSvgToPng,
   tetrioFontFamily,
   tetrioPhraseWordSpacing,
+  tetrioTightCommaDx,
 } from './tetrio-font.js';
 
 const bannedAvatarPath = fileURLToPath(new URL('../assets/avatar-banned.png', import.meta.url));
@@ -622,7 +623,7 @@ async function readLocalImageDataUri(path, mimeType) {
 }
 
 async function renderTetrioCardSvg(user, summaries, assets) {
-  const svgWidth = 780;
+  const svgWidth = 775;
   const layoutWidth = svgWidth;
   const cardX = 14;
   const cardWidth = layoutWidth - cardX * 2;
@@ -644,7 +645,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
 
 const bannerX = cardX + bannerCutLeft;
 const bannerY = 18;
-const bannerHeight = 102;
+const bannerHeight = 92;
 const bannerWidth = cardWidth - bannerCutLeft + 2;
 
 const headerOverlayHeight = 15;
@@ -675,6 +676,7 @@ const bannerRightEdgeCoverY = bannerEdgeCoverY ;
 const headerFlagGap = 110;
 const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
 const headerFlagY = bannerY + 18;
+const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
   
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
   const headerNameMarkup = await renderHeaderUsernameMarkup({
@@ -978,7 +980,7 @@ ${renderHeaderOverlayStrip(
 
   ${headerNameMarkup}
 ${renderHeaderFlag(flag, headerFlagX, headerFlagY)}
-  <text x="${avatarX + avatarSize + 18}" y="${bannerY + 77}" class="${headerMetaClass}" font-size="14" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))} ${renderTetrioTextMarkup('FRIENDS')}</text>
+  <text x="${avatarX + avatarSize + 18}" y="${headerMetaY}" class="${headerMetaClass}" font-size="14" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))} ${renderTetrioTextMarkup('FRIENDS')}</text>
   ${renderLevelTag(levelTag, contentX, levelTagY)}
   ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
   ${supporterBadge ? renderSupporterBadgeMarkup(supporterBadge) : ''}
@@ -2872,11 +2874,26 @@ function renderStatValueTextLayers(x, y, anchor, segments) {
 }
 
 function renderCompositeStatValueText(x, y, anchor, className, segments, attributes = '') {
+  const adjustedX = anchor === 'middle'
+    ? roundSvgNumber(x + getCenteredStatValueCommaNudgeX(segments))
+    : x;
   const segmentMarkup = segments
     .map(({ text, fontSize }) => `<tspan font-size="${fontSize}">${renderTetrioNumericTextMarkup(text)}</tspan>`)
     .join('');
   const attributesMarkup = attributes ? ` ${attributes}` : '';
-  return `<text x="${x}" y="${y}" text-anchor="${anchor}" class="${className}"${attributesMarkup}>${segmentMarkup}</text>`;
+  return `<text x="${adjustedX}" y="${y}" text-anchor="${anchor}" class="${className}"${attributesMarkup}>${segmentMarkup}</text>`;
+}
+
+function getCenteredStatValueCommaNudgeX(segments) {
+  const commaDx = Math.abs(Number.parseFloat(tetrioTightCommaDx));
+  if (!Number.isFinite(commaDx) || commaDx <= 0) {
+    return 0;
+  }
+
+  return segments.reduce((sum, { text, fontSize }) => {
+    const commaCount = (String(text ?? '').match(/,/g) ?? []).length;
+    return sum + commaCount * commaDx * fontSize / 2;
+  }, 0);
 }
 
 function getStatValueVisualCenterY(valueY, fontSize) {
@@ -3200,6 +3217,7 @@ function normalizeBioText(value) {
   return String(value ?? '')
     .replace(/\r\n?/g, '\n')
     .replace(/[\u2028\u2029]/gu, '\n')
+    .replace(/[ \t\f\v\u00a0\u1680\u2000-\u200f\u202a-\u202f\u205f\u2060\u3000\u3164\ufeff]{3,}/gu, '\n')
     .replace(/[\u00a0\u1680\u2000-\u200f\u202a-\u202f\u205f\u2060\u3000\u3164\ufeff]/gu, ' ')
     .split('\n')
     .map((line) => line.replace(/[ \t\f\v]+/g, ' ').trim())
@@ -3360,7 +3378,7 @@ function getBioGraphemeWidth(grapheme, hangulWidth = null) {
 }
 
 function getBioCharWidth(char, hangulWidth = null) {
-  if (/[\u1100-\u11ff\u3130-\u318f\u3400-\u9fff\uf900-\ufaff\uac00-\ud7af]/u.test(char)) {
+  if (/[\u1100-\u11ff\u3040-\u30ff\u3130-\u318f\u31f0-\u31ff\u3400-\u9fff\uf900-\ufaff\uff66-\uff9f\uac00-\ud7af]/u.test(char)) {
     return hangulWidth ?? 15.9;
   }
 
