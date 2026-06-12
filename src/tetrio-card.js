@@ -36,6 +36,8 @@ const tetrioHeaders = {
   'X-Session-ID': 'discord-bot-tetrio-card',
 };
 const bioTextFontSize = 17;
+const bioCjkReferenceFontSize = 17;
+const bioCjkReferenceWidth = 16.375;
 const bioTextBaselineOffsetY = 45;
 const bioTextLineHeight = 25;
 const bioTextBottomPadding = 15;
@@ -67,7 +69,6 @@ let tetrioHunFontDataUriPromise = null;
 let bannedAvatarDataUriPromise = null;
 let defaultAvatarDataUriPromise = null;
 let headerOverlayDataUriPromise = null;
-const bioHangulWidthCache = new Map();
 const tetrioJsonCache = new Map();
 const tetrioJsonPendingPromises = new Map();
 const imageDataUriCache = new Map();
@@ -741,22 +742,13 @@ const bioTextLeftInset = 12;
 const bioTextRightInset = 0;
 const bioTextWidth = contentWidth - bioTextLeftInset - bioTextRightInset;
 
-const bioHangulWidth = await measureBioHangulWidth(bioTextFontSize, assets.hunFont);
-
-console.log('[BIO WRAP]', {
-  bioTextWidth,
-  bioHangulWidth,
-  bioTextFontSize,
-  bioLength: String(user.bio ?? '').length,
-});
+const bioHangulWidth = await measureBioHangulWidth(bioTextFontSize);
 
 const bioLines = await wrapBioText(user.bio, bioTextWidth, {
   fontDataUri: assets.hunFont,
   fontSize: bioTextFontSize,
   hangulWidth: bioHangulWidth,
 });
-
-console.log('[BIO LINES]', bioLines.map((line) => line.text ?? line).join('\n'));
 
 const bioEmojiAssets = await fetchBioEmojiAssets(bioLines);
 const hasBio = bioLines.length > 0;
@@ -2325,6 +2317,10 @@ function containsJapaneseKana(text) {
   return /[\u3040-\u30ff\u31f0-\u31ff\uff66-\uff9f]/u.test(String(text ?? ''));
 }
 
+function containsCjkBioText(text) {
+  return /[\u1100-\u11ff\u3040-\u30ff\u3130-\u318f\u31f0-\u31ff\u3400-\u9fff\uf900-\ufaff\uff66-\uff9f\uac00-\ud7af]/u.test(String(text ?? ''));
+}
+
 function getTwemojiCode(grapheme) {
   if (!isBioEmojiGrapheme(grapheme)) {
     return null;
@@ -3240,29 +3236,8 @@ function getBioHeight(lines) {
     : bioTextBaselineOffsetY + (lines.length - 1) * bioTextLineHeight + bioTextBottomPadding;
 }
 
-async function measureBioHangulWidth(fontSize, fontDataUri = null) {
-  if (!fontDataUri) {
-    return null;
-  }
-
-  const cacheKey = `${fontSize}:${fontDataUri.length}`;
-  if (!bioHangulWidthCache.has(cacheKey)) {
-    bioHangulWidthCache.set(cacheKey, measureBioHangulWidthUncached(fontSize, fontDataUri));
-  }
-
-  return bioHangulWidthCache.get(cacheKey);
-}
-
-async function measureBioHangulWidthUncached(fontSize, fontDataUri = null) {
-  try {
-    const sampleText = '가'.repeat(8);
-    const sampleWidth = await measureBioSampleWidth(sampleText, fontSize, fontDataUri);
-    return sampleWidth > 0
-      ? sampleWidth / sampleText.length
-      : null;
-  } catch {
-    return null;
-  }
+async function measureBioHangulWidth(fontSize) {
+  return bioCjkReferenceWidth * fontSize / bioCjkReferenceFontSize;
 }
 
 async function measureBioSampleWidth(text, fontSize, fontDataUri = null) {
@@ -3316,6 +3291,7 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
     }
 
     const hasJapaneseKana = containsJapaneseKana(paragraph);
+    const hasCjkText = containsCjkBioText(paragraph);
     const paragraphMaxWidth = maxWidth + (
       hasJapaneseKana
         ? -japaneseWrapSafety
@@ -3324,7 +3300,7 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
     const shouldUseMeasuredWrap = fontDataUri
       && paragraph.length <= measuredBioWrapMaxLength
       && !containsBioEmoji(paragraph)
-      && !hasJapaneseKana;
+      && !hasCjkText;
     const wrappedLines = shouldUseMeasuredWrap
       ? await wrapBioParagraphMeasured(
         paragraph,
