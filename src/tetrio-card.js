@@ -614,7 +614,7 @@ async function readLocalImageDataUri(path, mimeType) {
 }
 
 async function renderTetrioCardSvg(user, summaries, assets) {
-  const svgWidth = 790;
+  const svgWidth = 780;
   const layoutWidth = svgWidth;
   const cardX = 14;
   const cardWidth = layoutWidth - cardX * 2;
