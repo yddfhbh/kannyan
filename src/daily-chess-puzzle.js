@@ -731,12 +731,17 @@ async function renderPuzzleImage({ fen, title, subtitle, flipped = false }) {
 
       squaresSvg += `<rect x="${x}" y="${y}" width="${squareSize}" height="${squareSize}" fill="${isLight ? light : dark}"/>`;
 
-      const piece = chess.get(square);
+      
+const piece = chess.get(square);
 if (piece) {
-  const pieceHref = await getPieceImageHref(piece);
   const piecePadding = 5;
 
-  piecesSvg += `<image href="${pieceHref}" x="${x + piecePadding}" y="${y + piecePadding}" width="${squareSize - piecePadding * 2}" height="${squareSize - piecePadding * 2}" preserveAspectRatio="xMidYMid meet"/>`;
+  piecesSvg += await getPieceInlineSvg(
+    piece,
+    x + piecePadding,
+    y + piecePadding,
+    squareSize - piecePadding * 2
+  );
 }
 
       if (row === 7) {
@@ -784,6 +789,68 @@ function getPieceSymbol(piece) {
   };
 
   return symbols[piece.color]?.[piece.type] ?? '';
+}
+
+async function getPieceInlineSvg(piece, x, y, size) {
+  const pieceName = `${piece.color}${piece.type.toUpperCase()}.svg`;
+
+  if (chessPieceSvgCache.has(pieceName)) {
+    const cached = chessPieceSvgCache.get(pieceName);
+    return wrapPieceSvg(cached, x, y, size);
+  }
+
+  const pieceUrl = new URL(pieceName, chessPieceDir);
+
+  try {
+    const rawSvg = await fs.readFile(pieceUrl, 'utf8');
+    const parsed = parseSvgForInline(rawSvg);
+
+    chessPieceSvgCache.set(pieceName, parsed);
+
+    return wrapPieceSvg(parsed, x, y, size);
+  } catch (error) {
+    console.error(`Failed to load chess piece SVG: ${pieceUrl.pathname}`);
+    console.error(error);
+
+    const fallbackSvg = createFallbackPieceSvg(piece);
+    const parsed = parseSvgForInline(fallbackSvg);
+
+    chessPieceSvgCache.set(pieceName, parsed);
+
+    return wrapPieceSvg(parsed, x, y, size);
+  }
+}
+
+function parseSvgForInline(svg) {
+  const cleaned = String(svg)
+    .replace(/<\?xml[\s\S]*?\?>/gi, '')
+    .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
+    .trim();
+
+  const viewBoxMatch = cleaned.match(/viewBox=["']([^"']+)["']/i);
+  const widthMatch = cleaned.match(/width=["']([^"']+)["']/i);
+  const heightMatch = cleaned.match(/height=["']([^"']+)["']/i);
+
+  const viewBox =
+    viewBoxMatch?.[1] ??
+    (widthMatch && heightMatch ? `0 0 ${widthMatch[1]} ${heightMatch[1]}` : '0 0 64 64');
+
+  const inner = cleaned
+    .replace(/^<svg\b[^>]*>/i, '')
+    .replace(/<\/svg>\s*$/i, '')
+    .trim();
+
+  return {
+    viewBox,
+    inner,
+  };
+}
+
+function wrapPieceSvg(parsed, x, y, size) {
+  return `
+<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="${escapeXml(parsed.viewBox)}" preserveAspectRatio="xMidYMid meet">
+  ${parsed.inner}
+</svg>`;
 }
 
 async function getPieceImageHref(piece) {
