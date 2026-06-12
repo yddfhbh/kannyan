@@ -614,15 +614,29 @@ async function readLocalImageDataUri(path, mimeType) {
 }
 
 async function renderTetrioCardSvg(user, summaries, assets) {
+  const svgWidth = 840;
+  const cardX = 14;
+  const cardWidth = svgWidth - cardX * 2;
   const contentX = 28;
-  const contentWidth = 904;
+  const contentWidth = svgWidth - contentX * 2;
   const contentRight = contentX + contentWidth;
+  const topStatGap = 8;
+  const topStatAvailableWidth = contentWidth - topStatGap * 2;
+  const topLeagueStatWidth = Math.round(topStatAvailableWidth * 0.42);
+  const topSecondaryStatWidth = (topStatAvailableWidth - topLeagueStatWidth) / 2;
+  const topLeagueStatX = contentX;
+  const topFortyLinesStatX = topLeagueStatX + topLeagueStatWidth + topStatGap;
+  const topBlitzStatX = topFortyLinesStatX + topSecondaryStatWidth + topStatGap;
+  const bottomStatGap = 8;
+  const bottomStatWidth = (contentWidth - bottomStatGap) / 2;
+  const bottomQuickPlayStatX = contentX;
+  const bottomExpertQuickPlayStatX = bottomQuickPlayStatX + bottomStatWidth + bottomStatGap;
  const bannerCutLeft = -2; // 배너 영역 왼쪽을 12px 잘라냄
 
-const bannerX = 14 + bannerCutLeft;
+const bannerX = cardX + bannerCutLeft;
 const bannerY = 18;
 const bannerHeight = 102;
-const bannerWidth = 932 - bannerCutLeft+2;
+const bannerWidth = cardWidth - bannerCutLeft + 2;
 
 const headerOverlayHeight = 15;
 const headerOverlayTileWidth = 180; // 작을수록 더 자주 반복됨
@@ -695,15 +709,15 @@ const headerFlagY = bannerY + 18;
   const noticeMarkup = [];
   let noticeCursorY = noticeStartY;
   if (isBannedTetrioUser(user)) {
-    noticeMarkup.push(renderBannedBanner(noticeCursorY));
+    noticeMarkup.push(renderBannedBanner(noticeCursorY, cardX, cardWidth));
     noticeCursorY += noticeSlotHeight;
   }
   if (user.badstanding && !isBannedTetrioUser(user)) {
-    noticeMarkup.push(renderBadStandingBanner(noticeCursorY));
+    noticeMarkup.push(renderBadStandingBanner(noticeCursorY, cardX, cardWidth));
     noticeCursorY += noticeSlotHeight;
   }
   if (profileDistinguishment) {
-    noticeMarkup.push(renderDistinguishmentBanner(profileDistinguishment, noticeCursorY));
+    noticeMarkup.push(renderDistinguishmentBanner(profileDistinguishment, noticeCursorY, cardX, cardWidth));
     noticeCursorY += noticeSlotHeight;
   }
   const badgeBoxY = noticeMarkup.length > 0 ? noticeCursorY : levelTagY + 46;
@@ -728,7 +742,7 @@ const headerFlagY = bannerY + 18;
   const cardHeight = svgHeight - 32;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="${svgHeight}" viewBox="0 0 960 ${svgHeight}">
+<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
   <defs>
     <clipPath id="avatarClip"><rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="6"/></clipPath>
     <clipPath id="bannerClip"><rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" rx="0"/></clipPath>
@@ -905,7 +919,7 @@ const headerFlagY = bannerY + 18;
 
       .bioText {
   font-family: Arial, Helvetica, sans-serif;
-  fill: #a7e0a0;
+  fill: #6faa6b;
   text-shadow: 0 1px 2px #07150a;
   word-spacing: 0px;
 
@@ -918,13 +932,13 @@ const headerFlagY = bannerY + 18;
     </style>
   </defs>
 
-  <rect width="960" height="${svgHeight}" fill="${tetrioPalette.pageBg}"/>
-  <rect x="14" y="16" width="932" height="${cardHeight}" fill="${tetrioPalette.cardBg}" stroke="${tetrioPalette.cardBorder}" stroke-width="4" rx="3"/>
+  <rect width="${svgWidth}" height="${svgHeight}" fill="${tetrioPalette.pageBg}"/>
+  <rect x="${cardX}" y="16" width="${cardWidth}" height="${cardHeight}" fill="${tetrioPalette.cardBg}" stroke="${tetrioPalette.cardBorder}" stroke-width="4" rx="3"/>
  <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="url(#bannerFallback)" clip-path="url(#bannerClip)"/>
 ${assets.banner ? `<image href="${assets.banner}" x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#bannerClip)"/>` : ''}
 <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="#000000" opacity="0.18" clip-path="url(#bannerClip)"/>
 
-<rect x="12" y="-4" width="944" height="22" fill="#000000"/>
+<rect x="${bannerX}" y="-4" width="${svgWidth - bannerX - 4}" height="22" fill="#000000"/>
 
 ${renderHeaderOverlayStrip(
   assets.headerOverlay,
@@ -966,7 +980,7 @@ ${renderHeaderFlag(flag, headerFlagX, headerFlagY)}
   ${renderBadgeRow(badges, assets.badgeIcons, badgeY, contentX, contentWidth, badgeLayout)}
 
   ${renderBio(bioLines, bioEmojiAssets, bioY, bioHeight, contentX, contentWidth)}
-  ${renderStatCard(28, topStatY, 296, 'TETRA LEAGUE', `#${formatRank(league?.standing)}`, `${formatTrNumber(league?.tr)}TR`, `${formatDecimal(league?.apm, 2)} APM   ${formatDecimal(league?.pps, 2)} PPS   ${formatDecimal(league?.vs, 2)} VS`, {
+  ${renderStatCard(topLeagueStatX, topStatY, topLeagueStatWidth, 'TETRA LEAGUE', `#${formatRank(league?.standing)}`, `${formatTrNumber(league?.tr)}TR`, `${formatDecimal(league?.apm, 2)} APM   ${formatDecimal(league?.pps, 2)} PPS   ${formatDecimal(league?.vs, 2)} VS`, {
     valueIcon: assets.leagueRankIcon?.image,
     valueIconHeight: assets.leagueRankIcon?.height,
     valueFontSize: 34.2,
@@ -980,18 +994,18 @@ ${renderHeaderFlag(flag, headerFlagX, headerFlagY)}
     flag,
     localRank: league?.standing_local,
     worldRank: league?.standing,
-    subtextMarkup: renderLeagueMetricsSubtext(28, topStatY, 296, league),
+    subtextMarkup: renderLeagueMetricsSubtext(topLeagueStatX, topStatY, topLeagueStatWidth, league),
   })}
-  ${renderStatCard(332, topStatY, 296, '40 LINES', `#${formatRank(fortyLines?.rank)}`, formatTime(fortyLines?.record?.results?.stats?.finaltime), formatAgo(fortyLines?.record?.ts), {
+  ${renderStatCard(topFortyLinesStatX, topStatY, topSecondaryStatWidth, '40 LINES', `#${formatRank(fortyLines?.rank)}`, formatTime(fortyLines?.record?.results?.stats?.finaltime), formatAgo(fortyLines?.record?.ts), {
     valueFontSize: 34.2,
     valueFormat: 'timeSplitDecimal',
     flag,
     localRank: fortyLines?.rank_local,
     worldRank: fortyLines?.rank,
   })}
-  ${renderStatCard(636, topStatY, 296, 'BLITZ', `#${formatRank(blitz?.rank)}`, formatNumber(blitz?.record?.results?.stats?.score), formatAgo(blitz?.record?.ts), { valueFontSize: 34.2, flag, localRank: blitz?.rank_local, worldRank: blitz?.rank })}
-  ${renderStatCard(28, bottomStatY, 448, 'QUICK PLAY', `#${formatRank(zenith?.rank)}`, `${formatAltitude(zenith?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenith?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenith?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 30.6, valueFormat: 'altitudeWithUnit', flag, localRank: zenith?.rank_local, worldRank: zenith?.rank })}
-  ${renderStatCard(484, bottomStatY, 448, 'EXPERT QUICK PLAY', `#${formatRank(zenithEx?.rank)}`, `${formatAltitude(zenithEx?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenithEx?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenithEx?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 30.6, valueFormat: 'altitudeWithUnit', flag, localRank: zenithEx?.rank_local, worldRank: zenithEx?.rank })}
+  ${renderStatCard(topBlitzStatX, topStatY, topSecondaryStatWidth, 'BLITZ', `#${formatRank(blitz?.rank)}`, formatNumber(blitz?.record?.results?.stats?.score), formatAgo(blitz?.record?.ts), { valueFontSize: 34.2, flag, localRank: blitz?.rank_local, worldRank: blitz?.rank })}
+  ${renderStatCard(bottomQuickPlayStatX, bottomStatY, bottomStatWidth, 'QUICK PLAY', `#${formatRank(zenith?.rank)}`, `${formatAltitude(zenith?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenith?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenith?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 30.6, valueFormat: 'altitudeWithUnit', flag, localRank: zenith?.rank_local, worldRank: zenith?.rank })}
+  ${renderStatCard(bottomExpertQuickPlayStatX, bottomStatY, bottomStatWidth, 'EXPERT QUICK PLAY', `#${formatRank(zenithEx?.rank)}`, `${formatAltitude(zenithEx?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenithEx?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenithEx?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 30.6, valueFormat: 'altitudeWithUnit', flag, localRank: zenithEx?.rank_local, worldRank: zenithEx?.rank })}
 
 </svg>`;
 }
@@ -1230,24 +1244,26 @@ function getStarPoints(cx, cy, outerRadius, innerRadius) {
     ]);
   }).join(' ');
 }
-function renderBadStandingBanner(y = 204) {
+function renderBadStandingBanner(y = 204, x = 14, width = 932) {
+  const centerX = x + width / 2;
   return `
   <g class="legacyBannerFont">
-    <rect x="14" y="${y}" width="932" height="62" fill="url(#dangerStripe)"/>
-    <rect x="14" y="${y}" width="932" height="62" fill="none" stroke="#ff1d1d" stroke-width="4"/>
-    <text x="480" y="${y + 32}" text-anchor="middle" class="dangerTitle" font-size="24.3" font-weight="900">BAD STANDING</text>
-    <text x="480" y="${y + 52}" text-anchor="middle" class="dangerSub" font-size="12.6" font-weight="900">ONE OR MORE RECENT BANS ON RECORD</text>
+    <rect x="${x}" y="${y}" width="${width}" height="62" fill="url(#dangerStripe)"/>
+    <rect x="${x}" y="${y}" width="${width}" height="62" fill="none" stroke="#ff1d1d" stroke-width="4"/>
+    <text x="${centerX}" y="${y + 32}" text-anchor="middle" class="dangerTitle" font-size="24.3" font-weight="900">BAD STANDING</text>
+    <text x="${centerX}" y="${y + 52}" text-anchor="middle" class="dangerSub" font-size="12.6" font-weight="900">ONE OR MORE RECENT BANS ON RECORD</text>
   </g>`;
 }
 
-function renderBannedBanner(y = 204) {
+function renderBannedBanner(y = 204, x = 14, width = 932) {
+  const centerX = x + width / 2;
   return `
   <g class="legacyBannerFont">
-    <rect x="14" y="${y}" width="932" height="62" fill="url(#dangerStripe)"/>
-    <rect x="14" y="${y}" width="932" height="62" fill="#190000" opacity="0.32"/>
-    <rect x="14" y="${y}" width="932" height="62" fill="none" stroke="#ff1d1d" stroke-width="4"/>
-    <text x="480" y="${y + 32}" text-anchor="middle" class="dangerTitle" font-size="25.5" font-weight="900">BANNED</text>
-    <text x="480" y="${y + 52}" text-anchor="middle" class="dangerSub" font-size="12.6" font-weight="900">THIS USER IS CURRENTLY BANNED</text>
+    <rect x="${x}" y="${y}" width="${width}" height="62" fill="url(#dangerStripe)"/>
+    <rect x="${x}" y="${y}" width="${width}" height="62" fill="#190000" opacity="0.32"/>
+    <rect x="${x}" y="${y}" width="${width}" height="62" fill="none" stroke="#ff1d1d" stroke-width="4"/>
+    <text x="${centerX}" y="${y + 32}" text-anchor="middle" class="dangerTitle" font-size="25.5" font-weight="900">BANNED</text>
+    <text x="${centerX}" y="${y + 52}" text-anchor="middle" class="dangerSub" font-size="12.6" font-weight="900">THIS USER IS CURRENTLY BANNED</text>
   </g>`;
 }
 
