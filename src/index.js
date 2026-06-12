@@ -2699,6 +2699,7 @@ function getHelpMessage() {
     '`/익스퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%exqp 닉네임 [기록 번호]` - EXPERT QUICK PLAY 고도 카드를 보여줍니다. ',
     '`/40라인 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%40L 닉네임 [기록 번호] [top|recent]` - 40 LINES top 또는 recent 기록의 시간 카드를 보여줍니다.',
     '`/블리츠 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%blitz 닉네임 [기록 번호] [top|recent]` - BLITZ top 또는 recent 기록의 점수 카드를 보여줍니다.',
+    '`/일일퍼즐 : /일일퍼즐지정 이 된 채널에 KST 0:00기준으로 일일퍼즐을 업로드합니다. 매일매일 리더보드가 갱신됩니다.',
   ].join('\n');
 }
 
