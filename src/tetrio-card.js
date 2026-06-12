@@ -625,7 +625,7 @@ async function readLocalImageDataUri(path, mimeType) {
 }
 
 async function renderTetrioCardSvg(user, summaries, assets) {
-  const svgWidth = 820;
+  const svgWidth = 840;
   const layoutWidth = svgWidth;
   const cardX = 14;
   const cardWidth = layoutWidth - cardX * 2;
@@ -646,7 +646,7 @@ async function renderTetrioCardSvg(user, summaries, assets) {
  const bannerCutLeft = -2; // 배너 영역 왼쪽을 12px 잘라냄
 
 const bannerX = cardX + bannerCutLeft;
-const bannerY = 18;
+const bannerY = 26;
 const bannerHeight = 92;
 const bannerWidth = cardWidth - bannerCutLeft + 2;
 
@@ -661,8 +661,8 @@ const bannerEdgeCoverHeight = headerOverlayHeight;
 const bannerRightEdgeCoverHeight = 10;
 const bannerRightEdgeCoverY = bannerEdgeCoverY ;
   const avatarX = 28;
-  const avatarY = bannerY-22; //프사 높이 , 많이뺴면 올라감
-  const avatarSize = 96;
+  const avatarY = bannerY-24; //프사 높이 , 많이뺴면 올라감
+  const avatarSize = 94;
   const nameX = avatarX + avatarSize + 16;
   const headerNameFontSize = 46;
   const headerNameFontWeight = 900;
@@ -951,7 +951,7 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
 ${assets.banner ? `<image href="${assets.banner}" x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#bannerClip)"/>` : ''}
 <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="#000000" opacity="0.18" clip-path="url(#bannerClip)"/>
 
-<rect x="${bannerX}" y="-12" width="${layoutWidth - bannerX - 4}" height="30" fill="#000000"/> 
+<rect x="${bannerX}" y="-18" width="${layoutWidth - bannerX - 4}" height="44" fill="#000000"/> 
 //검은박스 조절
 
 ${renderHeaderOverlayStrip(
@@ -2527,7 +2527,7 @@ function renderTetrioCardDecimalTextMarkup(value, options = {}) {
 
 function renderTetrioCardDecimalNumberMarkup(value, options = {}) {
   const text = String(value ?? '');
-  const dotFontSize = options.dotFontSize ?? '1.6em';
+  const dotFontSize = options.dotFontSize ?? '1.4em';
   const dotDyEm = options.dotDyEm ?? 0.02;
 
   let markup = '';
@@ -2542,7 +2542,7 @@ function renderTetrioCardDecimalNumberMarkup(value, options = {}) {
       continue;
     }
 
-    const dx = tightenNext && /\d/.test(char) ? ' dx="-0.24em"' : '';
+    const dx = tightenNext && /\d/.test(char) ? ' dx="-0.4em"' : '';
     const dy = resetDyEm ? ` dy="${roundSvgNumber(-resetDyEm)}em"` : '';
 
     markup += dx || dy
@@ -2570,9 +2570,10 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
   const auxBracketRightPaddingX = 8;
   const glickoText = formatGlickoValue(options.glicko);
   const rdText = formatRdValue(options.rd);
+  const glickoTextWidth = estimateLeagueAuxTextWidth(glickoText, 13);
   const auxTextWidth = Math.max(
-    estimateLeagueAuxTextWidth(glickoText, 13),
-    estimateLeagueAuxTextWidth(`+/-${rdText}`, 13),
+    glickoTextWidth,
+    estimateLeagueRdRowWidth(rdText),
   );
   const auxBlockWidth = (auxBracketArmLength * 2) + (auxBracketInnerPaddingX * 2) + auxTextWidth + auxBracketRightPaddingX;
   const groupWidth = iconMetrics.renderedWidth + iconGap + valueWidth + valueAuxGap + auxBlockWidth;
@@ -2589,7 +2590,8 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
   const auxBracketRightX = roundSvgNumber(auxBlockLeftX + auxBlockWidth - 1);
   const auxBracketLeftInnerX = roundSvgNumber(auxBlockLeftX + auxBracketArmLength);
   const auxBracketRightInnerX = roundSvgNumber(auxBracketRightX - auxBracketArmLength);
-  const auxCenterX = roundSvgNumber((auxBlockLeftX + auxBracketRightX) / 2);
+  const auxCenterX = roundSvgNumber((auxBlockLeftX + auxBracketRightX) / 2 + 4);
+  const glickoTextRightX = roundSvgNumber(auxCenterX + glickoTextWidth / 2);
 
   return `<image href="${options.valueIcon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMax meet"/>
     ${renderLeagueTrStatValueText(valueRightX, valueY, value, fontSize, unitFontSize, 'end')}
@@ -2600,22 +2602,22 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
       <line x1="${auxBracketRightInnerX}" y1="${auxBracketTopY}" x2="${auxBracketRightX}" y2="${auxBracketTopY}"/>
       <line x1="${auxBracketRightX}" y1="${auxBracketTopY}" x2="${auxBracketRightX}" y2="${auxBracketBottomY}"/>
       <line x1="${auxBracketRightInnerX}" y1="${auxBracketBottomY}" x2="${auxBracketRightX}" y2="${auxBracketBottomY}"/>
-    </g>
+   </g>
    <text x="${auxCenterX}" y="${glickoY}" text-anchor="middle" class="leagueAux" font-size="13" font-weight="900">${renderTetrioCardDecimalNumberMarkup(glickoText)}</text>
-    ${renderLeagueRdAuxText(auxCenterX + 2, rdY, rdText)}`;
+    ${renderLeagueRdAuxText(glickoTextRightX, rdY, rdText)}`;
 }
 
-function renderLeagueRdAuxText(centerX, y, rdText) {
+function renderLeagueRdAuxText(rightX, y, rdText) {
   const symbolWidth = 6.6;
-  const symbolGap = 1.3;
-  const rdTextWidth = estimateLeagueAuxTextWidth(rdText, 11.3);
-  const rowLeftX = centerX - (symbolWidth + symbolGap + rdTextWidth) / 2;
-  const symbolCenterX = roundSvgNumber(rowLeftX + 2.9);
+  const symbolGap = 2.6;
+  const rdTextWidth = estimateLeagueRdTextWidth(rdText);
+  const textLeftX = rightX - rdTextWidth;
+  const symbolLeftX = textLeftX - symbolGap - symbolWidth;
+  const symbolCenterX = roundSvgNumber(symbolLeftX + 2.9);
   const plusY = roundSvgNumber(y - 6.1);
   const minusY = roundSvgNumber(y - 0.7);
   const horizontalHalf = 2.6;
   const verticalHalf = 2.6;
-  const textX = roundSvgNumber(rowLeftX + symbolWidth + symbolGap);
 
   return `<g>
     <g stroke="#c5efbc" stroke-width="1.15" stroke-linecap="square" opacity="0.98">
@@ -2623,8 +2625,16 @@ function renderLeagueRdAuxText(centerX, y, rdText) {
       <line x1="${symbolCenterX}" y1="${roundSvgNumber(plusY - verticalHalf)}" x2="${symbolCenterX}" y2="${roundSvgNumber(plusY + verticalHalf)}"/>
       <line x1="${roundSvgNumber(symbolCenterX - horizontalHalf)}" y1="${minusY}" x2="${roundSvgNumber(symbolCenterX + horizontalHalf)}" y2="${minusY}"/>
     </g>
-    <text x="${textX}" y="${y}" text-anchor="start" class="leagueAuxMuted" font-size="13" font-weight="900">${renderTetrioCardDecimalNumberMarkup(rdText)}</text>
+    <text x="${rightX}" y="${y}" text-anchor="end" class="leagueAuxMuted" font-size="13" font-weight="900">${renderTetrioCardDecimalNumberMarkup(rdText)}</text>
   </g>`;
+}
+
+function estimateLeagueRdTextWidth(rdText) {
+  return estimateStatValueWidth(rdText, 13);
+}
+
+function estimateLeagueRdRowWidth(rdText) {
+  return 6.6 + 2.6 + estimateLeagueRdTextWidth(rdText);
 }
 
 function getLeagueIconRenderMetrics(options, iconSize) {
