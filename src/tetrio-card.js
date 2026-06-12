@@ -919,7 +919,7 @@ const headerFlagY = bannerY + 18;
       }
 
       .bioText {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: ${cardFontFamily};
   fill: #6faa6b;
   text-shadow: 0 1px 2px #07150a;
   word-spacing: 0px;
