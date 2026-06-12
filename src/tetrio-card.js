@@ -3289,7 +3289,7 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
     ? options.fontDataUri
     : null;
   const fontSize = Number.isFinite(options.fontSize) ? options.fontSize : 16;
-  const japaneseWrapSafety = 8;
+  const japaneseWrapSafety = 18;
 
   const hangulWidth = Number.isFinite(options.hangulWidth) ? options.hangulWidth : null;
   const measurementCache = new Map();
