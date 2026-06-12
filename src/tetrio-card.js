@@ -13,6 +13,7 @@ import {
 } from './tetrio-font.js';
 
 const bannedAvatarPath = fileURLToPath(new URL('../assets/avatar-banned.png', import.meta.url));
+const defaultAvatarPath = fileURLToPath(new URL('../assets/avatar-default.png', import.meta.url));
 const headerOverlayPath = fileURLToPath(new URL('../assets/about-header-overlay.png', import.meta.url));
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioContentBaseUrl = 'https://tetr.io/user-content';
@@ -60,6 +61,7 @@ const achievementRankNames = new Map([
 ]);
 let tetrioHunFontDataUriPromise = null;
 let bannedAvatarDataUriPromise = null;
+let defaultAvatarDataUriPromise = null;
 let headerOverlayDataUriPromise = null;
 const bioHangulWidthCache = new Map();
 const tetrioJsonCache = new Map();
@@ -262,8 +264,9 @@ async function fetchTetrioAssets(user, summaries) {
     ? summaries.league.rank
     : null;
   const uniqueBadges = getUniqueBadges(badges);
- const [avatar, banner, flag, badgeIconEntries, featuredAchievementAssets, leagueRankIcon, hunFont, headerOverlay] = await Promise.all([
+ const [avatar, defaultAvatar, banner, flag, badgeIconEntries, featuredAchievementAssets, leagueRankIcon, hunFont, headerOverlay] = await Promise.all([
     isBanned ? fetchBannedAvatarDataUri() : fetchImageDataUri(avatarUrl),
+    isBanned ? null : fetchDefaultAvatarDataUri(),
     fetchImageDataUri(bannerUrl),
     fetchImageDataUri(flagUrl),
     Promise.all(uniqueBadges.map(async (badge) => [
@@ -280,7 +283,7 @@ async function fetchTetrioAssets(user, summaries) {
   ]);
 
   return {
-    avatar,
+    avatar: avatar ?? defaultAvatar,
     banner,
     flag,
     badgeIcons: Object.fromEntries(badgeIconEntries),
@@ -597,6 +600,11 @@ function fetchTetrioHunFontDataUri() {
 function fetchBannedAvatarDataUri() {
   bannedAvatarDataUriPromise ??= readLocalImageDataUri(bannedAvatarPath, 'image/png');
   return bannedAvatarDataUriPromise;
+}
+
+function fetchDefaultAvatarDataUri() {
+  defaultAvatarDataUriPromise ??= readLocalImageDataUri(defaultAvatarPath, 'image/png');
+  return defaultAvatarDataUriPromise;
 }
 
 function fetchHeaderOverlayDataUri() {
@@ -3160,28 +3168,43 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
   const fontSize = Number.isFinite(options.fontSize) ? options.fontSize : 16;
 
   const hangulWidth = Number.isFinite(options.hangulWidth) ? options.hangulWidth : null;
-  const shouldUseMeasuredWrap = fontDataUri
-    && normalizedText.length <= measuredBioWrapMaxLength
-    && !containsBioEmoji(normalizedText);
+  const measurementCache = new Map();
+  const lines = [];
 
-  if (shouldUseMeasuredWrap) {
-    return wrapBioParagraphMeasured(
-      normalizedText,
-      maxWidth,
-      fontSize,
-      fontDataUri,
-      new Map(),
-    );
+  for (const paragraph of normalizedText.split('\n')) {
+    if (!paragraph) {
+      lines.push('');
+      continue;
+    }
+
+    const shouldUseMeasuredWrap = fontDataUri
+      && paragraph.length <= measuredBioWrapMaxLength
+      && !containsBioEmoji(paragraph);
+    const wrappedLines = shouldUseMeasuredWrap
+      ? await wrapBioParagraphMeasured(
+        paragraph,
+        maxWidth,
+        fontSize,
+        fontDataUri,
+        measurementCache,
+      )
+      : wrapBioParagraphEstimated(paragraph, maxWidth, hangulWidth);
+
+    lines.push(...wrappedLines);
   }
 
-  return wrapBioParagraphEstimated(normalizedText, maxWidth, hangulWidth);
+  return lines;
 }
 
 function normalizeBioText(value) {
   return String(value ?? '')
-    .replace(/[\r\n]+/g, ' ')
-    .replace(/[\u00a0\u1680\u2000-\u200f\u2028-\u202f\u205f\u2060\u3000\u3164\ufeff]/gu, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\u2028\u2029]/gu, '\n')
+    .replace(/[\u00a0\u1680\u2000-\u200f\u202a-\u202f\u205f\u2060\u3000\u3164\ufeff]/gu, ' ')
+    .split('\n')
+    .map((line) => line.replace(/[ \t\f\v]+/g, ' ').trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
