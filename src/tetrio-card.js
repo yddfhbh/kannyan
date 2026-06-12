@@ -34,13 +34,15 @@ const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO profile card',
   'X-Session-ID': 'discord-bot-tetrio-card',
 };
-const bioTextBaselineOffsetY = 44;
-const bioTextLineHeight = 23;
-const bioTextBottomPadding = 14;
+const bioTextFontSize = 17;
+const bioTextBaselineOffsetY = 45;
+const bioTextLineHeight = 25;
+const bioTextBottomPadding = 15;
 const bioClipTopOffsetY = 25;
 const bioClipBottomInset = 6;
 const measuredBioWrapMaxLength = 180;
-const bioEmojiSize = 17;
+const bioEmojiSize = 18;
+const statRankRightInset = 5;
 const tetrioJsonCacheMaxEntries = 200;
 const imageDataUriCacheMaxEntries = 800;
 const achievementSpriteCacheMaxEntries = 8;
@@ -623,7 +625,7 @@ async function readLocalImageDataUri(path, mimeType) {
 }
 
 async function renderTetrioCardSvg(user, summaries, assets) {
-  const svgWidth = 775;
+  const svgWidth = 800;
   const layoutWidth = svgWidth;
   const cardX = 14;
   const cardWidth = layoutWidth - cardX * 2;
@@ -737,10 +739,10 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
   const bioTextInset = 12;
   const bioTextWidth = contentWidth - bioTextInset * 2;
   const bioWrapSafety = 12;
-  const bioHangulWidth = await measureBioHangulWidth(16, assets.hunFont);
+  const bioHangulWidth = await measureBioHangulWidth(bioTextFontSize, assets.hunFont);
   const bioLines = await wrapBioText(user.bio, bioTextWidth - bioWrapSafety, {
     fontDataUri: assets.hunFont,
-    fontSize: 16,
+    fontSize: bioTextFontSize,
     hangulWidth: bioHangulWidth,
   });
   const bioEmojiAssets = await fetchBioEmojiAssets(bioLines);
@@ -812,8 +814,8 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
       word-spacing: 8px;
       }
       .tiny { font-size: 11px; font-weight: 900; fill: #a8e7a7; text-shadow: 0 1px 2px #061009; }
-      .plainRank { font-size: 13px; font-weight: 900; fill: #a8e7a7; text-shadow: 0 1px 2px #061009; }
-      .label { font-size: 14.5px; font-weight: 900; fill: #5d915c; opacity: 0.84; word-spacing: ${tetrioPhraseWordSpacing}; }
+      .plainRank { font-size: 12px; font-weight: 900; fill: #a8e7a7; text-shadow: 0 1px 2px #061009; }
+      .label { font-size: 13px; font-weight: 900; fill: #5d915c; opacity: 0.84; word-spacing: ${tetrioPhraseWordSpacing}; }
       .value {
   font-weight: 950;
   fill: #c9ffc8;
@@ -2238,7 +2240,7 @@ function renderBioLine(line, emojiAssets, x, baselineY) {
     }
 
     parts.push(
-  `<text x="${roundSvgNumber(textRunX)}" y="${roundSvgNumber(baselineY)}" class="bioText" font-size="16" font-weight="800">${escapeXml(textRun)}</text>`
+  `<text x="${roundSvgNumber(textRunX)}" y="${roundSvgNumber(baselineY)}" class="bioText" font-size="${bioTextFontSize}" font-weight="800">${escapeXml(textRun)}</text>`
 );
     textRun = '';
   };
@@ -2250,7 +2252,7 @@ function renderBioLine(line, emojiAssets, x, baselineY) {
 
     if (emoji) {
       flushTextRun();
-      parts.push(`<image href="${emoji}" x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(baselineY - 15)}" width="${bioEmojiSize}" height="${bioEmojiSize}" preserveAspectRatio="xMidYMid meet"/>`);
+      parts.push(`<image href="${emoji}" x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(baselineY - bioEmojiSize + 2)}" width="${bioEmojiSize}" height="${bioEmojiSize}" preserveAspectRatio="xMidYMid meet"/>`);
     } else {
       if (!textRun) {
         textRunX = cursorX;
@@ -2305,6 +2307,10 @@ function containsBioEmoji(text) {
   return splitGraphemes(text).some((grapheme) => Boolean(getTwemojiCode(grapheme)));
 }
 
+function containsJapaneseKana(text) {
+  return /[\u3040-\u30ff\u31f0-\u31ff\uff66-\uff9f]/u.test(String(text ?? ''));
+}
+
 function getTwemojiCode(grapheme) {
   if (!isBioEmojiGrapheme(grapheme)) {
     return null;
@@ -2346,6 +2352,9 @@ function renderStatCard(x, y, width, label, rank, value, subtext, options = {}) 
   const cardHeight = 92;
   const valueFontSize = options.valueFontSize ?? (String(value).length > 10 ? 21 : 24);
   const iconValueFontSize = valueFontSize;
+  const labelX = x + 12;
+  const rankLeftX = getRankLabelLeftX(x, width, rank, options);
+  const labelFontSize = getStatLabelFontSize(label, rankLeftX - labelX - 7);
   const rankMarkup = renderRankLabel(x, y, width, rank, options);
   const subtextMarkup = options.subtextMarkup
   ?? `<text x="${x + width / 2}" y="${y + 85}" text-anchor="middle" class="sub">${renderStatSubtextMarkup(subtext)}</text>`;
@@ -2355,12 +2364,60 @@ function renderStatCard(x, y, width, label, rank, value, subtext, options = {}) 
   <g>
     <rect x="${x}" y="${y}" width="${width}" height="${cardHeight}" fill="${tetrioPalette.panelBg}"/>
     <rect x="${x + 1}" y="${y + 1}" width="${width - 2}" height="${cardHeight - 2}" fill="none" stroke="${tetrioPalette.panelBorder}" stroke-width="2"/>
-    <text x="${x + 12}" y="${y + 21}" class="label">${renderTetrioTextMarkup(label)}</text>
+    <text x="${labelX}" y="${y + 21}" class="label" font-size="${labelFontSize}">${renderTetrioTextMarkup(label)}</text>
     ${rankMarkup}
     ${valueMarkup}
     <line x1="${x + 28}" y1="${lineY}" x2="${x + width - 28}" y2="${lineY}" stroke="${tetrioPalette.divider}" stroke-width="2"/>
     ${subtextMarkup}
   </g>`;
+}
+
+function getStatLabelFontSize(label, maxWidth) {
+  const baseFontSize = 13;
+  const minFontSize = 9.8;
+  if (!Number.isFinite(maxWidth) || maxWidth <= 0) {
+    return minFontSize;
+  }
+
+  const estimatedWidth = estimateStatLabelWidth(label, baseFontSize);
+  if (estimatedWidth <= maxWidth) {
+    return baseFontSize;
+  }
+
+  return roundSvgNumber(Math.max(minFontSize, baseFontSize * maxWidth / estimatedWidth));
+}
+
+function estimateStatLabelWidth(label, fontSize) {
+  const text = String(label ?? '');
+  let units = 0;
+  let spaces = 0;
+
+  for (const char of text) {
+    if (char === ' ') {
+      units += 0.3;
+      spaces += 1;
+    } else if (/\d/.test(char)) {
+      units += 0.55;
+    } else if (/[A-Z]/.test(char)) {
+      units += 0.62;
+    } else {
+      units += 0.52;
+    }
+  }
+
+  return units * fontSize + spaces * getWordSpacingPixels(fontSize);
+}
+
+function getWordSpacingPixels(fontSize) {
+  const rawValue = String(tetrioPhraseWordSpacing ?? '0').trim();
+  const numericValue = Number.parseFloat(rawValue);
+  if (!Number.isFinite(numericValue)) {
+    return 0;
+  }
+
+  return rawValue.endsWith('em')
+    ? numericValue * fontSize
+    : numericValue;
 }
 
 function renderStatCardValueMarkup(x, y, width, valueY, value, valueFontSize, iconValueFontSize, options) {
@@ -2598,33 +2655,55 @@ function renderLeagueMetricsSubtext(x, y, width, league) {
   </text>`;
 }
 
+function getRankLabelLeftX(x, width, fallbackRank, options = {}) {
+  const hasLocalRank = isPositiveRank(options.localRank);
+  const hasWorldRank = isPositiveRank(options.worldRank);
+  const plainRankFontSize = 12.2;
+  const plainFlagWidth = 16;
+  const rightX = x + width - statRankRightInset;
+  const worldText = formatRank(options.worldRank);
+  const worldLeftX = hasWorldRank
+    ? getWorldRankBadgeLeftX(options.worldRank, worldText, rightX)
+      ?? rightX - estimateOrdinalRankWidth(worldText, plainRankFontSize)
+    : rightX - estimatePlainRankWidth(fallbackRank, 12);
+
+  if (!hasWorldRank || !options.flag || !hasLocalRank) {
+    return worldLeftX;
+  }
+
+  const localText = formatRank(options.localRank);
+  const localWidth = estimateOrdinalRankWidth(localText, plainRankFontSize);
+  const localTextX = worldLeftX - 8;
+  return localTextX - localWidth - plainFlagWidth - 4;
+}
+
 function renderRankLabel(x, y, width, fallbackRank, options) {
   const hasLocalRank = isPositiveRank(options.localRank);
   const hasWorldRank = isPositiveRank(options.worldRank);
-  const plainRankFontSize = 14;
-  const plainFlagWidth = 18;
-  const plainFlagHeight = 13;
-  const rightX = x + width - 10;
+  const plainRankFontSize = 12.2;
+  const plainFlagWidth = 16;
+  const plainFlagHeight = 11.5;
+  const rightX = x + width - statRankRightInset;
   const worldText = formatRank(options.worldRank);
   const worldBadge = hasWorldRank
-    ? renderWorldRankBadge(options.worldRank, worldText, rightX, y + 8)
+    ? renderWorldRankBadge(options.worldRank, worldText, rightX, y + 8.5)
     : null;
 
   if (!hasWorldRank) {
-    return renderPlainRankText(rightX, y + 22, fallbackRank, 'end');
+    return renderPlainRankText(rightX, y + 21, fallbackRank, 'end');
   }
 
   if (!options.flag || !hasLocalRank) {
     return worldBadge
       ? worldBadge.markup
-      : renderOrdinalRankText(rightX, y + 22, worldText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize });
+      : renderOrdinalRankText(rightX, y + 21, worldText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize });
   }
 
   const localText = formatRank(options.localRank);
   const localWidth = estimateOrdinalRankWidth(localText, plainRankFontSize);
   const worldMarkup = worldBadge
     ? worldBadge.markup
-    : renderOrdinalRankText(rightX, y + 22, worldText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize });
+    : renderOrdinalRankText(rightX, y + 21, worldText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize });
   const worldLeftX = worldBadge
     ? worldBadge.leftX
     : rightX - estimateOrdinalRankWidth(worldText, plainRankFontSize);
@@ -2633,7 +2712,7 @@ function renderRankLabel(x, y, width, fallbackRank, options) {
 
   return `
     <image href="${options.flag.image}" x="${flagX}" y="${y + 10}" width="${plainFlagWidth}" height="${plainFlagHeight}" preserveAspectRatio="xMidYMid meet"/>
-    ${renderOrdinalRankText(localTextX, y + 22, localText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize })}
+    ${renderOrdinalRankText(localTextX, y + 21, localText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize })}
     ${worldMarkup}`;
 }
 
@@ -2643,16 +2722,15 @@ function renderWorldRankBadge(rank, label, rightX, y) {
     return null;
   }
 
-  const badgeFontSize = 12.5;
-  const textWidth = estimateOrdinalRankWidth(label, badgeFontSize);
-  const badgeWidth = Math.max(36, textWidth + 13);
-  const badgeHeight = 15.2;
+  const badgeFontSize = 11.2;
+  const badgeWidth = getWorldRankBadgeWidth(label, badgeFontSize);
+  const badgeHeight = 13.6;
   const leftX = rightX - badgeWidth;
   const points = [
-    formatPoint([leftX + 7.2, y]),
+    formatPoint([leftX + 6.4, y]),
     formatPoint([rightX, y]),
     formatPoint([rightX, y + badgeHeight]),
-    formatPoint([leftX + 3.6, y + badgeHeight]),
+    formatPoint([leftX + 3.2, y + badgeHeight]),
     formatPoint([leftX, y + badgeHeight / 2]),
   ].join(' ');
 
@@ -2660,8 +2738,21 @@ function renderWorldRankBadge(rank, label, rightX, y) {
     leftX,
     markup: `
     <polygon points="${points}" fill="${badgeStyle.fill}"/>
-    ${renderOrdinalRankText(leftX + badgeWidth / 2 + 0.9, y + 11.8, label, { anchor: 'middle', fontSize: badgeFontSize, fill: badgeStyle.textFill })}`,
+    ${renderOrdinalRankText(leftX + badgeWidth / 2 + 0.8, y + 10.6, label, { anchor: 'middle', fontSize: badgeFontSize, fill: badgeStyle.textFill })}`,
   };
+}
+
+function getWorldRankBadgeLeftX(rank, label, rightX) {
+  if (!getWorldRankBadgeStyle(rank)) {
+    return null;
+  }
+
+  return rightX - getWorldRankBadgeWidth(label, 11.2);
+}
+
+function getWorldRankBadgeWidth(label, fontSize) {
+  const textWidth = estimateOrdinalRankWidth(label, fontSize);
+  return Math.max(32, textWidth + 11);
 }
 
 function getWorldRankBadgeStyle(rank) {
@@ -2729,6 +2820,10 @@ function renderOrdinalRankText(x, y, rankText, options = {}) {
 
 function estimateOrdinalRankWidth(rankText, fontSize = 11) {
   return Math.ceil(fontSize * 0.99 + String(rankText ?? '').length * fontSize * 0.58);
+}
+
+function estimatePlainRankWidth(rankText, fontSize = 13) {
+  return Math.ceil(String(rankText ?? '').length * fontSize * 0.56 + 2);
 }
 
 function estimateStatValueWidth(value, fontSize) {
@@ -3196,7 +3291,8 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
 
     const shouldUseMeasuredWrap = fontDataUri
       && paragraph.length <= measuredBioWrapMaxLength
-      && !containsBioEmoji(paragraph);
+      && !containsBioEmoji(paragraph)
+      && !containsJapaneseKana(paragraph);
     const wrappedLines = shouldUseMeasuredWrap
       ? await wrapBioParagraphMeasured(
         paragraph,
@@ -3486,32 +3582,40 @@ function getBioGraphemeWidth(grapheme, hangulWidth = null) {
   return Array.from(grapheme).reduce((sum, char) => sum + getBioCharWidth(char, hangulWidth), 0);
 }
 
+function scaleBioWidth(width) {
+  return width * bioTextFontSize / 16;
+}
+
 function getBioCharWidth(char, hangulWidth = null) {
-  if (/[\u1100-\u11ff\u3040-\u30ff\u3130-\u318f\u31f0-\u31ff\u3400-\u9fff\uf900-\ufaff\uff66-\uff9f\uac00-\ud7af]/u.test(char)) {
-    return hangulWidth ?? 15.9;
+  if (/[\u3040-\u30ff\u31f0-\u31ff\uff66-\uff9f]/u.test(char)) {
+    return scaleBioWidth(18.2);
+  }
+
+  if (/[\u1100-\u11ff\u3130-\u318f\u3400-\u9fff\uf900-\ufaff\uac00-\ud7af]/u.test(char)) {
+    return hangulWidth ?? scaleBioWidth(15.9);
   }
 
   if (/[MW@#%&]/.test(char)) {
-    return 14.2;
+    return scaleBioWidth(14.2);
   }
 
   if (/\s/.test(char)) {
-    return 5.4;
+    return scaleBioWidth(5.4);
   }
 
   if (/[A-Z0-9]/.test(char)) {
-    return 11.8;
+    return scaleBioWidth(11.8);
   }
 
   if (/[a-z]/.test(char)) {
-    return 10.1;
+    return scaleBioWidth(10.1);
   }
 
   if (/[.,!:'";|]/.test(char)) {
-    return 6.4;
+    return scaleBioWidth(6.4);
   }
 
-  return 9.6;
+  return scaleBioWidth(9.6);
 }
 
 function escapeXml(value) {
