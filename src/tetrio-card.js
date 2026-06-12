@@ -626,7 +626,7 @@ async function readLocalImageDataUri(path, mimeType) {
 }
 
 async function renderTetrioCardSvg(user, summaries, assets) {
-  const svgWidth = 830;
+  const svgWidth = 820;
   const layoutWidth = svgWidth;
   const cardX = 14;
   const cardWidth = layoutWidth - cardX * 2;
@@ -737,11 +737,11 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
   const badgeBoxY = noticeMarkup.length > 0 ? noticeCursorY : levelTagY + 46;
   const badgeY = badgeBoxY + 10;
   const badgeBoxHeight = badgeLayout.boxHeight;
-  const bioTextInset = 12;
-  const bioTextWidth = contentWidth - bioTextInset * 2;
-  const bioWrapSafety = 12;
+  const bioTextLeftInset = 12;
+  const bioTextRightInset = 0;
+  const bioTextWidth = contentWidth - bioTextLeftInset - bioTextRightInset;
   const bioHangulWidth = await measureBioHangulWidth(bioTextFontSize, assets.hunFont);
-  const bioLines = await wrapBioText(user.bio, bioTextWidth - bioWrapSafety, {
+  const bioLines = await wrapBioText(user.bio, bioTextWidth, {
     fontDataUri: assets.hunFont,
     fontSize: bioTextFontSize,
     hangulWidth: bioHangulWidth,
@@ -760,7 +760,7 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
   <defs>
     <clipPath id="avatarClip"><rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="6"/></clipPath>
     <clipPath id="bannerClip"><rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" rx="0"/></clipPath>
-    <clipPath id="bioClip"><rect x="${contentX + bioTextInset}" y="${bioY + bioClipTopOffsetY}" width="${bioTextWidth}" height="${Math.max(0, bioHeight - bioClipTopOffsetY - bioClipBottomInset)}"/></clipPath>
+    <clipPath id="bioClip"><rect x="${contentX + bioTextLeftInset}" y="${bioY + bioClipTopOffsetY}" width="${bioTextWidth}" height="${Math.max(0, bioHeight - bioClipTopOffsetY - bioClipBottomInset)}"/></clipPath>
     <linearGradient id="bannerFallback" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0" stop-color="#304e52"/>
       <stop offset="0.5" stop-color="#25412d"/>
@@ -3290,7 +3290,8 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
     ? options.fontDataUri
     : null;
   const fontSize = Number.isFinite(options.fontSize) ? options.fontSize : 16;
-  const japaneseWrapSafety = 18;
+  const japaneseWrapSafety = 44;
+  const generalWrapAllowance = 18;
 
   const hangulWidth = Number.isFinite(options.hangulWidth) ? options.hangulWidth : null;
   const measurementCache = new Map();
@@ -3303,7 +3304,11 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
     }
 
     const hasJapaneseKana = containsJapaneseKana(paragraph);
-    const paragraphMaxWidth = maxWidth - (hasJapaneseKana ? japaneseWrapSafety : 0);
+    const paragraphMaxWidth = maxWidth + (
+      hasJapaneseKana
+        ? -japaneseWrapSafety
+        : generalWrapAllowance
+    );
     const shouldUseMeasuredWrap = fontDataUri
       && paragraph.length <= measuredBioWrapMaxLength
       && !containsBioEmoji(paragraph)
@@ -3396,26 +3401,29 @@ async function splitBioTokenMeasured(token, maxWidth, fontSize, fontDataUri, mea
   let index = 0;
 
   while (index < chars.length) {
-    let slice = chars[index];
+    let low = index + 1;
+    let high = chars.length;
     let nextIndex = index + 1;
 
-    while (nextIndex < chars.length) {
-      const candidate = slice + chars[nextIndex];
+    while (low <= high) {
+      const middle = Math.floor((low + high) / 2);
+      const candidate = chars.slice(index, middle).join('');
       const candidateWidth = await measureBioTextWidthCached(
         candidate,
         fontSize,
         fontDataUri,
         measurementCache,
       );
-      if (candidateWidth > maxWidth) {
-        break;
-      }
 
-      slice = candidate;
-      nextIndex += 1;
+      if (candidateWidth <= maxWidth) {
+        nextIndex = middle;
+        low = middle + 1;
+      } else {
+        high = middle - 1;
+      }
     }
 
-    lines.push(slice);
+    lines.push(chars.slice(index, nextIndex).join(''));
     index = nextIndex;
   }
 
