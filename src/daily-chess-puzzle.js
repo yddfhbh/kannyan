@@ -14,6 +14,9 @@ import { Chess } from 'chess.js';
 const statePath = fileURLToPath(new URL('../data/daily-chess-puzzle.json', import.meta.url));
 const puzzlePoolPath = fileURLToPath(new URL('../data/lichess-puzzle-pool.jsonl', import.meta.url));
 
+const chessPieceDir = new URL('../assets/chess-pieces/cburnett/', import.meta.url);
+const chessPieceSvgCache = new Map();
+
 const defaultDailyPuzzleAdminId = '635107514471415808';
 
 const dailyPuzzleAdminIds = new Set([
@@ -729,10 +732,12 @@ async function renderPuzzleImage({ fen, title, subtitle, flipped = false }) {
       squaresSvg += `<rect x="${x}" y="${y}" width="${squareSize}" height="${squareSize}" fill="${isLight ? light : dark}"/>`;
 
       const piece = chess.get(square);
-      if (piece) {
-        const symbol = getPieceSymbol(piece);
-        piecesSvg += `<text x="${x + squareSize / 2}" y="${y + squareSize * 0.72}" text-anchor="middle" font-size="44" font-family="Arial, Noto Sans Symbols2, Noto Sans Symbols, Segoe UI Symbol, sans-serif">${symbol}</text>`;
-      }
+if (piece) {
+  const pieceHref = await getPieceImageHref(piece);
+  const piecePadding = 5;
+
+  piecesSvg += `<image href="${pieceHref}" x="${x + piecePadding}" y="${y + piecePadding}" width="${squareSize - piecePadding * 2}" height="${squareSize - piecePadding * 2}" preserveAspectRatio="xMidYMid meet"/>`;
+}
 
       if (row === 7) {
         coordsSvg += `<text x="${x + squareSize - 6}" y="${y + squareSize - 5}" text-anchor="end" font-size="12" font-family="Arial" fill="${isLight ? '#6b4c2d' : '#f6e3c6'}">${files[fileIndex]}</text>`;
@@ -779,6 +784,42 @@ function getPieceSymbol(piece) {
   };
 
   return symbols[piece.color]?.[piece.type] ?? '';
+}
+
+async function getPieceImageHref(piece) {
+  const pieceName = `${piece.color}${piece.type.toUpperCase()}.svg`;
+
+  if (chessPieceSvgCache.has(pieceName)) {
+    return chessPieceSvgCache.get(pieceName);
+  }
+
+  const pieceUrl = new URL(pieceName, chessPieceDir);
+
+  try {
+    const svg = await fs.readFile(pieceUrl, 'utf8');
+    const dataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+
+    chessPieceSvgCache.set(pieceName, dataUri);
+    return dataUri;
+  } catch (error) {
+    console.error(`Failed to load chess piece SVG: ${pieceUrl.pathname}`);
+    console.error(error);
+
+    const fallbackSvg = createFallbackPieceSvg(piece);
+    const dataUri = `data:image/svg+xml;base64,${Buffer.from(fallbackSvg).toString('base64')}`;
+
+    chessPieceSvgCache.set(pieceName, dataUri);
+    return dataUri;
+  }
+}
+
+function createFallbackPieceSvg(piece) {
+  const symbol = getPieceSymbol(piece);
+
+  return `
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <text x="32" y="48" text-anchor="middle" font-size="48" font-family="Arial, Noto Sans Symbols2, Noto Sans Symbols, Segoe UI Symbol, sans-serif">${escapeXml(symbol)}</text>
+</svg>`;
 }
 
 async function hydrateDailyPuzzleSessions() {
