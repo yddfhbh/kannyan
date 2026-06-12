@@ -2593,21 +2593,28 @@ async function requestGeminiGenerateContent(modelName, payload, apiKey) {
   const normalizedModelName = modelName.replace(/^models\//, '');
 
   try {
-    const response = await fetch(`${geminiApiBaseUrl}/models/${encodeURIComponent(normalizedModelName)}:generateContent`, {
+    const url =
+      `${geminiApiBaseUrl}/models/${encodeURIComponent(normalizedModelName)}:generateContent`
+      + `?key=${encodeURIComponent(apiKey)}`;
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-goog-api-key': apiKey,
       },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
+
     const body = await response.json().catch(() => null);
 
     if (!response.ok) {
+      console.error('[Gemini API error body]', JSON.stringify(body, null, 2));
+
       const error = new Error(body?.error?.message ?? `Gemini API responded with ${response.status}`);
       error.status = response.status;
       error.model = modelName;
+      error.details = body?.error ?? body;
       throw error;
     }
 
