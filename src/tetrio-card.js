@@ -614,8 +614,8 @@ async function readLocalImageDataUri(path, mimeType) {
 }
 
 async function renderTetrioCardSvg(user, summaries, assets) {
-  const layoutWidth = 960;
   const svgWidth = 820;
+  const layoutWidth = svgWidth;
   const cardX = 14;
   const cardWidth = layoutWidth - cardX * 2;
   const contentX = 28;
@@ -726,7 +726,7 @@ const headerFlagY = bannerY + 18;
   const badgeBoxHeight = badgeLayout.boxHeight;
   const bioTextInset = 12;
   const bioTextWidth = contentWidth - bioTextInset * 2;
-  const bioWrapSafety = 64;
+  const bioWrapSafety = 12;
   const bioHangulWidth = await measureBioHangulWidth(16, assets.hunFont);
   const bioLines = await wrapBioText(user.bio, bioTextWidth - bioWrapSafety, {
     fontDataUri: assets.hunFont,
@@ -743,7 +743,7 @@ const headerFlagY = bannerY + 18;
   const cardHeight = svgHeight - 32;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${layoutWidth} ${svgHeight}" preserveAspectRatio="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${layoutWidth} ${svgHeight}">
   <defs>
     <clipPath id="avatarClip"><rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="6"/></clipPath>
     <clipPath id="bannerClip"><rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" rx="0"/></clipPath>
