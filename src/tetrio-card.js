@@ -3280,6 +3280,20 @@ async function wrapBioParagraphMeasured(paragraph, maxWidth, fontSize, fontDataU
 }
 
 async function splitBioTokenMeasured(token, maxWidth, fontSize, fontDataUri, measurementCache) {
+  const repeatedUnits = splitRepeatedBioTokenUnits(token);
+  if (repeatedUnits) {
+    const unitLines = await splitBioUnitsMeasured(
+      repeatedUnits,
+      maxWidth,
+      fontSize,
+      fontDataUri,
+      measurementCache,
+    );
+    if (unitLines) {
+      return unitLines;
+    }
+  }
+
   const chars = Array.from(token);
   const lines = [];
   let index = 0;
@@ -3306,6 +3320,39 @@ async function splitBioTokenMeasured(token, maxWidth, fontSize, fontDataUri, mea
 
     lines.push(slice);
     index = nextIndex;
+  }
+
+  return lines;
+}
+
+async function splitBioUnitsMeasured(units, maxWidth, fontSize, fontDataUri, measurementCache) {
+  const lines = [];
+  let line = '';
+
+  for (const unit of units) {
+    const candidate = line + unit;
+    const candidateWidth = await measureBioTextWidthCached(
+      candidate,
+      fontSize,
+      fontDataUri,
+      measurementCache,
+    );
+
+    if (candidateWidth <= maxWidth) {
+      line = candidate;
+      continue;
+    }
+
+    if (!line) {
+      return null;
+    }
+
+    lines.push(line);
+    line = unit;
+  }
+
+  if (line) {
+    lines.push(line);
   }
 
   return lines;
@@ -3346,6 +3393,11 @@ function cacheMeasuredTextWidth(cache, key, width) {
 }
 
 function wrapBioParagraphEstimated(paragraph, maxWidth, hangulWidth = null) {
+  const repeatedUnits = splitRepeatedBioTokenUnits(paragraph);
+  if (repeatedUnits) {
+    return wrapBioUnitsEstimated(repeatedUnits, maxWidth, hangulWidth);
+  }
+
   const lines = [];
   let line = '';
   let lineWidth = 0;
@@ -3367,6 +3419,63 @@ function wrapBioParagraphEstimated(paragraph, maxWidth, hangulWidth = null) {
   }
 
   return lines;
+}
+
+function wrapBioUnitsEstimated(units, maxWidth, hangulWidth = null) {
+  const lines = [];
+  let line = '';
+  let lineWidth = 0;
+
+  for (const unit of units) {
+    const unitWidth = splitGraphemes(unit).reduce(
+      (sum, grapheme) => sum + getBioGraphemeWidth(grapheme, hangulWidth),
+      0,
+    );
+
+    if (line && lineWidth + unitWidth > maxWidth) {
+      lines.push(line);
+      line = '';
+      lineWidth = 0;
+    }
+
+    line += unit;
+    lineWidth += unitWidth;
+  }
+
+  if (line) {
+    lines.push(line);
+  }
+
+  return lines;
+}
+
+function splitRepeatedBioTokenUnits(token) {
+  const graphemes = splitGraphemes(token);
+  if (graphemes.length < 4) {
+    return null;
+  }
+
+  const maxUnitLength = Math.min(12, Math.floor(graphemes.length / 2));
+  for (let unitLength = 2; unitLength <= maxUnitLength; unitLength += 1) {
+    if (graphemes.length % unitLength !== 0) {
+      continue;
+    }
+
+    const unit = graphemes.slice(0, unitLength).join('');
+    let isRepeat = true;
+    for (let index = unitLength; index < graphemes.length; index += unitLength) {
+      if (graphemes.slice(index, index + unitLength).join('') !== unit) {
+        isRepeat = false;
+        break;
+      }
+    }
+
+    if (isRepeat) {
+      return Array.from({ length: graphemes.length / unitLength }, () => unit);
+    }
+  }
+
+  return null;
 }
 
 function getBioGraphemeWidth(grapheme, hangulWidth = null) {
