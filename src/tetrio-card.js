@@ -21,6 +21,7 @@ const tetrioContentBaseUrl = 'https://tetr.io/user-content';
 const tetrioGameBaseUrl = 'https://tetr.io';
 const twemojiBaseUrl = 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72';
 const cardFontFamily = tetrioFontFamily;
+const bioFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK JP", "Noto Sans JP", sans-serif';
 const tetrioPalette = {
   pageBg: '#07100a',
   cardBg: '#21421f',
@@ -931,7 +932,7 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
       }
 
       .bioText {
-  font-family: ${cardFontFamily};
+  font-family: ${bioFontFamily};
   fill: #6faa6b;
   text-shadow: 0 1px 2px #07150a;
   word-spacing: 0px;
@@ -3269,7 +3270,7 @@ async function measureBioSampleWidth(text, fontSize, fontDataUri = null) {
     <style>${renderTetrioFontFace(fontDataUri)}</style>
   </defs>
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
-  <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="800" fill="#ffffff">${escapeXml(normalizedText)}</text>
+  <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(bioFontFamily)}" font-size="${fontSize}" font-weight="800" fill="#ffffff">${escapeXml(normalizedText)}</text>
 </svg>`;
   const { info } = await sharp(renderTetrioSvgToPng(measurementSvg, { zoom: 1 }))
     .png()
