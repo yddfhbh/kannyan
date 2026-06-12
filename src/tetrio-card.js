@@ -741,6 +741,20 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
   const bioTextRightInset = 0;
   const bioTextWidth = contentWidth - bioTextLeftInset - bioTextRightInset;
   const bioHangulWidth = await measureBioHangulWidth(bioTextFontSize, assets.hunFont);
+  console.log('[BIO WRAP]', {
+  bioTextWidth,
+  bioHangulWidth,
+  bioTextFontSize,
+  bioLength: String(user.bio ?? '').length,
+});
+
+const bioLines = await wrapBioText(user.bio, bioTextWidth, {
+  fontDataUri: assets.hunFont,
+  fontSize: bioTextFontSize,
+  hangulWidth: bioHangulWidth,
+});
+
+console.log('[BIO LINES]', bioLines.map((line) => line.text ?? line).join('\n'));
   const bioLines = await wrapBioText(user.bio, bioTextWidth, {
     fontDataUri: assets.hunFont,
     fontSize: bioTextFontSize,
