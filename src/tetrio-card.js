@@ -614,11 +614,12 @@ async function readLocalImageDataUri(path, mimeType) {
 }
 
 async function renderTetrioCardSvg(user, summaries, assets) {
-  const svgWidth = 840;
+  const layoutWidth = 960;
+  const svgWidth = 820;
   const cardX = 14;
-  const cardWidth = svgWidth - cardX * 2;
+  const cardWidth = layoutWidth - cardX * 2;
   const contentX = 28;
-  const contentWidth = svgWidth - contentX * 2;
+  const contentWidth = layoutWidth - contentX * 2;
   const contentRight = contentX + contentWidth;
   const topStatGap = 8;
   const topStatAvailableWidth = contentWidth - topStatGap * 2;
@@ -725,7 +726,7 @@ const headerFlagY = bannerY + 18;
   const badgeBoxHeight = badgeLayout.boxHeight;
   const bioTextInset = 12;
   const bioTextWidth = contentWidth - bioTextInset * 2;
-  const bioWrapSafety = 64;
+  const bioWrapSafety = 12;
   const bioHangulWidth = await measureBioHangulWidth(16, assets.hunFont);
   const bioLines = await wrapBioText(user.bio, bioTextWidth - bioWrapSafety, {
     fontDataUri: assets.hunFont,
@@ -742,7 +743,7 @@ const headerFlagY = bannerY + 18;
   const cardHeight = svgHeight - 32;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
+<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${layoutWidth} ${svgHeight}" preserveAspectRatio="none">
   <defs>
     <clipPath id="avatarClip"><rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="6"/></clipPath>
     <clipPath id="bannerClip"><rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" rx="0"/></clipPath>
@@ -932,13 +933,13 @@ const headerFlagY = bannerY + 18;
     </style>
   </defs>
 
-  <rect width="${svgWidth}" height="${svgHeight}" fill="${tetrioPalette.pageBg}"/>
+  <rect width="${layoutWidth}" height="${svgHeight}" fill="${tetrioPalette.pageBg}"/>
   <rect x="${cardX}" y="16" width="${cardWidth}" height="${cardHeight}" fill="${tetrioPalette.cardBg}" stroke="${tetrioPalette.cardBorder}" stroke-width="4" rx="3"/>
  <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="url(#bannerFallback)" clip-path="url(#bannerClip)"/>
 ${assets.banner ? `<image href="${assets.banner}" x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#bannerClip)"/>` : ''}
 <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="#000000" opacity="0.18" clip-path="url(#bannerClip)"/>
 
-<rect x="${bannerX}" y="-4" width="${svgWidth - bannerX - 4}" height="22" fill="#000000"/>
+<rect x="${bannerX}" y="-4" width="${layoutWidth - bannerX - 4}" height="22" fill="#000000"/>
 
 ${renderHeaderOverlayStrip(
   assets.headerOverlay,
