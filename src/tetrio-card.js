@@ -625,7 +625,7 @@ async function readLocalImageDataUri(path, mimeType) {
 }
 
 async function renderTetrioCardSvg(user, summaries, assets) {
-  const svgWidth = 840;
+  const svgWidth = 830;
   const layoutWidth = svgWidth;
   const cardX = 14;
   const cardWidth = layoutWidth - cardX * 2;
@@ -3289,6 +3289,7 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
     ? options.fontDataUri
     : null;
   const fontSize = Number.isFinite(options.fontSize) ? options.fontSize : 16;
+  const japaneseWrapSafety = 8;
 
   const hangulWidth = Number.isFinite(options.hangulWidth) ? options.hangulWidth : null;
   const measurementCache = new Map();
@@ -3300,19 +3301,21 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
       continue;
     }
 
+    const hasJapaneseKana = containsJapaneseKana(paragraph);
+    const paragraphMaxWidth = maxWidth - (hasJapaneseKana ? japaneseWrapSafety : 0);
     const shouldUseMeasuredWrap = fontDataUri
       && paragraph.length <= measuredBioWrapMaxLength
       && !containsBioEmoji(paragraph)
-      && !containsJapaneseKana(paragraph);
+      && !hasJapaneseKana;
     const wrappedLines = shouldUseMeasuredWrap
       ? await wrapBioParagraphMeasured(
         paragraph,
-        maxWidth,
+        paragraphMaxWidth,
         fontSize,
         fontDataUri,
         measurementCache,
       )
-      : wrapBioParagraphEstimated(paragraph, maxWidth, hangulWidth);
+      : wrapBioParagraphEstimated(paragraph, paragraphMaxWidth, hangulWidth);
 
     lines.push(...wrappedLines);
   }
