@@ -635,12 +635,14 @@ function renderQuickPlayMainValueMarkup({
     if (format === 'timeSplitDecimal') {
       const splitIndex = normalizedText.lastIndexOf('.');
       if (splitIndex > 0 && splitIndex < normalizedText.length - 1) {
-        const decimalDotDyEm = 0.10;
+        const decimalDotDyEm = 0.14;
         const fractionBaselineDyEm = 0.12;
         const fractionDyEm = fractionBaselineDyEm - decimalDotDyEm;
+        const fractionText = normalizedText.slice(splitIndex + 1);
+        const fractionDxEm = fractionText.startsWith('1') ? -0.08 : -0.02;
         return `<g filter="url(#valueGlow)">
     <text x="${centerX}" y="${valueY}" text-anchor="middle" dominant-baseline="middle" class="value">
-      <tspan>${renderQuickPlayMainNumberMarkup(normalizedText.slice(0, splitIndex))}</tspan><tspan dy="${decimalDotDyEm}em" font-family="Arial" font-size="0.82em" stroke="none">.</tspan><tspan font-size="${getQuickPlayTimedDecimalFontSize(fontSize)}" dy="${fractionDyEm}em">${renderQuickPlayMainNumberMarkup(normalizedText.slice(splitIndex + 1))}</tspan>
+      <tspan>${renderQuickPlayMainNumberMarkup(normalizedText.slice(0, splitIndex))}</tspan><tspan dy="${decimalDotDyEm}em" font-family="Arial" font-size="0.82em" stroke="none">.</tspan><tspan dx="${fractionDxEm}em" font-size="${getQuickPlayTimedDecimalFontSize(fontSize)}" dy="${fractionDyEm}em">${renderQuickPlayMainNumberMarkup(fractionText)}</tspan>
     </text>
   </g>`;
       }

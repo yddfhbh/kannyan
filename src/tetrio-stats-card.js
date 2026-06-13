@@ -163,7 +163,7 @@ function renderTetrioStatsCardSvg(username, stats) {
 
   <rect x="1" y="1" width="${viewBoxWidth - 2}" height="${viewBoxHeight - 2}" class="outerBox"/>
   <rect x="${contentX}" y="${contentY}" width="${contentWidth}" height="${nicknameBoxHeight}" class="box"/>
-  <text x="${nicknameTextX}" y="${contentY + 37}" class="nickname">${escapeXml(normalizedUsername.toUpperCase())}</text>
+  <text x="${nicknameTextX}" y="${contentY + 37}" class="nickname">${renderStatsNicknameMarkup(normalizedUsername)}</text>
 
   <rect x="${contentX}" y="${statsBoxY}" width="${contentWidth}" height="${statsBoxHeight}" class="box"/>
   ${renderTopRows(topRows, statsBoxY, contentX)}
@@ -203,6 +203,32 @@ function renderSection(x, y, title, rows) {
 
   return `
   <text x="${x}" y="${y + 10}" class="section">${escapeXml(title)}</text>${rowsMarkup}`;
+}
+
+function renderStatsNicknameMarkup(value) {
+  const text = String(value ?? '').toUpperCase();
+  let markup = '';
+  let currentOffsetEm = 0;
+
+  for (const char of text) {
+    const targetOffsetEm = char === '_' ? -0.18 : 0;
+    const deltaEm = targetOffsetEm - currentOffsetEm;
+    const dy = Math.abs(deltaEm) > 0.0001
+      ? ` dy="${deltaEm}em"`
+      : '';
+
+    if (char === '_') {
+      markup += `<tspan${dy} dx="0.04em" font-family="Arial" font-size="0.68em" font-weight="900" stroke="#f0f0f3" stroke-width="1.5" paint-order="stroke fill">_</tspan>`;
+    } else {
+      markup += dy
+        ? `<tspan${dy}>${escapeXml(char)}</tspan>`
+        : escapeXml(char);
+    }
+
+    currentOffsetEm = targetOffsetEm;
+  }
+
+  return markup;
 }
 
 function normalizeStats(stats) {

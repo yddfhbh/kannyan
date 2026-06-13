@@ -171,7 +171,7 @@ function renderLegend(series) {
   const entries = getLegendLayout(series);
   return entries.map((entry) => `
   <rect x="${entry.boxX}" y="${entry.y}" width="46" height="16" class="legendBox" fill="${entry.color.fill}" stroke="${entry.color.stroke}"/>
-  <text x="${entry.textX}" y="${entry.y + 13}" class="legendText" fill="${entry.color.text}">${escapeXml(entry.text)}</text>`).join('\n');
+  <text x="${entry.textX}" y="${entry.y + 13}" class="legendText" fill="${entry.color.text}">${renderLegendUsernameMarkup(entry.text)}</text>`).join('\n');
 }
 
 function getLegendLayout(series) {
@@ -205,7 +205,35 @@ function getSeriesColor(index) {
 }
 
 function estimateLegendTextWidth(text) {
-  return text.length * 10.3;
+  return [...text].reduce((width, char) => {
+    return width + (char === '_' ? 8.4 : 10.3);
+  }, 0);
+}
+
+function renderLegendUsernameMarkup(value) {
+  const text = String(value ?? '');
+  let markup = '';
+  let currentOffsetEm = 0;
+
+  for (const char of text) {
+    const targetOffsetEm = char === '_' ? -0.08 : 0;
+    const deltaEm = targetOffsetEm - currentOffsetEm;
+    const dy = Math.abs(deltaEm) > 0.0001
+      ? ` dy="${roundSvgNumber(deltaEm)}em"`
+      : '';
+
+    if (char === '_') {
+      markup += `<tspan${dy} font-family="Arial" font-size="1.05em" font-weight="900" stroke="none">_</tspan>`;
+    } else {
+      markup += dy
+        ? `<tspan${dy}>${escapeXml(char)}</tspan>`
+        : escapeXml(char);
+    }
+
+    currentOffsetEm = targetOffsetEm;
+  }
+
+  return markup;
 }
 
 function toFiniteNumber(value) {
