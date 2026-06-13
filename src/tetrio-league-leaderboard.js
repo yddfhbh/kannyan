@@ -2,6 +2,7 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { calculateTetrioStats } from './tetrio-stats-calculations.js';
+import { renderTetrioLeaderboardCard } from './tetrio-league-leaderboard-card.js';
 
 const API_BASE = 'https://ch.tetr.io/api';
 
@@ -311,37 +312,7 @@ export function parseTetrioLeaderboardCommand(content) {
   };
 }
 
-function formatUpdatedAt(value) {
-  if (!value) return 'unknown';
-
-  return new Date(value).toLocaleString('ko-KR', {
-    timeZone: 'Asia/Seoul',
-  });
-}
-
-function chunkLeaderboardMessage(headerLines, bodyLines, maxLength = 1900) {
-  const chunks = [];
-  let current = [...headerLines, '```'];
-
-  for (const line of bodyLines) {
-    const next = [...current, line, '```'].join('\n');
-
-    if (next.length > maxLength) {
-      current.push('```');
-      chunks.push(current.join('\n'));
-      current = ['```', line];
-    } else {
-      current.push(line);
-    }
-  }
-
-  current.push('```');
-  chunks.push(current.join('\n'));
-
-  return chunks;
-}
-
-export function formatTetrioLeaderboard(parsed = {}) {
+function getTetrioLeaderboardView(parsed = {}) {
   const {
     reverse = false,
     stat,
@@ -353,8 +324,8 @@ export function formatTetrioLeaderboard(parsed = {}) {
   const cfg = STAT_CONFIG[stat];
 
   if (!cfg) {
-    return [
-      [
+    return {
+      message: [
         '사용법:',
         '`%lb apm 10` → APM 높은 순 10명',
         '`%rlb apm 10` → APM 낮은 순 10명',
@@ -363,11 +334,13 @@ export function formatTetrioLeaderboard(parsed = {}) {
         '',
         `가능한 값: ${Object.keys(STAT_CONFIG).join(', ')}`,
       ].join('\n'),
-    ];
+    };
   }
 
   if (!activeData.users.length) {
-    return ['아직 리더보드 데이터가 없음. `%refresh`로 먼저 데이터를 받아와야 함.'];
+    return {
+      message: '아직 리더보드 데이터가 없음. `%refresh`로 먼저 데이터를 받아와야 함.',
+    };
   }
 
   const normalizedRank = normalizeRank(rank);
@@ -388,27 +361,42 @@ export function formatTetrioLeaderboard(parsed = {}) {
   const sliced = rows.slice(start, start + limit);
 
   if (!sliced.length) {
-    return [
-      `${cfg.label} 리더보드에 표시할 데이터가 없음. page=${page}, rank=${normalizedRank ?? 'all'}`,
-    ];
+    return {
+      message: `${cfg.label} 리더보드에 표시할 데이터가 없음. page=${page}, rank=${normalizedRank ?? 'all'}`,
+    };
   }
 
-  const titleRank = normalizedRank ? ` ${normalizedRank.toUpperCase()}` : '';
-  const directionLabel = reverse ? 'Reverse ' : '';
-  const modeLabel = reverse ? 'RLB' : 'LB';
+  return {
+    cfg,
+    reverse,
+    page,
+    normalizedRank,
+    start,
+    rows: sliced.map((user, index) => ({
+      ...user,
+      place: start + index + 1,
+      value: user[cfg.key],
+    })),
+    generatedAt: activeData.generatedAt,
+    userCount: activeData.users.length,
+  };
+}
 
-  const headerLines = [
-    `${directionLabel}${cfg.label}${titleRank} Leaderboard:`,
-    `mode: ${modeLabel} / page: ${page} / updated: ${formatUpdatedAt(activeData.generatedAt)} / users: ${activeData.users.length}`,
-  ];
+export async function createTetrioLeaderboardCard(parsed = {}) {
+  const view = getTetrioLeaderboardView(parsed);
 
-  const bodyLines = sliced.map((user, index) => {
-    const place = start + index + 1;
-    const value = user[cfg.key].toFixed(cfg.digits);
-    const rankText = user.rank ? user.rank.toUpperCase() : '?';
+  if (view.message) {
+    return {
+      content: view.message,
+    };
+  }
 
-    return `#${place}: ${user.username} (TL #${user.tlRank}, ${rankText}): ${value}`;
-  });
+  const image = await renderTetrioLeaderboardCard(view);
+  const mode = view.reverse ? 'rlb' : 'lb';
+  const rank = view.normalizedRank ?? 'all';
 
-  return chunkLeaderboardMessage(headerLines, bodyLines);
+  return {
+    image,
+    filename: `tetrio-${mode}-${view.cfg.key}-${rank}-page-${view.page}.png`,
+  };
 }

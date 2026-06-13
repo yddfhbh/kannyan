@@ -46,7 +46,7 @@ import {
   initDailyChessPuzzle,
 } from './daily-chess-puzzle.js';
 import {
-  formatTetrioLeaderboard,
+  createTetrioLeaderboardCard,
   getTetrioLeagueRefreshStatus,
   loadTetrioLeagueCache,
   parseTetrioLeaderboardCommand,
@@ -1038,18 +1038,32 @@ async function handleTetrioLeaderboardTextCommand(message) {
     return false;
   }
 
-  const messages = formatTetrioLeaderboard(lbCommand);
-  const [firstMessage, ...restMessages] = messages;
+  try {
+    await message.channel.sendTyping();
+    const card = await createTetrioLeaderboardCard(lbCommand);
 
-  await message.reply({
-    content: firstMessage,
-    allowedMentions: { repliedUser: false },
-  });
+    if (card.content) {
+      await message.reply({
+        content: card.content,
+        allowedMentions: { repliedUser: false },
+      });
+      return true;
+    }
 
-  for (const text of restMessages) {
-    await message.channel.send({
-      content: text,
-      allowedMentions: { parse: [] },
+    const attachment = new AttachmentBuilder(card.image, {
+      name: card.filename,
+    });
+
+    await message.reply({
+      files: [attachment],
+      allowedMentions: { repliedUser: false },
+    });
+  } catch (error) {
+    console.error('Failed to render TETR.IO leaderboard card:');
+    console.error(error);
+    await message.reply({
+      content: 'TETR.IO 리더보드 이미지를 만들지 못했어요. 잠시 뒤 다시 시도해 주세요.',
+      allowedMentions: { repliedUser: false },
     });
   }
 

@@ -954,7 +954,7 @@ const cardHeight = svgHeight - 32;
   <rect x="${cardX}" y="16" width="${cardWidth}" height="${cardHeight}" fill="${tetrioPalette.cardBg}" stroke="${tetrioPalette.cardBorder}" stroke-width="4" rx="3"/>
  <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="url(#bannerFallback)" clip-path="url(#bannerClip)"/>
 ${assets.banner ? `<image href="${assets.banner}" x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#bannerClip)"/>` : ''}
-<rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="#000000" opacity="0.8" clip-path="url(#bannerClip)"/>
+<rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="#000000" opacity="0.08" clip-path="url(#bannerClip)"/>
 
 <rect x="${bannerX}" y="-18" width="${layoutWidth - bannerX - 4}" height="44" fill="#000000"/> 
 //검은박스 조절
