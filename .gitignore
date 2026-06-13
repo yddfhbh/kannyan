@@ -13,3 +13,5 @@ Thumbs.db
 '@ | Set-Content .gitignore -Encoding UTF8
 *.bak.*
 data/gemini-memory.json
+data/tetrio-league-cache.json
+data/tetrio-league-cache.tmp.json

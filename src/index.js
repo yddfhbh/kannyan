@@ -45,6 +45,14 @@ import {
   handleDailyPuzzleSetInteraction,
   initDailyChessPuzzle,
 } from './daily-chess-puzzle.js';
+import {
+  formatTetrioLeaderboard,
+  getTetrioLeagueRefreshStatus,
+  loadTetrioLeagueCache,
+  parseTetrioLeaderboardCommand,
+  refreshTetrioLeagueCache,
+} from './tetrio-league-leaderboard.js';
+
 
 const execFileAsync = promisify(execFile);
 const customEmojis = {
@@ -324,9 +332,10 @@ client.on(Events.MessageCreate, async (message) => {
     return;
   }
   const dailyPuzzleHandled = await handleDailyPuzzleMessage(message);
-if (dailyPuzzleHandled) {
-  return;
-}
+  if (dailyPuzzleHandled) {
+    return;
+  }
+
   if (isDirectBotMention(message)) {
     await message.reply({
       content: '애옹?',
@@ -336,17 +345,22 @@ if (dailyPuzzleHandled) {
   }
   
   const reactionResult = await handleReactionRequestMessage(message);
-if (reactionResult?.handled) {
-  if (reactionResult.shouldContinueToGemini) {
-    await handleGeminiFallbackMessage(message, {
-      forcedPrompt: reactionResult.forcedPrompt
-        ?? '방금 사용자가 요청한 메시지에 이모지 반응을 성공적으로 달았다. 사용자에게 짧고 자연스럽게 알려줘.',
-    });
+  if (reactionResult?.handled) {
+    if (reactionResult.shouldContinueToGemini) {
+      await handleGeminiFallbackMessage(message, {
+        forcedPrompt: reactionResult.forcedPrompt
+          ?? '방금 사용자가 요청한 메시지에 이모지 반응을 성공적으로 달았다. 사용자에게 짧고 자연스럽게 알려줘.',
+      });
+    }
+
+    return;
   }
 
-  return;
-}
-  
+  const tetrioLbHandled = await handleTetrioLeaderboardTextCommand(message);
+  if (tetrioLbHandled) {
+    return;
+  }
+
   const handled = await handlePercentMessageCommand(message);
   if (handled) {
     return;
@@ -585,6 +599,8 @@ if (interaction.commandName === '일일퍼즐') {
     }
   }
 });
+
+await loadTetrioLeagueCache();
 
 client.login(DISCORD_TOKEN).catch((error) => {
   console.error('Failed to login to Discord:');
@@ -959,6 +975,85 @@ function formatKoreanDateTime(date) {
     second: '2-digit',
     hour12: false,
   }).format(date);
+}
+
+async function handleTetrioLeaderboardTextCommand(message) {
+  const content = message.content.trim();
+
+  if (content === '%refresh') {
+    const status = getTetrioLeagueRefreshStatus();
+
+    if (status.refreshing) {
+      await message.reply({
+        content: '이미 TETR.IO 리더보드 갱신 중임. 끝날 때까지는 이전 데이터를 사용함.',
+        allowedMentions: { repliedUser: false },
+      });
+      return true;
+    }
+
+    await message.reply({
+      content: 'TETR.IO 리더보드 갱신 시작함. 완료 전까지는 이전 데이터를 사용함.',
+      allowedMentions: { repliedUser: false },
+    });
+
+    refreshTetrioLeagueCache({
+      onProgress: ({ page, users, lastUsername }) => {
+        console.log(`[TETR.IO LB] page=${page} users=${users} last=${lastUsername}`);
+      },
+    })
+      .then(async ({ userCount, generatedAt }) => {
+        await message.channel.send({
+          content: `TETR.IO 리더보드 갱신 완료: ${userCount.toLocaleString('en-US')}명 / ${generatedAt}`,
+          allowedMentions: { parse: [] },
+        });
+      })
+      .catch(async (error) => {
+        await message.channel.send({
+          content: `TETR.IO 리더보드 갱신 실패: ${error.message}`,
+          allowedMentions: { parse: [] },
+        });
+      });
+
+    return true;
+  }
+
+  if (content === '%lbstatus') {
+    const status = getTetrioLeagueRefreshStatus();
+
+    await message.reply({
+      content: [
+        `refreshing: ${status.refreshing ? 'YES' : 'NO'}`,
+        `users: ${status.userCount}`,
+        `generatedAt: ${status.generatedAt ?? '없음'}`,
+      ].join('\n'),
+      allowedMentions: { repliedUser: false },
+    });
+
+    return true;
+  }
+
+  const lbCommand = parseTetrioLeaderboardCommand(content);
+
+  if (!lbCommand) {
+    return false;
+  }
+
+  const messages = formatTetrioLeaderboard(lbCommand);
+  const [firstMessage, ...restMessages] = messages;
+
+  await message.reply({
+    content: firstMessage,
+    allowedMentions: { repliedUser: false },
+  });
+
+  for (const text of restMessages) {
+    await message.channel.send({
+      content: text,
+      allowedMentions: { parse: [] },
+    });
+  }
+
+  return true;
 }
 
 async function handlePercentMessageCommand(message) {
