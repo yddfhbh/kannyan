@@ -14,5 +14,7 @@ Thumbs.db
 *.bak.*
 data/gemini-memory.json
 data/gemini-permanent-memory.json
+data/daily-chess-puzzle.json
+data/daily-chess-puzzle.json.tmp
 data/tetrio-league-cache.json
 data/tetrio-league-cache.tmp.json

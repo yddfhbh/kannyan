@@ -52,11 +52,11 @@ import {
   parseTetrioLeaderboardCommand,
   refreshTetrioLeagueCache,
 } from './tetrio-league-leaderboard.js';
+import { renderLiveRatingCard } from './live-rating-card.js';
 import {
   createPermanentMemoryScope,
   extractPermanentMemoryUsage,
   extractPercentPermanentMemory,
-  getPermanentMemoryContributorIds,
   inferPermanentMemoryUsage,
   permanentMemoryMaxTextLength,
   PermanentMemoryStore,
@@ -103,6 +103,7 @@ const geminiFallbackStatusCodes = new Set([404, 429, 500, 503, 504]);
 const discordMessageChunkMaxLength = 1900;
 const geminiMemoryPath = fileURLToPath(new URL('../data/gemini-memory.json', import.meta.url));
 const geminiPermanentMemoryPath = fileURLToPath(new URL('../data/gemini-permanent-memory.json', import.meta.url));
+const geminiPermanentMemoryAdminUserId = '635107514471415808';
 const geminiMemoryRetentionDays = Number(process.env.GEMINI_MEMORY_DAYS) || 45;
 const geminiMemoryRetentionMs = geminiMemoryRetentionDays * 24 * 60 * 60 * 1000;
 const geminiMemoryMaxMessagesPerSession = Number(process.env.GEMINI_MEMORY_MAX_MESSAGES_PER_SESSION) || 30;
@@ -471,6 +472,50 @@ function isDirectBotMention(message) {
 }
 
 async function handlePercentPermanentMemoryMessage(message) {
+  const permanentMemoryClearCommand = message.content.trim();
+  const clearCurrentGuildOnly = permanentMemoryClearCommand === '%기억제거 이서버만';
+
+  if (permanentMemoryClearCommand === '%기억제거' || clearCurrentGuildOnly) {
+    if (message.author.id !== geminiPermanentMemoryAdminUserId) {
+      await message.reply({
+        content: '영구 기억을 제거할 권한이 없다냥.',
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+      return true;
+    }
+
+    if (clearCurrentGuildOnly && !message.guildId) {
+      await message.reply({
+        content: '`%기억제거 이서버만`은 서버 채널에서 사용해달라냥.',
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+      return true;
+    }
+
+    try {
+      const deletedCount = clearCurrentGuildOnly
+        ? await geminiPermanentMemory.clearScope(
+          createPermanentMemoryScope(message.guildId, message.author.id)
+        )
+        : await geminiPermanentMemory.clearAll();
+      await message.reply({
+        content: clearCurrentGuildOnly
+          ? `이 서버의 영구 기억 ${deletedCount}개를 삭제했다냥.`
+          : `영구 기억 ${deletedCount}개를 전부 삭제했다냥.`,
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+    } catch (error) {
+      console.error('Failed to clear permanent Gemini memory:');
+      console.error(error);
+      await message.reply({
+        content: '영구 기억을 삭제하다가 문제가 생겼다냥.',
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+    }
+
+    return true;
+  }
+
   const memoryText = extractPercentPermanentMemory(message.content);
   if (memoryText === null) {
     return false;
@@ -2522,16 +2567,27 @@ function getMessageAuthorName(message) {
 }
 
 function formatPermanentMemoryAttribution(permanentMemories, usedMemoryIds) {
-  const contributorIds = getPermanentMemoryContributorIds(
-    permanentMemories,
-    usedMemoryIds
-  );
+  const usedMemoryIdSet = new Set(usedMemoryIds);
+  const contributorNames = [];
 
-  if (contributorIds.length === 0) {
+  for (const entry of permanentMemories) {
+    if (!usedMemoryIdSet.has(entry.id)) {
+      continue;
+    }
+
+    for (const contributor of entry.contributors ?? []) {
+      const displayName = String(contributor.displayName ?? '').trim();
+      if (displayName && !contributorNames.includes(displayName)) {
+        contributorNames.push(displayName);
+      }
+    }
+  }
+
+  if (contributorNames.length === 0) {
     return '';
   }
 
-  return `${contributorIds.map((userId) => `<@${userId}>`).join(', ')}가 알려준 정보다냥.`;
+  return `\`\`\`\n${contributorNames.map((name) => `@${name}`).join(', ')}가 알려준 정보다냥.\n\`\`\``;
 }
 
 function normalizeDiscordTextForGemini(message, text) {
@@ -2969,13 +3025,13 @@ function getHelpMessage() {
     '`/체스비교 플랫폼:<체닷|리체스> 타임컨트롤:<래피드|블리츠|불렛> 닉네임1:<이름> 닉네임2:<이름>` - 두 사람의 점수와 예상 승률을 비교한다냥.',
     '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산한다냥.',
     '`/알람 내용:<알람 내용> 분:<1~10080>` - 지정한 분 뒤에 멘션으로 알려준다냥.',
-    '`/라이브레이팅 종류:<클래시컬|블리츠|래피드> 사람수:<1~50>` - 2700chess 라이브레이팅 표를 보여준다냥.',
+    '`/라이브레이팅 종류:<클래시컬|블리츠|래피드> 사람수:<1~50>` - 2700chess 라이브레이팅을 이미지 카드로 보여준다냥.',
     '팁: 슬래시 명령어는 옵션 선택이 편하고, `%...` 명령어는 채팅에 바로 입력해서 빠르게 쓸 수 있다냥.',
     '`/퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%qp 닉네임 [기록 번호]` - QUICK PLAY 고도 카드를 보여준다냥.',
     '`/익스퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%exqp 닉네임 [기록 번호]` - EXPERT QUICK PLAY 고도 카드를 보여준다냥.',
     '`/40라인 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%40L 닉네임 [기록 번호] [top|recent]` - 40 LINES top 또는 recent 기록의 시간 카드를 보여준다냥.',
     '`/블리츠 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%blitz 닉네임 [기록 번호] [top|recent]` - BLITZ top 또는 recent 기록의 점수 카드를 보여준다냥.',
-    '`/일일퍼즐`, `/일일퍼즐지정` - 지정된 채널에 KST 0:00 기준으로 일일 퍼즐을 올리고 리더보드를 매일 갱신한다냥.',
+    '`/일일퍼즐`, `%일일퍼즐`, `/일일퍼즐지정` - 퍼즐을 DM으로 풀며, `실패`를 보내거나 KST 날짜가 바뀌면 실패 처리하고 원래 퍼즐 채널에 알린다냥.',
   ].join('\n');
 }
 
@@ -5210,11 +5266,26 @@ async function showLiveRatings(interaction) {
     const selectedEntries = entries.slice(0, count);
 
     if (selectedEntries.length === 0) {
-      await interaction.editReply('라이브레이팅 표를 찾지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
+      await interaction.editReply('라이브레이팅 데이터를 찾지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
       return;
     }
 
-    await sendLiveRatingTable(interaction, typeInfo, selectedEntries, count);
+    const image = await renderLiveRatingCard({
+      label: type.toUpperCase(),
+      rows: selectedEntries,
+      generatedAt: new Date().toISOString(),
+    });
+    const attachment = new AttachmentBuilder(image, {
+      name: `2700chess-live-${type}.png`,
+    });
+    const notice = selectedEntries.length < count
+      ? `요청한 ${count}명 중 현재 표에 있는 ${selectedEntries.length}명만 표시한다냥.`
+      : undefined;
+
+    await interaction.editReply({
+      content: notice,
+      files: [attachment],
+    });
   } catch (error) {
     console.error('Failed to fetch live ratings:');
     console.error(error);
@@ -5431,60 +5502,6 @@ function formatChessComparison(platform, timeControlInfo, first, second) {
   ].join('\n');
 }
 
-async function sendLiveRatingTable(interaction, typeInfo, entries, requestedCount) {
-  const notice = entries.length < requestedCount
-    ? `요청한 ${requestedCount}명 중 현재 표에 있는 ${entries.length}명만 표시한다냥.`
-    : null;
-  const tableHeader = `${padTableCell('#', 3)} ${padTableCell('Name', 24)} ${padTableCell('Rating', 7, true)} ${padTableCell('+/-', 6, true)}`;
-  const separator = '-'.repeat(tableHeader.length);
-  const lines = entries.map((entry) => [
-    padTableCell(String(entry.rank), 3),
-    padTableCell(truncateText(entry.name, 24), 24),
-    padTableCell(entry.rating.toFixed(1), 7, true),
-    padTableCell(entry.change, 6, true),
-  ].join(' '));
-  const chunks = chunkTableLines([tableHeader, separator, ...lines], notice);
-
-  await interaction.editReply(chunks[0]);
-
-  for (const chunk of chunks.slice(1)) {
-    await interaction.followUp(chunk);
-  }
-}
-
-function chunkTableLines(lines, notice) {
-  const chunks = [];
-  let current = [];
-
-  for (const line of lines) {
-    const next = [...current, line];
-    const preview = formatTableChunk(notice, next);
-
-    if (preview.length > 1800 && current.length > 0) {
-      chunks.push(current);
-      current = [lines[0], lines[1], line];
-      continue;
-    }
-
-    current = next;
-  }
-
-  if (current.length > 0) {
-    chunks.push(current);
-  }
-
-  return chunks.map((chunk, index) =>
-    formatTableChunk(index === 0 ? notice : null, chunk)
-  );
-}
-
-function formatTableChunk(notice, lines) {
-  return [
-    notice,
-    `\`\`\`\n${lines.join('\n')}\n\`\`\``,
-  ].filter(Boolean).join('\n');
-}
-
 function calculateGlickoExpectedScore(playerRating, opponentRating, opponentRd) {
   const q = Math.log(10) / 400;
   const rd = Number.isFinite(opponentRd) ? opponentRd : defaultRatingDeviation;
@@ -5595,14 +5612,4 @@ function decodeHtmlEntities(value) {
 
     return namedEntities[lowerEntity] ?? `&${entity};`;
   });
-}
-
-function padTableCell(value, length, alignRight = false) {
-  const text = String(value);
-  return alignRight ? text.padStart(length, ' ') : text.padEnd(length, ' ');
-}
-
-function truncateText(value, maxLength) {
-  const text = String(value);
-  return text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text;
 }

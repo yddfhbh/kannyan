@@ -47,11 +47,18 @@ export function initDailyChessPuzzle(client) {
     clearInterval(timer);
   }
 
-  void hydrateDailyPuzzleSessions();
-  void checkDailyPuzzlePosts(client);
+  void hydrateDailyPuzzleSessions(client)
+    .then(() => checkDailyPuzzlePosts(client))
+    .catch((error) => {
+      console.error('Failed to initialize daily chess puzzle sessions:');
+      console.error(error);
+    });
 
   timer = setInterval(() => {
-    void checkDailyPuzzlePosts(client);
+    void checkDailyPuzzlePosts(client).catch((error) => {
+      console.error('Failed to check daily chess puzzle posts:');
+      console.error(error);
+    });
   }, dailyPuzzleCheckIntervalMs);
 
   console.log(`Daily chess puzzle enabled. Post hour: ${dailyPuzzlePostHour}:00 KST`);
@@ -73,9 +80,21 @@ export async function handleDailyPuzzleMessage(message) {
       return true;
     }
 
-    const session = await getActiveDailyPuzzleSession(message.author.id);
+    const session = await getActiveDailyPuzzleSession(message.author.id, message.client);
     if (!session) {
       return false;
+    }
+
+    if (isDailyPuzzleFailureCommand(content)) {
+      await failDailyPuzzleSession(message.client, message.author, session);
+      await message.reply({
+        content: createDailyPuzzleFailureAnnouncement(message.author.id),
+        allowedMentions: {
+          users: [message.author.id],
+          repliedUser: false,
+        },
+      });
+      return true;
     }
 
     if (/^(포기|그만|취소|cancel|quit)$/i.test(content)) {
@@ -186,12 +205,21 @@ async function startDailyPuzzleForUser({
 
   const { dateKey } = getKstDateInfo();
   const previousSolve = loadedState.solved[dateKey]?.[user.id];
+  const previousFailure = loadedState.failed[dateKey]?.[user.id];
 
   if (previousSolve) {
     return {
       ok: true,
       alreadySolved: true,
       elapsedMs: previousSolve.elapsedMs,
+      dateKey,
+    };
+  }
+
+  if (previousFailure) {
+    return {
+      ok: true,
+      alreadyFailed: true,
       dateKey,
     };
   }
@@ -206,7 +234,7 @@ async function startDailyPuzzleForUser({
     return { ok: false, reason: 'FETCH_FAILED', error };
   }
 
-  const previousSession = await getActiveDailyPuzzleSession(user.id);
+  const previousSession = await getActiveDailyPuzzleSession(user.id, client);
   const keepStartedAt =
     previousSession?.dateKey === dateKey &&
     previousSession?.puzzleId === puzzle.id
@@ -215,6 +243,7 @@ async function startDailyPuzzleForUser({
 
   const session = {
     userId: user.id,
+    userTag: user.tag,
     dateKey,
     puzzleId: puzzle.id,
     currentFen: previousSession?.currentFen ?? puzzle.playFen,
@@ -254,7 +283,8 @@ async function startDailyPuzzleForUser({
         '수를 SAN 또는 UCI로 보내면 된다냥.',
         '예: `Nf3+`, `Qh7#`, `e2e4`, `O-O`',
         '',
-        '`포기`라고 보내면 이번 시도를 취소한다냥.',
+        '`실패`라고 보내면 실패 처리되고 퍼즐 채널에 알려진다냥.',
+        '`포기`라고 보내면 공개 실패 없이 이번 시도를 취소한다냥.',
       ].filter(Boolean).join('\n'),
       files: [attachment],
     });
@@ -423,8 +453,94 @@ async function announceDailyPuzzleSolved(client, user, session, elapsedMs) {
   });
 }
 
+async function failDailyPuzzleSession(client, user, session, reason = 'manual') {
+  const recordResult = await recordDailyPuzzleFailure(user, session, reason);
+
+  activeSessions.delete(session.userId);
+  await deletePersistedDailyPuzzleSession(session.userId);
+
+  if (recordResult.recorded) {
+    await announceDailyPuzzleFailed(client, session);
+  }
+
+  return recordResult;
+}
+
+async function recordDailyPuzzleFailure(user, session, reason) {
+  const loadedState = await loadState();
+
+  loadedState.failed[session.dateKey] ??= {};
+
+  const previous = loadedState.failed[session.dateKey][session.userId];
+  if (previous) {
+    return { recorded: false, previous };
+  }
+
+  if (loadedState.solved[session.dateKey]?.[session.userId]) {
+    return { recorded: false, solved: true };
+  }
+
+  loadedState.failed[session.dateKey][session.userId] = {
+    userId: session.userId,
+    userTag: user?.tag ?? session.userTag ?? null,
+    failedAt: new Date().toISOString(),
+    guildId: session.sourceGuildId,
+    puzzleId: session.puzzleId,
+    rating: session.rating,
+    reason,
+  };
+
+  await saveState();
+
+  return { recorded: true };
+}
+
+async function announceDailyPuzzleFailed(client, session) {
+  const channel = await client.channels.fetch(session.sourceChannelId).catch((error) => {
+    console.error(`Failed to fetch daily puzzle failure channel ${session.sourceChannelId}:`);
+    console.error(error);
+    return null;
+  });
+
+  if (!channel?.isTextBased?.() || typeof channel.send !== 'function') {
+    return;
+  }
+
+  try {
+    await channel.send({
+      content: createDailyPuzzleFailureAnnouncement(session.userId),
+      allowedMentions: {
+        users: [session.userId],
+      },
+    });
+  } catch (error) {
+    console.error(`Failed to announce daily puzzle failure for ${session.userId}:`);
+    console.error(error);
+  }
+}
+
+async function expireDailyPuzzleSessions(client, todayKey = getKstDateInfo().dateKey) {
+  const loadedState = await loadState();
+  const expiredSessions = Object.values(loadedState.sessions ?? {})
+    .filter((session) =>
+      isValidPersistedDailyPuzzleSession(session)
+      && isDailyPuzzleSessionExpired(session, todayKey)
+    );
+
+  for (const session of expiredSessions) {
+    await failDailyPuzzleSession(
+      client,
+      { id: session.userId, tag: session.userTag },
+      session,
+      'date_changed'
+    );
+  }
+}
+
 async function checkDailyPuzzlePosts(client) {
   const { dateKey, hour } = getKstDateInfo();
+
+  await expireDailyPuzzleSessions(client, dateKey);
 
   if (hour < dailyPuzzlePostHour) {
     return;
@@ -889,27 +1005,21 @@ function createFallbackPieceSvg(piece) {
 </svg>`;
 }
 
-async function hydrateDailyPuzzleSessions() {
-  const loadedState = await loadState();
+async function hydrateDailyPuzzleSessions(client) {
   const todayKey = getKstDateInfo().dateKey;
 
+  await expireDailyPuzzleSessions(client, todayKey);
+
+  const loadedState = await loadState();
   let changed = false;
 
   for (const [userId, session] of Object.entries(loadedState.sessions ?? {})) {
     const isToday = session?.dateKey === todayKey;
     const alreadySolved = Boolean(loadedState.solved?.[session?.dateKey]?.[userId]);
-    const isValid =
-      session &&
-      typeof session.userId === 'string' &&
-      typeof session.dateKey === 'string' &&
-      typeof session.puzzleId === 'string' &&
-      typeof session.currentFen === 'string' &&
-      Array.isArray(session.solutionMoves) &&
-      typeof session.index === 'number' &&
-      typeof session.startedAtMs === 'number' &&
-      typeof session.sourceChannelId === 'string';
+    const alreadyFailed = Boolean(loadedState.failed?.[session?.dateKey]?.[userId]);
+    const isValid = isValidPersistedDailyPuzzleSession(session);
 
-    if (!isToday || alreadySolved || !isValid) {
+    if (!isToday || alreadySolved || alreadyFailed || !isValid) {
       delete loadedState.sessions[userId];
       changed = true;
       continue;
@@ -925,7 +1035,9 @@ async function hydrateDailyPuzzleSessions() {
   console.log(`Restored ${activeSessions.size} active daily puzzle session(s).`);
 }
 
-async function getActiveDailyPuzzleSession(userId) {
+async function getActiveDailyPuzzleSession(userId, client) {
+  await expireDailyPuzzleSessions(client);
+
   const cached = activeSessions.get(userId);
 
   if (cached) {
@@ -941,8 +1053,14 @@ async function getActiveDailyPuzzleSession(userId) {
 
   const todayKey = getKstDateInfo().dateKey;
   const alreadySolved = Boolean(loadedState.solved?.[session.dateKey]?.[userId]);
+  const alreadyFailed = Boolean(loadedState.failed?.[session.dateKey]?.[userId]);
 
-  if (session.dateKey !== todayKey || alreadySolved) {
+  if (
+    session.dateKey !== todayKey
+    || alreadySolved
+    || alreadyFailed
+    || !isValidPersistedDailyPuzzleSession(session)
+  ) {
     delete loadedState.sessions[userId];
     await saveState();
     return null;
@@ -958,6 +1076,7 @@ async function persistDailyPuzzleSession(session) {
   loadedState.sessions ??= {};
   loadedState.sessions[session.userId] = {
     userId: session.userId,
+    userTag: session.userTag,
     dateKey: session.dateKey,
     puzzleId: session.puzzleId,
     currentFen: session.currentFen,
@@ -1004,6 +1123,7 @@ async function loadState() {
   state.settings.guilds ??= {};
   state.posts ??= {};
   state.solved ??= {};
+  state.failed ??= {};
   state.sessions ??= {};
 
   return state;
@@ -1058,6 +1178,10 @@ async function replyDailyPuzzleStartResult(message, result) {
 function createDailyPuzzleStartResultText(result) {
   if (result.ok && result.alreadySolved) {
     return `오늘 일일퍼즐은 이미 풀었다냥. 기록은 ${formatElapsed(result.elapsedMs)}이다냥.`;
+  }
+
+  if (result.ok && result.alreadyFailed) {
+    return '오늘 일일퍼즐은 이미 실패 처리됐다냥.';
   }
 
   if (result.ok) {
@@ -1181,6 +1305,32 @@ function normalizeLooseSanInput(value) {
   });
 
   return input;
+}
+
+export function isDailyPuzzleFailureCommand(value) {
+  return /^실패$/i.test(String(value ?? '').trim());
+}
+
+export function createDailyPuzzleFailureAnnouncement(userId) {
+  return `<@${userId}> 님이 퍼즐에게서 도망쳤다냥`;
+}
+
+export function isDailyPuzzleSessionExpired(session, todayKey) {
+  return Boolean(session?.dateKey && session.dateKey !== todayKey);
+}
+
+function isValidPersistedDailyPuzzleSession(session) {
+  return Boolean(
+    session
+    && typeof session.userId === 'string'
+    && typeof session.dateKey === 'string'
+    && typeof session.puzzleId === 'string'
+    && typeof session.currentFen === 'string'
+    && Array.isArray(session.solutionMoves)
+    && typeof session.index === 'number'
+    && typeof session.startedAtMs === 'number'
+    && typeof session.sourceChannelId === 'string'
+  );
 }
 
 function parseCommaSeparatedValues(value) {

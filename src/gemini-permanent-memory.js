@@ -6,6 +6,7 @@ export const permanentMemoryMaxTextLength = 1800;
 
 const permanentMemoryTriggerPattern = /(기억해줘|기억해둬|기억해)/g;
 const permanentMemoryUsagePattern = /\[\[\s*PERMANENT_MEMORY_USED\s*:\s*([^\]]*)\]\]/gi;
+const permanentMemoryInferenceMinScore = 9;
 const searchStopWords = new Set([
   '관련',
   '그거',
@@ -140,7 +141,8 @@ export function inferPermanentMemoryUsage(answer, entries) {
 
   return entries
     .filter((entry) =>
-      scoreSearchMatch(answerTerms, createSearchTerms(entry.text)) >= 12
+      scoreSearchMatch(answerTerms, createSearchTerms(entry.text))
+        >= permanentMemoryInferenceMinScore
     )
     .map((entry) => entry.id);
 }
@@ -258,6 +260,33 @@ export class PermanentMemoryStore {
         ...cloneEntry(entry),
         score,
       }));
+  }
+
+  async clearAll() {
+    await this.ensureLoaded();
+
+    const deletedCount = this.entries.length;
+    this.entries = [];
+    await this.save();
+
+    return deletedCount;
+  }
+
+  async clearScope(scopeId) {
+    await this.ensureLoaded();
+
+    const normalizedScopeId = String(scopeId ?? '').trim();
+    if (!normalizedScopeId) {
+      throw new TypeError('Permanent memory scope is required.');
+    }
+
+    const previousCount = this.entries.length;
+    this.entries = this.entries.filter((entry) => entry.scopeId !== normalizedScopeId);
+    const deletedCount = previousCount - this.entries.length;
+
+    await this.save();
+
+    return deletedCount;
   }
 
   async load() {
