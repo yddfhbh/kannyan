@@ -83,6 +83,15 @@ const graphemeSegmenter = typeof Intl !== 'undefined' && typeof Intl.Segmenter =
   : null;
 const emojiPresentationPattern = /\p{Emoji_Presentation}/u;
 const extendedPictographicPattern = /\p{Extended_Pictographic}/u;
+const tetrioCardDebug = process.env.TETRIO_CARD_DEBUG === '1';
+
+function debugTetrioCard(label, data) {
+  if (!tetrioCardDebug) return;
+
+  console.log(`[TETRIO CARD DEBUG] ${label}`);
+  console.log(JSON.stringify(data, null, 2));
+}
+
 
 export async function createTetrioProfileCard(username) {
   const card = await createTetrioProfileCardSvg(username);
@@ -2612,6 +2621,38 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
   const auxCenterX = roundSvgNumber((auxBlockLeftX + auxBracketRightX) / 2 + 4);
   const glickoTextRightX = roundSvgNumber(auxCenterX + glickoTextWidth / 2);
 
+  debugTetrioCard('league-glicko-layout', {
+  platform: process.platform,
+  node: process.version,
+
+  x,
+  width,
+  valueY,
+  value,
+  iconValueFontSize,
+
+  trText: value,
+  glickoRaw: options.glicko,
+  rdRaw: options.rd,
+  glickoText,
+  rdText,
+
+  auxCenterX,
+  auxBracketLeftX,
+  auxBracketLeftInnerX,
+  auxBracketRightX,
+  auxBracketRightInnerX,
+  auxBracketTopY,
+  auxBracketBottomY,
+
+  glickoY,
+  rdY,
+  glickoTextRightX,
+
+  rdTextWidth: estimateLeagueRdTextWidth(rdText),
+  rdRowWidth: estimateLeagueRdRowWidth(rdText),
+});
+
   return `<image href="${options.valueIcon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMax meet"/>
     ${renderLeagueTrStatValueText(valueRightX, valueY, value, fontSize, unitFontSize, 'end')}
     <g stroke="#f6fff5" stroke-width="2" stroke-linecap="square" opacity="0.96">
@@ -2637,6 +2678,28 @@ function renderLeagueRdAuxText(rightX, y, rdText) {
   const minusY = roundSvgNumber(y - 0.7);
   const horizontalHalf = 2.6;
   const verticalHalf = 2.6;
+
+  debugTetrioCard('league-rd-aux-layout', {
+  platform: process.platform,
+  node: process.version,
+
+  rightX,
+  y,
+  rdText,
+
+  symbolWidth,
+  symbolGap,
+  rdTextWidth,
+  textLeftX,
+  symbolLeftX,
+  symbolCenterX,
+  plusY,
+  minusY,
+  horizontalHalf,
+  verticalHalf,
+
+  markup: renderTetrioCardDecimalNumberMarkup(rdText),
+});
 
   return `<g>
     <g stroke="#c5efbc" stroke-width="1.15" stroke-linecap="square" opacity="0.98">

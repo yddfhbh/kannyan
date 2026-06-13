@@ -432,7 +432,7 @@ client.on(Events.MessageCreate, async (message) => {
   const tetoValidationResult = validateTetrioMessageInput(input);
   if (tetoValidationResult === 'too_long') {
     await message.reply({
-      content: '분탕치지마세요!',
+      content: '분탕치지말라냥!',
       allowedMentions: { repliedUser: false },
     });
     return;
@@ -989,14 +989,14 @@ async function handleTetrioLeaderboardTextCommand(message) {
 
     if (status.refreshing) {
       await message.reply({
-        content: '이미 TETR.IO 리더보드 갱신 중임. 끝날 때까지는 이전 데이터를 사용함.',
+        content: '이미 TETR.IO 리더보드 갱신 중이다냥. 끝날 때까지는 이전 데이터를 사용한다냥.',
         allowedMentions: { repliedUser: false },
       });
       return true;
     }
 
     await message.reply({
-      content: 'TETR.IO 리더보드 갱신 시작함. 완료 전까지는 이전 데이터를 사용함.',
+      content: 'TETR.IO 리더보드 갱신 시작했다냥. 완료 전까지는 이전 데이터를 사용한다냥.',
       allowedMentions: { repliedUser: false },
     });
 
@@ -1007,13 +1007,13 @@ async function handleTetrioLeaderboardTextCommand(message) {
     })
       .then(async ({ userCount, generatedAt }) => {
         await message.channel.send({
-          content: `TETR.IO 리더보드 갱신 완료: ${userCount.toLocaleString('en-US')}명 / ${generatedAt}`,
+          content: `TETR.IO 리더보드 갱신 완료했다냥: ${userCount.toLocaleString('en-US')}명 / ${generatedAt}`,
           allowedMentions: { parse: [] },
         });
       })
       .catch(async (error) => {
         await message.channel.send({
-          content: `TETR.IO 리더보드 갱신 실패: ${error.message}`,
+          content: `TETR.IO 리더보드 갱신 실패했다냥...: ${error.message}`,
           allowedMentions: { parse: [] },
         });
       });
@@ -1066,7 +1066,7 @@ async function handleTetrioLeaderboardTextCommand(message) {
     console.error('Failed to render TETR.IO leaderboard card:');
     console.error(error);
     await message.reply({
-      content: 'TETR.IO 리더보드 이미지를 만들지 못했어요. 잠시 뒤 다시 시도해 주세요.',
+      content: 'TETR.IO 리더보드 이미지를 만들지 못했다냥....기다려달라냥...',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -1110,7 +1110,7 @@ async function handlePercentMessageCommand(message) {
   if (command === 'chesscom') {
     if (!input) {
       await message.reply({
-        content: 'Chess.com 닉네임을 입력해 주세요. 예: `%체닷 Hebi0211`',
+        content: 'Chess.com 닉네임을 입력해달라냥. 예: `%체닷 Hebi0211`',
         allowedMentions: { repliedUser: false },
       });
       return true;
@@ -1123,7 +1123,7 @@ async function handlePercentMessageCommand(message) {
   if (command === 'lichess') {
     if (!input) {
       await message.reply({
-        content: 'Lichess 멤버 이름을 입력해 주세요. 예: `%리체스 Hebi0211`',
+        content: 'Lichess 멤버 이름을 입력해달라냥. 예: `%리체스 Hebi0211`',
         allowedMentions: { repliedUser: false },
       });
       return true;
