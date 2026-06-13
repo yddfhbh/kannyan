@@ -1,6 +1,9 @@
-import sharp from 'sharp';
+import {
+  bundledSvgFontFamily,
+  renderSvgToPng,
+} from './svg-renderer.js';
 
-const statsCardFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const statsCardFontFamily = bundledSvgFontFamily;
 const statsCardRenderScale = 1.35;
 const previewStats = {
   apm: 114.21,
@@ -37,7 +40,7 @@ export async function createTetrioStatsPreviewCard(username = 'NICKNAME') {
 
 export async function createTetrioStatsCard({ username = 'NICKNAME', stats = {} } = {}) {
   const svg = renderTetrioStatsCardSvg(username, stats);
-  return sharp(Buffer.from(svg)).png().toBuffer();
+  return renderSvgToPng(svg);
 }
 
 function renderTetrioStatsCardSvg(username, stats) {

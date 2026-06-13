@@ -21,7 +21,7 @@ const tetrioGameBaseUrl = 'https://tetr.io';
 const tetrioDefaultAvatarUrl = `${tetrioGameBaseUrl}/res/avatar.png`;
 const twemojiBaseUrl = 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72';
 const cardFontFamily = tetrioFontFamily;
-const bioFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK JP", "Noto Sans JP", sans-serif';
+const bioFontFamily = '"Noto Sans CJK KR", Arial';
 const tetrioPalette = {
   pageBg: '#07100a',
   cardBg: '#21421f',
@@ -836,7 +836,7 @@ const cardHeight = svgHeight - 32;
       ${renderTetrioFontFace(assets.hunFont)}
       text { font-family: ${cardFontFamily}; letter-spacing: 0; ${renderTetrioTextWeightCss()} }
       .legacyBannerFont text {
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: Arial;
       word-spacing: 8px;
       }
       .tiny { font-size: 11px; font-weight: 900; fill: #a8e7a7; text-shadow: 0 1px 2px #061009; }
@@ -1009,7 +1009,7 @@ ${renderHeaderOverlayStrip(
 
   ${headerNameMarkup}
 ${renderHeaderFlag(flag, headerFlagX, headerFlagY)}
-  <text x="${headerMetaX}" y="${headerMetaY}" class="${headerMetaClass}" font-size="${headerMetaFontSize}" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - <tspan font-family="Noto Sans CJK KR, Noto Sans CJK, sans-serif" font-size="11" font-weight="900">♥</tspan> ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))}</text>
+  <text x="${headerMetaX}" y="${headerMetaY}" class="${headerMetaClass}" font-size="${headerMetaFontSize}" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - <tspan font-family="Noto Sans CJK KR, Arial" font-size="11" font-weight="900">♥</tspan> ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))}</text>
   ${renderLevelTag(levelTag, contentX, levelTagY)}
   ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
   ${supporterBadge ? renderSupporterBadgeMarkup(supporterBadge) : ''}
@@ -1868,7 +1868,7 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
     if (/^_+$/.test(part)) {
       needsBaselineRestore = true;
 
-      return `<tspan font-family="DejaVu Sans Mono, Consolas, monospace" font-size="1em" font-weight="900" dy="${underscoreShiftEm}em" dx="${underscoreDxEm}em" letter-spacing="${underscoreLetterSpacingEm}em">${escapeXml(part)}</tspan>`;
+      return `<tspan font-family="Arial" font-size="1em" font-weight="900" dy="${underscoreShiftEm}em" dx="${underscoreDxEm}em" letter-spacing="${underscoreLetterSpacingEm}em">${escapeXml(part)}</tspan>`;
     }
 
     const restoreDy = needsBaselineRestore
@@ -2247,7 +2247,7 @@ function renderBioTextMarkup(value) {
     .split('')
     .map((char) => {
       if (/[a-z_@#:/.]/.test(char)) {
-        return `<tspan font-family="Arial, Helvetica, sans-serif" font-weight="900" stroke="none">${escapeXml(char)}</tspan>`;
+        return `<tspan font-family="Arial" font-weight="900" stroke="none">${escapeXml(char)}</tspan>`;
       }
 
       return escapeXml(char);
@@ -2509,7 +2509,7 @@ function renderStatSubtextMarkup(value) {
 
   for (const char of text) {
     if (char === '.') {
-      markup += `<tspan dy="0.02em" font-family="Arial, Helvetica, sans-serif" font-size="1.22em" stroke="none">.</tspan>`;
+      markup += `<tspan dy="0.02em" font-family="Arial" font-size="1.22em" stroke="none">.</tspan>`;
       resetDyEm = 0.02;
       tightenNext = false;
       continue;
@@ -2539,7 +2539,7 @@ function renderTetrioCardDecimalTextMarkup(value, options = {}) {
 
   for (const char of text) {
     if (char === '.') {
-      markup += `<tspan dy="${dotDyEm}em" font-family="Arial, Helvetica, sans-serif" font-size="${dotFontSize}" stroke="none">.</tspan>`;
+      markup += `<tspan dy="${dotDyEm}em" font-family="Arial" font-size="${dotFontSize}" stroke="none">.</tspan>`;
       resetDyEm = dotDyEm;
       continue;
     }
@@ -2566,7 +2566,7 @@ function renderTetrioCardDecimalNumberMarkup(value, options = {}) {
 
   for (const char of text) {
     if (char === '.') {
-      markup += `<tspan dy="${dotDyEm}em" font-family="Arial, Helvetica, sans-serif" font-size="${dotFontSize}" stroke="none">.</tspan>`;
+      markup += `<tspan dy="${dotDyEm}em" font-family="Arial" font-size="${dotFontSize}" stroke="none">.</tspan>`;
       resetDyEm = dotDyEm;
       tightenNext = false;
       continue;

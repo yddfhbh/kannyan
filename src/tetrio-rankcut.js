@@ -2,6 +2,10 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import {
+  bundledSvgFontFamily,
+  renderSvgToPng,
+} from './svg-renderer.js';
+import {
   fetchCachedTetrioRankCutData,
   getCachedTetrioRankCutDataExpiresAt,
   getNextRankCutExpiryTime,
@@ -15,7 +19,7 @@ const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO rank cut',
   'X-Session-ID': 'discord-bot-tetrio-rankcut',
 };
-const cardFontFamily = '"HUN", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const cardFontFamily = `"HUN", ${bundledSvgFontFamily}`;
 const rankOrder = [
   'x+',
   'x',
@@ -103,7 +107,10 @@ async function renderTetrioRankCutImage(response) {
     fetchTetrioHunFontDataUri(),
   ]);
   const svg = renderTetrioRankCutSvg(cards, assets, hunFont, response.data?.t);
-  return sharp(Buffer.from(svg)).png().toBuffer();
+  return renderSvgToPng(svg, {
+    defaultFontFamily: 'HUN',
+    fontFiles: [localHunFontPath],
+  });
 }
 
 function buildRankCards(data) {

@@ -1,13 +1,14 @@
-import sharp from 'sharp';
+import {
+  bundledSvgFontFamily,
+  renderSvgToPng,
+} from './svg-renderer.js';
 
 const leaderboardCardRenderScale = 1.35;
-const leaderboardCardFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const leaderboardCardFontFamily = bundledSvgFontFamily;
 
 export async function renderTetrioLeaderboardCard(view) {
   const svg = renderTetrioLeaderboardCardSvg(view);
-  return sharp(Buffer.from(svg))
-    .png()
-    .toBuffer();
+  return renderSvgToPng(svg);
 }
 
 function renderTetrioLeaderboardCardSvg(view) {

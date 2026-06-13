@@ -1,13 +1,14 @@
-import sharp from 'sharp';
+import {
+  bundledSvgFontFamily,
+  renderSvgToPng,
+} from './svg-renderer.js';
 
 const liveRatingCardRenderScale = 1.35;
-const liveRatingCardFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const liveRatingCardFontFamily = bundledSvgFontFamily;
 
 export async function renderLiveRatingCard(view) {
   const svg = renderLiveRatingCardSvg(view);
-  return sharp(Buffer.from(svg))
-    .png()
-    .toBuffer();
+  return renderSvgToPng(svg);
 }
 
 export function renderLiveRatingCardSvg(view) {

@@ -1,4 +1,3 @@
-import sharp from 'sharp';
 import { JSDOM } from 'jsdom';
 import {
   calculateCumulativeStats,
@@ -7,6 +6,7 @@ import {
   parseReplay,
   Theme,
 } from 'minomuncher-core';
+import { renderSvgToPng } from './svg-renderer.js';
 
 const muncherGraphGroups = [
   ['deathAndKills', ['deaths', 'kills']],
@@ -154,10 +154,9 @@ function createMinomuncherGraphSvg(graphType, stats) {
 }
 
 async function renderSvgData(svg) {
-  return sharp(Buffer.from(svg))
-    .flatten({ background: Theme.defaultScheme?.b_med ?? '#181820' })
-    .png()
-    .toBuffer();
+  return renderSvgToPng(svg, {
+    background: Theme.defaultScheme?.b_med ?? '#181820',
+  });
 }
 
 function combineSvgData(svgData) {

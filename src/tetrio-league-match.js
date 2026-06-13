@@ -405,7 +405,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 
 .timeColon {
   fill: #ffffff;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial;
   font-size: 1.22em;
   font-weight: 900;
   stroke: rgba(255,255,255,0.75);
@@ -936,7 +936,7 @@ function renderLeagueUsernameMarkup(value) {
       : '';
 
     if (char === '_') {
-      markup += `<tspan${dy} font-family="Arial, Helvetica, sans-serif" font-size="1.05em" font-weight="900" stroke="none">_</tspan>`;
+      markup += `<tspan${dy} font-family="Arial" font-size="1.05em" font-weight="900" stroke="none">_</tspan>`;
     } else {
       markup += dy
         ? `<tspan${dy}>${escapeXml(char)}</tspan>`
@@ -961,7 +961,7 @@ function renderLeagueNumberMarkup(value) {
   for (const char of text) {
     if (char === '.') {
       // 점만 아래로 내림
-      markup += `<tspan dy="${dotDyEm}em" font-family="Arial, Helvetica, sans-serif" font-size="${dotFontSize}" stroke="none">.</tspan>`;
+      markup += `<tspan dy="${dotDyEm}em" font-family="Arial" font-size="${dotFontSize}" stroke="none">.</tspan>`;
 
       // 다음 숫자는 다시 원래 기준선으로 복귀
       resetDyEm = dotDyEm;
@@ -1267,4 +1267,3 @@ function roundSvgNumber(value) {
   const number = Number(value);
   return Number.isFinite(number) ? Number(number.toFixed(2)) : 0;
 }
-

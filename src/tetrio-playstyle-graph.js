@@ -1,6 +1,7 @@
 import {
   renderTetrioSvgToPng,
   renderTetrioTextWeightCss,
+  tetrioFontFamily,
 } from './tetrio-font.js';
 
 const graphWidth = 600;
@@ -13,7 +14,7 @@ const graphStep = 0.25;
 const outerRadius = 124;
 const centerX = graphWidth / 2;
 const centerY = 208;
-const graphFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const graphFontFamily = tetrioFontFamily;
 
 const graphAxes = [
   { key: 'opener', label: 'OPENER', dx: 0, dy: -1, labelX: centerX, labelY: centerY - outerRadius - 16, anchor: 'middle' },

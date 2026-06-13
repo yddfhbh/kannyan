@@ -1,11 +1,14 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { Resvg } from '@resvg/resvg-js';
+import {
+  bundledNotoSansCjkKrBoldFontPath,
+  renderSvgToPng,
+} from './svg-renderer.js';
 
 export const tetrioHunDinFontPath = fileURLToPath(new URL('../assets/fonts/HunDIN1451.ttf', import.meta.url));
 export const tetrioHunDinFontUrl = pathToFileURL(tetrioHunDinFontPath).href;
-export const tetrioNotoSansCjkKrBoldFontPath = fileURLToPath(new URL('../assets/fonts/NotoSansCJKkr-Bold.otf', import.meta.url));
-export const tetrioFontFamily = '"HUN-din 1451", "HUN", "HUN2", "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+export const tetrioNotoSansCjkKrBoldFontPath = bundledNotoSansCjkKrBoldFontPath;
+export const tetrioFontFamily = '"HUN-din 1451", "HUN", "HUN2", "Noto Sans CJK KR", Arial';
 export const tetrioTextStrokeWidth = '0.32px';
 export const tetrioPhraseWordSpacing = '0.16em';
 export const tetrioTightCommaDx = '-0.45em';
@@ -16,24 +19,11 @@ export const tetrioTightIRightDx = '-0.12em';
 let tetrioHunDinFontDataUriPromise = null;
 
 export function renderTetrioSvgToPng(svg, scale = 1) {
-  return new Resvg(svg, {
-    font: {
-      fontFiles: [
-        tetrioHunDinFontPath,
-        tetrioNotoSansCjkKrBoldFontPath,
-      ],
-      defaultFontFamily: 'HUN-din 1451',
-      loadSystemFonts: true,
-    },
-    imageRendering: 0,
-    textRendering: 1,
-    fitTo: scale === 1
-      ? undefined
-      : {
-        mode: 'zoom',
-        value: scale,
-      },
-  }).render().asPng();
+  return renderSvgToPng(svg, {
+    defaultFontFamily: 'HUN-din 1451',
+    fontFiles: [tetrioHunDinFontPath],
+    scale,
+  });
 }
 
 export function renderTetrioHunDinFontFace(fontSource) {

@@ -640,7 +640,7 @@ function renderQuickPlayMainValueMarkup({
         const fractionDyEm = fractionBaselineDyEm - decimalDotDyEm;
         return `<g filter="url(#valueGlow)">
     <text x="${centerX}" y="${valueY}" text-anchor="middle" dominant-baseline="middle" class="value">
-      <tspan>${renderQuickPlayMainNumberMarkup(normalizedText.slice(0, splitIndex))}</tspan><tspan dy="${decimalDotDyEm}em" font-family="Arial, sans-serif" font-size="0.82em" stroke="none">.</tspan><tspan font-size="${getQuickPlayTimedDecimalFontSize(fontSize)}" dy="${fractionDyEm}em">${renderQuickPlayMainNumberMarkup(normalizedText.slice(splitIndex + 1))}</tspan>
+      <tspan>${renderQuickPlayMainNumberMarkup(normalizedText.slice(0, splitIndex))}</tspan><tspan dy="${decimalDotDyEm}em" font-family="Arial" font-size="0.82em" stroke="none">.</tspan><tspan font-size="${getQuickPlayTimedDecimalFontSize(fontSize)}" dy="${fractionDyEm}em">${renderQuickPlayMainNumberMarkup(normalizedText.slice(splitIndex + 1))}</tspan>
     </text>
   </g>`;
       }
@@ -665,7 +665,7 @@ function renderQuickPlayMetaTextMarkup(value) {
     .split('')
     .map((char) => {
       if (char === '_') {
-        return '<tspan style="font-family: Arial, Helvetica, sans-serif !important;" font-size="1em" dy="-0.06em">_</tspan>';
+        return '<tspan style="font-family: Arial !important;" font-size="1em" dy="-0.06em">_</tspan>';
       }
 
       return escapeXml(char);
@@ -675,7 +675,7 @@ function renderQuickPlayMetaTextMarkup(value) {
 
 function renderQuickPlayMainNumberMarkup(value) {
   return renderQuickPlayNumberMarkup(value, {
-    decimalDyEm: 0.04,
+    decimalDyEm: 0.14,
     decimalFollowingDyEm: 0.00,
     decimalFontSize: '0.92em',
     tightenComma: true,
@@ -716,7 +716,7 @@ function renderQuickPlayNumberMarkup(value, options = {}) {
     const escaped = escapeXml(char);
     if (char === '.') {
       const dy = decimalDyEm ? ` dy="${decimalDyEm}em"` : '';
-      markup += `<tspan${dy} font-family="Arial, sans-serif" font-size="${decimalFontSize}" stroke="none">${escaped}</tspan>`;
+      markup += `<tspan${dy} font-family="Arial" font-size="${decimalFontSize}" stroke="none">${escaped}</tspan>`;
       resetDyEm = decimalDyEm;
       tightenNext = false;
       continue;

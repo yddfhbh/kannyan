@@ -3,7 +3,7 @@ import 'dotenv/config';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import sharp from 'sharp';
+import { renderSvgToPng } from './svg-renderer.js';
 import {
   AttachmentBuilder,
   MessageFlags,
@@ -873,15 +873,15 @@ if (piece) {
   const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size + 40}" viewBox="0 0 ${size} ${size + 40}">
   <rect width="100%" height="100%" fill="#222"/>
-  <text x="${size / 2}" y="25" text-anchor="middle" font-size="22" font-family="Arial, sans-serif" fill="#fff">${escapeXml(title)}</text>
-  <text x="${size / 2}" y="48" text-anchor="middle" font-size="15" font-family="Arial, sans-serif" fill="#ddd">${escapeXml(subtitle)}</text>
+  <text x="${size / 2}" y="25" text-anchor="middle" font-size="22" font-family="Arial" fill="#fff">${escapeXml(title)}</text>
+  <text x="${size / 2}" y="48" text-anchor="middle" font-size="15" font-family="Arial" fill="#ddd">${escapeXml(subtitle)}</text>
   <rect x="${margin - 4}" y="${top - 4}" width="${boardSize + 8}" height="${boardSize + 8}" fill="#111"/>
   ${squaresSvg}
   ${coordsSvg}
   ${piecesSvg}
 </svg>`;
 
-  return sharp(Buffer.from(svg)).png().toBuffer();
+  return renderSvgToPng(svg);
 }
 
 function getPieceSymbol(piece) {
@@ -1001,7 +1001,7 @@ function createFallbackPieceSvg(piece) {
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <text x="32" y="48" text-anchor="middle" font-size="48" font-family="Arial, Noto Sans Symbols2, Noto Sans Symbols, Segoe UI Symbol, sans-serif">${escapeXml(symbol)}</text>
+  <text x="32" y="48" text-anchor="middle" font-size="48" font-family="Noto Sans CJK KR, Arial">${escapeXml(symbol)}</text>
 </svg>`;
 }
 

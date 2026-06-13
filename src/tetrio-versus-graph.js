@@ -1,4 +1,7 @@
-import sharp from 'sharp';
+import {
+  bundledSvgFontFamily,
+  renderSvgToPng,
+} from './svg-renderer.js';
 
 const graphWidth = 600;
 const graphHeight = 400;
@@ -9,7 +12,7 @@ const outerRadius = 124;
 const centerX = graphWidth / 2;
 const centerY = 208;
 const labelRadius = outerRadius + 30;
-const graphFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif';
+const graphFontFamily = bundledSvgFontFamily;
 const legendStartY = 18;
 const legendRowHeight = 30;
 const legendChartGap = 18;
@@ -52,7 +55,7 @@ const graphSeriesPalette = [
 
 export async function createTetrioVersusGraph(input = {}) {
   const svg = renderTetrioVersusGraphSvg(input);
-  return sharp(Buffer.from(svg)).png().toBuffer();
+  return renderSvgToPng(svg);
 }
 
 function renderTetrioVersusGraphSvg(input) {
