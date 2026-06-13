@@ -6,7 +6,8 @@
   "main": "src/index.js",
   "scripts": {
     "register": "node src/deploy-commands.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "node --test --test-isolation=none"
   },
   "keywords": [
     "discord",

@@ -20,6 +20,17 @@ const commands = [
     .setDescription('사용 가능한 명령어를 보여줍니다.')
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('가르치기')
+    .setDescription('만료되지 않는 영구 기억에 정보를 저장합니다.')
+    .addStringOption((option) =>
+      option
+        .setName('정보')
+        .setDescription('봇이 영구적으로 기억할 정보')
+        .setRequired(true)
+        .setMaxLength(1800)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
   .setName('일일퍼즐지정')
   .setDescription('이 채널을 매일 일일 체스 퍼즐 알림 채널로 지정합니다.')
   .toJSON(),
