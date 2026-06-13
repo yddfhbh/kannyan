@@ -714,6 +714,8 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
   const headerMetaClass = assets.banner ? 'meta' : 'meta noBannerMeta';
   const flag = getCountryFlag(user.country, assets.flag);
   const joined = user.ts ? `JOINED ${formatRelativeDate(user.ts).toUpperCase()}` : 'JOIN DATE HIDDEN';
+  const headerMetaFontSize = 12;
+  const headerMetaX = avatarX + avatarSize + 18;
   const league = summaries.league;
   const fortyLines = summaries['40l'];
   const blitz = summaries.blitz;
@@ -1007,7 +1009,7 @@ ${renderHeaderOverlayStrip(
 
   ${headerNameMarkup}
 ${renderHeaderFlag(flag, headerFlagX, headerFlagY)}
-  <text x="${avatarX + avatarSize + 18}" y="${headerMetaY}" class="${headerMetaClass}" font-size="14" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))} ${renderTetrioTextMarkup('FRIENDS')}</text>
+  <text x="${headerMetaX}" y="${headerMetaY}" class="${headerMetaClass}" font-size="${headerMetaFontSize}" font-weight="800" xml:space="preserve">${renderTetrioTextMarkup(joined)} - <tspan font-family="Noto Sans CJK KR, Noto Sans CJK, sans-serif" font-size="11" font-weight="900">♥</tspan> ${renderTetrioNumericTextMarkup(formatNumber(user.friend_count ?? user.friendcount ?? 0))}</text>
   ${renderLevelTag(levelTag, contentX, levelTagY)}
   ${renderFeaturedAchievements(assets.featuredAchievements, contentX + levelTag.width + 8, levelTagY - 6)}
   ${supporterBadge ? renderSupporterBadgeMarkup(supporterBadge) : ''}
@@ -2629,7 +2631,7 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
   width,
   valueY,
   value,
-  iconValueFontSize,
+  iconValueFontSize: fontSize,
 
   trText: value,
   glickoRaw: options.glicko,
@@ -2638,7 +2640,7 @@ function renderLeagueStatValueMarkup(x, width, valueY, value, fontSize, options)
   rdText,
 
   auxCenterX,
-  auxBracketLeftX,
+  auxBracketLeftX: auxBlockLeftX,
   auxBracketLeftInnerX,
   auxBracketRightX,
   auxBracketRightInnerX,

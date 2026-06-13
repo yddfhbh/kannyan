@@ -104,7 +104,7 @@ const vmStatusChannelId = process.env.VM_STATUS_CHANNEL_ID?.trim() ?? '';
 const vmStatusMessageId = process.env.VM_STATUS_MESSAGE_ID?.trim() ?? '';
 const vmStatusIntervalMs = Math.max(5000, Number(process.env.VM_STATUS_INTERVAL_MS) || 5000);
 const vmStatusDiskPath = process.env.VM_STATUS_DISK_PATH?.trim() || '/';
-const vmStatusMessageTitle = 'VM 상태 대시보드';
+const vmStatusMessageTitle = 'VM 상태 대시보드다냥';
 
 const geminiSupportedImageMimeTypes = new Set([
   'image/jpeg',
@@ -338,7 +338,7 @@ client.on(Events.MessageCreate, async (message) => {
 
   if (isDirectBotMention(message)) {
     await message.reply({
-      content: '애옹?',
+      content: '왜 부른 거냥?',
       allowedMentions: { repliedUser: false },
     });
     return;
@@ -380,7 +380,7 @@ client.on(Events.MessageCreate, async (message) => {
   const input = match[2]?.trim();
   if (command === '도움말' || command === 'help') {
     const reply = await message.reply({
-      content: '안알랴줌',
+      content: '아직은 안 알려줄 거다냥.',
       allowedMentions: { repliedUser: false },
     });
     await wait(5_000);
@@ -396,8 +396,8 @@ client.on(Events.MessageCreate, async (message) => {
     }
 
     const content = command === '체닷'
-      ? 'Chess.com nickname is required. Example: `%체닷 Hebi0211`'
-      : 'Lichess username is required. Example: `%리체스 Hebi0211`';
+      ? 'Chess.com 닉네임을 입력해달라냥. 예: `%체닷 Hebi0211`'
+      : 'Lichess 멤버 이름을 입력해달라냥. 예: `%리체스 Hebi0211`';
 
     await message.reply({
       content,
@@ -475,7 +475,7 @@ if (interaction.commandName === '일일퍼즐') {
 }
 
     if (interaction.commandName === '도움말') {
-  await interaction.reply('안알랴줌');
+  await interaction.reply('아직은 안 알려줄 거다냥.');
   await wait(5_000);
 
   const helpMessage = getHelpMessage();
@@ -579,7 +579,7 @@ if (interaction.commandName === '일일퍼즐') {
     }
 
     await interaction.reply({
-      content: '모래는거냥... `/도움말`이나 보라냥.',
+      content: '무슨 말인지 모르겠다냥... `/도움말`을 확인해달라냥.',
       flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
@@ -589,7 +589,7 @@ if (interaction.commandName === '일일퍼즐') {
     if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
       try {
         await interaction.reply({
-          content: '꺠갱?',
+          content: '처리하다가 문제가 생겼다냥.',
           flags: MessageFlags.Ephemeral,
         });
       } catch (replyError) {
@@ -733,7 +733,7 @@ async function resolveVmStatusMessage(readyClient) {
   }
 
   return channel.send({
-    content: `${vmStatusMessageTitle}\n상태 수집 중...`,
+    content: `${vmStatusMessageTitle}\n상태를 수집 중이다냥...`,
     allowedMentions: { parse: [] },
   });
 }
@@ -758,8 +758,8 @@ async function createVmStatusMessageContent() {
       ? `저장공간(${disk.path}): ${formatBytes(disk.used)} / ${formatBytes(disk.total)} (${formatVmPercent(disk.percent)}) ${renderUsageBar(disk.percent)}`
       : `저장공간(${vmStatusDiskPath}): 측정 실패`,
     `봇 메모리(RSS): ${formatBytes(processMemory.rss)}`,
-    `VM uptime: ${formatDuration(os.uptime())}`,
-    `봇 uptime: ${formatDuration(process.uptime())}`,
+    `VM 가동 시간: ${formatDuration(os.uptime())}`,
+    `봇 가동 시간: ${formatDuration(process.uptime())}`,
   ].join('\n');
 }
 
@@ -1026,9 +1026,10 @@ async function handleTetrioLeaderboardTextCommand(message) {
 
     await message.reply({
       content: [
-        `refreshing: ${status.refreshing ? 'YES' : 'NO'}`,
-        `users: ${status.userCount}`,
-        `generatedAt: ${status.generatedAt ?? '없음'}`,
+        'TETR.IO 리더보드 상태다냥.',
+        `갱신 중: ${status.refreshing ? '예' : '아니오'}`,
+        `유저 수: ${status.userCount}`,
+        `생성 시각: ${status.generatedAt ?? '없음'}`,
       ].join('\n'),
       allowedMentions: { repliedUser: false },
     });
@@ -1066,7 +1067,7 @@ async function handleTetrioLeaderboardTextCommand(message) {
     console.error('Failed to render TETR.IO leaderboard card:');
     console.error(error);
     await message.reply({
-      content: 'TETR.IO 리더보드 이미지를 만들지 못했다냥....기다려달라냥...',
+      content: 'TETR.IO 리더보드 이미지를 만들지 못했다냥. 잠시 기다려달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -1083,7 +1084,7 @@ async function handlePercentMessageCommand(message) {
   const { command, input } = parsedCommand;
   if (command === 'help') {
   const reply = await message.reply({
-    content: '안알랴줌',
+    content: '아직은 안 알려줄 거다냥.',
     allowedMentions: { repliedUser: false },
   });
 
@@ -1207,7 +1208,7 @@ async function handlePercentMessageCommand(message) {
   const tetoValidationResult = validateTetrioMessageInput(input);
   if (tetoValidationResult === 'too_long') {
     await message.reply({
-      content: '분탕치지마세요!',
+      content: '분탕치지말라냥!',
       allowedMentions: { repliedUser: false },
     });
     return true;
@@ -1359,7 +1360,6 @@ if (emojiResult?.ask) {
       '최종 답변은 디스코드 채팅에 바로 보낼 한 문장만 출력해.',
       '예시: 달아뒀다냥.',
       '예시: 거기에도 붙여뒀다냥.',
-      '예시: 별표 콕 달아놨다냥.',
     ].join('\n'),
   };
 } catch (error) {
@@ -1871,7 +1871,7 @@ async function handleGeminiFallbackMessage(message, options = {}) {
 
   if (geminiApiKeys.length === 0) {
     await message.reply({
-      content: 'Gemma API 키가 설정되어 있지 않아요. `.env`에 `GEMINI_API_KEYS` 또는 `GEMINI_API_KEY`를 추가해 주세요.',
+      content: 'Gemma API 키가 설정되어 있지 않다냥. `.env`에 `GEMINI_API_KEYS` 또는 `GEMINI_API_KEY`를 추가해달라냥.',
       allowedMentions: { parse: [], repliedUser: false },
     });
     return true;
@@ -1911,13 +1911,13 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     appendGeminiMemoryEntry(sessionKey, {
       role: 'model',
       authorName: message.client.user?.username ?? 'Bot',
-      text: answer || '답변을 만들지 못했어요.',
+      text: answer || '답변을 만들지 못했다냥.',
       timestamp: Date.now(),
     });
 
     await saveGeminiMemory();
 
-    const chunks = chunkDiscordMessage(answer || '답변을 만들지 못했어요.');
+    const chunks = chunkDiscordMessage(answer || '답변을 만들지 못했다냥.');
     const [firstChunk, ...remainingChunks] = chunks;
 
     await message.reply({
@@ -1993,10 +1993,10 @@ function getGeminiUserErrorMessage(error) {
   }
 
   if ([500, 503, 504].includes(error?.status) || error?.name === 'AbortError') {
-    return '(쥬금)';
+    return '잠깐 쓰러졌다냥...';
   }
 
-  return '...';
+  return '문제가 생겼다냥...';
 }
 
 function parsePercentCommand(content) {
@@ -2133,11 +2133,11 @@ async function generateGeminiAnswer(prompt, options = {}) {
   const blockReason = response.promptFeedback?.blockReason;
   if (blockReason) {
     logGeminiTiming(`answer blocked total=${Date.now() - answerStartedAt}ms reason=${blockReason}`);
-    return `안전 필터 때문에 답변하지 못했어요. (${blockReason})`;
+    return `안전 필터 때문에 답변하지 못했다냥. (${blockReason})`;
   }
 
   logGeminiTiming(`answer empty total=${Date.now() - answerStartedAt}ms`);
-  return '답변을 만들지 못했어요.';
+  return '답변을 만들지 못했다냥.';
 }
 
 async function ensureGeminiMemoryLoaded() {
@@ -2787,32 +2787,32 @@ function chunkDiscordMessage(content) {
     chunks.push(remaining);
   }
 
-  return chunks.length > 0 ? chunks : ['답변을 만들지 못했어요.'];
+  return chunks.length > 0 ? chunks : ['답변을 만들지 못했다냥.'];
 }
 
 function getHelpMessage() {
   return [
-    '**사용 가능한 명령어**',
-    '`/도움말`, `%도움말`, `%help` - 이 안내를 보여줍니다.',
-    '`/체닷 닉네임:<Chess.com 닉네임>` 또는 `%체닷 닉네임` - Chess.com 래피드, 블리츠, 불렛, 퍼즐 레이팅을 보여줍니다.',
-    '`/리체스 멤버이름:<Lichess 멤버 이름>` 또는 `%리체스 멤버이름` - Lichess 래피드, 블리츠, 불렛 레이팅을 보여줍니다.',
-    '`/테토 닉네임:[TETR.IO 닉네임]` 또는 `%teto 닉네임` - TETR.IO 프로필 카드를 보여줍니다.',
-    '`/스탯 닉네임:[TETR.IO 닉네임]` 또는 `%ts 닉네임` - TETR.IO 스탯 카드 형식을 보여줍니다. ',
-    '`/그래프 닉네임:[TETR.IO 닉네임]` 또는 `%psq 닉네임` - Opener/Plonk/Stride/Inf DS 그래프를 보여줍니다. 닉네임을 여러 개 입력하면 겹쳐 그립니다. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있습니다.',
-    '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여줍니다. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시합니다.',
-    '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석합니다.',
-    '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여줍니다.',
-    '`/전적 닉네임:[TETR.IO 닉네임] 숫자:[경기 번호]` 또는 `%tetra 닉네임 [경기 번호]` - TETRA LEAGUE 최근 경기 전적을 이미지로 보여줍니다.',
-    '`/체스비교 플랫폼:<체닷|리체스> 타임컨트롤:<래피드|블리츠|불렛> 닉네임1:<이름> 닉네임2:<이름>` - 두 사람의 점수와 예상 승률을 비교합니다.',
-    '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산합니다.',
-    '`/알람 내용:<알람 내용> 분:<1~10080>` - 지정한 분 뒤에 멘션으로 알려줍니다.',
-    '`/라이브레이팅 종류:<클래시컬|블리츠|래피드> 사람수:<1~50>` - 2700chess 라이브레이팅 표를 보여줍니다.',
-    '팁: 슬래시 명령어는 옵션 선택이 편하고, `%...` 명령어는 채팅에 바로 입력해서 빠르게 쓸 수 있습니다.',
-    '`/퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%qp 닉네임 [기록 번호]` - QUICK PLAY 고도 카드를 보여줍니다.',
-    '`/익스퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%exqp 닉네임 [기록 번호]` - EXPERT QUICK PLAY 고도 카드를 보여줍니다. ',
-    '`/40라인 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%40L 닉네임 [기록 번호] [top|recent]` - 40 LINES top 또는 recent 기록의 시간 카드를 보여줍니다.',
-    '`/블리츠 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%blitz 닉네임 [기록 번호] [top|recent]` - BLITZ top 또는 recent 기록의 점수 카드를 보여줍니다.',
-    '`/일일퍼즐 : /일일퍼즐지정 이 된 채널에 KST 0:00기준으로 일일퍼즐을 업로드합니다. 매일매일 리더보드가 갱신됩니다.',
+    '**사용 가능한 명령어다냥**',
+    '`/도움말`, `%도움말`, `%help` - 이 안내를 보여준다냥.',
+    '`/체닷 닉네임:<Chess.com 닉네임>` 또는 `%체닷 닉네임` - Chess.com 래피드, 블리츠, 불렛, 퍼즐 레이팅을 보여준다냥.',
+    '`/리체스 멤버이름:<Lichess 멤버 이름>` 또는 `%리체스 멤버이름` - Lichess 래피드, 블리츠, 불렛 레이팅을 보여준다냥.',
+    '`/테토 닉네임:[TETR.IO 닉네임]` 또는 `%teto 닉네임` - TETR.IO 프로필 카드를 보여준다냥.',
+    '`/스탯 닉네임:[TETR.IO 닉네임]` 또는 `%ts 닉네임` - TETR.IO 스탯 카드를 보여준다냥.',
+    '`/그래프 닉네임:[TETR.IO 닉네임]` 또는 `%psq 닉네임` - Opener/Plonk/Stride/Inf DS 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그린다냥. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있다냥.',
+    '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시한다냥.',
+    '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석한다냥.',
+    '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여준다냥.',
+    '`/전적 닉네임:[TETR.IO 닉네임] 숫자:[경기 번호]` 또는 `%tetra 닉네임 [경기 번호]` - TETRA LEAGUE 최근 경기 전적을 이미지로 보여준다냥.',
+    '`/체스비교 플랫폼:<체닷|리체스> 타임컨트롤:<래피드|블리츠|불렛> 닉네임1:<이름> 닉네임2:<이름>` - 두 사람의 점수와 예상 승률을 비교한다냥.',
+    '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산한다냥.',
+    '`/알람 내용:<알람 내용> 분:<1~10080>` - 지정한 분 뒤에 멘션으로 알려준다냥.',
+    '`/라이브레이팅 종류:<클래시컬|블리츠|래피드> 사람수:<1~50>` - 2700chess 라이브레이팅 표를 보여준다냥.',
+    '팁: 슬래시 명령어는 옵션 선택이 편하고, `%...` 명령어는 채팅에 바로 입력해서 빠르게 쓸 수 있다냥.',
+    '`/퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%qp 닉네임 [기록 번호]` - QUICK PLAY 고도 카드를 보여준다냥.',
+    '`/익스퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%exqp 닉네임 [기록 번호]` - EXPERT QUICK PLAY 고도 카드를 보여준다냥.',
+    '`/40라인 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%40L 닉네임 [기록 번호] [top|recent]` - 40 LINES top 또는 recent 기록의 시간 카드를 보여준다냥.',
+    '`/블리츠 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%blitz 닉네임 [기록 번호] [top|recent]` - BLITZ top 또는 recent 기록의 점수 카드를 보여준다냥.',
+    '`/일일퍼즐`, `/일일퍼즐지정` - 지정된 채널에 KST 0:00 기준으로 일일 퍼즐을 올리고 리더보드를 매일 갱신한다냥.',
   ].join('\n');
 }
 
@@ -2874,7 +2874,7 @@ async function showChessComRatings(interaction) {
 
   if (!username) {
     await interaction.reply({
-      content: 'Chess.com 닉네임을 입력해 주세요. 예: `/체닷 닉네임:Hebi0211`',
+      content: 'Chess.com 닉네임을 입력해달라냥. 예: `/체닷 닉네임:Hebi0211`',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -2896,7 +2896,7 @@ async function showChessComRatings(interaction) {
       return;
     }
 
-    await interaction.editReply('Chess.com 레이팅을 가져오지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+    await interaction.editReply('Chess.com 레이팅을 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
 }
 
@@ -2906,7 +2906,7 @@ async function showLichessRatings(interaction) {
 
   if (!username) {
     await interaction.reply({
-      content: 'Lichess 멤버 이름을 입력해 주세요. 예: `/리체스 멤버이름:Hebi0211`',
+      content: 'Lichess 멤버 이름을 입력해달라냥. 예: `/리체스 멤버이름:Hebi0211`',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -2928,7 +2928,7 @@ async function showLichessRatings(interaction) {
       return;
     }
 
-    await interaction.editReply('Lichess 레이팅을 가져오지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+    await interaction.editReply('Lichess 레이팅을 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
 }
 
@@ -2944,8 +2944,8 @@ async function showTetrioProfile(interaction) {
 
     if (!username) {
       await interaction.editReply(input
-        ? '그런 유저는 없어 바부야'
-        : 'TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.'
+        ? '그런 유저는 없다냥.'
+        : 'TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.'
       );
       return;
     }
@@ -2964,11 +2964,11 @@ async function showTetrioProfile(interaction) {
     console.error(error);
 
     if (error.status === 404) {
-      await interaction.editReply('그런 유저는 없어 바부야');
+      await interaction.editReply('그런 유저는 없다냥.');
       return;
     }
 
-    await interaction.editReply('TETR.IO 프로필을 가져오지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+    await interaction.editReply('TETR.IO 프로필을 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
 }
 
@@ -2984,8 +2984,8 @@ async function showTetrioStats(interaction) {
 
     if (!username) {
       await interaction.editReply(input
-        ? '그런 유저는 없어 바부야'
-        : 'TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.'
+        ? '그런 유저는 없다냥.'
+        : 'TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.'
       );
       return;
     }
@@ -3009,16 +3009,16 @@ async function showTetrioStats(interaction) {
     }
 
     if (error.code === 'NO_LEAGUE_STATS') {
-      await interaction.editReply('TETRA LEAGUE 스탯이 아직 없어요.');
+      await interaction.editReply('TETRA LEAGUE 스탯이 아직 없다냥.');
       return;
     }
 
     if (error.status === 404) {
-      await interaction.editReply('그런 유저는 없어 바부야');
+      await interaction.editReply('그런 유저는 없다냥.');
       return;
     }
 
-    await interaction.editReply('스탯 카드를 렌더링하지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+    await interaction.editReply('스탯 카드를 렌더링하지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
 }
 
@@ -3030,13 +3030,13 @@ async function showTetrioPlaystyleGraph(interaction) {
   try {
     const parsedInput = parseTetrioGraphInput(input);
     if (parsedInput.kind === 'invalid') {
-      await interaction.editReply('분탕치지마세요!');
+      await interaction.editReply('분탕치지 말라냥!');
       return;
     }
 
     const metricInput = parsedInput.kind === 'metric' ? parsedInput.metricInput : null;
     if (metricInput && !isValidTetrioStatsMetricInput(metricInput)) {
-      await interaction.editReply('APM, PPS, VS must be positive numbers. Example: `/그래프 닉네임:60 2.0 120`');
+      await interaction.editReply('APM, PPS, VS는 양수로 입력해달라냥. 예: `/그래프 닉네임:60 2.0 120`');
       return;
     }
 
@@ -3050,8 +3050,8 @@ async function showTetrioPlaystyleGraph(interaction) {
 
     if (cards.length === 0) {
       await interaction.editReply(parsedInput.targets?.length
-        ? formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없어 바부야'
-        : 'TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.'
+        ? formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없다냥.'
+        : 'TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.'
       );
       return;
     }
@@ -3070,7 +3070,7 @@ async function showTetrioPlaystyleGraph(interaction) {
     console.error(error);
 
     if (error.code === 'NO_LEAGUE_STATS') {
-      await interaction.editReply('리그 더 하고 오세요!');
+      await interaction.editReply('리그를 더 하고 오라냥!');
       return;
     }
 
@@ -3080,11 +3080,11 @@ async function showTetrioPlaystyleGraph(interaction) {
     }
 
     if (error.status === 404) {
-      await interaction.editReply('그런 유저는 없어 바부야');
+      await interaction.editReply('그런 유저는 없다냥.');
       return;
     }
 
-    await interaction.editReply('그래프를 렌더링하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    await interaction.editReply('그래프를 렌더링하지 못했다냥. 잠시 후 다시 시도해달라냥.');
   }
 }
 
@@ -3096,13 +3096,13 @@ async function showTetrioVersusGraph(interaction) {
   try {
     const parsedInput = parseTetrioGraphInput(input);
     if (parsedInput.kind === 'invalid') {
-      await interaction.editReply('분탕치지마세요!');
+      await interaction.editReply('분탕치지 말라냥!');
       return;
     }
 
     const metricInput = parsedInput.kind === 'metric' ? parsedInput.metricInput : null;
     if (metricInput && !isValidTetrioStatsMetricInput(metricInput)) {
-      await interaction.editReply('APM, PPS, VS must be positive numbers. Example: `/비교 닉네임:60 2.0 120`');
+      await interaction.editReply('APM, PPS, VS는 양수로 입력해달라냥. 예: `/비교 닉네임:60 2.0 120`');
       return;
     }
 
@@ -3116,8 +3116,8 @@ async function showTetrioVersusGraph(interaction) {
 
     if (cards.length === 0) {
       await interaction.editReply(parsedInput.targets?.length
-        ? formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없어 바부야'
-        : 'TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.'
+        ? formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없다냥.'
+        : 'TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.'
       );
       return;
     }
@@ -3141,7 +3141,7 @@ async function showTetrioVersusGraph(interaction) {
     console.error(error);
 
     if (error.code === 'NO_LEAGUE_STATS') {
-      await interaction.editReply('리그 더 하고 오세요!');
+      await interaction.editReply('리그를 더 하고 오라냥!');
       return;
     }
 
@@ -3151,11 +3151,11 @@ async function showTetrioVersusGraph(interaction) {
     }
 
     if (error.status === 404) {
-      await interaction.editReply('그런 유저는 없어 바부야');
+      await interaction.editReply('그런 유저는 없다냥.');
       return;
     }
 
-    await interaction.editReply('비교 그래프를 렌더링하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    await interaction.editReply('비교 그래프를 렌더링하지 못했다냥. 잠시 후 다시 시도해달라냥.');
   }
 }
 
@@ -3279,18 +3279,18 @@ function isMinomuncherReplayAttachment(attachment) {
 
 function getMinomuncherErrorMessage(error) {
   if (error?.code === 'MINOMUNCHER_REPLAY_TOO_LARGE') {
-    return `${error.fileName ?? '첨부 파일'}은 너무 크다냥. ${Math.floor(minomuncherReplayMaxBytes / 1024 / 1024)}MB 이하로 올려주세요.`;
+    return `${error.fileName ?? '첨부 파일'}은 너무 크다냥. ${Math.floor(minomuncherReplayMaxBytes / 1024 / 1024)}MB 이하로 올려달라냥.`;
   }
 
   if (error?.code === 'MINOMUNCHER_REPLAY_DOWNLOAD_FAILED') {
-    return `${error.fileName ?? '첨부 파일'}을 내려받지 못했다냥. 다시 올려주세요.`;
+    return `${error.fileName ?? '첨부 파일'}을 내려받지 못했다냥. 다시 올려달라냥.`;
   }
 
   if (error?.code === 'MINOMUNCHER_REPLAY_PARSE_FAILED') {
-    return '첨부한 리플레이를 파싱하지 못했다냥. `.ttrm` 파일이 맞는지 확인해 주세요.';
+    return '첨부한 리플레이를 파싱하지 못했다냥. `.ttrm` 파일이 맞는지 확인해달라냥.';
   }
 
-  return '분석 그래프를 만들지 못했어요. 잠시 후 다시 시도해 주세요.';
+  return '분석 그래프를 만들지 못했다냥. 잠시 후 다시 시도해달라냥.';
 }
 
 async function fetchTetrioStatsCardDataForInteraction(interaction, targets) {
@@ -3321,7 +3321,7 @@ async function showTetrioRankCut(interaction) {
   } catch (error) {
     console.error('Failed to fetch TETR.IO rank cut data:');
     console.error(error);
-    await interaction.editReply('TETR.IO 랭크컷 정보를 가져오지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+    await interaction.editReply('TETR.IO 랭크컷 정보를 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
 }
 
@@ -3337,7 +3337,7 @@ async function showTetrioLeagueMatch(interaction) {
       : await findTetrioUsernameByDiscordId(interaction.user.id);
 
     if (!username) {
-      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.');
+      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.');
       return;
     }
 
@@ -3360,7 +3360,7 @@ async function showTetrioLeagueMatch(interaction) {
       return;
     }
 
-    await interaction.editReply('TETRA LEAGUE 전적을 가져오지 못했어요. 잠시 후 다시 시도해주세요.');
+    await interaction.editReply('TETRA LEAGUE 전적을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.');
   }
 }
 
@@ -3377,7 +3377,7 @@ async function showQuickPlayAltitude(interaction) {
       : await findTetrioUsernameByDiscordId(interaction.user.id);
 
     if (!username) {
-      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.');
+      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.');
       return;
     }
 
@@ -3399,7 +3399,7 @@ async function showQuickPlayAltitude(interaction) {
       return;
     }
 
-    await interaction.editReply('퀵플레이 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.');
+    await interaction.editReply('퀵플레이 기록을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.');
   }
 }
 
@@ -3416,7 +3416,7 @@ async function showExpertQuickPlayAltitude(interaction) {
       : await findTetrioUsernameByDiscordId(interaction.user.id);
 
     if (!username) {
-      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.');
+      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.');
       return;
     }
 
@@ -3438,7 +3438,7 @@ async function showExpertQuickPlayAltitude(interaction) {
       return;
     }
 
-    await interaction.editReply('익스퍼트 퀵플레이 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.');
+    await interaction.editReply('익스퍼트 퀵플레이 기록을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.');
   }
 }
 
@@ -3455,7 +3455,7 @@ async function showFortyLinesTime(interaction) {
       : await findTetrioUsernameByDiscordId(interaction.user.id);
 
     if (!username) {
-      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.');
+      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.');
       return;
     }
 
@@ -3477,7 +3477,7 @@ async function showFortyLinesTime(interaction) {
       return;
     }
 
-    await interaction.editReply('40라인 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.');
+    await interaction.editReply('40라인 기록을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.');
   }
 }
 
@@ -3494,7 +3494,7 @@ async function showBlitzScore(interaction) {
       : await findTetrioUsernameByDiscordId(interaction.user.id);
 
     if (!username) {
-      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않아요. 닉네임을 직접 입력해 주세요.');
+      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.');
       return;
     }
 
@@ -3516,7 +3516,7 @@ async function showBlitzScore(interaction) {
       return;
     }
 
-    await interaction.editReply('블리츠 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.');
+    await interaction.editReply('블리츠 기록을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.');
   }
 }
 
@@ -3584,7 +3584,7 @@ async function getQuickPlayKnownErrorMessage(error, username = null, assumeExist
   }
 
   if (assumeExistingUser) {
-    return '게임 더 하고 오세요!';
+    return '게임을 더 하고 오라냥!';
   }
 
   if (username) {
@@ -3595,19 +3595,19 @@ async function getQuickPlayKnownErrorMessage(error, username = null, assumeExist
     });
 
     if (resolvedUsername) {
-      return '게임 더 하고 오세요!';
+      return '게임을 더 하고 오라냥!';
     }
 
     if (resolvedUsername === null) {
-      return '그런 유저는 없다에요';
+      return '그런 유저는 없다냥.';
     }
   }
 
   if (error.code === 'NO_RECORD') {
-    return '게임 더 하고 오세요!';
+    return '게임을 더 하고 오라냥!';
   }
 
-  return '그런 유저는 없다에요';
+  return '그런 유저는 없다냥.';
 }
 
 function getQuickPlayAttachmentName(username, recordIndex, mode, leaderboard = 'top') {
@@ -3643,18 +3643,18 @@ function getTetrioPersonalRecordCommandName(mode) {
 
 function getTetrioPersonalRecordErrorMessage(mode) {
   if (mode === 'zenithex') {
-    return '익스퍼트 퀵플레이 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+    return '익스퍼트 퀵플레이 기록을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
   }
 
   if (mode === '40l') {
-    return '40라인 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+    return '40라인 기록을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
   }
 
   if (mode === 'blitz') {
-    return '블리츠 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+    return '블리츠 기록을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
   }
 
-  return '퀵플레이 기록을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+  return '퀵플레이 기록을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
 }
 
 function getTetrioLeagueMatchAttachmentName(username, matchIndex) {
@@ -3667,7 +3667,7 @@ async function getTetrioLeagueMatchKnownErrorMessage(error, username = null, ass
   }
 
   if (assumeExistingUser) {
-    return 'TETRA LEAGUE 전적이 아직 없어요.';
+    return 'TETRA LEAGUE 전적이 아직 없다냥.';
   }
 
   if (username) {
@@ -3678,26 +3678,26 @@ async function getTetrioLeagueMatchKnownErrorMessage(error, username = null, ass
     });
 
     if (resolvedUsername) {
-      return 'TETRA LEAGUE 전적이 아직 없어요.';
+      return 'TETRA LEAGUE 전적이 아직 없다냥.';
     }
 
     if (resolvedUsername === null) {
-      return '그런 유저는 없다에요';
+      return '그런 유저는 없다냥.';
     }
   }
 
   if (error.code === 'NO_RECORD') {
-    return 'TETRA LEAGUE 전적이 아직 없어요.';
+    return 'TETRA LEAGUE 전적이 아직 없다냥.';
   }
 
-  return '그런 유저는 없다에요';
+  return '그런 유저는 없다냥.';
 }
 
 async function handleTetrioLeagueMatchMessage(message, input) {
   const parsedInput = parseTetrioLeagueMatchMessageInput(input);
   if (!parsedInput) {
     await message.reply({
-      content: '사용법: `%tetra 닉네임 [숫자]`, `%tetra @멘션 [숫자]`, `%tetra [숫자]`',
+      content: '사용법은 `%tetra 닉네임 [숫자]`, `%tetra @멘션 [숫자]`, `%tetra [숫자]`다냥.',
       allowedMentions: { repliedUser: false },
     });
     return;
@@ -3732,7 +3732,7 @@ async function handleTetrioLeagueMatchMessage(message, input) {
   const tetrioValidationResult = validateTetrioMessageInput(parsedInput.targetText);
   if (tetrioValidationResult === 'too_long') {
     await message.reply({
-      content: '닉네임이 너무 길어요.',
+      content: '닉네임이 너무 길다냥.',
       allowedMentions: { repliedUser: false },
     });
     return;
@@ -3757,7 +3757,7 @@ async function handleAmbiguousNumericTetrioLeagueMatchMessage(message, input, ma
 
     if (isTrollingNumericInput(input)) {
       await message.reply({
-        content: '분탕치지마세요!',
+        content: '분탕치지 말라냥!',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -3765,7 +3765,7 @@ async function handleAmbiguousNumericTetrioLeagueMatchMessage(message, input, ma
 
     if (!matchIndex) {
       await message.reply({
-        content: '분탕치지마세요!',
+        content: '분탕치지 말라냥!',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -3777,7 +3777,7 @@ async function handleAmbiguousNumericTetrioLeagueMatchMessage(message, input, ma
     console.error(error);
 
     await message.reply({
-      content: 'TETRA LEAGUE 전적을 가져오지 못했어요. 잠시 후 다시 시도해주세요.',
+      content: 'TETRA LEAGUE 전적을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -3838,7 +3838,7 @@ async function showLinkedTetrioLeagueMatchMessage(message, user, matchIndex) {
     console.error(error);
 
     await message.reply({
-      content: 'TETR.IO 연동 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요.',
+      content: 'TETR.IO 연동 정보를 확인하지 못했다냥. 잠시 후 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -3862,7 +3862,7 @@ async function showTetrioLeagueMatchMessage(message, username, matchIndex, assum
     console.error(error);
 
     const content = (await getTetrioLeagueMatchKnownErrorMessage(error, username, assumeExistingUser))
-      ?? 'TETRA LEAGUE 전적을 가져오지 못했어요. 잠시 후 다시 시도해주세요.';
+      ?? 'TETRA LEAGUE 전적을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
 
     await message.reply({
       content,
@@ -3876,7 +3876,7 @@ async function handleQuickPlayAltitudeMessage(message, input, mode = 'zenith') {
   if (!parsedInput) {
     const commandName = getTetrioPersonalRecordCommandName(mode);
     await message.reply({
-      content: `사용법: \`${commandName} 닉네임 [숫자]\`, \`${commandName} @멘션 [숫자]\`, \`${commandName} [숫자]\``,
+      content: `사용법은 \`${commandName} 닉네임 [숫자]\`, \`${commandName} @멘션 [숫자]\`, \`${commandName} [숫자]\`다냥.`,
       allowedMentions: { repliedUser: false },
     });
     return;
@@ -3913,7 +3913,7 @@ async function handleQuickPlayAltitudeMessage(message, input, mode = 'zenith') {
   const tetrioValidationResult = validateTetrioMessageInput(parsedInput.targetText);
   if (tetrioValidationResult === 'too_long') {
     await message.reply({
-      content: '닉네임이 너무 길어요.',
+      content: '닉네임이 너무 길다냥.',
       allowedMentions: { repliedUser: false },
     });
     return;
@@ -3946,7 +3946,7 @@ async function handleAmbiguousNumericTetrioProfileMessage(message, input) {
 
     if (isTrollingNumericInput(input)) {
       await message.reply({
-        content: '분탕치지마세요!',
+        content: '분탕치지 말라냥!',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -3958,7 +3958,7 @@ async function handleAmbiguousNumericTetrioProfileMessage(message, input) {
     console.error(error);
 
     await message.reply({
-      content: 'TETR.IO 정보를 가져오지 못했어요. 잠시 후 다시 시도해주세요.',
+      content: 'TETR.IO 정보를 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -3982,7 +3982,7 @@ async function handleAmbiguousNumericQuickPlayAltitudeMessage(
 
     if (isTrollingNumericInput(input)) {
       await message.reply({
-        content: '분탕치지마세요!',
+        content: '분탕치지 말라냥!',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -3990,7 +3990,7 @@ async function handleAmbiguousNumericQuickPlayAltitudeMessage(
 
     if (!recordIndex) {
       await message.reply({
-        content: '분탕치지마세요!',
+        content: '분탕치지 말라냥!',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4083,7 +4083,7 @@ async function showLinkedQuickPlayAltitudeMessage(message, user, recordIndex, mo
     console.error(error);
 
     await message.reply({
-      content: 'TETR.IO 연동 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요.',
+      content: 'TETR.IO 연동 정보를 확인하지 못했다냥. 잠시 후 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -4141,8 +4141,8 @@ async function showTetrioProfileMessage(message, input) {
     console.error(error);
 
     const content = error.status === 404
-      ? '그런 유저는 없어 바부야'
-      : 'Failed to fetch TETR.IO profile. Please try again later.';
+      ? '그런 유저는 없다냥.'
+      : 'TETR.IO 프로필을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
 
     await message.reply({
       content,
@@ -4160,7 +4160,7 @@ async function showTetrioStatsMessage(message, input) {
     if (metricInput) {
       if (!isValidTetrioStatsMetricInput(metricInput)) {
         await message.reply({
-          content: 'APM, PPS, VS must be positive numbers. Example: `%ts 60 2.0 120`',
+          content: 'APM, PPS, VS는 양수로 입력해달라냥. 예: `%ts 60 2.0 120`',
           allowedMentions: { repliedUser: false },
         });
         return;
@@ -4181,7 +4181,7 @@ async function showTetrioStatsMessage(message, input) {
 
     if (hasMultipleTetrioStatsTargets(target)) {
       await message.reply({
-        content: '닉네임 하나만 입려해달라냥',
+        content: '닉네임은 하나만 입력해달라냥.',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4203,7 +4203,7 @@ async function showTetrioStatsMessage(message, input) {
       }
 
       await message.reply({
-        content: '그런 유저는 없어 바부야',
+        content: '그런 유저는 없다냥.',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4233,7 +4233,7 @@ async function showTetrioStatsMessage(message, input) {
 
     if (error.code === 'NO_LEAGUE_STATS') {
       await message.reply({
-        content: 'TETRA LEAGUE 스탯이 아직 없어요.',
+        content: 'TETRA LEAGUE 스탯이 아직 없다냥.',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4241,14 +4241,14 @@ async function showTetrioStatsMessage(message, input) {
 
     if (error.status === 404) {
       await message.reply({
-        content: '그런 유저는 없어 바부야',
+        content: '그런 유저는 없다냥.',
         allowedMentions: { repliedUser: false },
       });
       return;
     }
 
     await message.reply({
-      content: '스탯 카드를 렌더링하지 못했어요. 잠시 뒤 다시 시도해 주세요.',
+      content: '스탯 카드를 렌더링하지 못했다냥. 잠시 뒤 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -4356,7 +4356,7 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
     const parsedInput = parseTetrioGraphInput(target);
     if (parsedInput.kind === 'invalid') {
       await message.reply({
-        content: '분탕치지마세요!',
+        content: '분탕치지 말라냥!',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4365,7 +4365,7 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
     const metricInput = parsedInput.kind === 'metric' ? parsedInput.metricInput : null;
     if (metricInput && !isValidTetrioStatsMetricInput(metricInput)) {
       await message.reply({
-        content: 'APM, PPS, VS must be positive numbers. Example: `%psq 60 2.0 120`',
+        content: 'APM, PPS, VS는 양수로 입력해달라냥. 예: `%psq 60 2.0 120`',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4390,7 +4390,7 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
       }
 
       await message.reply({
-        content: formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없어 바보야',
+        content: formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없다냥.',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4412,7 +4412,7 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
 
     if (error.code === 'NO_LEAGUE_STATS') {
       await message.reply({
-        content: '리그 더 하고 오세요!',
+        content: '리그를 더 하고 오라냥!',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4428,14 +4428,14 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
 
     if (error.status === 404) {
       await message.reply({
-        content: '그런 유저는 없어 바부야',
+        content: '그런 유저는 없다냥.',
         allowedMentions: { repliedUser: false },
       });
       return;
     }
 
     await message.reply({
-      content: '그래프를 렌더링하지 못했어요. 잠시 후 다시 시도해 주세요.',
+      content: '그래프를 렌더링하지 못했다냥. 잠시 후 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -4449,7 +4449,7 @@ async function showTetrioVersusGraphMessage(message, input) {
     const parsedInput = parseTetrioGraphInput(target);
     if (parsedInput.kind === 'invalid') {
       await message.reply({
-        content: '분탕치지마세요!',
+        content: '분탕치지 말라냥!',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4458,7 +4458,7 @@ async function showTetrioVersusGraphMessage(message, input) {
     const metricInput = parsedInput.kind === 'metric' ? parsedInput.metricInput : null;
     if (metricInput && !isValidTetrioStatsMetricInput(metricInput)) {
       await message.reply({
-        content: 'APM, PPS, VS must be positive numbers. Example: `%vs 60 2.0 120`',
+        content: 'APM, PPS, VS는 양수로 입력해달라냥. 예: `%vs 60 2.0 120`',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4483,7 +4483,7 @@ async function showTetrioVersusGraphMessage(message, input) {
       }
 
       await message.reply({
-        content: formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없어 바부야',
+        content: formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없다냥.',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4510,7 +4510,7 @@ async function showTetrioVersusGraphMessage(message, input) {
 
     if (error.code === 'NO_LEAGUE_STATS') {
       await message.reply({
-        content: '리그 더 하고 오세요!',
+        content: '리그를 더 하고 오라냥!',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -4526,14 +4526,14 @@ async function showTetrioVersusGraphMessage(message, input) {
 
     if (error.status === 404) {
       await message.reply({
-        content: '그런 유저는 없어 바부야',
+        content: '그런 유저는 없다냥.',
         allowedMentions: { repliedUser: false },
       });
       return;
     }
 
     await message.reply({
-      content: '비교 그래프를 렌더링하지 못했어요. 잠시 후 다시 시도해 주세요.',
+      content: '비교 그래프를 렌더링하지 못했다냥. 잠시 후 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -4631,7 +4631,7 @@ function formatMissingTetrioGraphUsersMessage(targets) {
     .filter(Boolean))];
 
   return names.length > 0
-    ? `${names.map(escapeDiscordMarkdown).join(', ')}라는 유저는 없다냥`
+    ? `${names.map(escapeDiscordMarkdown).join(', ')}라는 유저는 없다냥.`
     : null;
 }
 
@@ -4641,13 +4641,13 @@ function formatUnavailableTetrioGraphUsersMessage(targets) {
     .filter(Boolean))];
 
   return names.length > 0
-    ? `${names.map(escapeDiscordMarkdown).join(', ')}는 TETRA LEAGUE 기록이 없어서 제외했다냥`
+    ? `${names.map(escapeDiscordMarkdown).join(', ')}는 TETRA LEAGUE 기록이 없어서 제외했다냥.`
     : null;
 }
 
 function formatBannedTetrioStatsUserMessage(target) {
   const name = String(target ?? '').trim();
-  return `${escapeDiscordMarkdown(name || '그 유저')}은 정지된 유저다냥`;
+  return `${escapeDiscordMarkdown(name || '그 유저')}은 정지된 유저다냥.`;
 }
 
 function formatBannedTetrioGraphUsersMessage(targets) {
@@ -4656,7 +4656,7 @@ function formatBannedTetrioGraphUsersMessage(targets) {
     .filter(Boolean))];
 
   return names.length > 0
-    ? `${names.map(escapeDiscordMarkdown).join(', ')}은 밴 당해있어서 제외했다냥`
+    ? `${names.map(escapeDiscordMarkdown).join(', ')}은 밴 상태라서 제외했다냥.`
     : null;
 }
 
@@ -4792,7 +4792,7 @@ async function showTetrioRankCutMessage(message) {
     console.error(error);
 
     await message.reply({
-      content: 'TETR.IO 랭크컷 정보를 가져오지 못했어요. 잠시 뒤 다시 시도해 주세요.',
+      content: 'TETR.IO 랭크컷 정보를 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -4814,7 +4814,7 @@ async function showLinkedTetrioProfileMessage(message, user = message.author) {
     console.error(error);
 
     await message.reply({
-      content: 'TETR.IO 연동 정보를 확인하지 못했어요. 잠시 뒤 다시 시도해 주세요.',
+      content: 'TETR.IO 연동 정보를 확인하지 못했다냥. 잠시 뒤 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -4854,7 +4854,7 @@ async function showChessComRatingsMessage(message, input) {
 
   if (!username) {
     await message.reply({
-      content: 'Chess.com nickname is required. Example: `%체닷 Hebi0211`',
+      content: 'Chess.com 닉네임을 입력해달라냥. 예: `%체닷 Hebi0211`',
       allowedMentions: { repliedUser: false },
     });
     return;
@@ -4872,8 +4872,8 @@ async function showChessComRatingsMessage(message, input) {
     console.error(error);
 
     const content = error.status === 404
-      ? `Chess.com user \`${username}\` was not found.\nhttps://www.chess.com/member/${encodeURIComponent(username)}`
-      : 'Failed to fetch Chess.com ratings. Please try again later.';
+      ? `Chess.com에서 \`${username}\` 유저를 찾지 못했다냥.\nhttps://www.chess.com/member/${encodeURIComponent(username)}`
+      : 'Chess.com 레이팅을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
 
     await message.reply({
       content,
@@ -4887,7 +4887,7 @@ async function showLichessRatingsMessage(message, input) {
 
   if (!username) {
     await message.reply({
-      content: 'Lichess username is required. Example: `%리체스 Hebi0211`',
+      content: 'Lichess 멤버 이름을 입력해달라냥. 예: `%리체스 Hebi0211`',
       allowedMentions: { repliedUser: false },
     });
     return;
@@ -4905,8 +4905,8 @@ async function showLichessRatingsMessage(message, input) {
     console.error(error);
 
     const content = error.status === 404
-      ? `Lichess user \`${username}\` was not found.\nhttps://lichess.org/@/${encodeURIComponent(username)}`
-      : 'Failed to fetch Lichess ratings. Please try again later.';
+      ? `Lichess에서 \`${username}\` 유저를 찾지 못했다냥.\nhttps://lichess.org/@/${encodeURIComponent(username)}`
+      : 'Lichess 레이팅을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
 
     await message.reply({
       content,
@@ -4924,7 +4924,7 @@ async function showChessComparison(interaction) {
 
   if (!timeControlInfo) {
     await interaction.reply({
-      content: '타임컨트롤은 래피드, 블리츠, 불렛 중에서 선택해 주세요.',
+      content: '타임컨트롤은 래피드, 블리츠, 불렛 중에서 선택해달라냥.',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -4940,7 +4940,7 @@ async function showChessComparison(interaction) {
 
     if (!Number.isInteger(first.rating) || !Number.isInteger(second.rating)) {
       await interaction.editReply(
-        `${timeControlInfo.label} 기록이 없는 멤버가 있어 비교할 수 없어요.`
+        `${timeControlInfo.label} 기록이 없는 멤버가 있어서 비교할 수 없다냥.`
       );
       return;
     }
@@ -4951,11 +4951,11 @@ async function showChessComparison(interaction) {
     console.error(error);
 
     if (error.status === 404) {
-      await interaction.editReply(`\`${error.username ?? '입력한 멤버'}\`를 찾지 못했어요.`);
+      await interaction.editReply(`\`${error.username ?? '입력한 멤버'}\`를 찾지 못했다냥.`);
       return;
     }
 
-    await interaction.editReply('레이팅 비교 정보를 가져오지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+    await interaction.editReply('레이팅 비교 정보를 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
 }
 
@@ -4968,7 +4968,7 @@ async function showWinRatePrediction(interaction) {
   const higherLabel = firstRating >= secondRating ? '점수1' : '점수2';
   const higherWinRate = firstRating >= secondRating ? firstWinRate : secondWinRate;
 
-  await interaction.reply(`${higherLabel}: ${formatPercent(higherWinRate)}`);
+  await interaction.reply(`${higherLabel}의 예상 승률은 ${formatPercent(higherWinRate)}다냥.`);
 }
 
 async function scheduleAlarm(interaction) {
@@ -4977,7 +4977,7 @@ async function scheduleAlarm(interaction) {
 
   if (!content) {
     await interaction.reply({
-      content: '알람 내용을 입력해 주세요.',
+      content: '알람 내용을 입력해달라냥.',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -4985,7 +4985,7 @@ async function scheduleAlarm(interaction) {
 
   if (minutes < 1 || minutes > maxAlarmMinutes) {
     await interaction.reply({
-      content: `알람 시간은 1분부터 ${maxAlarmMinutes.toLocaleString('ko-KR')}분까지 설정할 수 있어요.`,
+      content: `알람 시간은 1분부터 ${maxAlarmMinutes.toLocaleString('ko-KR')}분까지 설정할 수 있다냥.`,
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -5004,7 +5004,7 @@ async function scheduleAlarm(interaction) {
       }
 
       await channel.send({
-        content: `<@${userId}> 알람: ${content}`,
+        content: `<@${userId}> 알람 시간이 됐다냥!\n내용: ${content}`,
         allowedMentions: { users: [userId] },
       });
     } catch (error) {
@@ -5014,7 +5014,7 @@ async function scheduleAlarm(interaction) {
   }, delay);
 
   await interaction.reply({
-    content: `알람 설정했어요. ${formatAlarmMinutes(minutes)} 뒤에 멘션할게요.\n내용: ${content}`,
+    content: `알람을 설정했다냥. ${formatAlarmMinutes(minutes)} 뒤에 멘션할 거다냥.\n내용: ${content}`,
     flags: MessageFlags.Ephemeral,
   });
 }
@@ -5026,7 +5026,7 @@ async function showLiveRatings(interaction) {
 
   if (!typeInfo) {
     await interaction.reply({
-      content: '종류는 클래시컬, 래피드, 블리츠 중에서 선택해 주세요.',
+      content: '종류는 클래시컬, 래피드, 블리츠 중에서 선택해달라냥.',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -5034,7 +5034,7 @@ async function showLiveRatings(interaction) {
 
   if (count < 1 || count > 50) {
     await interaction.reply({
-      content: '사람수는 1명부터 50명까지 입력해 주세요.',
+      content: '사람 수는 1명부터 50명까지 입력해달라냥.',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -5047,7 +5047,7 @@ async function showLiveRatings(interaction) {
     const selectedEntries = entries.slice(0, count);
 
     if (selectedEntries.length === 0) {
-      await interaction.editReply('라이브레이팅 표를 찾지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+      await interaction.editReply('라이브레이팅 표를 찾지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
       return;
     }
 
@@ -5055,7 +5055,7 @@ async function showLiveRatings(interaction) {
   } catch (error) {
     console.error('Failed to fetch live ratings:');
     console.error(error);
-    await interaction.editReply('라이브레이팅을 가져오지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+    await interaction.editReply('라이브레이팅을 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
 }
 
@@ -5221,7 +5221,7 @@ function formatChessComRatings(username, stats) {
   ];
 
   return [
-    `**${username}님의 Chess.com 레이팅**`,
+    `**${username}님의 Chess.com 레이팅이다냥**`,
     '',
     ...ratings.map(([label, rating]) => `${label}: ${formatRating(rating)}`),
     '',
@@ -5238,7 +5238,7 @@ function formatLichessRatings(user) {
   ];
 
   return [
-    `**${username}님의 Lichess 레이팅**`,
+    `**${username}님의 Lichess 레이팅이다냥**`,
     '',
     ...ratings.map(([label, rating]) => `${label}: ${formatRating(rating)}`),
     '',
@@ -5256,13 +5256,13 @@ function formatChessComparison(platform, timeControlInfo, first, second) {
     : `${ratingDiff > 0 ? first.username : second.username} +${Math.abs(ratingDiff).toLocaleString('ko-KR')}`;
 
   return [
-    `**${platformLabel} ${timeControlInfo.label} 비교**`,
+    `**${platformLabel} ${timeControlInfo.label} 비교 결과다냥**`,
     '',
     `${timeControlInfo.emoji} ${first.username}: ${formatRating(first.rating)}`,
     `${timeControlInfo.emoji} ${second.username}: ${formatRating(second.rating)}`,
-    `점수 차이: ${diffLabel}`,
+    `점수 차이는 ${diffLabel}다냥.`,
     '',
-    '**Elo 기반 예상 승률**',
+    '**Elo 기반 예상 승률이다냥**',
     `${first.username}: ${formatPercent(firstWinRate)}`,
     `${second.username}: ${formatPercent(secondWinRate)}`,
   ].join('\n');
@@ -5270,7 +5270,7 @@ function formatChessComparison(platform, timeControlInfo, first, second) {
 
 async function sendLiveRatingTable(interaction, typeInfo, entries, requestedCount) {
   const notice = entries.length < requestedCount
-    ? `요청한 ${requestedCount}명 중 현재 표에 있는 ${entries.length}명만 표시합니다.`
+    ? `요청한 ${requestedCount}명 중 현재 표에 있는 ${entries.length}명만 표시한다냥.`
     : null;
   const tableHeader = `${padTableCell('#', 3)} ${padTableCell('Name', 24)} ${padTableCell('Rating', 7, true)} ${padTableCell('+/-', 6, true)}`;
   const separator = '-'.repeat(tableHeader.length);
