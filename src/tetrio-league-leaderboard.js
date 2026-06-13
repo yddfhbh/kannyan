@@ -1,13 +1,15 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { calculateTetrioStats } from './tetrio-stats-calculations.js';
 import { renderTetrioLeaderboardCard } from './tetrio-league-leaderboard-card.js';
 
 const API_BASE = 'https://ch.tetr.io/api';
 
-const DATA_FILE = fileURLToPath(new URL('../data/tetrio-league-cache.json', import.meta.url));
-const TEMP_FILE = fileURLToPath(new URL('../data/tetrio-league-cache.tmp.json', import.meta.url));
+const defaultDataDir = fileURLToPath(new URL('../data/', import.meta.url));
+const dataDir = resolve(process.env.TETRIO_LEAGUE_DATA_DIR?.trim() || defaultDataDir);
+const DATA_FILE = join(dataDir, 'tetrio-league-cache.json');
+const TEMP_FILE = join(dataDir, 'tetrio-league-cache.tmp.json');
 
 const REQUEST_DELAY_MS = 1000;
 const REFRESH_COOLDOWN_MS = 10 * 60 * 1000;
@@ -181,13 +183,78 @@ export async function loadTetrioLeagueCache() {
     const text = await readFile(DATA_FILE, 'utf8');
     const parsed = JSON.parse(text);
 
-    if (Array.isArray(parsed.users)) {
-      activeData = parsed;
-      console.log(`[TETR.IO LB] loaded ${activeData.users.length} users`);
+    if (!Array.isArray(parsed.users) || parsed.users.length === 0) {
+      throw new Error('saved cache has no users');
     }
-  } catch {
-    console.log('[TETR.IO LB] no saved cache yet');
+
+    activeData = {
+      generatedAt: parsed.generatedAt ?? null,
+      userCount: parsed.users.length,
+      users: parsed.users,
+    };
+    console.log(`[TETR.IO LB] loaded ${activeData.users.length} users from ${DATA_FILE}`);
+
+    return {
+      loaded: true,
+      generatedAt: activeData.generatedAt,
+      userCount: activeData.users.length,
+      dataFile: DATA_FILE,
+    };
+  } catch (error) {
+    activeData = {
+      generatedAt: null,
+      userCount: 0,
+      users: [],
+    };
+
+    const reason = error?.code === 'ENOENT' ? 'missing' : 'invalid';
+    console.log(`[TETR.IO LB] saved cache ${reason}: ${DATA_FILE}`);
+
+    if (reason === 'invalid') {
+      console.error(error);
+    }
+
+    return {
+      loaded: false,
+      reason,
+      userCount: 0,
+      dataFile: DATA_FILE,
+    };
   }
+}
+
+export async function initializeTetrioLeagueCache({ onProgress } = {}) {
+  const loadResult = await loadTetrioLeagueCache();
+
+  if (loadResult.loaded) {
+    return {
+      ...loadResult,
+      refreshing: false,
+      refreshPromise: null,
+    };
+  }
+
+  console.log('[TETR.IO LB] starting automatic cache build');
+
+  const initialRefreshPromise = refreshTetrioLeagueCache({
+    force: true,
+    onProgress,
+  });
+
+  initialRefreshPromise
+    .then(({ userCount, generatedAt }) => {
+      console.log(`[TETR.IO LB] automatic cache build complete: users=${userCount} generatedAt=${generatedAt}`);
+    })
+    .catch((error) => {
+      console.error('[TETR.IO LB] automatic cache build failed:');
+      console.error(error);
+    });
+
+  return {
+    ...loadResult,
+    refreshing: true,
+    refreshPromise: initialRefreshPromise,
+  };
 }
 
 export function getTetrioLeagueRefreshStatus() {
@@ -195,6 +262,7 @@ export function getTetrioLeagueRefreshStatus() {
     refreshing: Boolean(refreshPromise),
     generatedAt: activeData.generatedAt,
     userCount: activeData.users.length,
+    dataFile: DATA_FILE,
   };
 }
 
@@ -339,7 +407,9 @@ function getTetrioLeaderboardView(parsed = {}) {
 
   if (!activeData.users.length) {
     return {
-      message: '아직 리더보드 데이터가 없음. `%refresh`로 먼저 데이터를 받아와야 함.',
+      message: refreshPromise
+        ? 'TETR.IO 리더보드 데이터를 자동 생성 중임. 완료되면 바로 사용할 수 있음. `%lbstatus`로 상태를 확인할 수 있음.'
+        : 'TETR.IO 리더보드 데이터가 없음. `%refresh`로 다시 생성을 시작할 수 있음.',
     };
   }
 

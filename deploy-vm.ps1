@@ -16,6 +16,10 @@ $includePaths = @(
   "README.md"
 )
 
+$optionalIncludePaths = @(
+  "data/tetrio-league-cache.json"
+)
+
 Push-Location $projectRoot
 try {
   if (Test-Path -LiteralPath $archivePath) {
@@ -27,7 +31,12 @@ try {
     throw "Missing required path(s): $($missing -join ', ')"
   }
 
-  tar -czf $archiveName @includePaths
+  $existingOptionalPaths = $optionalIncludePaths | Where-Object {
+    Test-Path -LiteralPath (Join-Path $projectRoot $_)
+  }
+  $archivePaths = $includePaths + $existingOptionalPaths
+
+  tar -czf $archiveName @archivePaths
 
   $archive = Get-Item -LiteralPath $archivePath
 
@@ -44,11 +53,15 @@ try {
   Write-Host 'ARCHIVE=discord-bot-vm.tar.gz'
   Write-Host 'APP_DIR=discord-bot-new'
   Write-Host 'DATA_DIR="$HOME/discord-bot-data"'
+  Write-Host 'ENV_BACKUP="$HOME/discord-bot.env"'
   Write-Host ''
   Write-Host '# Stop old bot'
   Write-Host 'pm2 delete discord-bot || true'
   Write-Host 'pkill -f "[d]iscord-bot/src/index.js" || true'
   Write-Host 'pkill -f "[d]iscord-bot-new/src/index.js" || true'
+  Write-Host ''
+  Write-Host '# Preserve the current environment file outside the replaceable app directory'
+  Write-Host 'if [ -f "$APP_DIR/.env" ]; then cp "$APP_DIR/.env" "$ENV_BACKUP"; fi'
   Write-Host ''
   Write-Host '# Preserve old persistent data if it was stored inside old app folders'
   Write-Host 'mkdir -p "$DATA_DIR"'
@@ -56,19 +69,23 @@ try {
   Write-Host 'if [ -d "$HOME/discord-bot/data" ] && [ ! -L "$HOME/discord-bot/data" ]; then cp -a "$HOME/discord-bot/data/." "$DATA_DIR/" 2>/dev/null || true; fi'
   Write-Host ''
   Write-Host '# Recreate app directory'
-  Write-Host 'if [ -d "$APP_DIR" ]; then sudo chown -R "$USER:$USER" "$APP_DIR" 2>/dev/null || true; fi'
+  Write-Host 'if [ -d "$APP_DIR" ]; then sudo chown -R "$USER:$USER" "$APP_DIR" 2>/dev/null || true; chmod -R u+rwX "$APP_DIR" 2>/dev/null || true; fi'
   Write-Host 'rm -rf "$APP_DIR" || sudo rm -rf "$APP_DIR"'
   Write-Host 'mkdir "$APP_DIR"'
   Write-Host 'tar -xzf "$ARCHIVE" -C "$APP_DIR"'
   Write-Host 'cd "$APP_DIR"'
   Write-Host ''
+  Write-Host '# Seed the persistent leaderboard cache only when the VM has no saved copy'
+  Write-Host 'if [ -f data/tetrio-league-cache.json ] && [ ! -f "$DATA_DIR/tetrio-league-cache.json" ]; then cp data/tetrio-league-cache.json "$DATA_DIR/"; fi'
+  Write-Host ''
   Write-Host '# Link persistent data directory'
   Write-Host 'rm -rf data'
   Write-Host 'ln -sfn "$DATA_DIR" data'
+  Write-Host 'export TETRIO_LEAGUE_DATA_DIR="$DATA_DIR"'
   Write-Host ''
   Write-Host '# Copy existing .env if needed'
+  Write-Host 'if [ ! -f .env ] && [ -f "$ENV_BACKUP" ]; then cp "$ENV_BACKUP" .env; fi'
   Write-Host 'if [ ! -f .env ] && [ -f "$HOME/discord-bot/.env" ]; then cp "$HOME/discord-bot/.env" .env; fi'
-  Write-Host 'if [ ! -f .env ] && [ -f "$HOME/discord-bot-new/.env" ]; then cp "$HOME/discord-bot-new/.env" .env; fi'
   Write-Host '# If .env still does not exist, create it with: nano .env'
   Write-Host ''
   Write-Host '# Install system packages'
@@ -89,7 +106,7 @@ try {
   Write-Host 'npm run register'
   Write-Host ''
   Write-Host '# Start bot'
-  Write-Host 'pm2 start ecosystem.config.cjs --name discord-bot --update-env'
+  Write-Host 'TETRIO_LEAGUE_DATA_DIR="$DATA_DIR" pm2 start ecosystem.config.cjs --name discord-bot --update-env'
   Write-Host 'pm2 save'
   Write-Host 'pm2 status'
   Write-Host 'sleep 3'

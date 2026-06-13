@@ -14,11 +14,11 @@ import {
 } from './tetrio-font.js';
 
 const bannedAvatarPath = fileURLToPath(new URL('../assets/avatar-banned.png', import.meta.url));
-const defaultAvatarPath = fileURLToPath(new URL('../assets/avatar-default.png', import.meta.url));
 const headerOverlayPath = fileURLToPath(new URL('../assets/about-header-overlay.png', import.meta.url));
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
 const tetrioContentBaseUrl = 'https://tetr.io/user-content';
 const tetrioGameBaseUrl = 'https://tetr.io';
+const tetrioDefaultAvatarUrl = `${tetrioGameBaseUrl}/res/avatar.png`;
 const twemojiBaseUrl = 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72';
 const cardFontFamily = tetrioFontFamily;
 const bioFontFamily = '"Noto Sans CJK KR", "Noto Sans KR", "Noto Sans CJK JP", "Noto Sans JP", sans-serif';
@@ -255,7 +255,7 @@ async function fetchTetrioAssets(user, summaries) {
   const isBanned = isBannedTetrioUser(user);
   const avatarUrl = user.avatar_revision
     ? `${tetrioContentBaseUrl}/avatars/${user._id}.jpg?rv=${user.avatar_revision}`
-    : null;
+    : tetrioDefaultAvatarUrl;
   const bannerUrl = user.supporter && user.banner_revision
     ? `${tetrioContentBaseUrl}/banners/${user._id}.jpg?rv=${user.banner_revision}`
     : null;
@@ -269,9 +269,13 @@ async function fetchTetrioAssets(user, summaries) {
     ? summaries.league.rank
     : null;
   const uniqueBadges = getUniqueBadges(badges);
- const [avatar, defaultAvatar, banner, flag, badgeIconEntries, featuredAchievementAssets, leagueRankIcon, hunFont, headerOverlay] = await Promise.all([
-    isBanned ? fetchBannedAvatarDataUri() : fetchImageDataUri(avatarUrl),
-    isBanned ? null : fetchDefaultAvatarDataUri(),
+  const avatarPromise = isBanned
+    ? fetchBannedAvatarDataUri()
+    : user.avatar_revision
+      ? fetchImageDataUri(avatarUrl)
+      : fetchDefaultAvatarDataUri();
+  const [avatar, banner, flag, badgeIconEntries, featuredAchievementAssets, leagueRankIcon, hunFont, headerOverlay] = await Promise.all([
+    avatarPromise,
     fetchImageDataUri(bannerUrl),
     fetchImageDataUri(flagUrl),
     Promise.all(uniqueBadges.map(async (badge) => [
@@ -288,7 +292,7 @@ async function fetchTetrioAssets(user, summaries) {
   ]);
 
   return {
-    avatar: avatar ?? defaultAvatar,
+    avatar,
     banner,
     flag,
     badgeIcons: Object.fromEntries(badgeIconEntries),
@@ -608,7 +612,13 @@ function fetchBannedAvatarDataUri() {
 }
 
 function fetchDefaultAvatarDataUri() {
-  defaultAvatarDataUriPromise ??= readLocalImageDataUri(defaultAvatarPath, 'image/png');
+  defaultAvatarDataUriPromise ??= fetchImageDataUri(tetrioDefaultAvatarUrl)
+    .then((dataUri) => {
+      if (!dataUri) {
+        defaultAvatarDataUriPromise = null;
+      }
+      return dataUri;
+    });
   return defaultAvatarDataUriPromise;
 }
 

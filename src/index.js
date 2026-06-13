@@ -48,7 +48,7 @@ import {
 import {
   createTetrioLeaderboardCard,
   getTetrioLeagueRefreshStatus,
-  loadTetrioLeagueCache,
+  initializeTetrioLeagueCache,
   parseTetrioLeaderboardCommand,
   refreshTetrioLeagueCache,
 } from './tetrio-league-leaderboard.js';
@@ -600,7 +600,11 @@ if (interaction.commandName === '일일퍼즐') {
   }
 });
 
-await loadTetrioLeagueCache();
+await initializeTetrioLeagueCache({
+  onProgress: ({ page, users, lastUsername }) => {
+    console.log(`[TETR.IO LB] auto page=${page} users=${users} last=${lastUsername}`);
+  },
+});
 
 client.login(DISCORD_TOKEN).catch((error) => {
   console.error('Failed to login to Discord:');

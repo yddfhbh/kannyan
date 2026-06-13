@@ -1,3 +1,6 @@
+const os = require('node:os');
+const path = require('node:path');
+
 const linuxFontconfigEnv = process.platform === 'linux'
   ? {
       FONTCONFIG_PATH: '/etc/fonts',
@@ -18,6 +21,8 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: '8080',
+        TETRIO_LEAGUE_DATA_DIR: process.env.TETRIO_LEAGUE_DATA_DIR
+          || path.join(os.homedir(), 'discord-bot-data'),
         ...linuxFontconfigEnv,
       },
     },
