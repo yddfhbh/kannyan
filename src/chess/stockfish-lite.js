@@ -76,7 +76,7 @@ let analysisQueue = Promise.resolve();
 async function getSharedEngine() {
   if (!sharedEnginePromise) {
     sharedEnginePromise = (async () => {
-      const engine = await createStockfish('lite-single');
+      const engine = await stockfish();
       const reader = createEngineLineReader(engine);
 
       const uciReady = reader.waitFor('uciok');
