@@ -1,5 +1,6 @@
 import { Chess } from 'chess.js';
 import { createStockfishExplanationContext } from './chess-explanation.js';
+import { validateAnalyzableChessFen } from './chess-fen-validation.js';
 import { analyzeFenWithStockfish } from './stockfish-lite.js';
 
 function normalizeBoardFen(boardFen, turn) {
@@ -15,7 +16,7 @@ function normalizeBoardFen(boardFen, turn) {
     throw new Error('Recognized chessboard must contain exactly one king per side');
   }
 
-  return fen;
+  return validateAnalyzableChessFen(fen, normalizedTurn);
 }
 
 function formatAnalyzedMove(turn, result) {

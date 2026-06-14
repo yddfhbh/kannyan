@@ -48,6 +48,7 @@ import {
 import {
   handleChessAnalysisMessage,
   normalizeDirectFen,
+  parseChessImageAnalysisPrompt,
 } from './chess/chess-analysis-command.js';
 import { createChessImageAnalysisContext } from './chess/chess-image-analysis.js';
 import { createStockfishExplanationContext } from './chess/chess-explanation.js';
@@ -548,11 +549,18 @@ async function recognizeChessFenWithGemini({ message, turn }) {
   return normalizeDirectFen(`${boardFen} ${sideToMove} - - 0 1`);
 }
 
-async function recognizeChessPositionForConversation(imageParts) {
+async function recognizeChessPositionForConversation(imageParts, options = {}) {
   if (imageParts.length === 0) {
     return null;
   }
 
+  const retryInstruction = options.retry
+    ? [
+        'A previous pass did not produce a usable position.',
+        'Inspect the image again from scratch and locate a chessboard even when it occupies only part of a browser or video screenshot.',
+        'Pay special attention to visible file/rank labels and boards displayed from Black side.',
+      ].join('\n')
+    : '';
   const response = await fetchGeminiGenerateContent({
     system_instruction: {
       parts: [{
@@ -560,7 +568,9 @@ async function recognizeChessPositionForConversation(imageParts) {
           'You inspect images for a real 8x8 chessboard and transcribe positions exactly.',
           'Return JSON only and never explain your reasoning.',
           'Ignore video panels, people, titles, borders, ratings, and other UI outside the board.',
+          'A readable board may occupy only part of a larger browser, stream, or puzzle screenshot.',
           'Use visible coordinates to normalize the board into standard FEN order a8 through h1.',
+          'When the board is displayed from Black side, reverse the visual orientation while normalizing it.',
           'Do not infer side to move from board orientation alone.',
           'Set turn only when an active-clock marker, explicit UI label, or equally reliable visual indicator makes it clear.',
         ].join('\n'),
@@ -578,7 +588,8 @@ async function recognizeChessPositionForConversation(imageParts) {
             'BOARD must be only the FEN piece-placement field, with uppercase White pieces and lowercase Black pieces.',
             'turn must be "w", "b", or "" when the side to move cannot be known reliably from the image.',
             'When isChessboard is false or the position is unreadable, return {"isChessboard":false,"fen":"","turn":""}.',
-          ].join('\n'),
+            retryInstruction,
+          ].filter(Boolean).join('\n'),
         },
         imageParts[0],
       ],
@@ -604,15 +615,41 @@ async function recognizeChessPositionForConversation(imageParts) {
   };
 }
 
-async function getChessImageAnalysisContext(imageParts) {
-  try {
-    const recognition = await recognizeChessPositionForConversation(imageParts);
-    return await createChessImageAnalysisContext(recognition);
-  } catch (error) {
-    console.error('Failed to enrich Gemini image response with Stockfish:');
-    console.error(error);
-    return '';
+async function getChessImageAnalysisContext(imageParts, options = {}) {
+  let detectedChessboard = false;
+  let lastError = null;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (attempt > 0 && !options.retry && !detectedChessboard) {
+      break;
+    }
+
+    try {
+      const recognition = await recognizeChessPositionForConversation(imageParts, {
+        retry: attempt > 0,
+      });
+      detectedChessboard ||= recognition?.isChessboard === true;
+      const context = await createChessImageAnalysisContext(recognition);
+      if (context) {
+        return {
+          context,
+          detectedChessboard: true,
+        };
+      }
+    } catch (error) {
+      lastError = error;
+    }
   }
+
+  if (lastError) {
+    console.error('Failed to enrich Gemini image response with Stockfish:');
+    console.error(lastError);
+  }
+
+  return {
+    context: '',
+    detectedChessboard,
+  };
 }
 
 async function createNaturalChessAnalysisReply({ message, fen, result }) {
@@ -2136,6 +2173,9 @@ function extractFirstUnicodeEmoji(text) {
 
 async function handleGeminiFallbackMessage(message, options = {}) {
   let rawPrompt = options.forcedPrompt ?? parseGeminiFallbackPrompt(message.content);
+  let prioritizeChessImageAnalysis = Boolean(
+    parseChessImageAnalysisPrompt(message.content)
+  );
   let referencedMessagesPromise;
   const getReferencedMessages = () => {
     if (!referencedMessagesPromise) {
@@ -2173,6 +2213,7 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     }
 
     rawPrompt = '이 사진을 보고 자연스럽게 설명해줘';
+    prioritizeChessImageAnalysis = true;
   }
 
   const prompt = normalizeDiscordTextForGemini(message, rawPrompt);
@@ -2236,10 +2277,23 @@ async function handleGeminiFallbackMessage(message, options = {}) {
 
     // 여기 추가: 현재 메시지/답장한 메시지에 있는 이미지들을 Gemini에 보낼 준비
     const imageParts = await getGeminiImageParts(message, referencedMessages);
-    const chessAnalysisContext = await getChessImageAnalysisContext(imageParts);
-    const answerPrompt = chessAnalysisContext
-      ? `${prompt}\n\n${chessAnalysisContext}`
-      : prompt;
+    const chessAnalysis = await getChessImageAnalysisContext(imageParts, {
+      retry: prioritizeChessImageAnalysis,
+    });
+    const requireStockfishForChess = prioritizeChessImageAnalysis
+      || chessAnalysis.detectedChessboard;
+    const answerPrompt = chessAnalysis.context
+      ? `${prompt}\n\n${chessAnalysis.context}`
+      : requireStockfishForChess
+        ? [
+            prompt,
+            '',
+            '[체스 이미지 응답 규칙]',
+            '이미지가 체스판이라면 검증 가능한 FEN을 얻지 못해 Stockfish를 실행하지 못한 상태다.',
+            '이 경우 최선 수나 예상 수순을 추측해서 만들지 말고, 체스판 판독에 실패했다고 짧게 알려라.',
+            '이미지가 체스판이 아니라면 이 규칙을 무시하고 원래 요청에 답하라.',
+          ].join('\n')
+        : prompt;
 
     const answerResult = await generateGeminiAnswer(answerPrompt, {
       history,

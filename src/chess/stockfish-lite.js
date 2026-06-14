@@ -196,7 +196,7 @@ export function convertPrincipalVariationToSan(fen, uciMoves, maxPlies = 8) {
 
 export async function analyzeFenWithStockfish(fen, options = {}) {
   const chess = new Chess(fen);
-  if (chess.isGameOver()) {
+  if (chess.moves().length === 0) {
     return {
       bestMove: '',
       san: '(none)',

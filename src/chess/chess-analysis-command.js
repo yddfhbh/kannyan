@@ -6,6 +6,7 @@ import {
   getMessageChainAttachments,
   resolveReferencedMessageChain,
 } from '../discord-message-context.js';
+import { validateAnalyzableChessFen } from './chess-fen-validation.js';
 import { imageToFen } from './chess-image-reader.js';
 import { analyzeFenWithStockfish } from './stockfish-lite.js';
 
@@ -128,20 +129,22 @@ export async function handleChessAnalysisMessage(message, options = {}) {
 
   try {
     temporaryImage = await downloadChessImageAttachment(attachment);
-    fen = await (options.imageToFen ?? imageToFen)(
+    const recognizedFen = await (options.imageToFen ?? imageToFen)(
       temporaryImage.filePath,
       prompt.turn
     );
+    fen = validateAnalyzableChessFen(recognizedFen, prompt.turn);
   } catch (error) {
     console.error('Primary chess image recognition failed:');
     console.error(error);
 
     if (options.recognizeFenFallback) {
       try {
-        fen = await options.recognizeFenFallback({
+        const fallbackFen = await options.recognizeFenFallback({
           message,
           turn: prompt.turn,
         });
+        fen = validateAnalyzableChessFen(fallbackFen, prompt.turn);
       } catch (fallbackError) {
         console.error('Gemini chess image recognition fallback failed:');
         console.error(fallbackError);
