@@ -1,3 +1,6 @@
+import { spawn } from 'node:child_process';
+import { Chess } from 'chess.js';
+
 const STOCKFISH_PATH = process.env.STOCKFISH_PATH || '/usr/games/stockfish';
 const STOCKFISH_THREADS = Math.max(1, Number(process.env.STOCKFISH_THREADS) || 1);
 const STOCKFISH_HASH_MB = Math.max(1, Number(process.env.STOCKFISH_HASH_MB) || 16);
