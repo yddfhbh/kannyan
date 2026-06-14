@@ -45,7 +45,10 @@ import {
   handleDailyPuzzleSetInteraction,
   initDailyChessPuzzle,
 } from './daily-chess-puzzle.js';
-import { handleChessAnalysisMessage } from './chess/chess-analysis-command.js';
+import {
+  handleChessAnalysisMessage,
+  normalizeDirectFen,
+} from './chess/chess-analysis-command.js';
 import {
   createTetrioLeaderboardCard,
   getTetrioLeagueRefreshStatus,
@@ -374,7 +377,10 @@ client.on(Events.MessageCreate, async (message) => {
     return;
   }
 
-  const chessAnalysisHandled = await handleChessAnalysisMessage(message);
+  const chessAnalysisHandled = await handleChessAnalysisMessage(message, {
+    createReply: createNaturalChessAnalysisReply,
+    recognizeFenFallback: recognizeChessFenWithGemini,
+  });
   if (chessAnalysisHandled) {
     return;
   }
@@ -475,6 +481,103 @@ function isDirectBotMention(message) {
   }
 
   return new RegExp(`^<@!?${botUserId}>$`).test(message.content.trim());
+}
+
+async function recognizeChessFenWithGemini({ message, turn }) {
+  if (geminiApiKeys.length === 0) {
+    return null;
+  }
+
+  const imageParts = await getGeminiImageParts(message);
+  if (imageParts.length === 0) {
+    return null;
+  }
+
+  const sideToMove = turn === 'b' ? 'b' : 'w';
+  const response = await fetchGeminiGenerateContent({
+    system_instruction: {
+      parts: [{
+        text: [
+          'You transcribe chessboard images exactly.',
+          'Return JSON only and never explain your reasoning.',
+          'Use visible coordinate labels to resolve orientation.',
+          'If the board is shown from Black side, reverse square positions into standard FEN order a8 through h1.',
+          'Ignore titles, borders, ratings, and UI outside the 8x8 board.',
+        ].join('\n'),
+      }],
+    },
+    contents: [{
+      role: 'user',
+      parts: [
+        {
+          text: [
+            'Read every piece from this chessboard image.',
+            `The side to move is ${sideToMove === 'w' ? 'White' : 'Black'}.`,
+            'Return exactly: {"fen":"BOARD"}',
+            'BOARD must contain only the standard FEN piece-placement field.',
+            'Use uppercase pieces for White and lowercase pieces for Black.',
+            'If the board cannot be read reliably, return {"fen":""}.',
+          ].join('\n'),
+        },
+        ...imageParts.slice(0, 1),
+      ],
+    }],
+    generationConfig: {
+      maxOutputTokens: 160,
+      temperature: 0,
+      topP: 0.1,
+      responseMimeType: 'application/json',
+    },
+  }, {
+    models: geminiVisionModels,
+  });
+
+  const parsed = parseJsonObjectText(extractGeminiResponseText(response));
+  const boardFen = String(parsed?.fen ?? '').trim().split(/\s+/)[0];
+  if (!boardFen) {
+    return null;
+  }
+
+  return normalizeDirectFen(`${boardFen} ${sideToMove} - - 0 1`);
+}
+
+async function createNaturalChessAnalysisReply({ message, fen, result }) {
+  if (
+    geminiApiKeys.length === 0
+    || !result.bestMove
+    || result.bestMove === '(none)'
+    || !result.san
+  ) {
+    return '';
+  }
+
+  const mateText = result.san.includes('#')
+    ? '이 수는 즉시 체크메이트다.'
+    : result.score?.type === 'mate'
+      ? 'Stockfish가 강제 메이트 수순을 보고 있다.'
+      : '체크메이트 표시는 없다.';
+  const prompt = [
+    'Stockfish로 체스 이미지 분석을 마쳤다.',
+    '아래 도구 결과는 확정된 사실이므로 수를 바꾸거나 다시 계산하지 마라.',
+    `현재 포지션 FEN(설명 참고용이며 출력 금지): ${fen}`,
+    `최선 수 SAN: ${result.san}`,
+    `최선 수 UCI(설명 참고용이며 출력 금지): ${result.bestMove}`,
+    `참고: ${mateText}`,
+    '',
+    '[출력 규칙]',
+    `최종 답변에 최선 수 \`${result.san}\`를 철자와 기호까지 정확히 한 번 이상 포함한다.`,
+    '사용자에게 바로 답하는 자연스러운 한국어 1~2문장만 출력한다.',
+    '제목, 목록, FEN, UCI, 평가 수치, 탐색 깊이, 분석 보고서는 출력하지 않는다.',
+    '왜 좋은 수인지 확실한 범위에서 아주 짧게 덧붙여도 된다.',
+    `사용자 원문: ${String(message.content ?? '').trim()}`,
+  ].join('\n');
+
+  const answerResult = await generateGeminiAnswer(prompt, {
+    currentUserContext: getGeminiCurrentUserContext(message),
+  });
+  const answer = String(answerResult.answer ?? '').trim();
+
+  return answer.includes(result.san) ? answer : '';
 }
 
 async function handlePercentPermanentMemoryMessage(message) {

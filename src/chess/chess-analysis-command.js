@@ -57,7 +57,15 @@ export function normalizeDirectFen(input) {
     throw new Error('FEN must contain 4 or 6 fields');
   }
 
-  new Chess(fen);
+  const chess = new Chess(fen);
+  const pieces = chess.board().flat().filter(Boolean);
+  const whiteKings = pieces.filter((piece) => piece.type === 'k' && piece.color === 'w').length;
+  const blackKings = pieces.filter((piece) => piece.type === 'k' && piece.color === 'b').length;
+
+  if (whiteKings !== 1 || blackKings !== 1) {
+    throw new Error('FEN must contain exactly one king per side');
+  }
+
   return fen;
 }
 
@@ -86,7 +94,7 @@ export async function handleChessAnalysisMessage(message, options = {}) {
 
     await analyzeAndReply(message, fen, {
       analyzeFen: options.analyzeFen,
-      title: 'FEN 분석',
+      createReply: options.createReply,
     });
     return true;
   }
@@ -125,17 +133,32 @@ export async function handleChessAnalysisMessage(message, options = {}) {
       prompt.turn ?? 'w'
     );
   } catch (error) {
-    if (!prompt.explicitChess) {
-      return false;
+    console.error('Primary chess image recognition failed:');
+    console.error(error);
+
+    if (options.recognizeFenFallback) {
+      try {
+        fen = await options.recognizeFenFallback({
+          message,
+          turn: prompt.turn ?? 'w',
+        });
+      } catch (fallbackError) {
+        console.error('Gemini chess image recognition fallback failed:');
+        console.error(fallbackError);
+      }
     }
 
-    console.error('Failed to recognize chess position from image:');
-    console.error(error);
-    await replyWithoutPing(
-      message,
-      '이미지에서 체스판을 인식하지 못했다냥. FEN을 직접 `%fen <FEN>` 형식으로 입력해달라냥.'
-    );
-    return true;
+    if (fen) {
+      // Continue to Stockfish with the validated vision fallback FEN.
+    } else if (!prompt.explicitChess) {
+      return false;
+    } else {
+      await replyWithoutPing(
+        message,
+        '이미지에서 체스판을 인식하지 못했다냥. FEN을 직접 `%fen <FEN>` 형식으로 입력해달라냥.'
+      );
+      return true;
+    }
   } finally {
     await temporaryImage?.cleanup();
   }
@@ -150,7 +173,7 @@ export async function handleChessAnalysisMessage(message, options = {}) {
 
   await analyzeAndReply(message, fen, {
     analyzeFen: options.analyzeFen,
-    title: '체스 이미지 분석',
+    createReply: options.createReply,
   });
   return true;
 }
@@ -165,10 +188,21 @@ async function analyzeAndReply(message, fen, options = {}) {
       ),
     });
 
-    await replyWithoutPing(
-      message,
-      formatChessAnalysisResult(fen, result, options.title)
-    );
+    let responseText = '';
+    if (options.createReply) {
+      try {
+        responseText = await options.createReply({
+          message,
+          fen,
+          result,
+        });
+      } catch (error) {
+        console.error('Failed to generate natural chess analysis reply:');
+        console.error(error);
+      }
+    }
+
+    await replyWithoutPing(message, responseText || formatChessAnalysisResult(fen, result));
   } catch (error) {
     console.error(`Failed to analyze chess FEN ${fen}:`);
     console.error(error);
@@ -179,39 +213,16 @@ async function analyzeAndReply(message, fen, options = {}) {
   }
 }
 
-export function formatChessAnalysisResult(fen, result, title = '체스 분석') {
-  const bestMove = result.bestMove && result.bestMove !== '(none)'
-    ? `**${result.san}** (\`${result.bestMove}\`)`
-    : '둘 수 있는 수가 없다냥.';
-  const lines = [
-    `**${title}**`,
-    `FEN: \`${fen}\``,
-    `최선 수: ${bestMove}`,
-  ];
-
-  const score = formatStockfishScore(result.score);
-  if (score) {
-    lines.push(`평가: \`${score}\` (현재 차례 기준)`);
+export function formatChessAnalysisResult(_fen, result) {
+  if (!result.bestMove || result.bestMove === '(none)') {
+    return '이미 끝난 포지션이라 둘 수 있는 수가 없다냥.';
   }
 
-  if (result.depth) {
-    lines.push(`탐색 깊이: \`${result.depth}\``);
+  if (result.san?.includes('#')) {
+    return `최선 수는 **${result.san}**다냥! 바로 체크메이트다냥.`;
   }
 
-  return lines.join('\n');
-}
-
-function formatStockfishScore(score) {
-  if (!score) {
-    return '';
-  }
-
-  if (score.type === 'mate') {
-    return score.value < 0 ? `-M${Math.abs(score.value)}` : `+M${score.value}`;
-  }
-
-  const pawns = score.value / 100;
-  return `${pawns >= 0 ? '+' : ''}${pawns.toFixed(2)}`;
+  return `최선 수는 **${result.san}**다냥.`;
 }
 
 async function resolveChessImageAttachment(message) {
