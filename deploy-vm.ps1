@@ -10,6 +10,7 @@ $includePaths = @(
   "scripts",
   "package.json",
   "package-lock.json",
+  "requirements-chess.txt",
   "ecosystem.config.cjs",
   ".env.example",
   "VM_DEPLOY.md",
@@ -53,6 +54,7 @@ try {
   Write-Host 'ARCHIVE=discord-bot-vm.tar.gz'
   Write-Host 'APP_DIR=discord-bot-new'
   Write-Host 'DATA_DIR="$HOME/discord-bot-data"'
+  Write-Host 'CHESS_VENV="$HOME/discord-bot-chess-venv"'
   Write-Host 'ENV_BACKUP="$HOME/discord-bot.env"'
   Write-Host ''
   Write-Host '# Stop old bot'
@@ -90,12 +92,19 @@ try {
   Write-Host ''
   Write-Host '# Install system packages'
   Write-Host 'sudo apt update'
-  Write-Host 'sudo apt install -y curl zstd fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-extra fonts-noto-cjk'
+  Write-Host 'sudo apt install -y curl zstd fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-extra fonts-noto-cjk python3 python3-pip python3-venv'
   Write-Host 'sudo fc-cache -f'
   Write-Host 'fc-match "Noto Sans CJK KR" || true'
   Write-Host ''
   Write-Host '# Install node dependencies'
   Write-Host 'npm ci --omit=dev'
+  Write-Host ''
+  Write-Host '# Install chess image recognition dependencies'
+  Write-Host 'python3 -m venv "$CHESS_VENV"'
+  Write-Host '"$CHESS_VENV/bin/pip" install --upgrade pip'
+  Write-Host '"$CHESS_VENV/bin/pip" install --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple torch torchvision'
+  Write-Host '"$CHESS_VENV/bin/pip" install -r requirements-chess.txt'
+  Write-Host 'export CHESS_IMAGE_PYTHON="$CHESS_VENV/bin/python"'
   Write-Host ''
   Write-Host '# Build Lichess puzzle pool if missing'
   Write-Host 'if [ ! -f data/lichess_db_puzzle.csv.zst ]; then curl -L https://database.lichess.org/lichess_db_puzzle.csv.zst -o data/lichess_db_puzzle.csv.zst; fi'
@@ -106,7 +115,7 @@ try {
   Write-Host 'npm run register'
   Write-Host ''
   Write-Host '# Start bot'
-  Write-Host 'TETRIO_LEAGUE_DATA_DIR="$DATA_DIR" pm2 start ecosystem.config.cjs --name discord-bot --update-env'
+  Write-Host 'TETRIO_LEAGUE_DATA_DIR="$DATA_DIR" CHESS_IMAGE_PYTHON="$CHESS_VENV/bin/python" pm2 start ecosystem.config.cjs --name discord-bot --update-env'
   Write-Host 'pm2 save'
   Write-Host 'pm2 status'
   Write-Host 'sleep 3'

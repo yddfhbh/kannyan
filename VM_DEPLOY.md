@@ -65,6 +65,14 @@ If `sudo` is not allowed, ask the VM owner/admin to install those packages. With
 
 ```bash
 npm ci --omit=dev
+sudo apt install -y python3 python3-pip python3-venv
+python3 -m venv "$HOME/discord-bot-chess-venv"
+"$HOME/discord-bot-chess-venv/bin/pip" install --upgrade pip
+"$HOME/discord-bot-chess-venv/bin/pip" install \
+  --index-url https://download.pytorch.org/whl/cpu \
+  --extra-index-url https://pypi.org/simple \
+  torch torchvision
+"$HOME/discord-bot-chess-venv/bin/pip" install -r requirements-chess.txt
 ```
 
 ## 5. Create `.env`
@@ -84,6 +92,7 @@ GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 GEMINI_MODEL=gemini-3.5-flash
 GEMINI_FALLBACK_MODELS=gemini-2.5-flash,gemini-2.5-flash-lite
 GUILD_ID=1219197226572840990
+CHESS_IMAGE_PYTHON=/home/YOUR_USER/discord-bot-chess-venv/bin/python
 ```
 
 Save with `Ctrl+O`, press `Enter`, then exit with `Ctrl+X`.
