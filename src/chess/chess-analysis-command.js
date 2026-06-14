@@ -31,12 +31,13 @@ export function parseChessImageAnalysisPrompt(content) {
   }
 
   const prompt = text.slice(1).trim();
-  if (!solveIntentPattern.test(prompt)) {
-    return null;
-  }
-
   const white = whiteTurnPattern.test(prompt);
   const black = blackTurnPattern.test(prompt);
+  const hasSolveIntent = solveIntentPattern.test(prompt);
+
+  if (!hasSolveIntent && !white && !black) {
+    return null;
+  }
 
   return {
     turn: white === black ? null : white ? 'w' : 'b',
