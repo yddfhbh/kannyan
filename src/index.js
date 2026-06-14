@@ -68,6 +68,10 @@ import {
   permanentMemoryMaxTextLength,
   PermanentMemoryStore,
 } from './gemini-permanent-memory.js';
+import {
+  getMessageChainAttachments,
+  resolveReferencedMessageChain,
+} from './discord-message-context.js';
 
 
 const execFileAsync = promisify(execFile);
@@ -2132,6 +2136,21 @@ function extractFirstUnicodeEmoji(text) {
 
 async function handleGeminiFallbackMessage(message, options = {}) {
   let rawPrompt = options.forcedPrompt ?? parseGeminiFallbackPrompt(message.content);
+  let referencedMessagesPromise;
+  const getReferencedMessages = () => {
+    if (!referencedMessagesPromise) {
+      referencedMessagesPromise = resolveReferencedMessageChain(message, {
+        onError(error, sourceMessage) {
+          console.error(
+            `Failed to fetch referenced message ${sourceMessage.reference?.messageId}:`
+          );
+          console.error(error);
+        },
+      });
+    }
+
+    return referencedMessagesPromise;
+  };
 
   // %만 보내고 이미지가 첨부됐거나, 이미지 메시지에 답장한 경우
   if (!rawPrompt) {
@@ -2145,18 +2164,9 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     const hasDirectImage = [...message.attachments.values()]
       .some(isGeminiSupportedImageAttachment);
 
-    let hasReplyImage = false;
-
-    if (message.reference?.messageId) {
-      try {
-        const referencedMessage = await message.fetchReference();
-        hasReplyImage = [...referencedMessage.attachments.values()]
-          .some(isGeminiSupportedImageAttachment);
-      } catch (error) {
-        console.error(`Failed to check referenced image ${message.reference.messageId}:`);
-        console.error(error);
-      }
-    }
+    const referencedMessages = await getReferencedMessages();
+    const hasReplyImage = getMessageChainAttachments(null, referencedMessages)
+      .some(isGeminiSupportedImageAttachment);
 
     if (!hasDirectImage && !hasReplyImage) {
       return false;
@@ -2203,7 +2213,11 @@ async function handleGeminiFallbackMessage(message, options = {}) {
 
     const sessionKey = getGeminiSessionKey(message);
     const history = getGeminiSessionHistory(sessionKey);
-    const replyContext = await getGeminiReplyContext(message);
+    const referencedMessages = await getReferencedMessages();
+    const replyContext = await getGeminiReplyContext(
+      message,
+      referencedMessages[0] ?? null
+    );
     const permanentMemoryScope = createPermanentMemoryScope(message.guildId, message.author.id);
     const permanentMemoryQuery = [
       rawPrompt,
@@ -2221,7 +2235,7 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     );
 
     // 여기 추가: 현재 메시지/답장한 메시지에 있는 이미지들을 Gemini에 보낼 준비
-    const imageParts = await getGeminiImageParts(message);
+    const imageParts = await getGeminiImageParts(message, referencedMessages);
     const chessAnalysisContext = await getChessImageAnalysisContext(imageParts);
     const answerPrompt = chessAnalysisContext
       ? `${prompt}\n\n${chessAnalysisContext}`
@@ -2627,13 +2641,15 @@ function appendGeminiMemoryEntry(sessionKey, entry) {
   );
 }
 
-async function getGeminiReplyContext(message) {
+async function getGeminiReplyContext(message, resolvedReferencedMessage = undefined) {
   if (!message.reference?.messageId) {
     return null;
   }
 
   try {
-    const referencedMessage = await message.fetchReference();
+    const referencedMessage = resolvedReferencedMessage === undefined
+      ? (await resolveReferencedMessageChain(message, { maxDepth: 1 }))[0]
+      : resolvedReferencedMessage;
 
     if (!referencedMessage) {
       return null;
@@ -2671,23 +2687,18 @@ async function getGeminiReplyContext(message) {
   }
 }
 
-async function getGeminiImageParts(message) {
-  const messages = [message];
-
-  if (message.reference?.messageId) {
-    try {
-      const referencedMessage = await message.fetchReference();
-      if (referencedMessage) {
-        messages.push(referencedMessage);
-      }
-    } catch (error) {
-      console.error(`Failed to fetch referenced message images ${message.reference.messageId}:`);
-      console.error(error);
-    }
-  }
-
-  const imageAttachments = messages
-    .flatMap((targetMessage) => [...targetMessage.attachments.values()])
+async function getGeminiImageParts(message, resolvedReferencedMessages = undefined) {
+  const referencedMessages = resolvedReferencedMessages ?? (
+    await resolveReferencedMessageChain(message, {
+      onError(error, sourceMessage) {
+        console.error(
+          `Failed to fetch referenced message images ${sourceMessage.reference?.messageId}:`
+        );
+        console.error(error);
+      },
+    })
+  );
+  const imageAttachments = getMessageChainAttachments(message, referencedMessages)
     .filter(isGeminiSupportedImageAttachment)
     .slice(0, 4);
 

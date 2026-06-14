@@ -2,6 +2,10 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { Chess } from 'chess.js';
+import {
+  getMessageChainAttachments,
+  resolveReferencedMessageChain,
+} from '../discord-message-context.js';
 import { imageToFen } from './chess-image-reader.js';
 import { analyzeFenWithStockfish } from './stockfish-lite.js';
 
@@ -214,25 +218,17 @@ export function formatChessAnalysisResult(_fen, result) {
 }
 
 async function resolveChessImageAttachment(message) {
-  const directAttachment = [...message.attachments.values()]
-    .find(isSupportedChessImageAttachment);
-  if (directAttachment) {
-    return directAttachment;
-  }
+  const referencedMessages = await resolveReferencedMessageChain(message, {
+    onError(error, sourceMessage) {
+      console.error(
+        `Failed to fetch referenced chess image ${sourceMessage.reference?.messageId}:`
+      );
+      console.error(error);
+    },
+  });
 
-  if (!message.reference?.messageId) {
-    return null;
-  }
-
-  try {
-    const referencedMessage = await message.fetchReference();
-    return [...referencedMessage.attachments.values()]
-      .find(isSupportedChessImageAttachment) ?? null;
-  } catch (error) {
-    console.error(`Failed to fetch referenced chess image ${message.reference.messageId}:`);
-    console.error(error);
-    return null;
-  }
+  return getMessageChainAttachments(message, referencedMessages)
+    .find(isSupportedChessImageAttachment) ?? null;
 }
 
 function isSupportedChessImageAttachment(attachment) {
