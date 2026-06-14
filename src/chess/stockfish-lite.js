@@ -1,7 +1,3 @@
-cd ~/discord-bot-new
-
-cp src/chess/stockfish-lite.js src/chess/stockfish-lite.js.bak.$(date +%Y%m%d-%H%M%S)
-
 cat > src/chess/stockfish-lite.js <<'EOF'
 import { spawn } from 'node:child_process';
 import { Chess } from 'chess.js';
@@ -14,41 +10,32 @@ const STOCKFISH_TIMEOUT_MS = Math.max(1000, Number(process.env.STOCKFISH_TIMEOUT
 let analysisQueue = Promise.resolve();
 
 function matchesLine(matcher, line) {
-  if (typeof matcher === 'string') {
-    return line === matcher;
-  }
-
+  if (typeof matcher === 'string') return line === matcher;
   matcher.lastIndex = 0;
   return matcher.test(line);
 }
 
-function attachLineCollector(stream, lines) {
+function collectLines(stream, lines) {
   let buffer = '';
-
   stream.setEncoding('utf8');
 
   stream.on('data', (chunk) => {
     buffer += chunk;
 
     while (true) {
-      const newlineIndex = buffer.search(/\r?\n/);
-      if (newlineIndex < 0) {
-        break;
-      }
+      const match = buffer.match(/\r?\n/);
+      if (!match) break;
 
-      const line = buffer.slice(0, newlineIndex).trim();
-      buffer = buffer.slice(buffer[newlineIndex] === '\r' && buffer[newlineIndex + 1] === '\n'
-        ? newlineIndex + 2
-        : newlineIndex + 1);
+      const index = match.index;
+      const line = buffer.slice(0, index).trim();
+      buffer = buffer.slice(index + match[0].length);
 
-      if (line) {
-        lines.push(line);
-      }
+      if (line) lines.push(line);
     }
   });
 }
 
-function waitForLine(lines, matcher, timeoutMs, getExitInfo) {
+function waitForLine(lines, matcher, timeoutMs, getExited) {
   return new Promise((resolve, reject) => {
     const startedAt = Date.now();
 
@@ -60,10 +47,10 @@ function waitForLine(lines, matcher, timeoutMs, getExitInfo) {
         return;
       }
 
-      const exitInfo = getExitInfo?.();
-      if (exitInfo?.exited) {
+      const exited = getExited();
+      if (exited) {
         clearInterval(timer);
-        reject(new Error(`Stockfish exited before ${matcher}: code=${exitInfo.code} signal=${exitInfo.signal}`));
+        reject(new Error(`Stockfish exited before ${matcher}: code=${exited.code} signal=${exited.signal}`));
         return;
       }
 
@@ -76,9 +63,7 @@ function waitForLine(lines, matcher, timeoutMs, getExitInfo) {
 }
 
 function uciToSan(fen, uci) {
-  if (!uci || uci === '(none)') {
-    return '(none)';
-  }
+  if (!uci || uci === '(none)') return '(none)';
 
   const chess = new Chess(fen);
   const moveInput = {
@@ -86,9 +71,7 @@ function uciToSan(fen, uci) {
     to: uci.slice(2, 4),
   };
 
-  if (uci[4]) {
-    moveInput.promotion = uci[4];
-  }
+  if (uci[4]) moveInput.promotion = uci[4];
 
   const move = chess.move(moveInput);
   return move?.san ?? uci;
@@ -96,9 +79,7 @@ function uciToSan(fen, uci) {
 
 function parseScore(infoLine) {
   const match = infoLine?.match(/\bscore\s+(cp|mate)\s+(-?\d+)/);
-  if (!match) {
-    return null;
-  }
+  if (!match) return null;
 
   return {
     type: match[1],
@@ -111,8 +92,9 @@ function parseDepth(infoLine) {
   return match ? Number(match[1]) : null;
 }
 
-async function runNativeStockfishAnalysis(fen, options = {}) {
+async function runStockfish(fen, options = {}) {
   const chess = new Chess(fen);
+
   if (chess.isGameOver()) {
     return {
       bestMove: '',
@@ -139,21 +121,19 @@ async function runNativeStockfishAnalysis(fen, options = {}) {
       : null;
 
   const lines = [];
-  const errorLines = [];
-  let exitInfo = null;
+  const errLines = [];
+  let exited = null;
 
   const child = spawn(STOCKFISH_PATH, [], {
     stdio: ['pipe', 'pipe', 'pipe'],
   });
 
-  attachLineCollector(child.stdout, lines);
-  attachLineCollector(child.stderr, errorLines);
+  collectLines(child.stdout, lines);
+  collectLines(child.stderr, errLines);
 
   child.on('exit', (code, signal) => {
-    exitInfo = { exited: true, code, signal };
+    exited = { code, signal };
   });
-
-  const getExitInfo = () => exitInfo;
 
   const send = (command) => {
     if (!child.stdin.destroyed) {
@@ -163,39 +143,38 @@ async function runNativeStockfishAnalysis(fen, options = {}) {
 
   try {
     send('uci');
-    await waitForLine(lines, 'uciok', STOCKFISH_TIMEOUT_MS, getExitInfo);
+    await waitForLine(lines, 'uciok', STOCKFISH_TIMEOUT_MS, () => exited);
 
     send(`setoption name Threads value ${STOCKFISH_THREADS}`);
     send(`setoption name Hash value ${STOCKFISH_HASH_MB}`);
+
     send('isready');
-    await waitForLine(lines, 'readyok', STOCKFISH_TIMEOUT_MS, getExitInfo);
+    await waitForLine(lines, 'readyok', STOCKFISH_TIMEOUT_MS, () => exited);
 
     send('ucinewgame');
     send(`position fen ${fen}`);
 
-    const analysisStartIndex = lines.length;
-    const bestMoveReady = waitForLine(
+    const startIndex = lines.length;
+    const bestMovePromise = waitForLine(
       lines,
       /^bestmove\s+/,
       movetimeMs + STOCKFISH_TIMEOUT_MS,
-      getExitInfo,
+      () => exited,
     );
 
     send(depth ? `go depth ${depth}` : `go movetime ${movetimeMs}`);
 
-    const bestMoveLine = await bestMoveReady;
+    const bestMoveLine = await bestMovePromise;
     const bestMove = bestMoveLine.split(/\s+/)[1] ?? '';
 
-    const analysisLines = lines.slice(analysisStartIndex);
+    const analysisLines = lines.slice(startIndex);
     const lastInfo = analysisLines
       .filter((line) => line.startsWith('info ') && line.includes(' score '))
       .at(-1) ?? '';
 
     return {
       bestMove,
-      san: bestMove && bestMove !== '(none)'
-        ? uciToSan(fen, bestMove)
-        : '(none)',
+      san: bestMove ? uciToSan(fen, bestMove) : '(none)',
       score: parseScore(lastInfo),
       depth: parseDepth(lastInfo),
       info: lastInfo,
@@ -207,9 +186,7 @@ async function runNativeStockfishAnalysis(fen, options = {}) {
 
     setTimeout(() => {
       try {
-        if (!child.killed) {
-          child.kill('SIGTERM');
-        }
+        if (!child.killed) child.kill('SIGTERM');
       } catch {}
     }, 500);
   }
@@ -218,7 +195,7 @@ async function runNativeStockfishAnalysis(fen, options = {}) {
 export async function analyzeFenWithStockfish(fen, options = {}) {
   const runAnalysis = async () => {
     try {
-      return await runNativeStockfishAnalysis(fen, options);
+      return await runStockfish(fen, options);
     } catch (error) {
       console.error(`Failed to analyze chess FEN ${fen}:`);
       console.error(error);
