@@ -49,6 +49,9 @@ import {
   handleChessAnalysisMessage,
   normalizeDirectFen,
 } from './chess/chess-analysis-command.js';
+import { createChessImageAnalysisContext } from './chess/chess-image-analysis.js';
+import { createStockfishExplanationContext } from './chess/chess-explanation.js';
+import { closeStockfishEngine } from './chess/stockfish-lite.js';
 import {
   createTetrioLeaderboardCard,
   getTetrioLeagueRefreshStatus,
@@ -541,6 +544,73 @@ async function recognizeChessFenWithGemini({ message, turn }) {
   return normalizeDirectFen(`${boardFen} ${sideToMove} - - 0 1`);
 }
 
+async function recognizeChessPositionForConversation(imageParts) {
+  if (imageParts.length === 0) {
+    return null;
+  }
+
+  const response = await fetchGeminiGenerateContent({
+    system_instruction: {
+      parts: [{
+        text: [
+          'You inspect images for a real 8x8 chessboard and transcribe positions exactly.',
+          'Return JSON only and never explain your reasoning.',
+          'Ignore video panels, people, titles, borders, ratings, and other UI outside the board.',
+          'Use visible coordinates to normalize the board into standard FEN order a8 through h1.',
+          'Do not infer side to move from board orientation alone.',
+          'Set turn only when an active-clock marker, explicit UI label, or equally reliable visual indicator makes it clear.',
+        ].join('\n'),
+      }],
+    },
+    contents: [{
+      role: 'user',
+      parts: [
+        {
+          text: [
+            'Check whether this image contains a readable chessboard position.',
+            'Return exactly one JSON object with these fields:',
+            '{"isChessboard":true,"fen":"BOARD","turn":"w"}',
+            'isChessboard must be false when no readable 8x8 chessboard exists.',
+            'BOARD must be only the FEN piece-placement field, with uppercase White pieces and lowercase Black pieces.',
+            'turn must be "w", "b", or "" when the side to move cannot be known reliably from the image.',
+            'When isChessboard is false or the position is unreadable, return {"isChessboard":false,"fen":"","turn":""}.',
+          ].join('\n'),
+        },
+        imageParts[0],
+      ],
+    }],
+    generationConfig: {
+      maxOutputTokens: 180,
+      temperature: 0,
+      topP: 0.1,
+      responseMimeType: 'application/json',
+    },
+  }, {
+    models: geminiVisionModels,
+  });
+
+  const parsed = parseJsonObjectText(extractGeminiResponseText(response));
+  const boardFen = String(parsed?.fen ?? '').trim().split(/\s+/)[0];
+  const turn = parsed?.turn === 'w' || parsed?.turn === 'b' ? parsed.turn : null;
+
+  return {
+    isChessboard: parsed?.isChessboard === true && Boolean(boardFen),
+    boardFen,
+    turn,
+  };
+}
+
+async function getChessImageAnalysisContext(imageParts) {
+  try {
+    const recognition = await recognizeChessPositionForConversation(imageParts);
+    return await createChessImageAnalysisContext(recognition);
+  } catch (error) {
+    console.error('Failed to enrich Gemini image response with Stockfish:');
+    console.error(error);
+    return '';
+  }
+}
+
 async function createNaturalChessAnalysisReply({ message, fen, result }) {
   if (
     geminiApiKeys.length === 0
@@ -551,25 +621,27 @@ async function createNaturalChessAnalysisReply({ message, fen, result }) {
     return '';
   }
 
-  const mateText = result.san.includes('#')
-    ? '이 수는 즉시 체크메이트다.'
-    : result.score?.type === 'mate'
-      ? 'Stockfish가 강제 메이트 수순을 보고 있다.'
-      : '체크메이트 표시는 없다.';
+  const explanationContext = createStockfishExplanationContext(result, {
+    maxPlies: 8,
+  });
   const prompt = [
     'Stockfish로 체스 이미지 분석을 마쳤다.',
     '아래 도구 결과는 확정된 사실이므로 수를 바꾸거나 다시 계산하지 마라.',
     `현재 포지션 FEN(설명 참고용이며 출력 금지): ${fen}`,
-    `최선 수 SAN: ${result.san}`,
     `최선 수 UCI(설명 참고용이며 출력 금지): ${result.bestMove}`,
-    `참고: ${mateText}`,
+    '',
+    '[Stockfish가 확인한 해설 근거]',
+    explanationContext,
     '',
     '[출력 규칙]',
     `최종 답변에 최선 수 \`${result.san}\`를 철자와 기호까지 정확히 한 번 이상 포함한다.`,
-    '사용자에게 바로 답하는 친근하고 자연스러운 한국어 두 문장만 출력한다.',
-    '첫 문장에는 정답 수를 말하고, 둘째 문장에는 그 수의 핵심 효과를 짧게 설명한다.',
+    '사용자에게 바로 답하는 친근하고 자연스러운 한국어 2~4문장으로 출력한다.',
+    '첫 문장에는 정답 수를 말한다.',
+    '그 다음에는 상대의 최선 대응과 내 후속 수를 이용해 왜 좋은지 구체적으로 설명한다.',
+    '체크, 포획, 메이트 여부는 위의 확인된 성격과 정확히 일치시킨다.',
+    '확인된 수순으로 입증되지 않은 "공격을 막는다", "기물을 정리한다", "주도권을 잡는다" 같은 상투적 표현은 쓰지 않는다.',
+    '짧은 주 변형만으로 목적을 확정하기 어렵다면 추측하지 말고 예상 수순을 자연스럽게 풀어 말한다.',
     '제목, 목록, FEN, UCI, 평가 수치, 탐색 깊이, 분석 보고서는 출력하지 않는다.',
-    '왜 좋은 수인지 확실한 범위에서 아주 짧게 덧붙여도 된다.',
     `사용자 원문: ${String(message.content ?? '').trim()}`,
   ].join('\n');
 
@@ -870,6 +942,7 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => {
     console.log(`Received ${signal}, shutting down...`);
     stopVmStatusUpdater();
+    closeStockfishEngine();
     client.destroy();
     server.close(() => process.exit(0));
   });
@@ -2149,8 +2222,12 @@ async function handleGeminiFallbackMessage(message, options = {}) {
 
     // 여기 추가: 현재 메시지/답장한 메시지에 있는 이미지들을 Gemini에 보낼 준비
     const imageParts = await getGeminiImageParts(message);
+    const chessAnalysisContext = await getChessImageAnalysisContext(imageParts);
+    const answerPrompt = chessAnalysisContext
+      ? `${prompt}\n\n${chessAnalysisContext}`
+      : prompt;
 
-    const answerResult = await generateGeminiAnswer(prompt, {
+    const answerResult = await generateGeminiAnswer(answerPrompt, {
       history,
       replyContext,
       mentionContext,

@@ -104,19 +104,15 @@ export async function handleChessAnalysisMessage(message, options = {}) {
     return false;
   }
 
+  if (!prompt.turn) {
+    return false;
+  }
+
   const attachment = await resolveChessImageAttachment(message);
   if (!attachment) {
     await replyWithoutPing(
       message,
       '분석할 체스판 이미지를 첨부하거나 이미지 메시지에 답장해달라냥.'
-    );
-    return true;
-  }
-
-  if (!prompt.turn && prompt.explicitChess) {
-    await replyWithoutPing(
-      message,
-      '백 차례인지 흑 차례인지 같이 적어달라냥. 예: `%백선 풀어봐`'
     );
     return true;
   }
@@ -130,7 +126,7 @@ export async function handleChessAnalysisMessage(message, options = {}) {
     temporaryImage = await downloadChessImageAttachment(attachment);
     fen = await (options.imageToFen ?? imageToFen)(
       temporaryImage.filePath,
-      prompt.turn ?? 'w'
+      prompt.turn
     );
   } catch (error) {
     console.error('Primary chess image recognition failed:');
@@ -140,7 +136,7 @@ export async function handleChessAnalysisMessage(message, options = {}) {
       try {
         fen = await options.recognizeFenFallback({
           message,
-          turn: prompt.turn ?? 'w',
+          turn: prompt.turn,
         });
       } catch (fallbackError) {
         console.error('Gemini chess image recognition fallback failed:');
@@ -161,14 +157,6 @@ export async function handleChessAnalysisMessage(message, options = {}) {
     }
   } finally {
     await temporaryImage?.cleanup();
-  }
-
-  if (!prompt.turn) {
-    await replyWithoutPing(
-      message,
-      '체스판은 확인했다냥. 백 차례인지 흑 차례인지만 같이 적어달라냥.'
-    );
-    return true;
   }
 
   await analyzeAndReply(message, fen, {
