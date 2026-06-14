@@ -57,6 +57,9 @@ function createEngineLineReader(engine) {
     getLastInfo() {
       return lastInfo;
     },
+    clearLastInfo() {
+      lastInfo = '';
+    },
     rejectAll(error) {
       for (const waiter of waiters) {
         clearTimeout(waiter.timer);
@@ -65,6 +68,30 @@ function createEngineLineReader(engine) {
       waiters.clear();
     },
   };
+}
+
+let sharedEnginePromise;
+let analysisQueue = Promise.resolve();
+
+async function getSharedEngine() {
+  if (!sharedEnginePromise) {
+    sharedEnginePromise = (async () => {
+      const engine = await createStockfish('lite-single');
+      const reader = createEngineLineReader(engine);
+
+      const uciReady = reader.waitFor('uciok');
+      engine.sendCommand('uci');
+      await uciReady;
+
+      const engineReady = reader.waitFor('readyok');
+      engine.sendCommand('isready');
+      await engineReady;
+
+      return { engine, reader };
+    })();
+  }
+
+  return sharedEnginePromise;
 }
 
 function uciToSan(fen, uci) {
@@ -116,21 +143,9 @@ export async function analyzeFenWithStockfish(fen, options = {}) {
     ? options.depth
     : null;
 
-  let engine;
-  let reader;
-
-  try {
-    engine = await createStockfish('lite-single');
-    reader = createEngineLineReader(engine);
-
-    const uciReady = reader.waitFor('uciok');
-    engine.sendCommand('uci');
-    await uciReady;
-
-    const engineReady = reader.waitFor('readyok');
-    engine.sendCommand('isready');
-    await engineReady;
-
+  const runAnalysis = async () => {
+    const { engine, reader } = await getSharedEngine();
+    reader.clearLastInfo();
     engine.sendCommand('ucinewgame');
     engine.sendCommand(`position fen ${fen}`);
 
@@ -150,14 +165,9 @@ export async function analyzeFenWithStockfish(fen, options = {}) {
       depth: parseDepth(lastInfo),
       info: lastInfo,
     };
-  } finally {
-    reader?.rejectAll(new Error('Stockfish engine closed'));
+  };
 
-    try {
-      engine?.sendCommand('quit');
-      engine?.terminate?.();
-    } catch {
-      // The engine may already be stopped after a timeout or startup failure.
-    }
-  }
+  const queuedAnalysis = analysisQueue.then(runAnalysis, runAnalysis);
+  analysisQueue = queuedAnalysis.catch(() => {});
+  return queuedAnalysis;
 }
