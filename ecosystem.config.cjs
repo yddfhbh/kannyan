@@ -17,7 +17,7 @@ module.exports = {
       exec_mode: 'fork',
       autorestart: true,
       watch: false,
-      max_memory_restart: '300M',
+      max_memory_restart: '4G',
       env: {
         NODE_ENV: 'production',
         PORT: '8080',
