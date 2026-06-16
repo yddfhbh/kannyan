@@ -52,7 +52,8 @@ import {
 } from './chess/chess-analysis-command.js';
 import { createChessImageAnalysisContext } from './chess/chess-image-analysis.js';
 import { createStockfishExplanationContext } from './chess/chess-explanation.js';
-import { closeStockfishEngine } from './chess/stockfish-lite.js';
+import { analyzeFenWithStockfish, closeStockfishEngine } from './chess/stockfish-lite.js';
+import { Chess } from 'chess.js';
 import {
   createTetrioLeaderboardCard,
   getTetrioLeagueRefreshStatus,
@@ -139,6 +140,14 @@ const geminiSupportedImageMimeTypes = new Set([
 
 
 const geminiMemory = new Map();
+const chessPlaySessions = new Map();
+
+const configuredChessRandomMoveRate = Number(process.env.CHESS_RANDOM_MOVE_RATE);
+const chessRandomMoveRate = Math.max(
+  0,
+  Math.min(1, Number.isFinite(configuredChessRandomMoveRate) ? configuredChessRandomMoveRate : 0.05)
+);
+
 const geminiPermanentMemory = new PermanentMemoryStore(geminiPermanentMemoryPath);
 let geminiMemoryLoaded = false;
 let geminiMemoryLoadPromise = null;
@@ -335,13 +344,245 @@ const client = new Client({
   partials: [Partials.Channel],
 });
 
-client.once(Events.ClientReady, (readyClient) => {
+const GUILD_LIST_CHANNEL_ID = '1502965960133574703';
+
+const DATA_DIR =
+  process.env.TETRIO_LEAGUE_DATA_DIR ||
+  process.env.DATA_DIR ||
+  path.join(os.homedir(), 'discord-bot-data');
+
+const GUILD_LIST_STATE_PATH = path.join(DATA_DIR, 'guild-list-state.json');
+
+async function readGuildListState() {
+  try {
+    const raw = await fs.readFile(GUILD_LIST_STATE_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+
+    return {
+      messageId: parsed.messageId ?? null,
+      guilds: parsed.guilds && typeof parsed.guilds === 'object' ? parsed.guilds : {},
+    };
+  } catch {
+    return {
+      messageId: null,
+      guilds: {},
+    };
+  }
+}
+
+async function writeGuildListState(state) {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.writeFile(GUILD_LIST_STATE_PATH, JSON.stringify(state, null, 2), 'utf8');
+}
+
+function formatKstTime(value) {
+  if (!value) return '-';
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return '-';
+
+  return date.toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function buildGuildListMessage(state) {
+  const guilds = Object.entries(state.guilds)
+    .map(([id, guild]) => ({ id, ...guild }))
+    .sort((a, b) => {
+      if (a.status !== b.status) {
+        return a.status === 'active' ? -1 : 1;
+      }
+
+      return String(a.name ?? '').localeCompare(String(b.name ?? ''), 'ko');
+    });
+
+  const activeCount = guilds.filter((guild) => guild.status === 'active').length;
+  const leftCount = guilds.filter((guild) => guild.status === 'left').length;
+
+  const lines = [];
+
+  lines.push('**현재 봇 참가 서버 목록**');
+  lines.push(`마지막 갱신: ${formatKstTime(new Date())}`);
+  lines.push(`현재 참가: ${activeCount}개 / 탈퇴 기록: ${leftCount}개 / 전체 기록: ${guilds.length}개`);
+  lines.push('');
+
+  if (guilds.length === 0) {
+    lines.push('아직 기록된 서버가 없음.');
+  } else {
+    for (const guild of guilds) {
+      const statusText = guild.status === 'left' ? ' (탈퇴)' : '';
+      const memberText = guild.memberCount == null ? '?' : String(guild.memberCount);
+
+      lines.push(
+        `- ${guild.status === 'left' ? '⚫' : '🟢'} **${guild.name ?? '이름 알 수 없음'}**${statusText}`
+      );
+      lines.push(`  ID: \`${guild.id}\` / 멤버: ${memberText}`);
+    }
+  }
+
+  let content = lines.join('\n');
+
+  if (content.length > 1900) {
+    content = content.slice(0, 1850) + '\n\n...서버가 많아서 일부 생략됨.';
+  }
+
+  return content;
+}
+
+async function updateGuildListMessage(client, reason = 'unknown') {
+  const state = await readGuildListState();
+
+  const channel = await client.channels.fetch(GUILD_LIST_CHANNEL_ID).catch((error) => {
+    console.error(`[GUILD LIST] 채널 fetch 실패 channel=${GUILD_LIST_CHANNEL_ID} reason=${reason}`);
+    console.error(error);
+    return null;
+  });
+
+  if (!channel || typeof channel.isTextBased !== 'function' || !channel.isTextBased()) {
+    console.error(`[GUILD LIST] 채널이 없거나 텍스트 채널이 아님 channel=${GUILD_LIST_CHANNEL_ID}`);
+    return;
+  }
+
+  const content = buildGuildListMessage(state);
+
+  if (state.messageId) {
+    const oldMessage = await channel.messages.fetch(state.messageId).catch(() => null);
+
+    if (oldMessage) {
+      await oldMessage.edit(content);
+      console.log(`[GUILD LIST] 메시지 갱신 완료 reason=${reason}`);
+      return;
+    }
+  }
+
+  const sent = await channel.send(content);
+  state.messageId = sent.id;
+  await writeGuildListState(state);
+
+  console.log(`[GUILD LIST] 새 메시지 생성 완료 messageId=${sent.id} reason=${reason}`);
+}
+
+async function syncCurrentGuildsToGuildListState(client) {
+  const state = await readGuildListState();
+  const now = new Date().toISOString();
+  const currentGuildIds = new Set(client.guilds.cache.keys());
+
+  for (const guild of client.guilds.cache.values()) {
+    const old = state.guilds[guild.id];
+
+    state.guilds[guild.id] = {
+      name: guild.name,
+      memberCount: guild.memberCount ?? old?.memberCount ?? null,
+      ownerId: guild.ownerId ?? old?.ownerId ?? null,
+      status: 'active',
+      firstSeenAt: old?.firstSeenAt ?? now,
+      joinedAt: old?.joinedAt ?? now,
+      leftAt: null,
+      updatedAt: now,
+    };
+  }
+
+  // 봇이 꺼져 있는 동안 빠진 서버도 재시작 시 탈퇴 처리
+  for (const [guildId, old] of Object.entries(state.guilds)) {
+    if (old?.status === 'active' && !currentGuildIds.has(guildId)) {
+      state.guilds[guildId] = {
+        ...old,
+        status: 'left',
+        leftAt: old.leftAt ?? now,
+        updatedAt: now,
+      };
+    }
+  }
+
+  await writeGuildListState(state);
+  await updateGuildListMessage(client, 'ready-sync');
+}
+
+async function markGuildJoined(client, guild) {
+  const state = await readGuildListState();
+  const now = new Date().toISOString();
+  const old = state.guilds[guild.id];
+
+  state.guilds[guild.id] = {
+    name: guild.name,
+    memberCount: guild.memberCount ?? old?.memberCount ?? null,
+    ownerId: guild.ownerId ?? old?.ownerId ?? null,
+    status: 'active',
+    firstSeenAt: old?.firstSeenAt ?? now,
+    joinedAt: now,
+    leftAt: null,
+    updatedAt: now,
+  };
+
+  await writeGuildListState(state);
+  await updateGuildListMessage(client, 'guild-join');
+
+  console.log(`[GUILD JOIN] name="${guild.name}" id=${guild.id}`);
+}
+
+async function markGuildLeft(client, guild) {
+  const state = await readGuildListState();
+  const now = new Date().toISOString();
+  const old = state.guilds[guild.id];
+
+  state.guilds[guild.id] = {
+    name: guild.name ?? old?.name ?? '이름 알 수 없음',
+    memberCount: guild.memberCount ?? old?.memberCount ?? null,
+    ownerId: guild.ownerId ?? old?.ownerId ?? null,
+    status: 'left',
+    firstSeenAt: old?.firstSeenAt ?? now,
+    joinedAt: old?.joinedAt ?? null,
+    leftAt: now,
+    updatedAt: now,
+  };
+
+  await writeGuildListState(state);
+  await updateGuildListMessage(client, 'guild-left');
+
+  console.log(`[GUILD LEAVE] name="${guild.name ?? old?.name ?? 'unknown'}" id=${guild.id}`);
+}
+
+client.on('guildCreate', async (guild) => {
+  try {
+    await markGuildJoined(client, guild);
+  } catch (error) {
+    console.error('[GUILD LIST] guildCreate 처리 실패');
+    console.error(error);
+  }
+});
+
+client.on('guildDelete', async (guild) => {
+  try {
+    await markGuildLeft(client, guild);
+  } catch (error) {
+    console.error('[GUILD LIST] guildDelete 처리 실패');
+    console.error(error);
+  }
+});
+
+client.once(Events.ClientReady, async (readyClient) => {
   discordReady = true;
   readyClient.user.setPresence({
     activities: [{ name: 'Chess.Com & Tetr.io', type: ActivityType.Playing }],
     status: 'online',
   });
+
   console.log(`Logged in as ${readyClient.user.tag}`);
+
+  try {
+    await syncCurrentGuildsToGuildListState(readyClient);
+  } catch (error) {
+    console.error('[GUILD LIST] ready-sync 실패');
+    console.error(error);
+  }
+
   startVmStatusUpdater(readyClient);
   initDailyChessPuzzle(readyClient);
 });
@@ -393,6 +634,11 @@ client.on(Events.MessageCreate, async (message) => {
   if (chessAnalysisHandled) {
     return;
   }
+  const chessPlayHandled = await handleChessPlayMessage(message);
+if (chessPlayHandled) {
+  return;
+}
+ 
 
   const tetrioLbHandled = await handleTetrioLeaderboardTextCommand(message);
   if (tetrioLbHandled) {
@@ -483,6 +729,458 @@ client.on(Events.MessageCreate, async (message) => {
   await showTetrioProfileMessage(message, input);
 });
 
+function formatStockfishCandidateContext(result, maxCandidates = 3, maxPlies = 6) {
+  const candidates = Array.isArray(result?.candidates)
+    ? result.candidates.slice(0, maxCandidates)
+    : [];
+
+  if (candidates.length === 0) {
+    return '후보 수 정보 없음.';
+  }
+
+  return candidates.map((candidate) => {
+    const variation = Array.isArray(candidate.principalVariation)
+      ? candidate.principalVariation
+          .slice(0, maxPlies)
+          .map((move) => move.san)
+          .join(' ')
+      : '';
+
+    return `${candidate.rank}. ${candidate.san}${variation ? ` / 예상 수순: ${variation}` : ''}`;
+  }).join('\n');
+}
+
+function getChessPlaySessionKey(message) {
+  return `${message.guildId ?? 'dm'}:${message.channelId}:${message.author.id}`;
+}
+
+function normalizeUserChessMoveText(text) {
+  let move = String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim();
+
+  move = move
+    .replace(/^0-0-0$/i, 'O-O-O')
+    .replace(/^0-0$/i, 'O-O');
+
+  // nc6, nf3, bb5 같은 입력을 Nc6, Nf3, Bb5로 보정
+  move = move.replace(/^([nbrqk])(?=[a-h1-8x])/i, (match) => match.toUpperCase());
+
+  return move;
+}
+
+function moveToUci(move) {
+  return `${move.from}${move.to}${move.promotion ?? ''}`;
+}
+
+function applyUciMove(chess, uci) {
+  const moveText = String(uci ?? '').trim();
+
+  if (!/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(moveText)) {
+    return null;
+  }
+
+  const move = {
+    from: moveText.slice(0, 2),
+    to: moveText.slice(2, 4),
+  };
+
+  if (moveText[4]) {
+    move.promotion = moveText[4];
+  }
+
+  return chess.move(move);
+}
+
+function applyUserChessMove(chess, input) {
+  const moveText = normalizeUserChessMoveText(input);
+
+  try {
+    if (/^[a-h][1-8][a-h][1-8][qrbn]?$/i.test(moveText)) {
+      const move = {
+        from: moveText.slice(0, 2).toLowerCase(),
+        to: moveText.slice(2, 4).toLowerCase(),
+      };
+
+      if (moveText[4]) {
+        move.promotion = moveText[4].toLowerCase();
+      }
+
+      return chess.move(move);
+    }
+
+    return chess.move(moveText);
+  } catch {
+    return null;
+  }
+}
+
+function getChessResultText(chess) {
+  if (chess.isCheckmate()) {
+    return '체크메이트다냥.';
+  }
+
+  if (chess.isStalemate()) {
+    return '스테일메이트로 무승부다냥.';
+  }
+
+  if (chess.isThreefoldRepetition()) {
+    return '동일 포지션 3회 반복으로 무승부 가능하다냥.';
+  }
+
+  if (chess.isInsufficientMaterial()) {
+    return '기물이 부족해서 무승부다냥.';
+  }
+
+  if (chess.isDraw()) {
+    return '무승부다냥.';
+  }
+
+  return '';
+}
+
+async function chooseBotChessMove(chess) {
+  const legalMoves = chess.moves({ verbose: true });
+
+  if (legalMoves.length === 0) {
+    return {
+      selectedUci: '',
+      selectedSource: 'none',
+      analysis: null,
+      stockfishSan: '',
+    };
+  }
+
+  let analysis = null;
+
+  try {
+    analysis = await analyzeFenWithStockfish(chess.fen(), {
+      movetimeMs: Math.max(
+        100,
+        Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 2000
+      ),
+    });
+  } catch (error) {
+    console.error('Stockfish chess play analysis failed:');
+    console.error(error);
+  }
+
+  const stockfishUci = String(analysis?.bestMove ?? '');
+  const legalUcis = legalMoves.map(moveToUci);
+  const nonStockfishUcis = legalUcis.filter((uci) => uci !== stockfishUci);
+
+  let selectedUci = legalUcis.includes(stockfishUci)
+    ? stockfishUci
+    : legalUcis[Math.floor(Math.random() * legalUcis.length)];
+
+  let selectedSource = selectedUci === stockfishUci ? 'stockfish' : 'fallback-random';
+
+  if (
+    nonStockfishUcis.length > 0
+    && Math.random() < chessRandomMoveRate
+  ) {
+    selectedUci = nonStockfishUcis[Math.floor(Math.random() * nonStockfishUcis.length)];
+    selectedSource = 'random';
+  }
+
+  return {
+    selectedUci,
+    selectedSource,
+    analysis,
+    stockfishSan: analysis?.san ?? '',
+  };
+}
+
+function buildChessPlayFallback(facts) {
+  if (facts.kind === 'start-user-white') {
+    return '좋다냥. 너는 백, 나는 흑으로 둘게냥. 첫 수를 `%e4`처럼 입력해달라냥.';
+  }
+
+  if (facts.kind === 'start-bot-white') {
+    return `좋다냥. 너는 흑, 나는 백으로 둘게냥. 내 첫 수는 **${facts.botMoveSan}**다냥. 이제 네 차례다냥.`;
+  }
+
+  if (facts.kind === 'game-over-after-user') {
+    return `네 수 **${facts.userMoveSan}**까지 진행했다냥. ${facts.resultText}`;
+  }
+
+  if (facts.kind === 'bot-move') {
+    return [
+      `네 수 **${facts.userMoveSan}** 받았다냥.`,
+      `내 수는 **${facts.botMoveSan}**다냥.`,
+      facts.usedRandomMove && facts.stockfishSan
+        ? `참고로 Stockfish 1순위는 **${facts.stockfishSan}**였는데, 이번엔 조금 다르게 둬봤다냥.`
+        : '',
+      facts.resultText || '이제 네 차례다냥.',
+    ].filter(Boolean).join(' ');
+  }
+
+  return '좋다냥.';
+}
+
+async function createNaturalChessPlayReply(message, facts) {
+  const fallback = buildChessPlayFallback(facts);
+
+  if (geminiApiKeys.length === 0) {
+    return fallback;
+  }
+
+  const prompt = [
+    '사용자와 깐냥이가 체스 대국 중이다.',
+    '체스 수와 결과는 아래 [확정 사실]만 따른다.',
+    '절대 새로운 수를 만들거나, 수를 바꾸거나, 합법성 판단을 새로 하지 마라.',
+    '너는 문장만 자연스럽게 만들어라.',
+    '',
+    '[확정 사실]',
+    `상황: ${facts.kind}`,
+    `사용자 색: ${facts.userColor === 'w' ? '백' : '흑'}`,
+    `깐냥 색: ${facts.botColor === 'w' ? '백' : '흑'}`,
+    facts.userMoveSan ? `사용자 방금 둔 수: ${facts.userMoveSan}` : '',
+    facts.botMoveSan ? `깐냥이 방금 둔 수: ${facts.botMoveSan}` : '',
+    facts.stockfishSan ? `Stockfish 1순위 수: ${facts.stockfishSan}` : '',
+    `이번 깐냥 수 선택 방식: ${facts.usedRandomMove ? '10% 랜덤 합법 수' : 'Stockfish 추천 수'}`,
+    facts.resultText ? `대국 결과/상태: ${facts.resultText}` : '',
+    `현재 FEN(사용자가 물어볼 때만 출력 가능): ${facts.fen}`,
+    '',
+    '[출력 규칙]',
+    '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~3문장으로 답한다.',
+    '체스 수는 반드시 위 확정 사실에 있는 SAN 표기 그대로 출력한다.',
+    '랜덤 수를 둔 경우 Stockfish 최선수처럼 포장하지 말고, “이번엔 조금 인간적으로/다르게 둬봤다” 정도로 자연스럽게 말한다.',
+    'Stockfish 수를 둔 경우에는 너무 기계적으로 말하지 말고, 대국 상대처럼 자연스럽게 말한다.',
+    'FEN, UCI, 평가 수치, 탐색 깊이는 사용자가 요구하지 않으면 출력하지 않는다.',
+    '“응냥”으로 시작하지 말고 바로 본론부터 말한다.',
+    `사용자 원문: ${String(message.content ?? '').trim()}`,
+  ].filter(Boolean).join('\n');
+
+  try {
+    const answerResult = await generateGeminiAnswer(prompt, {
+      currentUserContext: getGeminiCurrentUserContext(message),
+    });
+
+    const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
+
+    if (facts.botMoveSan && !answer.includes(facts.botMoveSan)) {
+      return fallback;
+    }
+
+    if (
+      facts.userMoveSan
+      && facts.kind !== 'start-bot-white'
+      && !answer.includes(facts.userMoveSan)
+    ) {
+      return fallback;
+    }
+
+    return answer || fallback;
+  } catch (error) {
+    console.error('Failed to generate natural chess play reply:');
+    console.error(error);
+    return fallback;
+  }
+}
+
+async function handleChessPlayMessage(message) {
+  const content = String(message.content ?? '').trim();
+
+  if (!content.startsWith('%')) {
+    return false;
+  }
+
+  const text = content.slice(1).trim();
+  const key = getChessPlaySessionKey(message);
+  const existingSession = chessPlaySessions.get(key);
+
+  const wantsStart =
+    /(?:체스\s*하자|체스하자|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
+
+  const wantsStop =
+    /^(?:체스\s*)?(?:그만|종료|끝|기권|resign|stop)$/i.test(text);
+
+  const wantsBoard =
+    /^(?:판|보드|현재|기보)$/i.test(text);
+
+  if (wantsStop && existingSession) {
+    chessPlaySessions.delete(key);
+
+    await message.reply({
+      content: '대국은 여기서 종료할게냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  if (wantsStart) {
+    const userColor = /(?:내가\s*)?(?:흑|black)/i.test(text) ? 'b' : 'w';
+    const botColor = userColor === 'w' ? 'b' : 'w';
+    const chess = new Chess();
+
+    const session = {
+      userColor,
+      botColor,
+      fen: chess.fen(),
+      startedAtMs: Date.now(),
+    };
+
+    chessPlaySessions.set(key, session);
+
+    if (botColor === 'w') {
+      await message.channel.sendTyping().catch(() => {});
+
+      const choice = await chooseBotChessMove(chess);
+      const botMove = applyUciMove(chess, choice.selectedUci);
+
+      session.fen = chess.fen();
+
+      const reply = await createNaturalChessPlayReply(message, {
+        kind: 'start-bot-white',
+        userColor,
+        botColor,
+        botMoveSan: botMove?.san ?? '',
+        stockfishSan: choice.stockfishSan,
+        usedRandomMove: choice.selectedSource === 'random',
+        resultText: getChessResultText(chess),
+        fen: chess.fen(),
+      });
+
+      await message.reply({
+        content: reply,
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+
+      return true;
+    }
+
+    const reply = await createNaturalChessPlayReply(message, {
+      kind: 'start-user-white',
+      userColor,
+      botColor,
+      fen: chess.fen(),
+    });
+
+    await message.reply({
+      content: reply,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  if (!existingSession) {
+    return false;
+  }
+
+  const chess = new Chess(existingSession.fen);
+
+  if (wantsBoard) {
+    await message.reply({
+      content: `현재 FEN은 \`${chess.fen()}\`이다냥.`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  if (chess.turn() !== existingSession.userColor) {
+    await message.reply({
+      content: '지금은 네 차례가 아니다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  const userMove = applyUserChessMove(chess, text);
+
+  if (!userMove) {
+    await message.reply({
+      content: '그 수는 지금 포지션에서 둘 수 없는 수다냥. `%e4`, `%Nf3`, `%exd5`, `%O-O`처럼 입력해달라냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  let resultText = getChessResultText(chess);
+
+  if (resultText) {
+    existingSession.fen = chess.fen();
+    chessPlaySessions.delete(key);
+
+    const reply = await createNaturalChessPlayReply(message, {
+      kind: 'game-over-after-user',
+      userColor: existingSession.userColor,
+      botColor: existingSession.botColor,
+      userMoveSan: userMove.san,
+      resultText,
+      fen: chess.fen(),
+    });
+
+    await message.reply({
+      content: reply,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  await message.channel.sendTyping().catch(() => {});
+
+  const choice = await chooseBotChessMove(chess);
+  const botMove = applyUciMove(chess, choice.selectedUci);
+
+  if (!botMove) {
+    existingSession.fen = chess.fen();
+
+    await message.reply({
+      content: `네 수 **${userMove.san}**까지 받았는데, 내 응수 계산에 실패했다냥.`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  existingSession.fen = chess.fen();
+  resultText = getChessResultText(chess);
+
+  if (resultText) {
+    chessPlaySessions.delete(key);
+  }
+
+  const reply = await createNaturalChessPlayReply(message, {
+    kind: 'bot-move',
+    userColor: existingSession.userColor,
+    botColor: existingSession.botColor,
+    userMoveSan: userMove.san,
+    botMoveSan: botMove.san,
+    stockfishSan: choice.stockfishSan,
+    usedRandomMove: choice.selectedSource === 'random',
+    resultText,
+    fen: chess.fen(),
+  });
+
+  await message.reply({
+    content: reply,
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+
+  return true;
+}
+
+function normalizeKannyangSpeech(text) {
+  const normalized = String(text ?? '')
+    // 답변 첫머리나 줄 첫머리의 "응냥," / "응냥." / "응냥 " 제거
+    .replace(/(^|\n)\s*응냥\s*[,，.!?。！？]?\s*/g, '$1')
+    // 혹시 "응 냥,"처럼 띄어져 나온 경우도 제거
+    .replace(/(^|\n)\s*응\s+냥\s*[,，.!?。！？]?\s*/g, '$1')
+    // 그냥 "응,"으로 시작하는 것도 원하면 제거
+    .replace(/(^|\n)\s*응\s*[,，]\s*/g, '$1')
+    .trim();
+
+  return normalized || '냥.';
+}
+
 function isDirectBotMention(message) {
   const botUserId = message.client.user?.id;
   if (!botUserId) {
@@ -491,6 +1189,8 @@ function isDirectBotMention(message) {
 
   return new RegExp(`^<@!?${botUserId}>$`).test(message.content.trim());
 }
+
+
 
 async function detectChessBoardOrientationWithGemini({ message }) {
   if (geminiApiKeys.length === 0) {
@@ -722,30 +1422,38 @@ async function createNaturalChessAnalysisReply({ message, fen, result }) {
   ) {
     return '';
   }
-
+  const candidateContext = formatStockfishCandidateContext(result, 3, 6);
   const explanationContext = createStockfishExplanationContext(result, {
     maxPlies: 8,
   });
-  const prompt = [
-    'Stockfish로 체스 이미지 분석을 마쳤다.',
-    '아래 도구 결과는 확정된 사실이므로 수를 바꾸거나 다시 계산하지 마라.',
-    `현재 포지션 FEN(설명 참고용이며 출력 금지): ${fen}`,
-    `최선 수 UCI(설명 참고용이며 출력 금지): ${result.bestMove}`,
-    '',
-    '[Stockfish가 확인한 해설 근거]',
-    explanationContext,
-    '',
-    '[출력 규칙]',
-    `최종 답변에 최선 수 \`${result.san}\`를 철자와 기호까지 정확히 한 번 이상 포함한다.`,
-    '사용자에게 바로 답하는 친근하고 자연스러운 한국어 2~4문장으로 출력한다.',
-    '첫 문장에는 정답 수를 말한다.',
-    '그 다음에는 상대의 최선 대응과 내 후속 수를 이용해 왜 좋은지 구체적으로 설명한다.',
-    '체크, 포획, 메이트 여부는 위의 확인된 성격과 정확히 일치시킨다.',
-    '확인된 수순으로 입증되지 않은 "공격을 막는다", "기물을 정리한다", "주도권을 잡는다" 같은 상투적 표현은 쓰지 않는다.',
-    '짧은 주 변형만으로 목적을 확정하기 어렵다면 추측하지 말고 예상 수순을 자연스럽게 풀어 말한다.',
-    '제목, 목록, FEN, UCI, 평가 수치, 탐색 깊이, 분석 보고서는 출력하지 않는다.',
-    `사용자 원문: ${String(message.content ?? '').trim()}`,
-  ].join('\n');
+    const prompt = [
+  'Stockfish로 체스 이미지 분석을 마쳤다.',
+  '아래 도구 결과는 확정된 사실이므로 최선 수를 바꾸거나 다시 계산하지 마라.',
+  `현재 포지션 FEN(사용자가 FEN을 직접 요구할 때만 참고해서 출력 가능): ${fen}`,
+  `최선 수 UCI(설명 참고용이며 출력 금지): ${result.bestMove}`,
+  '',
+  '[Stockfish가 확인한 해설 근거]',
+explanationContext,
+'',
+'[Stockfish 후보 수]',
+candidateContext,
+'',
+'[출력 규칙]',
+  `최종 답변에 최선 수 \`${result.san}\`를 철자와 기호까지 정확히 한 번 이상 포함한다.`,
+  '사용자에게 바로 답하는 친근한 한국어로 2~4문장만 출력한다.',
+  '첫 문장은 반드시 최선 수를 바로 말한다. 예: "최선 수는 **Rf5**다냥."',
+  '두 번째 문장부터는 Stockfish가 제시한 주 변형(PV)을 이용해 "상대가 ...로 대응하면, 그 다음 ...로 이어진다" 형식으로 설명한다.',
+  '가능하면 최소 2수, 즉 내 최선 수 → 상대 최선 대응 → 내 다음 수까지 포함한다.',
+  '후보 수 정보가 있으면, 마지막 문장에 "다른 후보로는 ...도 있지만, Stockfish는 ...를 1순위로 본다냥"처럼 짧게 덧붙인다.',
+  '차선 수 정보가 해설 근거에 없으면 차선 수를 지어내지 않는다.',
+  '체크, 포획, 메이트 여부는 Stockfish 결과와 정확히 일치시킨다.',
+  '체스 기물 이름은 정확히 쓴다. R은 룩, B는 비숍, N은 나이트, Q는 퀸, K는 킹이다. 절대 R을 "목"이라고 쓰지 마라.',
+  '전략적 목적을 설명할 때는 반드시 확인된 수순에 근거한다.',
+  '절대 쓰지 말 표현: "기물을 정리", "기물 위치를 조정", "주도권", "공격을 막는다", "활용", "효율적", "기회를 만든다", "상대를 압박", "유리한 상황", "참고해서 다음 수를 고민".',
+  '사용자가 FEN을 직접 요구하지 않았다면 FEN을 출력하지 않는다.',
+  'UCI, 평가 수치, 탐색 깊이, 분석 보고서 형식은 출력하지 않되, 사용자가 물어보면 참고하여 출력한다.',
+  `사용자 원문: ${String(message.content ?? '').trim()}`,
+].join('\n');
 
   const answerResult = await generateGeminiAnswer(prompt, {
     currentUserContext: getGeminiCurrentUserContext(message),
@@ -2608,9 +3316,9 @@ async function generateGeminiAnswer(prompt, options = {}) {
       permanentMemories.map((entry) => entry.id)
     );
     const answer = applyCustomEmojiAliases(
-      sanitizeGeminiAnswer(memoryUsage.cleanText),
-      prompt
-    );
+  normalizeKannyangSpeech(sanitizeGeminiAnswer(memoryUsage.cleanText)),
+  prompt
+);
     const usedPermanentMemoryIds = memoryUsage.usedIds.length > 0
       ? memoryUsage.usedIds
       : inferPermanentMemoryUsage(answer, permanentMemories);

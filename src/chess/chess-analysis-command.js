@@ -28,7 +28,9 @@ const blackTurnPattern =
   /(흑선|흑\s*(?:의\s*)?(?:차례|턴|수)|흑\s*(?:으로|입장|이야|임)|(?:^|\s)흑(?=\s|$)|black(?:\s+to\s+move|\s+turn)?)/i;
 const explicitChessContextPattern =
   /(체스|체스판|chess(?:board)?|fen|포지션|기보|체크메이트|메이트)/i;
-
+const bareTurnCommandPattern =
+  /^(?:백선|흑선|백\s*(?:의\s*)?(?:차례|턴|수)|흑\s*(?:의\s*)?(?:차례|턴|수)|white(?:\s+to\s+move|\s+turn)?|black(?:\s+to\s+move|\s+turn)?)$/i;
+  
 export function parseChessImageAnalysisPrompt(content) {
   const text = String(content ?? '').trim();
   if (!text.startsWith('%')) {
@@ -39,14 +41,18 @@ export function parseChessImageAnalysisPrompt(content) {
   const white = whiteTurnPattern.test(prompt);
   const black = blackTurnPattern.test(prompt);
   const hasSolveIntent = solveIntentPattern.test(prompt);
+  const isBareTurnCommand = bareTurnCommandPattern.test(prompt);
 
-  if (!hasSolveIntent && !white && !black) {
+  // "%백선", "%흑선" 같은 단독 명령은 체스 이미지 분석으로 처리
+  // "%흑선 분석해줘", "%백 차례 최선수"처럼 분석 의도가 있으면 처리
+  // "%나랑 체스하자 내가 백이야 e4" 같은 일반 대화는 Gemini로 넘김
+  if (!hasSolveIntent && !isBareTurnCommand) {
     return null;
   }
 
   return {
     turn: white === black ? null : white ? 'w' : 'b',
-    explicitChess: explicitChessContextPattern.test(prompt) || white || black,
+    explicitChess: explicitChessContextPattern.test(prompt) || isBareTurnCommand || hasSolveIntent,
   };
 }
 
@@ -129,15 +135,20 @@ export async function handleChessAnalysisMessage(message, options = {}) {
 
   try {
     temporaryImage = await downloadChessImageAttachment(attachment);
-    const detectedBoardOrientation = await options.detectBoardOrientation?.({
-  message,
-  imagePath: temporaryImage.filePath,
-  turn: prompt.turn,
-}).catch((error) => {
-  console.error('Chess board orientation detection failed:');
-  console.error(error);
-  return null;
-});
+    let detectedBoardOrientation = null;
+
+if (typeof options.detectBoardOrientation === 'function') {
+  try {
+    detectedBoardOrientation = await options.detectBoardOrientation({
+      message,
+      imagePath: temporaryImage.filePath,
+      turn: prompt.turn,
+    });
+  } catch (error) {
+    console.error('Chess board orientation detection failed:');
+    console.error(error);
+  }
+}
 
 const boardOrientation = detectedBoardOrientation === 'b' ? 'b' : 'w';
 
@@ -154,6 +165,7 @@ const recognizedFen = await (options.imageToFen ?? imageToFen)(
 );
 
 fen = validateAnalyzableChessFen(recognizedFen, prompt.turn);
+
   } catch (error) {
     console.error('Primary chess image recognition failed:');
     console.error(error);
@@ -197,11 +209,15 @@ async function analyzeAndReply(message, fen, options = {}) {
   try {
     await message.channel.sendTyping().catch(() => {});
     const result = await (options.analyzeFen ?? analyzeFenWithStockfish)(fen, {
-      movetimeMs: Math.max(
-        100,
-        Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 2000
-      ),
-    });
+  movetimeMs: Math.max(
+    100,
+    Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 2000
+  ),
+  multiPv: Math.max(
+    1,
+    Math.min(5, Number(process.env.CHESS_STOCKFISH_MULTIPV) || 3)
+  ),
+});
 
     let responseText = '';
     if (options.createReply) {

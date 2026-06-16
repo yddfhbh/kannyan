@@ -75,6 +75,10 @@ function requestAnalysis(fen, options) {
   const depth = Number.isInteger(options.depth) && options.depth > 0
     ? options.depth
     : null;
+  const multiPv = Math.max(
+    1,
+    Math.min(5, Number(options.multiPv) || 1)
+  );
   const timeoutMs = movetimeMs + 15_000;
 
   return new Promise((resolve, reject) => {
@@ -96,6 +100,7 @@ function requestAnalysis(fen, options) {
       fen,
       movetimeMs,
       depth,
+      multiPv,
     }, (error) => {
       if (!error) {
         return;
@@ -143,6 +148,38 @@ function parseScore(infoLine) {
 function parseDepth(infoLine) {
   const match = infoLine?.match(/\bdepth\s+(\d+)/);
   return match ? Number(match[1]) : null;
+}
+
+function parseMultiPv(infoLine) {
+  const match = infoLine?.match(/\bmultipv\s+(\d+)/);
+  return match ? Number(match[1]) : 1;
+}
+
+function safeUciToSan(fen, uci) {
+  try {
+    return uciToSan(fen, uci);
+  } catch {
+    return uci;
+  }
+}
+
+function buildStockfishCandidate(fen, infoLine) {
+  const pvMoves = parsePrincipalVariationMoves(infoLine);
+  const move = pvMoves[0];
+
+  if (!move) {
+    return null;
+  }
+
+  return {
+    rank: parseMultiPv(infoLine),
+    bestMove: move,
+    san: safeUciToSan(fen, move),
+    score: parseScore(infoLine),
+    depth: parseDepth(infoLine),
+    info: infoLine,
+    principalVariation: convertPrincipalVariationToSan(fen, pvMoves),
+  };
 }
 
 function parsePrincipalVariationMoves(infoLine) {
@@ -204,13 +241,33 @@ export async function analyzeFenWithStockfish(fen, options = {}) {
       depth: null,
       info: '',
       principalVariation: [],
+      candidates: [],
     };
   }
 
   const result = await requestAnalysis(fen, options);
   const bestMove = String(result?.bestMove ?? '');
   const info = String(result?.info ?? '');
-  const pvMoves = parsePrincipalVariationMoves(info);
+
+  const infoLines = Array.isArray(result?.infos) && result.infos.length > 0
+    ? result.infos.map((line) => String(line ?? '')).filter(Boolean)
+    : info
+      ? [info]
+      : [];
+
+  const candidates = infoLines
+    .map((infoLine) => buildStockfishCandidate(fen, infoLine))
+    .filter(Boolean)
+    .sort((a, b) => a.rank - b.rank);
+
+  const mainCandidate = candidates.find((candidate) => candidate.bestMove === bestMove)
+    ?? candidates[0]
+    ?? null;
+
+  const pvMoves = mainCandidate
+    ? parsePrincipalVariationMoves(mainCandidate.info)
+    : parsePrincipalVariationMoves(info);
+
   const principalVariation = pvMoves[0] === bestMove
     ? convertPrincipalVariationToSan(fen, pvMoves)
     : convertPrincipalVariationToSan(fen, [bestMove]);
@@ -218,12 +275,13 @@ export async function analyzeFenWithStockfish(fen, options = {}) {
   return {
     bestMove,
     san: bestMove && bestMove !== '(none)'
-      ? uciToSan(fen, bestMove)
+      ? safeUciToSan(fen, bestMove)
       : '(none)',
-    score: parseScore(info),
-    depth: parseDepth(info),
-    info,
+    score: mainCandidate?.score ?? parseScore(info),
+    depth: mainCandidate?.depth ?? parseDepth(info),
+    info: mainCandidate?.info ?? info,
     principalVariation,
+    candidates,
   };
 }
 

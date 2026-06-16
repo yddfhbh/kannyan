@@ -14,6 +14,15 @@ function matchesLine(matcher, line) {
   return matcher.test(line);
 }
 
+function parseMultiPvIndex(infoLine) {
+  const match = String(infoLine ?? '').match(/\bmultipv\s+(\d+)/);
+  return match ? Number(match[1]) : 1;
+}
+
+function normalizeMultiPv(value) {
+  return Math.max(1, Math.min(5, Number(value) || 1));
+}
+
 function createEngineLineReader(engine) {
   const waiters = new Set();
   let lastInfo = '';
@@ -28,8 +37,9 @@ function createEngineLineReader(engine) {
     if (text.startsWith('info ') && text.includes(' score ')) {
       lastInfo = text;
       infoLines.push(text);
-      if (infoLines.length > 300) {
-        infoLines = infoLines.slice(-200);
+
+      if (infoLines.length > 500) {
+        infoLines = infoLines.slice(-300);
       }
     }
 
@@ -60,13 +70,42 @@ function createEngineLineReader(engine) {
         waiters.add(waiter);
       });
     },
+
     getLastInfo() {
       return lastInfo;
     },
+
     getInfoForBestMove(bestMove) {
       const pvPattern = new RegExp(`\\bpv\\s+${bestMove}(?:\\s|$)`);
       return [...infoLines].reverse().find((line) => pvPattern.test(line)) ?? lastInfo;
     },
+
+    getInfosByMultiPv(maxMultiPv = 1) {
+      const limit = normalizeMultiPv(maxMultiPv);
+      const found = new Map();
+
+      for (const line of [...infoLines].reverse()) {
+        if (!line.includes(' pv ')) {
+          continue;
+        }
+
+        const index = parseMultiPvIndex(line);
+        if (index < 1 || index > limit || found.has(index)) {
+          continue;
+        }
+
+        found.set(index, line);
+
+        if (found.size >= limit) {
+          break;
+        }
+      }
+
+      return [...found.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([, line]) => line);
+    },
+
     clearLastInfo() {
       lastInfo = '';
       infoLines = [];
@@ -95,16 +134,28 @@ async function getSharedEngine() {
   return sharedEnginePromise;
 }
 
-async function runAnalysis({ fen, movetimeMs, depth }) {
+async function runAnalysis({ fen, movetimeMs, depth, multiPv }) {
   const { engine, reader } = await getSharedEngine();
+  const normalizedMultiPv = normalizeMultiPv(multiPv);
+
   reader.clearLastInfo();
+
   engine.sendCommand('ucinewgame');
+  engine.sendCommand(`setoption name MultiPV value ${normalizedMultiPv}`);
+
+  const readyAfterOptions = reader.waitFor('readyok');
+  engine.sendCommand('isready');
+  await readyAfterOptions;
+
+  reader.clearLastInfo();
+
   engine.sendCommand(`position fen ${fen}`);
 
   const bestMoveReady = reader.waitFor(
     /^bestmove\s+/,
     Math.max(50, Number(movetimeMs) || 2000) + 10_000
   );
+
   engine.sendCommand(
     Number.isInteger(depth) && depth > 0
       ? `go depth ${depth}`
@@ -113,9 +164,13 @@ async function runAnalysis({ fen, movetimeMs, depth }) {
 
   const bestMoveLine = await bestMoveReady;
   const bestMove = bestMoveLine.split(/\s+/)[1] ?? '';
+  const infos = reader.getInfosByMultiPv(normalizedMultiPv);
+  const bestMoveInfo = reader.getInfoForBestMove(bestMove);
+
   return {
     bestMove,
-    info: reader.getInfoForBestMove(bestMove),
+    info: infos[0] ?? bestMoveInfo,
+    infos,
   };
 }
 
