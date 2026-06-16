@@ -29,7 +29,14 @@ function getPythonCommand() {
 }
 
 export async function imageToFen(imagePath, turn = 'w', options = {}) {
+  // turn은 "누구 차례인지" 용도로만 남겨둠.
+  // chess-image-to-fen.py에 넘기는 값은 보드 방향이므로 따로 둔다.
   const normalizedTurn = turn === 'b' ? 'b' : 'w';
+
+  // 기본은 백 기준 보드로 읽기.
+  // %흑선이어도 여기는 black으로 바꾸면 안 됨.
+  const boardOrientation = options.boardOrientation === 'b' ? 'b' : 'w';
+
   const timeoutMs = Math.max(
     10_000,
     Number(options.timeoutMs ?? process.env.CHESS_IMAGE_TIMEOUT_MS) || 120_000
@@ -37,7 +44,7 @@ export async function imageToFen(imagePath, turn = 'w', options = {}) {
 
   const { stdout } = await execFileAsync(
     options.pythonCommand ?? getPythonCommand(),
-    [imageToFenScriptPath, imagePath, normalizedTurn],
+    [imageToFenScriptPath, imagePath, boardOrientation],
     {
       cwd: projectRoot,
       timeout: timeoutMs,
@@ -46,10 +53,13 @@ export async function imageToFen(imagePath, turn = 'w', options = {}) {
     }
   );
 
-  const fen = String(stdout ?? '').trim().split(/\r?\n/).at(-1)?.trim() ?? '';
-  if (!fen) {
+  const rawFen = String(stdout ?? '').trim().split(/\r?\n/).at(-1)?.trim() ?? '';
+  if (!rawFen) {
     throw new Error('chessimg2pos returned an empty FEN');
   }
+
+  const boardFen = rawFen.split(/\s+/)[0];
+  const fen = `${boardFen} ${normalizedTurn} - - 0 1`;
 
   try {
     new Chess(fen);

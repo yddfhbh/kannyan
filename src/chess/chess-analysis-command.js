@@ -129,11 +129,31 @@ export async function handleChessAnalysisMessage(message, options = {}) {
 
   try {
     temporaryImage = await downloadChessImageAttachment(attachment);
-    const recognizedFen = await (options.imageToFen ?? imageToFen)(
-      temporaryImage.filePath,
-      prompt.turn
-    );
-    fen = validateAnalyzableChessFen(recognizedFen, prompt.turn);
+    const detectedBoardOrientation = await options.detectBoardOrientation?.({
+  message,
+  imagePath: temporaryImage.filePath,
+  turn: prompt.turn,
+}).catch((error) => {
+  console.error('Chess board orientation detection failed:');
+  console.error(error);
+  return null;
+});
+
+const boardOrientation = detectedBoardOrientation === 'b' ? 'b' : 'w';
+
+console.log(
+  `[CHESS IMAGE] turn=${prompt.turn} boardOrientation=${boardOrientation}`
+);
+
+const recognizedFen = await (options.imageToFen ?? imageToFen)(
+  temporaryImage.filePath,
+  prompt.turn,
+  {
+    boardOrientation,
+  }
+);
+
+fen = validateAnalyzableChessFen(recognizedFen, prompt.turn);
   } catch (error) {
     console.error('Primary chess image recognition failed:');
     console.error(error);

@@ -385,10 +385,11 @@ client.on(Events.MessageCreate, async (message) => {
     return;
   }
 
-  const chessAnalysisHandled = await handleChessAnalysisMessage(message, {
-    createReply: createNaturalChessAnalysisReply,
-    recognizeFenFallback: recognizeChessFenWithGemini,
-  });
+ const chessAnalysisHandled = await handleChessAnalysisMessage(message, {
+  createReply: createNaturalChessAnalysisReply,
+  recognizeFenFallback: recognizeChessFenWithGemini,
+  detectBoardOrientation: detectChessBoardOrientationWithGemini,
+});
   if (chessAnalysisHandled) {
     return;
   }
@@ -489,6 +490,66 @@ function isDirectBotMention(message) {
   }
 
   return new RegExp(`^<@!?${botUserId}>$`).test(message.content.trim());
+}
+
+async function detectChessBoardOrientationWithGemini({ message }) {
+  if (geminiApiKeys.length === 0) {
+    return null;
+  }
+
+  const imageParts = await getGeminiImageParts(message);
+  if (imageParts.length === 0) {
+    return null;
+  }
+
+  const response = await fetchGeminiGenerateContent({
+    system_instruction: {
+      parts: [{
+        text: [
+          'You detect the visual orientation of a chessboard image.',
+          'Return JSON only and never explain your reasoning.',
+          'Use only visible board coordinate labels such as files a-h and ranks 1-8.',
+          'Do not infer orientation from whose turn it is.',
+          'Do not infer orientation from clocks, player names, piece colors, or side to move.',
+          'White orientation means the bottom file labels go a b c d e f g h from left to right.',
+          'Black orientation means the bottom file labels go h g f e d c b a from left to right.',
+          'If bottom labels are hidden, use rank labels: White orientation has rank 1 at the bottom and rank 8 at the top; Black orientation has rank 8 at the bottom and rank 1 at the top.',
+          'If coordinate labels are not visible or not readable, return an empty orientation.',
+        ].join('\n'),
+      }],
+    },
+    contents: [{
+      role: 'user',
+      parts: [
+        {
+          text: [
+            'Look at the chessboard coordinate labels only.',
+            'Return exactly one JSON object:',
+            '{"orientation":"w"}',
+            'Use "w" if the board is viewed from White side.',
+            'Use "b" if the board is viewed from Black side.',
+            'Use "" if the coordinate labels are not readable.',
+          ].join('\n'),
+        },
+        imageParts[0],
+      ],
+    }],
+    generationConfig: {
+      maxOutputTokens: 40,
+      temperature: 0,
+      topP: 0.1,
+      responseMimeType: 'application/json',
+    },
+  }, {
+    models: geminiVisionModels,
+  });
+
+  const parsed = parseJsonObjectText(extractGeminiResponseText(response));
+  return parsed?.orientation === 'b'
+    ? 'b'
+    : parsed?.orientation === 'w'
+      ? 'w'
+      : null;
 }
 
 async function recognizeChessFenWithGemini({ message, turn }) {
