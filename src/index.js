@@ -1355,11 +1355,11 @@ async function chooseBotChessMove(chess) {
 
 function buildChessPlayFallback(facts) {
   if (facts.kind === 'start-user-white') {
-    return '좋다냥. 너는 백, 나는 흑으로 둘게냥. 첫 수를 `%e4`처럼 입력해달라냥.';
+    return '좋다냥. 너는 백, 나는 흑으로 두겠다냥. 첫 수를 `%e4`처럼 입력해달라냥.';
   }
 
   if (facts.kind === 'start-bot-white') {
-    return `좋다냥. 너는 흑, 나는 백으로 둘게냥. 내 첫 수는 **${facts.botMoveSan}**다냥. 이제 네 차례다냥.`;
+    return `좋다냥. 너는 흑, 나는 백으로 두겠다냥. 내 첫 수는 **${facts.botMoveSan}**다냥. 이제 네 차례다냥.`;
   }
 
   if (facts.kind === 'game-over-after-user') {
@@ -1395,8 +1395,8 @@ async function createNaturalChessPlayReply(message, facts) {
     '',
     '[확정 사실]',
     `상황: ${facts.kind}`,
-    `사용자 색: ${facts.userColor === 'w' ? '백' : '흑'}`,
-    `깐냥 색: ${facts.botColor === 'w' ? '백' : '흑'}`,
+   `사용자가 잡은 체스 색: ${facts.userColor === 'w' ? '백' : '흑'}`,
+`깐냥이가 잡은 체스 색: ${facts.botColor === 'w' ? '백' : '흑'}`,
     facts.userMoveSan ? `사용자 방금 둔 수: ${facts.userMoveSan}` : '',
     facts.botMoveSan ? `깐냥이 방금 둔 수: ${facts.botMoveSan}` : '',
     facts.stockfishSan ? `Stockfish 1순위 수: ${facts.stockfishSan}` : '',
@@ -1405,8 +1405,9 @@ async function createNaturalChessPlayReply(message, facts) {
     `현재 FEN(사용자가 물어볼 때만 출력 가능): ${facts.fen}`,
     '',
     '[출력 규칙]',
-    '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~3문장으로 답한다.',
-    '체스 수는 반드시 위 확정 사실에 있는 SAN 표기 그대로 출력한다.',
+'디스코드 채팅에 바로 보낼 자연스러운 한국어 1~3문장으로 답한다.',
+'체스 색을 말할 때 “백인 사용자”, “흑인 사용자”라고 절대 쓰지 말고, “네가 백”, “네가 흑”, “백을 잡은 쪽”, “흑을 잡은 쪽”처럼 말한다.',
+'체스 수는 반드시 위 확정 사실에 있는 SAN 표기 그대로 출력한다.',
     '랜덤 수를 둔 경우 Stockfish 최선수처럼 포장하지 말고, “이번엔 조금 인간적으로/다르게 둬봤다” 정도로 자연스럽게 말한다.',
     'Stockfish 수를 둔 경우에는 너무 기계적으로 말하지 말고, 대국 상대처럼 자연스럽게 말한다.',
     'FEN, UCI, 평가 수치, 탐색 깊이는 사용자가 요구하지 않으면 출력하지 않는다.',
@@ -1420,6 +1421,9 @@ async function createNaturalChessPlayReply(message, facts) {
     });
 
     const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
+    if (/(?:백인|흑인)\s*사용자/.test(answer)) {
+  return fallback;
+}
 
     if (facts.botMoveSan && !answer.includes(facts.botMoveSan)) {
       return fallback;
@@ -1641,7 +1645,7 @@ async function handleChessControlIntent(message, key, chess, existingSession, in
     chessPlaySessions.delete(key);
 
     await message.reply({
-      content: '대국은 여기서 종료할게냥.',
+      content: '대국은 여기서 종료하겟다냥.',
       allowedMentions: { parse: [], repliedUser: false },
     });
 
@@ -1730,7 +1734,7 @@ async function handleChessPlayMessage(message) {
 
   if (!userMove) {
     await message.reply({
-      content: '그 수는 지금 포지션에서 둘 수 없는 수다냥. `%e4`, `%Nf3`, `%exd5`, `%O-O`처럼 입력해달라냥.',
+      content: '그 수는 지금 포지션에서 둘 수 없는 수다냥.',
       allowedMentions: { parse: [], repliedUser: false },
     });
 
