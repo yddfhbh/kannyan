@@ -117,6 +117,7 @@ const discordMessageChunkMaxLength = 1900;
 const geminiMemoryPath = fileURLToPath(new URL('../data/gemini-memory.json', import.meta.url));
 const geminiPermanentMemoryPath = fileURLToPath(new URL('../data/gemini-permanent-memory.json', import.meta.url));
 const geminiPermanentMemoryAdminUserId = '635107514471415808';
+const geminiMemoryResetAdminUserId = '635107514471415808';
 const geminiMemoryRetentionDays = Number(process.env.GEMINI_MEMORY_DAYS) || 45;
 const geminiMemoryRetentionMs = geminiMemoryRetentionDays * 24 * 60 * 60 * 1000;
 const geminiMemoryMaxMessagesPerSession = Number(process.env.GEMINI_MEMORY_MAX_MESSAGES_PER_SESSION) || 30;
@@ -828,6 +829,11 @@ client.on(Events.MessageCreate, async (message) => {
     return;
   }
 
+  const memoryResetHandled = await handleGeminiMemoryResetMessage(message);
+if (memoryResetHandled) {
+  return;
+}
+
   const permanentMemoryHandled = await handlePercentPermanentMemoryMessage(message);
   if (permanentMemoryHandled) {
     return;
@@ -1435,6 +1441,236 @@ async function createNaturalChessPlayReply(message, facts) {
   }
 }
 
+function looksLikeChessMoveInput(text) {
+  const value = String(text ?? '').trim();
+
+  return /^(?:[a-h][1-8][a-h][1-8][qrbn]?|O-O(?:-O)?[+#]?|0-0(?:-0)?[+#]?|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?|[a-h]x[a-h][1-8](?:=[QRBN])?[+#]?|[a-h][1-8](?:=[QRBN])?[+#]?)$/i.test(value);
+}
+
+function normalizeChessControlIntent(parsed) {
+  const allowedActions = new Set(['start', 'restart', 'stop', 'show_board', 'unknown']);
+
+  const action = allowedActions.has(parsed?.action)
+    ? parsed.action
+    : 'unknown';
+
+  let userColor = parsed?.userColor === 'w' || parsed?.userColor === 'b'
+    ? parsed.userColor
+    : '';
+
+  let botColor = parsed?.botColor === 'w' || parsed?.botColor === 'b'
+    ? parsed.botColor
+    : '';
+
+  if (userColor && !botColor) {
+    botColor = userColor === 'w' ? 'b' : 'w';
+  }
+
+  if (botColor && !userColor) {
+    userColor = botColor === 'w' ? 'b' : 'w';
+  }
+
+  if (userColor && botColor && userColor === botColor) {
+    userColor = '';
+    botColor = '';
+  }
+
+  return {
+    action,
+    userColor,
+    botColor,
+  };
+}
+
+async function classifyChessControlIntent(message, text, existingSession) {
+  if (geminiApiKeys.length === 0) {
+    return {
+      action: 'unknown',
+      userColor: '',
+      botColor: '',
+    };
+  }
+
+  try {
+    const response = await fetchGeminiGenerateContent({
+      system_instruction: {
+        parts: [{
+          text: [
+            'You classify short Discord messages for a chess game controller.',
+            'Return JSON only. Do not explain.',
+            '',
+            'Allowed action values:',
+            '- start: user wants to start a new chess game',
+            '- restart: user wants to restart or change sides/colors',
+            '- stop: user wants to stop/resign/end the game',
+            '- show_board: user asks for current board, FEN, position, or move record',
+            '- unknown: not a chess control command',
+            '',
+            'Color fields:',
+            '- userColor must be "w", "b", or ""',
+            '- botColor must be "w", "b", or ""',
+            '',
+            'If the user says the bot should be White, botColor is "w" and userColor is "b".',
+            'If the user says the bot should be Black, botColor is "b" and userColor is "w".',
+            'If the user says they will be White, userColor is "w" and botColor is "b".',
+            'If the user says they will be Black, userColor is "b" and botColor is "w".',
+            'If the user asks to change sides during an active game, action is "restart".',
+            'If color is not specified, leave both color fields empty.',
+            '',
+            'Important:',
+            'Do not classify normal chess moves as control commands.',
+            'Examples of normal moves: e4, Nf3, O-O, exd5, Qh5, Rae1, e8=Q.',
+          ].join('\n'),
+        }],
+      },
+      contents: [{
+        role: 'user',
+        parts: [{
+          text: [
+            `Has active chess game: ${Boolean(existingSession)}`,
+            existingSession
+              ? `Current user color: ${existingSession.userColor === 'w' ? 'White' : 'Black'}`
+              : 'Current user color: none',
+            existingSession
+              ? `Current bot color: ${existingSession.botColor === 'w' ? 'White' : 'Black'}`
+              : 'Current bot color: none',
+            `Message: ${String(text ?? '').trim()}`,
+            '',
+            'Return exactly one JSON object like:',
+            '{"action":"restart","userColor":"b","botColor":"w"}',
+          ].join('\n'),
+        }],
+      }],
+      generationConfig: {
+        maxOutputTokens: 80,
+        temperature: 0,
+        topP: 0.1,
+        responseMimeType: 'application/json',
+      },
+    }, {
+      models: geminiModels,
+    });
+
+    return normalizeChessControlIntent(
+      parseJsonObjectText(extractGeminiResponseText(response))
+    );
+  } catch (error) {
+    console.error('Failed to classify chess control intent:');
+    console.error(error);
+
+    return {
+      action: 'unknown',
+      userColor: '',
+      botColor: '',
+    };
+  }
+}
+
+async function startChessPlaySession(message, key, options = {}) {
+  let userColor = options.userColor === 'b' ? 'b' : options.userColor === 'w' ? 'w' : '';
+  let botColor = options.botColor === 'b' ? 'b' : options.botColor === 'w' ? 'w' : '';
+
+  if (userColor && !botColor) {
+    botColor = userColor === 'w' ? 'b' : 'w';
+  }
+
+  if (botColor && !userColor) {
+    userColor = botColor === 'w' ? 'b' : 'w';
+  }
+
+  if (!userColor || !botColor || userColor === botColor) {
+    userColor = 'w';
+    botColor = 'b';
+  }
+
+  const chess = new Chess();
+
+  const session = {
+    userColor,
+    botColor,
+    fen: chess.fen(),
+    startedAtMs: Date.now(),
+  };
+
+  chessPlaySessions.set(key, session);
+
+  if (botColor === 'w') {
+    await message.channel.sendTyping().catch(() => {});
+
+    const choice = await chooseBotChessMove(chess);
+    const botMove = applyUciMove(chess, choice.selectedUci);
+
+    session.fen = chess.fen();
+
+    const reply = await createNaturalChessPlayReply(message, {
+      kind: 'start-bot-white',
+      userColor,
+      botColor,
+      botMoveSan: botMove?.san ?? '',
+      stockfishSan: choice.stockfishSan,
+      usedRandomMove: choice.selectedSource !== 'stockfish' && choice.selectedSource !== 'fallback-random',
+      resultText: getChessResultText(chess),
+      fen: chess.fen(),
+    });
+
+    await message.reply({
+      content: reply,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  const reply = await createNaturalChessPlayReply(message, {
+    kind: 'start-user-white',
+    userColor,
+    botColor,
+    fen: chess.fen(),
+  });
+
+  await message.reply({
+    content: reply,
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+
+  return true;
+}
+
+async function handleChessControlIntent(message, key, chess, existingSession, intent) {
+  if (intent.action === 'stop') {
+    chessPlaySessions.delete(key);
+
+    await message.reply({
+      content: '대국은 여기서 종료할게냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  if (intent.action === 'show_board') {
+    await message.reply({
+      content: `현재 FEN은 \`${chess.fen()}\`이다냥.`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  if (intent.action === 'start' || intent.action === 'restart') {
+    if (existingSession) {
+      chessPlaySessions.delete(key);
+    }
+
+    return startChessPlaySession(message, key, {
+      userColor: intent.userColor,
+      botColor: intent.botColor,
+    });
+  }
+
+  return false;
+}
+
 async function handleChessPlayMessage(message) {
   const content = String(message.content ?? '').trim();
 
@@ -1449,77 +1685,13 @@ async function handleChessPlayMessage(message) {
   const wantsStart =
     /(?:체스\s*하자|체스하자|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
 
-  const wantsStop =
-    /^(?:체스\s*)?(?:그만|종료|끝|기권|resign|stop)$/i.test(text);
-
-  const wantsBoard =
-    /^(?:판|보드|현재|기보)$/i.test(text);
-
-  if (wantsStop && existingSession) {
-    chessPlaySessions.delete(key);
-
-    await message.reply({
-      content: '대국은 여기서 종료할게냥.',
-      allowedMentions: { parse: [], repliedUser: false },
-    });
-
-    return true;
-  }
-
   if (wantsStart) {
-    const userColor = /(?:내가\s*)?(?:흑|black)/i.test(text) ? 'b' : 'w';
-    const botColor = userColor === 'w' ? 'b' : 'w';
-    const chess = new Chess();
+    const intent = await classifyChessControlIntent(message, text, existingSession);
 
-    const session = {
-      userColor,
-      botColor,
-      fen: chess.fen(),
-      startedAtMs: Date.now(),
-    };
-
-    chessPlaySessions.set(key, session);
-
-    if (botColor === 'w') {
-      await message.channel.sendTyping().catch(() => {});
-
-      const choice = await chooseBotChessMove(chess);
-      const botMove = applyUciMove(chess, choice.selectedUci);
-
-      session.fen = chess.fen();
-
-      const reply = await createNaturalChessPlayReply(message, {
-        kind: 'start-bot-white',
-        userColor,
-        botColor,
-        botMoveSan: botMove?.san ?? '',
-        stockfishSan: choice.stockfishSan,
-       usedRandomMove: choice.selectedSource !== 'stockfish' && choice.selectedSource !== 'fallback-random',
-        resultText: getChessResultText(chess),
-        fen: chess.fen(),
-      });
-
-      await message.reply({
-        content: reply,
-        allowedMentions: { parse: [], repliedUser: false },
-      });
-
-      return true;
-    }
-
-    const reply = await createNaturalChessPlayReply(message, {
-      kind: 'start-user-white',
-      userColor,
-      botColor,
-      fen: chess.fen(),
+    return startChessPlaySession(message, key, {
+      userColor: intent.userColor,
+      botColor: intent.botColor,
     });
-
-    await message.reply({
-      content: reply,
-      allowedMentions: { parse: [], repliedUser: false },
-    });
-
-    return true;
   }
 
   if (!existingSession) {
@@ -1528,13 +1700,21 @@ async function handleChessPlayMessage(message) {
 
   const chess = new Chess(existingSession.fen);
 
-  if (wantsBoard) {
-    await message.reply({
-      content: `현재 FEN은 \`${chess.fen()}\`이다냥.`,
-      allowedMentions: { parse: [], repliedUser: false },
-    });
+  // 체스 수처럼 생기지 않은 말은 먼저 Gemini에게 "대국 제어 의도"인지 분류시킴.
+  // 예: "니가 백해", "내가 흑할래", "판 보여줘", "그만할래"
+  if (!looksLikeChessMoveInput(text)) {
+    const intent = await classifyChessControlIntent(message, text, existingSession);
+    const controlHandled = await handleChessControlIntent(
+      message,
+      key,
+      chess,
+      existingSession,
+      intent
+    );
 
-    return true;
+    if (controlHandled) {
+      return true;
+    }
   }
 
   if (chess.turn() !== existingSession.userColor) {
@@ -1916,6 +2096,53 @@ candidateContext,
   const answer = String(answerResult.answer ?? '').trim();
 
   return answer.includes(result.san) ? answer : '';
+}
+
+async function handleGeminiMemoryResetMessage(message) {
+  const content = String(message.content ?? '').trim();
+
+  if (content !== '%리셋') {
+    return false;
+  }
+
+  if (message.author.id !== geminiMemoryResetAdminUserId) {
+    await message.reply({
+      content: '이 채널 기억을 리셋할 권한이 없다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  try {
+    await ensureGeminiMemoryLoaded();
+
+    const sessionKey = getGeminiSessionKey(message);
+    const hadMemory = geminiMemory.delete(sessionKey);
+
+    await saveGeminiMemory();
+
+    await message.reply({
+      content: hadMemory
+        ? '이 채널의 대화 기억을 리셋했다냥.'
+        : '이 채널에는 지울 대화 기억이 없었다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    console.log(
+      `[GEMINI MEMORY] channel reset by ${message.author.id} session=${sessionKey} hadMemory=${hadMemory}`
+    );
+  } catch (error) {
+    console.error('Failed to reset Gemini memory:');
+    console.error(error);
+
+    await message.reply({
+      content: '채널 기억을 리셋하다가 문제가 생겼다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+  }
+
+  return true;
 }
 
 async function handlePercentPermanentMemoryMessage(message) {
