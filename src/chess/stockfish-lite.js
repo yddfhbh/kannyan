@@ -75,10 +75,10 @@ function requestAnalysis(fen, options) {
   const depth = Number.isInteger(options.depth) && options.depth > 0
     ? options.depth
     : null;
-  const multiPv = Math.max(
-    1,
-    Math.min(5, Number(options.multiPv) || 1)
-  );
+ const multiPv = Math.max(
+  1,
+  Math.min(6, Number(options.multiPv ?? options.multipv) || 1)
+);
   const timeoutMs = movetimeMs + 15_000;
 
   return new Promise((resolve, reject) => {
@@ -139,9 +139,14 @@ function parseScore(infoLine) {
     return null;
   }
 
+  const type = match[1];
+  const value = Number(match[2]);
+
   return {
-    type: match[1],
-    value: Number(match[2]),
+    type,
+    value,
+    cp: type === 'cp' ? value : null,
+    mate: type === 'mate' ? value : null,
   };
 }
 
@@ -171,11 +176,16 @@ function buildStockfishCandidate(fen, infoLine) {
     return null;
   }
 
+  const score = parseScore(infoLine);
+
   return {
     rank: parseMultiPv(infoLine),
     bestMove: move,
+    uci: move,
     san: safeUciToSan(fen, move),
-    score: parseScore(infoLine),
+    score,
+    cp: score?.cp ?? null,
+    mate: score?.mate ?? null,
     depth: parseDepth(infoLine),
     info: infoLine,
     principalVariation: convertPrincipalVariationToSan(fen, pvMoves),
@@ -255,10 +265,23 @@ export async function analyzeFenWithStockfish(fen, options = {}) {
       ? [info]
       : [];
 
-  const candidates = infoLines
-    .map((infoLine) => buildStockfishCandidate(fen, infoLine))
-    .filter(Boolean)
-    .sort((a, b) => a.rank - b.rank);
+  const candidateByRank = new Map();
+
+for (const infoLine of infoLines) {
+  const candidate = buildStockfishCandidate(fen, infoLine);
+  if (!candidate) {
+    continue;
+  }
+
+  const old = candidateByRank.get(candidate.rank);
+
+  if (!old || (candidate.depth ?? 0) >= (old.depth ?? 0)) {
+    candidateByRank.set(candidate.rank, candidate);
+  }
+}
+
+const candidates = [...candidateByRank.values()]
+  .sort((a, b) => a.rank - b.rank);
 
   const mainCandidate = candidates.find((candidate) => candidate.bestMove === bestMove)
     ?? candidates[0]

@@ -5,7 +5,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { promisify } from 'node:util';
+import { inspect, promisify } from 'node:util';
 import sharp from 'sharp';
 import {
   ActivityType,
@@ -147,6 +147,12 @@ const chessRandomMoveRate = Math.max(
   0,
   Math.min(1, Number.isFinite(configuredChessRandomMoveRate) ? configuredChessRandomMoveRate : 0.05)
 );
+
+const chessBotMultiPvCount = 6;
+const chessBotMaxCandidateLossCp = 200;
+//실력조절용
+const chessBotBestMoveRate = 0.70;
+const chessBotSecondThirdRate = 0.20;
 
 const geminiPermanentMemory = new PermanentMemoryStore(geminiPermanentMemoryPath);
 let geminiMemoryLoaded = false;
@@ -345,6 +351,139 @@ const client = new Client({
 });
 
 const GUILD_LIST_CHANNEL_ID = '1502965960133574703';
+const GUILD_LOG_CHANNEL_ID = '1516439867238645851';
+const DISCORD_CONSOLE_LOG_MIRROR_ENABLED =
+  String(process.env.DISCORD_CONSOLE_LOG_MIRROR ?? 'true').trim().toLowerCase() !== 'false';
+
+
+const discordConsoleOriginal = {
+  log: console.log.bind(console),
+  warn: console.warn.bind(console),
+  error: console.error.bind(console),
+};
+
+let discordConsoleMirrorClient = null;
+let discordConsoleLogBuffer = [];
+let discordConsoleFlushInFlight = false;
+let discordConsoleLogChannel = null;
+
+function formatConsoleLogArg(arg) {
+  if (typeof arg === 'string') {
+    return arg;
+  }
+
+  if (arg instanceof Error) {
+    return arg.stack || `${arg.name}: ${arg.message}`;
+  }
+
+  return inspect(arg, {
+    depth: 4,
+    colors: false,
+    compact: false,
+    breakLength: 120,
+  });
+}
+
+function enqueueDiscordConsoleLog(level, args) {
+  if (!DISCORD_CONSOLE_LOG_MIRROR_ENABLED) {
+    return;
+  }
+
+  const text = args.map(formatConsoleLogArg).join(' ');
+
+  if (!text.trim()) {
+    return;
+  }
+
+  const timestamp = formatKstTime(new Date());
+  const line = `[${timestamp}] [${level}] ${text}`;
+
+  discordConsoleLogBuffer.push(line);
+
+  // 봇 ready 전 로그는 잠깐 쌓아두고, ready 후 바로 전송
+  if (discordConsoleLogBuffer.length > 500) {
+    discordConsoleLogBuffer = discordConsoleLogBuffer.slice(-500);
+  }
+
+  void flushDiscordConsoleLogs();
+}
+
+
+async function flushDiscordConsoleLogs() {
+  if (
+    discordConsoleFlushInFlight ||
+    !discordConsoleMirrorClient ||
+    !discordConsoleMirrorClient.isReady?.() ||
+    discordConsoleLogBuffer.length === 0
+  ) {
+    return;
+  }
+
+  discordConsoleFlushInFlight = true;
+
+  try {
+    discordConsoleLogChannel ??= await fetchTextChannel(
+      discordConsoleMirrorClient,
+      GUILD_LOG_CHANNEL_ID,
+      'CONSOLE MIRROR'
+    );
+
+    if (!discordConsoleLogChannel) {
+      return;
+    }
+
+    while (discordConsoleLogBuffer.length > 0) {
+      const line = discordConsoleLogBuffer.shift();
+      const safeLine = String(line ?? '').replace(/```/g, "'''").slice(0, 1800);
+
+      await discordConsoleLogChannel.send({
+        content: `\`\`\`log\n${safeLine}\n\`\`\``,
+        allowedMentions: { parse: [] },
+      });
+    }
+  } catch (error) {
+    discordConsoleOriginal.error('[CONSOLE MIRROR] 로그 전송 실패');
+    discordConsoleOriginal.error(error);
+
+    // 채널 캐시가 깨졌을 수도 있으니 다음에 다시 fetch
+    discordConsoleLogChannel = null;
+  } finally {
+    discordConsoleFlushInFlight = false;
+
+    // 전송 중 새 로그가 들어왔으면 바로 이어서 전송
+    if (
+      discordConsoleMirrorClient?.isReady?.() &&
+      discordConsoleLogBuffer.length > 0
+    ) {
+      void flushDiscordConsoleLogs();
+    }
+  }
+}
+
+function installDiscordConsoleMirror(client) {
+  if (!DISCORD_CONSOLE_LOG_MIRROR_ENABLED) {
+    return;
+  }
+
+  discordConsoleMirrorClient = client;
+
+  console.log = (...args) => {
+    discordConsoleOriginal.log(...args);
+    enqueueDiscordConsoleLog('LOG', args);
+  };
+
+  console.warn = (...args) => {
+    discordConsoleOriginal.warn(...args);
+    enqueueDiscordConsoleLog('WARN', args);
+  };
+
+  console.error = (...args) => {
+    discordConsoleOriginal.error(...args);
+    enqueueDiscordConsoleLog('ERROR', args);
+  };
+
+  discordConsoleOriginal.log(`[CONSOLE MIRROR] Discord console log mirror enabled. channel=${GUILD_LOG_CHANNEL_ID}`);
+}
 
 const DATA_DIR =
   process.env.TETRIO_LEAGUE_DATA_DIR ||
@@ -436,17 +575,46 @@ function buildGuildListMessage(state) {
   return content;
 }
 
-async function updateGuildListMessage(client, reason = 'unknown') {
-  const state = await readGuildListState();
-
-  const channel = await client.channels.fetch(GUILD_LIST_CHANNEL_ID).catch((error) => {
-    console.error(`[GUILD LIST] 채널 fetch 실패 channel=${GUILD_LIST_CHANNEL_ID} reason=${reason}`);
+async function fetchTextChannel(client, channelId, label) {
+  const channel = await client.channels.fetch(channelId).catch((error) => {
+    console.error(`[${label}] 채널 fetch 실패 channel=${channelId}`);
     console.error(error);
     return null;
   });
 
   if (!channel || typeof channel.isTextBased !== 'function' || !channel.isTextBased()) {
-    console.error(`[GUILD LIST] 채널이 없거나 텍스트 채널이 아님 channel=${GUILD_LIST_CHANNEL_ID}`);
+    console.error(`[${label}] 채널이 없거나 텍스트 채널이 아님 channel=${channelId}`);
+    return null;
+  }
+
+  return channel;
+}
+
+async function sendGuildLogMessage(client, content) {
+  if (!GUILD_LOG_CHANNEL_ID) {
+    return;
+  }
+
+  const channel = await fetchTextChannel(client, GUILD_LOG_CHANNEL_ID, 'GUILD LOG');
+
+  if (!channel) {
+    return;
+  }
+
+  await channel.send({
+    content: String(content).slice(0, 1900),
+    allowedMentions: { parse: [] },
+  }).catch((error) => {
+    console.error('[GUILD LOG] 메시지 전송 실패');
+    console.error(error);
+  });
+}
+
+async function updateGuildListMessage(client, reason = 'unknown') {
+  const state = await readGuildListState();
+  const channel = await fetchTextChannel(client, GUILD_LIST_CHANNEL_ID, 'GUILD LIST');
+
+  if (!channel) {
     return;
   }
 
@@ -456,13 +624,21 @@ async function updateGuildListMessage(client, reason = 'unknown') {
     const oldMessage = await channel.messages.fetch(state.messageId).catch(() => null);
 
     if (oldMessage) {
-      await oldMessage.edit(content);
+      await oldMessage.edit({
+        content,
+        allowedMentions: { parse: [] },
+      });
+
       console.log(`[GUILD LIST] 메시지 갱신 완료 reason=${reason}`);
       return;
     }
   }
 
-  const sent = await channel.send(content);
+  const sent = await channel.send({
+    content,
+    allowedMentions: { parse: [] },
+  });
+
   state.messageId = sent.id;
   await writeGuildListState(state);
 
@@ -503,6 +679,20 @@ async function syncCurrentGuildsToGuildListState(client) {
 
   await writeGuildListState(state);
   await updateGuildListMessage(client, 'ready-sync');
+
+  const activeCount = Object.values(state.guilds).filter((guild) => guild.status === 'active').length;
+  const leftCount = Object.values(state.guilds).filter((guild) => guild.status === 'left').length;
+
+  await sendGuildLogMessage(
+    client,
+    [
+      '🔄 **서버 목록 동기화 완료**',
+      `현재 참가: ${activeCount}개`,
+      `탈퇴 기록: ${leftCount}개`,
+      `전체 기록: ${Object.keys(state.guilds).length}개`,
+      `시간: ${formatKstTime(new Date())}`,
+    ].join('\n')
+  );
 }
 
 async function markGuildJoined(client, guild) {
@@ -523,6 +713,18 @@ async function markGuildJoined(client, guild) {
 
   await writeGuildListState(state);
   await updateGuildListMessage(client, 'guild-join');
+
+  await sendGuildLogMessage(
+    client,
+    [
+      '🟢 **봇이 새 서버에 참가함**',
+      `서버명: **${guild.name}**`,
+      `서버 ID: \`${guild.id}\``,
+      `멤버 수: ${guild.memberCount ?? '?'}`,
+      `Owner ID: \`${guild.ownerId ?? 'unknown'}\``,
+      `시간: ${formatKstTime(new Date())}`,
+    ].join('\n')
+  );
 
   console.log(`[GUILD JOIN] name="${guild.name}" id=${guild.id}`);
 }
@@ -546,6 +748,20 @@ async function markGuildLeft(client, guild) {
   await writeGuildListState(state);
   await updateGuildListMessage(client, 'guild-left');
 
+  await sendGuildLogMessage(
+    client,
+    [
+      '⚫ **봇이 서버에서 나감 / 추방됨**',
+      `서버명: **${guild.name ?? old?.name ?? '이름 알 수 없음'}**`,
+      `서버 ID: \`${guild.id}\``,
+      `멤버 수: ${guild.memberCount ?? old?.memberCount ?? '?'}`,
+      `Owner ID: \`${guild.ownerId ?? old?.ownerId ?? 'unknown'}\``,
+      `시간: ${formatKstTime(new Date())}`,
+      '',
+      '서버 목록에는 `(탈퇴)` 상태로 유지됨.',
+    ].join('\n')
+  );
+
   console.log(`[GUILD LEAVE] name="${guild.name ?? old?.name ?? 'unknown'}" id=${guild.id}`);
 }
 
@@ -567,6 +783,8 @@ client.on('guildDelete', async (guild) => {
   }
 });
 
+installDiscordConsoleMirror(client);
+
 client.once(Events.ClientReady, async (readyClient) => {
   discordReady = true;
   readyClient.user.setPresence({
@@ -575,6 +793,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   });
 
   console.log(`Logged in as ${readyClient.user.tag}`);
+  void flushDiscordConsoleLogs();
 
   try {
     await syncCurrentGuildsToGuildListState(readyClient);
@@ -840,6 +1059,187 @@ function getChessResultText(chess) {
   return '';
 }
 
+function getStockfishCandidateRank(candidate, index) {
+  const rank = Number(
+    candidate?.rank
+    ?? candidate?.multipv
+    ?? candidate?.multiPv
+    ?? index + 1
+  );
+
+  return Number.isFinite(rank) && rank > 0 ? rank : index + 1;
+}
+
+function getStockfishCandidateSan(candidate) {
+  return String(
+    candidate?.san
+    ?? candidate?.move?.san
+    ?? candidate?.principalVariation?.[0]?.san
+    ?? ''
+  ).trim();
+}
+
+function getStockfishCandidateUci(candidate, chess) {
+  const directUci = String(
+    candidate?.uci
+    ?? candidate?.bestMove
+    ?? candidate?.move?.uci
+    ?? candidate?.principalVariation?.[0]?.uci
+    ?? ''
+  ).trim();
+
+  if (/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(directUci)) {
+    return directUci;
+  }
+
+  const san = getStockfishCandidateSan(candidate);
+  if (!san) {
+    return '';
+  }
+
+  try {
+    const testChess = new Chess(chess.fen());
+    const move = testChess.move(san);
+    return move ? moveToUci(move) : '';
+  } catch {
+    return '';
+  }
+}
+
+function getStockfishCandidateCp(candidate) {
+  const values = [
+    candidate?.cp,
+    candidate?.scoreCp,
+    candidate?.centipawns,
+    candidate?.evaluationCp,
+    candidate?.evalCp,
+    candidate?.score?.type === 'cp' ? candidate?.score?.value : null,
+    candidate?.score?.cp,
+    candidate?.score?.centipawns,
+  ];
+
+  for (const value of values) {
+    if (value === null || value === undefined || value === '') {
+      continue;
+    }
+
+    const number = Number(value);
+    if (Number.isFinite(number)) {
+      return number;
+    }
+  }
+
+  return null;
+}
+
+function getStockfishCandidateMate(candidate) {
+  const values = [
+    candidate?.mate,
+    candidate?.mateIn,
+    candidate?.score?.type === 'mate' ? candidate?.score?.value : null,
+    candidate?.score?.mate,
+    candidate?.score?.mateIn,
+  ];
+
+  for (const value of values) {
+    if (value === null || value === undefined || value === '') {
+      continue;
+    }
+
+    const number = Number(value);
+    if (Number.isFinite(number)) {
+      return number;
+    }
+  }
+
+  return null;
+}
+
+function normalizeStockfishCandidates(chess, analysis, legalUcis) {
+  const rawCandidates = Array.isArray(analysis?.candidates)
+    ? analysis.candidates
+    : [];
+
+  const normalized = [];
+  const seen = new Set();
+
+  for (const [index, candidate] of rawCandidates.entries()) {
+    const uci = getStockfishCandidateUci(candidate, chess);
+
+    if (!legalUcis.includes(uci) || seen.has(uci)) {
+      continue;
+    }
+
+    seen.add(uci);
+
+    normalized.push({
+      raw: candidate,
+      rank: getStockfishCandidateRank(candidate, index),
+      uci,
+      san: getStockfishCandidateSan(candidate),
+      cp: getStockfishCandidateCp(candidate),
+      mate: getStockfishCandidateMate(candidate),
+    });
+  }
+
+  const bestMoveUci = String(analysis?.bestMove ?? '').trim();
+
+  if (
+    /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(bestMoveUci)
+    && legalUcis.includes(bestMoveUci)
+    && !seen.has(bestMoveUci)
+  ) {
+    normalized.unshift({
+      raw: null,
+      rank: 1,
+      uci: bestMoveUci,
+      san: analysis?.san ?? '',
+      cp: null,
+      mate: null,
+    });
+  }
+
+  return normalized
+    .sort((a, b) => a.rank - b.rank)
+    .slice(0, chessBotMultiPvCount);
+}
+
+function getCandidateLossCp(bestCandidate, candidate) {
+  if (!bestCandidate || !candidate) {
+    return Infinity;
+  }
+
+  if (candidate.rank === 1) {
+    return 0;
+  }
+
+  // 내가 바로 메이트 당하는 후보수는 금지
+  if (Number.isFinite(candidate.mate) && candidate.mate < 0) {
+    return Infinity;
+  }
+
+  // 둘 다 cp 평가가 있으면 1순위와의 손실 계산
+  if (Number.isFinite(bestCandidate.cp) && Number.isFinite(candidate.cp)) {
+    return Math.abs(bestCandidate.cp - candidate.cp);
+  }
+
+  // mate 평가끼리는 단순 비교가 위험해서, 지는 메이트만 제외하고 나머지는 순위 기반 허용
+  if (Number.isFinite(candidate.mate)) {
+    return candidate.mate < 0 ? Infinity : 0;
+  }
+
+  // 점수 정보가 없으면 안전하게 랜덤 후보에서 제외
+  return Infinity;
+}
+
+function pickRandomItem(items) {
+  if (!items.length) {
+    return null;
+  }
+
+  return items[Math.floor(Math.random() * items.length)];
+}
+
 async function chooseBotChessMove(chess) {
   const legalMoves = chess.moves({ verbose: true });
 
@@ -847,6 +1247,8 @@ async function chooseBotChessMove(chess) {
     return {
       selectedUci: '',
       selectedSource: 'none',
+      selectedRank: null,
+      selectedLossCp: null,
       analysis: null,
       stockfishSan: '',
     };
@@ -860,35 +1262,88 @@ async function chooseBotChessMove(chess) {
         100,
         Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 2000
       ),
+      multiPv: chessBotMultiPvCount,
+      multipv: chessBotMultiPvCount,
     });
   } catch (error) {
     console.error('Stockfish chess play analysis failed:');
     console.error(error);
   }
 
-  const stockfishUci = String(analysis?.bestMove ?? '');
   const legalUcis = legalMoves.map(moveToUci);
-  const nonStockfishUcis = legalUcis.filter((uci) => uci !== stockfishUci);
+  const candidates = normalizeStockfishCandidates(chess, analysis, legalUcis);
+  const bestCandidate = candidates.find((candidate) => candidate.rank === 1) ?? candidates[0];
 
-  let selectedUci = legalUcis.includes(stockfishUci)
-    ? stockfishUci
-    : legalUcis[Math.floor(Math.random() * legalUcis.length)];
-
-  let selectedSource = selectedUci === stockfishUci ? 'stockfish' : 'fallback-random';
-
-  if (
-    nonStockfishUcis.length > 0
-    && Math.random() < chessRandomMoveRate
-  ) {
-    selectedUci = nonStockfishUcis[Math.floor(Math.random() * nonStockfishUcis.length)];
-    selectedSource = 'random';
+  if (!bestCandidate) {
+    return {
+      selectedUci: legalUcis[Math.floor(Math.random() * legalUcis.length)],
+      selectedSource: 'fallback-random',
+      selectedRank: null,
+      selectedLossCp: null,
+      analysis,
+      stockfishSan: analysis?.san ?? '',
+    };
   }
 
+  const safeCandidates = candidates
+    .map((candidate) => ({
+      ...candidate,
+      lossCp: getCandidateLossCp(bestCandidate, candidate),
+    }))
+    .filter((candidate) =>
+      candidate.rank === 1 ||
+      candidate.lossCp <= chessBotMaxCandidateLossCp
+    );
+
+  const bestGroup = safeCandidates.filter((candidate) => candidate.rank === 1);
+  const secondThirdGroup = safeCandidates.filter((candidate) =>
+    candidate.rank >= 2 && candidate.rank <= 3
+  );
+  const fourthSixthGroup = safeCandidates.filter((candidate) =>
+    candidate.rank >= 4 && candidate.rank <= 6
+  );
+
+  const roll = Math.random();
+  let selected = null;
+  let selectedSource = 'stockfish';
+
+  if (roll < chessBotBestMoveRate) {
+    selected = pickRandomItem(bestGroup) ?? bestCandidate;
+    selectedSource = 'stockfish';
+  } else if (roll < chessBotBestMoveRate + chessBotSecondThirdRate) {
+    selected =
+      pickRandomItem(secondThirdGroup) ??
+      pickRandomItem(bestGroup) ??
+      bestCandidate;
+
+    selectedSource = selected.rank === 1 ? 'stockfish' : 'candidate-2-3';
+  } else {
+    selected =
+      pickRandomItem(fourthSixthGroup) ??
+      pickRandomItem(secondThirdGroup) ??
+      pickRandomItem(bestGroup) ??
+      bestCandidate;
+
+    if (selected.rank >= 4) {
+      selectedSource = 'candidate-4-6';
+    } else if (selected.rank >= 2) {
+      selectedSource = 'candidate-2-3';
+    } else {
+      selectedSource = 'stockfish';
+    }
+  }
+
+  console.log(
+    `[CHESS PLAY] selected=${selected.san || selected.uci} source=${selectedSource} rank=${selected.rank} lossCp=${selected.lossCp ?? 0}`
+  );
+
   return {
-    selectedUci,
+    selectedUci: selected.uci,
     selectedSource,
+    selectedRank: selected.rank,
+    selectedLossCp: selected.lossCp ?? 0,
     analysis,
-    stockfishSan: analysis?.san ?? '',
+    stockfishSan: bestCandidate.san || analysis?.san || '',
   };
 }
 
@@ -939,7 +1394,7 @@ async function createNaturalChessPlayReply(message, facts) {
     facts.userMoveSan ? `사용자 방금 둔 수: ${facts.userMoveSan}` : '',
     facts.botMoveSan ? `깐냥이 방금 둔 수: ${facts.botMoveSan}` : '',
     facts.stockfishSan ? `Stockfish 1순위 수: ${facts.stockfishSan}` : '',
-    `이번 깐냥 수 선택 방식: ${facts.usedRandomMove ? '10% 랜덤 합법 수' : 'Stockfish 추천 수'}`,
+    `이번 깐냥 수 선택 방식: ${facts.usedRandomMove ? 'Stockfish 후보수 중 인간적인 차선수' : 'Stockfish 1순위 수'}`,
     facts.resultText ? `대국 결과/상태: ${facts.resultText}` : '',
     `현재 FEN(사용자가 물어볼 때만 출력 가능): ${facts.fen}`,
     '',
@@ -1039,7 +1494,7 @@ async function handleChessPlayMessage(message) {
         botColor,
         botMoveSan: botMove?.san ?? '',
         stockfishSan: choice.stockfishSan,
-        usedRandomMove: choice.selectedSource === 'random',
+       usedRandomMove: choice.selectedSource !== 'stockfish' && choice.selectedSource !== 'fallback-random',
         resultText: getChessResultText(chess),
         fen: chess.fen(),
       });
@@ -1155,7 +1610,7 @@ async function handleChessPlayMessage(message) {
     userMoveSan: userMove.san,
     botMoveSan: botMove.san,
     stockfishSan: choice.stockfishSan,
-    usedRandomMove: choice.selectedSource === 'random',
+    usedRandomMove: choice.selectedSource !== 'stockfish' && choice.selectedSource !== 'fallback-random',
     resultText,
     fen: chess.fen(),
   });

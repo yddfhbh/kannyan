@@ -20,7 +20,7 @@ function parseMultiPvIndex(infoLine) {
 }
 
 function normalizeMultiPv(value) {
-  return Math.max(1, Math.min(5, Number(value) || 1));
+  return Math.max(1, Math.min(6, Number(value) || 1));
 }
 
 function createEngineLineReader(engine) {
@@ -137,6 +137,9 @@ async function getSharedEngine() {
 async function runAnalysis({ fen, movetimeMs, depth, multiPv }) {
   const { engine, reader } = await getSharedEngine();
   const normalizedMultiPv = normalizeMultiPv(multiPv);
+  console.error(
+  `[Stockfish MultiPV] requested=${normalizedMultiPv} got=${infos.length} ranks=${infos.map(parseMultiPvIndex).join(',') || 'none'}`
+);
 
   reader.clearLastInfo();
 
