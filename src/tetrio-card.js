@@ -3374,10 +3374,10 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
     );
     const hasBreakSpace = /[ \t]/.test(paragraph);
 
-const shouldUseMeasuredWrap = fontDataUri
-  && paragraph.length <= measuredBioWrapMaxLength
-  && !containsBioEmoji(paragraph)
-  && (!hasCjkText || hasBreakSpace);
+    const shouldUseMeasuredWrap = fontDataUri
+      && paragraph.length <= measuredBioWrapMaxLength
+      && !containsBioEmoji(paragraph)
+      && (!hasCjkText || hasBreakSpace);
     const wrappedLines = shouldUseMeasuredWrap
       ? await wrapBioParagraphMeasured(
         paragraph,
