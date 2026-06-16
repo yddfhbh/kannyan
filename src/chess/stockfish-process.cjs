@@ -167,9 +167,9 @@ async function runAnalysis({ fen, movetimeMs, depth, multiPv }) {
   const infos = reader.getInfosByMultiPv(normalizedMultiPv);
   const bestMoveInfo = reader.getInfoForBestMove(bestMove);
 
-  console.error(
-    `[Stockfish MultiPV] requested=${normalizedMultiPv} got=${infos.length} ranks=${infos.map(parseMultiPvIndex).join(',') || 'none'}`
-  );
+  console.log(
+  `[Stockfish MultiPV] requested=${normalizedMultiPv} got=${infos.length} ranks=${infos.map(parseMultiPvIndex).join(',') || 'none'}`
+);
 
   return {
     bestMove,
