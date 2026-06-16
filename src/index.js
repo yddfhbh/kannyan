@@ -1367,17 +1367,89 @@ function buildChessPlayFallback(facts) {
   }
 
   if (facts.kind === 'bot-move') {
-    return [
-      `네 수 **${facts.userMoveSan}** 받았다냥.`,
-      `내 수는 **${facts.botMoveSan}**다냥.`,
-      facts.usedRandomMove && facts.stockfishSan
-        ? `참고로 Stockfish 1순위는 **${facts.stockfishSan}**였는데, 이번엔 조금 다르게 둬봤다냥.`
-        : '',
-      facts.resultText || '이제 네 차례다냥.',
-    ].filter(Boolean).join(' ');
-  }
+  return [
+    `네 수 **${facts.userMoveSan}** 받았다냥.`,
+    `내 수는 **${facts.botMoveSan}**다냥.`,
+    facts.resultText || '이제 네 차례다냥.',
+  ].filter(Boolean).join(' ');
+}
 
   return '좋다냥.';
+}
+
+function getChessReplyTimeoutMs() {
+  return Math.max(800, Number(process.env.CHESS_REPLY_TIMEOUT_MS) || 2500);
+}
+
+async function runChessReplyWithTimeout(label, fallback, task) {
+  let finished = false;
+
+  const work = Promise.resolve()
+    .then(task)
+    .then((value) => {
+      finished = true;
+      return value || fallback;
+    })
+    .catch((error) => {
+      finished = true;
+      console.error(`[CHESS PLAY] ${label} reply failed:`);
+      console.error(error);
+      return fallback;
+    });
+
+  const timeout = new Promise((resolve) => {
+    setTimeout(() => {
+      if (!finished) {
+        console.warn(`[CHESS PLAY] ${label} reply timeout, using fallback.`);
+      }
+
+      resolve(fallback);
+    }, getChessReplyTimeoutMs());
+  });
+
+  return Promise.race([work, timeout]);
+}
+
+async function createNaturalChessStopReply(message, facts = {}) {
+  const fallback = '대국은 여기서 종료할게냥. 한 판 재밌었다냥.';
+
+  if (geminiApiKeys.length === 0) {
+    return fallback;
+  }
+
+  return runChessReplyWithTimeout('stop', fallback, async () => {
+    const prompt = [
+      '사용자와 깐냥이가 체스 대국을 하다가, 사용자가 대국 종료/기권/그만하기를 요청했다.',
+      '승패나 결과는 확정되지 않았으면 지어내지 마라.',
+      '',
+      '[확정 사실]',
+      `사용자가 잡은 체스 색: ${facts.userColor === 'b' ? '흑' : facts.userColor === 'w' ? '백' : '알 수 없음'}`,
+      `깐냥이가 잡은 체스 색: ${facts.botColor === 'b' ? '흑' : facts.botColor === 'w' ? '백' : '알 수 없음'}`,
+      facts.fen ? `마지막 FEN(사용자가 요구하지 않으면 출력 금지): ${facts.fen}` : '',
+      '',
+      '[출력 규칙]',
+      '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~2문장만 출력한다.',
+      '대국이 재밌었다는 느낌을 가볍게 넣는다.',
+      '상대가 기권했다고 놀리거나 비난하지 않는다.',
+      '승리/패배/체크메이트를 지어내지 않는다.',
+      'FEN은 출력하지 않는다.',
+      '“백인 사용자”, “흑인 사용자”라는 표현은 절대 쓰지 않는다.',
+      '“응냥”으로 시작하지 말고 바로 본론부터 말한다.',
+      `사용자 원문: ${String(message.content ?? '').trim()}`,
+    ].filter(Boolean).join('\n');
+
+    const answerResult = await generateGeminiAnswer(prompt, {
+      currentUserContext: getGeminiCurrentUserContext(message),
+    });
+
+    const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
+
+    if (/(?:백인|흑인)\s*사용자/.test(answer)) {
+      return fallback;
+    }
+
+    return answer || fallback;
+  });
 }
 
 async function createNaturalChessPlayReply(message, facts) {
@@ -1399,8 +1471,7 @@ async function createNaturalChessPlayReply(message, facts) {
 `깐냥이가 잡은 체스 색: ${facts.botColor === 'w' ? '백' : '흑'}`,
     facts.userMoveSan ? `사용자 방금 둔 수: ${facts.userMoveSan}` : '',
     facts.botMoveSan ? `깐냥이 방금 둔 수: ${facts.botMoveSan}` : '',
-    facts.stockfishSan ? `Stockfish 1순위 수: ${facts.stockfishSan}` : '',
-    `이번 깐냥 수 선택 방식: ${facts.usedRandomMove ? 'Stockfish 후보수 중 인간적인 차선수' : 'Stockfish 1순위 수'}`,
+    
     facts.resultText ? `대국 결과/상태: ${facts.resultText}` : '',
     `현재 FEN(사용자가 물어볼 때만 출력 가능): ${facts.fen}`,
     '',
@@ -1408,41 +1479,38 @@ async function createNaturalChessPlayReply(message, facts) {
 '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~3문장으로 답한다.',
 '체스 색을 말할 때 “백인 사용자”, “흑인 사용자”라고 절대 쓰지 말고, “네가 백”, “네가 흑”, “백을 잡은 쪽”, “흑을 잡은 쪽”처럼 말한다.',
 '체스 수는 반드시 위 확정 사실에 있는 SAN 표기 그대로 출력한다.',
-    '랜덤 수를 둔 경우 Stockfish 최선수처럼 포장하지 말고, “이번엔 조금 인간적으로/다르게 둬봤다” 정도로 자연스럽게 말한다.',
-    'Stockfish 수를 둔 경우에는 너무 기계적으로 말하지 말고, 대국 상대처럼 자연스럽게 말한다.',
+   '수 선택 방식, Stockfish, 후보수, 랜덤, 차선수, 평가값 이야기는 사용자가 직접 묻지 않으면 절대 말하지 않는다.',
+'그냥 평범하게 체스 상대가 수를 둔 것처럼 말한다.',
     'FEN, UCI, 평가 수치, 탐색 깊이는 사용자가 요구하지 않으면 출력하지 않는다.',
     '“응냥”으로 시작하지 말고 바로 본론부터 말한다.',
     `사용자 원문: ${String(message.content ?? '').trim()}`,
   ].filter(Boolean).join('\n');
 
-  try {
-    const answerResult = await generateGeminiAnswer(prompt, {
-      currentUserContext: getGeminiCurrentUserContext(message),
-    });
+  return runChessReplyWithTimeout('play', fallback, async () => {
+  const answerResult = await generateGeminiAnswer(prompt, {
+    currentUserContext: getGeminiCurrentUserContext(message),
+  });
 
-    const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
-    if (/(?:백인|흑인)\s*사용자/.test(answer)) {
-  return fallback;
-}
+  const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
 
-    if (facts.botMoveSan && !answer.includes(facts.botMoveSan)) {
-      return fallback;
-    }
-
-    if (
-      facts.userMoveSan
-      && facts.kind !== 'start-bot-white'
-      && !answer.includes(facts.userMoveSan)
-    ) {
-      return fallback;
-    }
-
-    return answer || fallback;
-  } catch (error) {
-    console.error('Failed to generate natural chess play reply:');
-    console.error(error);
+  if (/(?:백인|흑인)\s*사용자/.test(answer)) {
     return fallback;
   }
+
+  if (facts.botMoveSan && !answer.includes(facts.botMoveSan)) {
+    return fallback;
+  }
+
+  if (
+    facts.userMoveSan
+    && facts.kind !== 'start-bot-white'
+    && !answer.includes(facts.userMoveSan)
+  ) {
+    return fallback;
+  }
+
+  return answer || fallback;
+});
 }
 
 function looksLikeChessMoveInput(text) {
@@ -1644,10 +1712,16 @@ async function handleChessControlIntent(message, key, chess, existingSession, in
   if (intent.action === 'stop') {
     chessPlaySessions.delete(key);
 
-    await message.reply({
-      content: '대국은 여기서 종료하겟다냥.',
-      allowedMentions: { parse: [], repliedUser: false },
-    });
+    const reply = await createNaturalChessStopReply(message, {
+  userColor: existingSession?.userColor,
+  botColor: existingSession?.botColor,
+  fen: chess?.fen?.() ?? existingSession?.fen ?? '',
+});
+
+await message.reply({
+  content: reply,
+  allowedMentions: { parse: [], repliedUser: false },
+});
 
     return true;
   }
@@ -1675,6 +1749,10 @@ async function handleChessControlIntent(message, key, chess, existingSession, in
   return false;
 }
 
+function isPlainChessStartText(text) {
+  return /^(?:체스\s*하자|play\s*chess)$/i.test(String(text ?? '').trim());
+}
+
 async function handleChessPlayMessage(message) {
   const content = String(message.content ?? '').trim();
 
@@ -1690,13 +1768,17 @@ async function handleChessPlayMessage(message) {
     /(?:체스\s*하자|체스하자|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
 
   if (wantsStart) {
-    const intent = await classifyChessControlIntent(message, text, existingSession);
-
-    return startChessPlaySession(message, key, {
-      userColor: intent.userColor,
-      botColor: intent.botColor,
-    });
+  if (isPlainChessStartText(text)) {
+    return startChessPlaySession(message, key);
   }
+
+  const intent = await classifyChessControlIntent(message, text, existingSession);
+
+  return startChessPlaySession(message, key, {
+    userColor: intent.userColor,
+    botColor: intent.botColor,
+  });
+}
 
   if (!existingSession) {
     return false;

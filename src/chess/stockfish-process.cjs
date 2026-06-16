@@ -137,9 +137,6 @@ async function getSharedEngine() {
 async function runAnalysis({ fen, movetimeMs, depth, multiPv }) {
   const { engine, reader } = await getSharedEngine();
   const normalizedMultiPv = normalizeMultiPv(multiPv);
-  console.error(
-  `[Stockfish MultiPV] requested=${normalizedMultiPv} got=${infos.length} ranks=${infos.map(parseMultiPvIndex).join(',') || 'none'}`
-);
 
   reader.clearLastInfo();
 
@@ -169,6 +166,10 @@ async function runAnalysis({ fen, movetimeMs, depth, multiPv }) {
   const bestMove = bestMoveLine.split(/\s+/)[1] ?? '';
   const infos = reader.getInfosByMultiPv(normalizedMultiPv);
   const bestMoveInfo = reader.getInfoForBestMove(bestMove);
+
+  console.error(
+    `[Stockfish MultiPV] requested=${normalizedMultiPv} got=${infos.length} ranks=${infos.map(parseMultiPvIndex).join(',') || 'none'}`
+  );
 
   return {
     bestMove,
