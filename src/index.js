@@ -5141,14 +5141,20 @@ async function fetchGeminiGenerateContent(payload, options = {}) {
         }
       }
 
-      if (shouldTryNextGeminiModel(lastError)) {
-        console.warn(
-          `Gemma/Gemini model ${modelName} failed with status ${lastError.status ?? lastError.name} using ${keyLabel}; trying next model if available.`
-        );
-        continue;
-      }
+     // 400/401/403/429는 모델 문제가 아니라 API 키/쿼터 문제일 가능성이 높으니,
+// 같은 키로 다음 모델을 시도하지 말고 바깥 key loop로 넘긴다.
+if (shouldTryNextGeminiApiKey(lastError)) {
+  break;
+}
 
-      break;
+if (shouldTryNextGeminiModel(lastError)) {
+  console.warn(
+    `Gemma/Gemini model ${modelName} failed with status ${lastError.status ?? lastError.name} using ${keyLabel}; trying next model if available.`
+  );
+  continue;
+}
+
+break;
     }
 
     if (shouldTryNextGeminiApiKey(lastError) && keyIndex < geminiApiKeys.length - 1) {
