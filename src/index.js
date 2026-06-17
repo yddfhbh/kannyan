@@ -1435,7 +1435,7 @@ async function runChessReplyWithTimeout(label, fallback, task) {
 }
 
 async function createNaturalChessStopReply(message, facts = {}) {
-  const fallback = '대국은 여기서 종료할게냥. 한 판 재밌었다냥.';
+  const fallback = '대국은 여기서 종료하겟다냥. 한 판 재밌었다냥.';
 
   if (geminiApiKeys.length === 0) {
     return fallback;
@@ -1468,9 +1468,12 @@ async function createNaturalChessStopReply(message, facts = {}) {
 
     const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
 
-    if (/(?:백인|흑인)\s*사용자/.test(answer)) {
-      return fallback;
-    }
+   if (
+  /(?:백인|흑인)\s*사용자/.test(answer) ||
+  /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
+) {
+  return fallback;
+}
 
     return answer || fallback;
   });
@@ -1501,6 +1504,7 @@ async function createNaturalChessPlayReply(message, facts) {
     '',
     '[출력 규칙]',
 '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~3문장으로 답한다.',
+'“[체스판 상황]”, “백:”, “흑:” 같은 판 요약 목록을 절대 출력하지 않는다.',
 '체스 색을 말할 때 “백인 사용자”, “흑인 사용자”라고 절대 쓰지 말고, “네가 백”, “네가 흑”, “백을 잡은 쪽”, “흑을 잡은 쪽”처럼 말한다.',
 '체스 수는 반드시 위 확정 사실에 있는 SAN 표기 그대로 출력한다.',
    '수 선택 방식, Stockfish, 후보수, 랜덤, 차선수, 평가값 이야기는 사용자가 직접 묻지 않으면 절대 말하지 않는다.',
@@ -1773,8 +1777,111 @@ await message.reply({
   return false;
 }
 
+function createPendingChessStartChoice(message, key) {
+  chessPlaySessions.set(key, {
+    kind: 'pending-start-choice',
+    fen: '',
+    userColor: '',
+    botColor: '',
+    startedAtMs: Date.now(),
+  });
+
+  return message.reply({
+    content: '체스 두는 거 정말 좋다냥! 내가 먼저 시작해도 될까냥?',
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+}
+
+function classifyPendingChessStartChoice(text) {
+  const value = String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim();
+
+  // 사용자가 봇에게 먼저 두라고 허락
+  if (/^(?:ㅇㅇ|ㅇㅋ|응|그래|좋아|ㄱㄱ|고|해|해라|오케이|오키|먼저\s*(?:해|둬|시작해)|니가\s*먼저|너가\s*먼저|깐냥(?:이)?가\s*먼저|yes|y|ok|okay|go)$/i.test(value)) {
+    return {
+      handled: true,
+      userColor: 'b',
+      botColor: 'w',
+    };
+  }
+
+  // 사용자가 먼저 두고 싶어함
+  if (/^(?:ㄴㄴ|아니|싫어|내가\s*(?:먼저|둘게|시작할게|할게)|나\s*(?:먼저|둘게|시작할게|할게)|내가\s*백|나는\s*백|난\s*백|내가\s*white|i\s*will\s*white|me\s*white)$/i.test(value)) {
+    return {
+      handled: true,
+      userColor: 'w',
+      botColor: 'b',
+    };
+  }
+
+  // 색으로 대답한 경우
+  if (/^(?:내가\s*)?(?:흑|black)$/i.test(value)) {
+    return {
+      handled: true,
+      userColor: 'b',
+      botColor: 'w',
+    };
+  }
+
+  if (/^(?:내가\s*)?(?:백|white)$/i.test(value)) {
+    return {
+      handled: true,
+      userColor: 'w',
+      botColor: 'b',
+    };
+  }
+
+  if (/^(?:니가|너가|깐냥(?:이)?가|봇(?:이)?)\s*(?:백|white)$/i.test(value)) {
+    return {
+      handled: true,
+      userColor: 'b',
+      botColor: 'w',
+    };
+  }
+
+  if (/^(?:니가|너가|깐냥(?:이)?가|봇(?:이)?)\s*(?:흑|black)$/i.test(value)) {
+    return {
+      handled: true,
+      userColor: 'w',
+      botColor: 'b',
+    };
+  }
+
+  return {
+    handled: false,
+    userColor: '',
+    botColor: '',
+  };
+}
+
+async function handlePendingChessStartChoice(message, key, text, existingSession) {
+  if (existingSession?.kind !== 'pending-start-choice') {
+    return false;
+  }
+
+  const choice = classifyPendingChessStartChoice(text);
+
+  if (!choice.handled) {
+    await message.reply({
+      content: '내가 먼저 둘지, 네가 먼저 둘지만 알려달라냥. 예: `%ㅇㅇ`, `%내가 먼저`, `%내가 백`',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  chessPlaySessions.delete(key);
+
+  return startChessPlaySession(message, key, {
+    userColor: choice.userColor,
+    botColor: choice.botColor,
+  });
+}
+
 function isPlainChessStartText(text) {
-  return /^(?:체스\s*하자|play\s*chess)$/i.test(String(text ?? '').trim());
+  return /^(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|play\s*chess)$/i.test(String(text ?? '').trim());
 }
 
 async function handleChessPlayMessage(message) {
@@ -1788,12 +1895,17 @@ async function handleChessPlayMessage(message) {
   const key = getChessPlaySessionKey(message);
   const existingSession = chessPlaySessions.get(key);
 
+  if (existingSession?.kind === 'pending-start-choice') {
+  return handlePendingChessStartChoice(message, key, text, existingSession);
+}
+
   const wantsStart =
-    /(?:체스\s*하자|체스하자|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
+  /(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
 
   if (wantsStart) {
   if (isPlainChessStartText(text)) {
-    return startChessPlaySession(message, key);
+    await createPendingChessStartChoice(message, key);
+    return true;
   }
 
   const intent = await classifyChessControlIntent(message, text, existingSession);
