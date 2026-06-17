@@ -1441,8 +1441,53 @@ async function runChessReplyWithTimeout(label, fallback, task) {
   return Promise.race([work, timeout]);
 }
 
+async function createNaturalChessDrawReply(message, facts = {}) {
+  const fallback = '무승부 제안 받아들일게냥. 이번 판은 무승부로 마무리하자냥.';
+
+  if (geminiApiKeys.length === 0) {
+    return fallback;
+  }
+
+  return runChessReplyWithTimeout('draw', fallback, async () => {
+    const prompt = [
+      '사용자가 체스 대국 중 무승부를 제안했다.',
+      '깐냥이는 무조건 무승부 제안을 받아들인다.',
+      '',
+      '[확정 사실]',
+      `사용자가 잡은 체스 색: ${facts.userColor === 'b' ? '흑' : facts.userColor === 'w' ? '백' : '알 수 없음'}`,
+      `깐냥이가 잡은 체스 색: ${facts.botColor === 'b' ? '흑' : facts.botColor === 'w' ? '백' : '알 수 없음'}`,
+      facts.fen ? `마지막 FEN(출력 금지): ${facts.fen}` : '',
+      '',
+      '[출력 규칙]',
+      '디스코드 채팅에 바로 보낼 자연스러운 한국어 1문장만 출력한다.',
+      '무승부 제안을 받아들인다고 짧게 말한다.',
+      '아쉽다, 다음에 또 하자, 언제든 말해달라 같은 상담원식 문구는 쓰지 않는다.',
+      '승리/패배/체크메이트를 지어내지 않는다.',
+      'FEN은 출력하지 않는다.',
+      '“백인 사용자”, “흑인 사용자”라는 표현은 절대 쓰지 않는다.',
+      '“응냥”으로 시작하지 말고 바로 본론부터 말한다.',
+      `사용자 원문: ${String(message.content ?? '').trim()}`,
+    ].filter(Boolean).join('\n');
+
+    const answerResult = await generateGeminiAnswer(prompt, {
+      currentUserContext: getGeminiCurrentUserContext(message),
+    });
+
+    const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
+
+    if (
+      /(?:백인|흑인)\s*사용자/.test(answer) ||
+      /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
+    ) {
+      return fallback;
+    }
+
+    return answer || fallback;
+  });
+}
+
 async function createNaturalChessStopReply(message, facts = {}) {
-  const fallback = '대국은 여기서 종료하겟다냥. 한 판 재밌었다냥.';
+  const fallback = '기권 확인했다냥. 이번 판은 여기서 마무리하겠다냥.';
 
   if (geminiApiKeys.length === 0) {
     return fallback;
@@ -1459,13 +1504,14 @@ async function createNaturalChessStopReply(message, facts = {}) {
       facts.fen ? `마지막 FEN(사용자가 요구하지 않으면 출력 금지): ${facts.fen}` : '',
       '',
       '[출력 규칙]',
-      '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~2문장만 출력한다.',
-      '대국이 재밌었다는 느낌을 가볍게 넣는다.',
-      '상대가 기권했다고 놀리거나 비난하지 않는다.',
-      '승리/패배/체크메이트를 지어내지 않는다.',
-      'FEN은 출력하지 않는다.',
-      '“백인 사용자”, “흑인 사용자”라는 표현은 절대 쓰지 않는다.',
-      '“응냥”으로 시작하지 말고 바로 본론부터 말한다.',
+'디스코드 채팅에 바로 보낼 자연스러운 한국어 1문장만 출력한다.',
+'사용자의 기권/종료 요청을 확인하고, 이번 판을 마무리한다고만 짧게 말한다.',
+'“아쉽지만”, “다음에 또 하고 싶다면”, “언제든 말해달라” 같은 상담원식 마무리는 쓰지 않는다.',
+'상대가 기권했다고 놀리거나 비난하지 않는다.',
+'승리/패배/체크메이트를 지어내지 않는다.',
+'FEN은 출력하지 않는다.',
+'“백인 사용자”, “흑인 사용자”라는 표현은 절대 쓰지 않는다.',
+'“응냥”으로 시작하지 말고 바로 본론부터 말한다.',
       `사용자 원문: ${String(message.content ?? '').trim()}`,
     ].filter(Boolean).join('\n');
 
@@ -1555,7 +1601,14 @@ function looksLikeChessMoveInput(text) {
 }
 
 function normalizeChessControlIntent(parsed) {
-  const allowedActions = new Set(['start', 'restart', 'stop', 'show_board', 'unknown']);
+  const allowedActions = new Set([
+  'start',
+  'restart',
+  'stop',
+  'show_board',
+  'draw_offer',
+  'unknown',
+]);
 
   const action = allowedActions.has(parsed?.action)
     ? parsed.action
@@ -1589,6 +1642,15 @@ function normalizeChessControlIntent(parsed) {
   };
 }
 
+function isLocalChessDrawOfferText(text) {
+  const value = String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim();
+
+  return /^(?:무승부|무승부\s*제안|비기자|비길래|비기자고|draw|draw\?|draw\s*offer|offer\s*draw)$/i.test(value);
+}
+
 async function classifyChessControlIntent(message, text, existingSession) {
   if (geminiApiKeys.length === 0) {
     return {
@@ -1607,11 +1669,12 @@ async function classifyChessControlIntent(message, text, existingSession) {
             'Return JSON only. Do not explain.',
             '',
             'Allowed action values:',
-            '- start: user wants to start a new chess game',
-            '- restart: user wants to restart or change sides/colors',
-            '- stop: user wants to stop/resign/end the game',
-            '- show_board: user asks for current board, FEN, position, or move record',
-            '- unknown: not a chess control command',
+'- start: user wants to start a new chess game',
+'- restart: user wants to restart or change sides/colors',
+'- stop: user wants to stop/resign/end the game',
+'- show_board: user asks for current board, FEN, position, or move record',
+'- draw_offer: user offers, requests, or suggests a draw',
+'- unknown: not a chess control command',
             '',
             'Color fields:',
             '- userColor must be "w", "b", or ""',
@@ -1623,6 +1686,7 @@ async function classifyChessControlIntent(message, text, existingSession) {
             'If the user says they will be Black, userColor is "b" and botColor is "w".',
             'If the user asks to change sides during an active game, action is "restart".',
             'If color is not specified, leave both color fields empty.',
+            'If the user says 무승부, 무승부 제안, 비기자, draw, draw offer, or asks for a draw during an active game, action is "draw_offer".',
             '',
             'Important:',
             'Do not classify normal chess moves as control commands.',
@@ -1744,6 +1808,22 @@ async function startChessPlaySession(message, key, options = {}) {
 }
 
 async function handleChessControlIntent(message, key, chess, existingSession, intent) {
+  if (intent.action === 'draw_offer') {
+  chessPlaySessions.delete(key);
+
+  const reply = await createNaturalChessDrawReply(message, {
+    userColor: existingSession?.userColor,
+    botColor: existingSession?.botColor,
+    fen: chess?.fen?.() ?? existingSession?.fen ?? '',
+  });
+
+  await message.reply({
+    content: reply,
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+
+  return true;
+}
   if (intent.action === 'stop') {
     chessPlaySessions.delete(key);
 
@@ -1929,10 +2009,28 @@ async function handleChessPlayMessage(message) {
 
   const chess = new Chess(existingSession.fen);
 
-  // 체스 수처럼 생기지 않은 말은 먼저 Gemini에게 "대국 제어 의도"인지 분류시킴.
-  // 예: "니가 백해", "내가 흑할래", "판 보여줘", "그만할래"
-  if (!looksLikeChessMoveInput(text)) {
-    const intent = await classifyChessControlIntent(message, text, existingSession);
+  // 무승부 제안은 Gemini 분류 없이 무조건 수락
+if (isLocalChessDrawOfferText(text)) {
+  const controlHandled = await handleChessControlIntent(
+    message,
+    key,
+    chess,
+    existingSession,
+    {
+      action: 'draw_offer',
+      userColor: '',
+      botColor: '',
+    }
+  );
+
+  if (controlHandled) {
+    return true;
+  }
+}
+
+// 체스 수처럼 생기지 않은 말은 먼저 Gemini에게 "대국 제어 의도"인지 분류시킴.
+if (!looksLikeChessMoveInput(text)) {
+  const intent = await classifyChessControlIntent(message, text, existingSession);
     const controlHandled = await handleChessControlIntent(
       message,
       key,
