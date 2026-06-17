@@ -5326,7 +5326,7 @@ function logGeminiTiming(message) {
     return;
   }
 
-  console.info(`[Gemini timing] ${message}`);
+  console.log(`[Gemini timing] ${message}`);
 }
 
 function formatGeminiErrorStatus(error) {
