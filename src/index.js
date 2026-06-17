@@ -2332,7 +2332,7 @@ function replaceFenTurn(fen, turn) {
 async function classifyChessAnalysisFollowupIntent(message, text, recent) {
   if (geminiApiKeys.length === 0) {
     return {
-      action: 'unknown',
+      action: 'answer_about_last_position',
       turn: '',
     };
   }
@@ -2342,21 +2342,22 @@ async function classifyChessAnalysisFollowupIntent(message, text, recent) {
       system_instruction: {
         parts: [{
           text: [
-            'You classify follow-up messages after a chessboard image was analyzed.',
+            'You classify follow-up messages after a chess position was analyzed.',
             'Return JSON only. Do not explain.',
             '',
             'Allowed action values:',
-            '- reanalyze_last_position: user asks to use the previously analyzed chess position again',
-            '- unknown: not a follow-up chess analysis request',
+            '- answer_about_last_position: user asks about the previously analyzed position, such as opening, why, candidates, tactics, plan, evaluation, or continuation',
+            '- reanalyze_last_position: user corrects or changes whose turn it is and wants the same position analyzed again',
+            '- unknown: unrelated to the previous chess analysis',
             '',
             'Turn values:',
             '- "w": White to move',
             '- "b": Black to move',
             '- "": not specified',
             '',
-            'If the user says it is Black turn, black to move, 흑차례, 흑선, or asks what Black should play, return turn "b".',
-            'If the user says it is White turn, white to move, 백차례, 백선, or asks what White should play, return turn "w".',
-            'If the user is correcting the side to move of the previous analysis, action is reanalyze_last_position.',
+            'If the user says 흑선, 흑 차례, black to move, or asks what Black should play, use action reanalyze_last_position and turn "b".',
+            'If the user says 백선, 백 차례, white to move, or asks what White should play, use action reanalyze_last_position and turn "w".',
+            'If the user asks opening name, why the best move is good, candidate moves, line, continuation, plan, or explanation, use action answer_about_last_position.',
           ].join('\n'),
         }],
       },
@@ -2364,12 +2365,12 @@ async function classifyChessAnalysisFollowupIntent(message, text, recent) {
         role: 'user',
         parts: [{
           text: [
-            `There is a recent analyzed chess position: ${Boolean(recent?.fen)}`,
-            `Recent FEN: ${recent?.fen ?? ''}`,
+            `Recent analyzed FEN: ${recent?.fen ?? ''}`,
+            `Recent best move SAN: ${recent?.result?.san ?? ''}`,
             `User message: ${String(text ?? '').trim()}`,
             '',
             'Return exactly one JSON object like:',
-            '{"action":"reanalyze_last_position","turn":"b"}',
+            '{"action":"answer_about_last_position","turn":""}',
           ].join('\n'),
         }],
       }],
@@ -2385,10 +2386,14 @@ async function classifyChessAnalysisFollowupIntent(message, text, recent) {
 
     const parsed = parseJsonObjectText(extractGeminiResponseText(response));
 
+    const action = parsed?.action === 'reanalyze_last_position'
+      ? 'reanalyze_last_position'
+      : parsed?.action === 'answer_about_last_position'
+        ? 'answer_about_last_position'
+        : 'unknown';
+
     return {
-      action: parsed?.action === 'reanalyze_last_position'
-        ? 'reanalyze_last_position'
-        : 'unknown',
+      action,
       turn: parsed?.turn === 'b' ? 'b' : parsed?.turn === 'w' ? 'w' : '',
     };
   } catch (error) {
@@ -2402,6 +2407,83 @@ async function classifyChessAnalysisFollowupIntent(message, text, recent) {
   }
 }
 
+function hasGeminiImageAttachment(message) {
+  return [...message.attachments.values()].some((attachment) => {
+    const contentType = String(attachment.contentType ?? '')
+      .split(';')[0]
+      .trim()
+      .toLowerCase();
+
+    return geminiSupportedImageMimeTypes.has(contentType);
+  });
+}
+
+function looksLikeChessAnalysisFollowup(text) {
+  const value = String(text ?? '').trim();
+
+  return /(?:오프닝|왜|이유|후보|최선|차선|수순|라인|변화|평가|좋|나쁨|흑|백|차례|선|메이트|체크|잡|먹|공격|방어|포지션|이거|저거|그거|방금|opening|move|line|why|best|candidate|black|white)/i.test(value);
+}
+
+async function createRecentChessAnalysisFollowupReply(message, text, recent) {
+  const result = recent?.result;
+
+  const fallback = result?.san
+    ? `방금 분석 기준으로는 **${result.san}**가 핵심 수다냥. 그 수를 기준으로 이어서 보면 된다냥.`
+    : '방금 분석한 포지션을 기준으로 다시 봐야 한다냥.';
+
+  if (geminiApiKeys.length === 0 || !result) {
+    return fallback;
+  }
+
+  const candidateContext = formatStockfishCandidateContext(result, 4, 8);
+  const explanationContext = createStockfishExplanationContext(result, {
+    maxPlies: 10,
+  });
+
+  try {
+    const prompt = [
+      '사용자는 방금 분석한 체스 포지션에 대해 이어서 질문하고 있다.',
+      '아래 [이전 분석 확정 정보]를 반드시 참고해서 답한다.',
+      '이미지를 다시 요구하지 않는다.',
+      '',
+      '[이전 분석 확정 정보]',
+      `FEN: ${recent.fen}`,
+      result.san ? `Stockfish 최선 수 SAN: ${result.san}` : '',
+      result.bestMove ? `Stockfish 최선 수 UCI: ${result.bestMove}` : '',
+      '',
+      '[Stockfish 해설 근거]',
+      explanationContext || '해설 근거 없음.',
+      '',
+      '[Stockfish 후보 수]',
+      candidateContext || '후보 수 정보 없음.',
+      '',
+      '[사용자 후속 질문]',
+      String(text ?? '').trim(),
+      '',
+      '[출력 규칙]',
+      '사용자 후속 질문에 직접 답한다.',
+      '방금 분석한 포지션과 최선 수를 참고해서 답한다.',
+      '이미지나 체스판을 다시 첨부하라고 하지 않는다.',
+      '오프닝 이름은 FEN만으로 확정하기 어려우면 “정확한 기보가 없어서 단정은 어렵지만”이라고 말한다.',
+      'Stockfish가 확인한 수와 후보 수를 바꾸거나 지어내지 않는다.',
+      'FEN, UCI, 평가 수치, 탐색 깊이는 사용자가 직접 요구하지 않으면 출력하지 않는다.',
+      '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~4문장으로 답한다.',
+    ].filter(Boolean).join('\n');
+
+    const answerResult = await generateGeminiAnswer(prompt, {
+      currentUserContext: getGeminiCurrentUserContext(message),
+    });
+
+    const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
+
+    return answer || fallback;
+  } catch (error) {
+    console.error('Failed to generate recent chess analysis follow-up reply:');
+    console.error(error);
+    return fallback;
+  }
+}
+
 async function handleChessAnalysisFollowupMessage(message) {
   const content = String(message.content ?? '').trim();
 
@@ -2409,10 +2491,14 @@ async function handleChessAnalysisFollowupMessage(message) {
     return false;
   }
 
+  if (hasGeminiImageAttachment(message)) {
+    return false;
+  }
+
   const text = content.slice(1).trim();
   const recent = getRecentChessAnalysis(message);
 
-  if (!recent?.fen) {
+  if (!recent?.fen || !recent?.result) {
     return false;
   }
 
@@ -2428,62 +2514,73 @@ async function handleChessAnalysisFollowupMessage(message) {
   }
 
   // 비용 줄이기용 넓은 게이트. 의미 판단은 Gemini가 함.
-  if (!/(체스|흑|백|차례|선|수|둬|둘|move|black|white|best|추천|분석)/i.test(text)) {
+  if (!looksLikeChessAnalysisFollowup(text)) {
     return false;
   }
 
   const intent = await classifyChessAnalysisFollowupIntent(message, text, recent);
 
-  if (intent.action !== 'reanalyze_last_position') {
-    return false;
-  }
-
-  const oldParts = String(recent.fen).trim().split(/\s+/);
-  const oldTurn = oldParts[1] === 'b' ? 'b' : 'w';
-  const targetTurn = intent.turn || oldTurn;
-  const fen = replaceFenTurn(recent.fen, targetTurn);
-
-  if (!fen) {
+  if (intent.action === 'unknown') {
     return false;
   }
 
   await message.channel.sendTyping().catch(() => {});
 
-  try {
-    const result = await analyzeFenWithStockfish(fen, {
-      movetimeMs: Math.max(100, Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 2000),
-      multiPv: 3,
-      multipv: 3,
-    });
+  if (intent.action === 'reanalyze_last_position') {
+    const oldParts = String(recent.fen).trim().split(/\s+/);
+    const oldTurn = oldParts[1] === 'b' ? 'b' : 'w';
+    const targetTurn = intent.turn || oldTurn;
+    const fen = replaceFenTurn(recent.fen, targetTurn);
 
-    rememberRecentChessAnalysis(message, {
-      fen,
-      result,
-    });
+    if (!fen) {
+      return false;
+    }
 
-    const reply = await createNaturalChessAnalysisReply({
-      message,
-      fen,
-      result,
-    });
+    try {
+      const result = await analyzeFenWithStockfish(fen, {
+        movetimeMs: Math.max(100, Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 2000),
+        multiPv: 3,
+        multipv: 3,
+      });
 
-    await message.reply({
-      content: reply || `다시 보면 ${targetTurn === 'b' ? '흑' : '백'} 차례 기준 최선 수는 **${result.san}**다냥.`,
-      allowedMentions: { parse: [], repliedUser: false },
-    });
+      rememberRecentChessAnalysis(message, {
+        fen,
+        result,
+      });
 
-    return true;
-  } catch (error) {
-    console.error('Failed to handle chess analysis follow-up:');
-    console.error(error);
+      const reply = await createNaturalChessAnalysisReply({
+        message,
+        fen,
+        result,
+      });
 
-    await message.reply({
-      content: '방금 분석한 체스판으로 다시 계산하다가 문제가 생겼다냥.',
-      allowedMentions: { parse: [], repliedUser: false },
-    });
+      await message.reply({
+        content: reply || `${targetTurn === 'b' ? '흑' : '백'} 차례 기준 최선 수는 **${result.san}**다냥.`,
+        allowedMentions: { parse: [], repliedUser: false },
+      });
 
-    return true;
+      return true;
+    } catch (error) {
+      console.error('Failed to handle chess analysis follow-up:');
+      console.error(error);
+
+      await message.reply({
+        content: '방금 분석한 체스판으로 다시 계산하다가 문제가 생겼다냥.',
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+
+      return true;
+    }
   }
+
+  const reply = await createRecentChessAnalysisFollowupReply(message, text, recent);
+
+  await message.reply({
+    content: reply,
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+
+  return true;
 }
 
 async function createNaturalChessAnalysisReply({ message, fen, result }) {
@@ -2561,6 +2658,10 @@ async function handleGeminiMemoryResetMessage(message) {
 
     const sessionKey = getGeminiSessionKey(message);
     const hadMemory = geminiMemory.delete(sessionKey);
+    
+    
+    
+    recentChessAnalysisSessions.delete(getChessAnalysisSessionKey(message));
 
     await saveGeminiMemory();
 
