@@ -142,6 +142,8 @@ const geminiSupportedImageMimeTypes = new Set([
 
 const geminiMemory = new Map();
 const chessPlaySessions = new Map();
+const recentChessAnalysisSessions = new Map();
+const recentChessAnalysisMaxAgeMs = Number(process.env.CHESS_ANALYSIS_CONTEXT_MS) || 15 * 60 * 1000;
 
 const configuredChessRandomMoveRate = Number(process.env.CHESS_RANDOM_MOVE_RATE);
 const chessRandomMoveRate = Math.max(
@@ -850,6 +852,11 @@ if (memoryResetHandled) {
 
     return;
   }
+
+const chessAnalysisFollowupHandled = await handleChessAnalysisFollowupMessage(message);
+if (chessAnalysisFollowupHandled) {
+  return;
+}
 
  const chessAnalysisHandled = await handleChessAnalysisMessage(message, {
   createReply: createNaturalChessAnalysisReply,
@@ -2270,7 +2277,220 @@ async function getChessImageAnalysisContext(imageParts, options = {}) {
   };
 }
 
+function getChessAnalysisSessionKey(message) {
+  return `${message.guildId ?? 'dm'}:${message.channelId}:${message.author.id}`;
+}
+
+function rememberRecentChessAnalysis(message, data) {
+  if (!data?.fen) {
+    return;
+  }
+
+  recentChessAnalysisSessions.set(getChessAnalysisSessionKey(message), {
+    fen: data.fen,
+    result: data.result ?? null,
+    rememberedAtMs: Date.now(),
+  });
+}
+
+function getRecentChessAnalysis(message) {
+  const key = getChessAnalysisSessionKey(message);
+  const recent = recentChessAnalysisSessions.get(key);
+
+  if (!recent) {
+    return null;
+  }
+
+  if (Date.now() - recent.rememberedAtMs > recentChessAnalysisMaxAgeMs) {
+    recentChessAnalysisSessions.delete(key);
+    return null;
+  }
+
+  return recent;
+}
+
+function replaceFenTurn(fen, turn) {
+  const parts = String(fen ?? '').trim().split(/\s+/);
+
+  if (parts.length === 0 || !parts[0]) {
+    return '';
+  }
+
+  while (parts.length < 6) {
+    if (parts.length === 1) parts.push('w');
+    else if (parts.length === 2) parts.push('-');
+    else if (parts.length === 3) parts.push('-');
+    else if (parts.length === 4) parts.push('0');
+    else if (parts.length === 5) parts.push('1');
+  }
+
+  parts[1] = turn === 'b' ? 'b' : 'w';
+
+  return parts.slice(0, 6).join(' ');
+}
+
+async function classifyChessAnalysisFollowupIntent(message, text, recent) {
+  if (geminiApiKeys.length === 0) {
+    return {
+      action: 'unknown',
+      turn: '',
+    };
+  }
+
+  try {
+    const response = await fetchGeminiGenerateContent({
+      system_instruction: {
+        parts: [{
+          text: [
+            'You classify follow-up messages after a chessboard image was analyzed.',
+            'Return JSON only. Do not explain.',
+            '',
+            'Allowed action values:',
+            '- reanalyze_last_position: user asks to use the previously analyzed chess position again',
+            '- unknown: not a follow-up chess analysis request',
+            '',
+            'Turn values:',
+            '- "w": White to move',
+            '- "b": Black to move',
+            '- "": not specified',
+            '',
+            'If the user says it is Black turn, black to move, 흑차례, 흑선, or asks what Black should play, return turn "b".',
+            'If the user says it is White turn, white to move, 백차례, 백선, or asks what White should play, return turn "w".',
+            'If the user is correcting the side to move of the previous analysis, action is reanalyze_last_position.',
+          ].join('\n'),
+        }],
+      },
+      contents: [{
+        role: 'user',
+        parts: [{
+          text: [
+            `There is a recent analyzed chess position: ${Boolean(recent?.fen)}`,
+            `Recent FEN: ${recent?.fen ?? ''}`,
+            `User message: ${String(text ?? '').trim()}`,
+            '',
+            'Return exactly one JSON object like:',
+            '{"action":"reanalyze_last_position","turn":"b"}',
+          ].join('\n'),
+        }],
+      }],
+      generationConfig: {
+        maxOutputTokens: 80,
+        temperature: 0,
+        topP: 0.1,
+        responseMimeType: 'application/json',
+      },
+    }, {
+      models: geminiModels,
+    });
+
+    const parsed = parseJsonObjectText(extractGeminiResponseText(response));
+
+    return {
+      action: parsed?.action === 'reanalyze_last_position'
+        ? 'reanalyze_last_position'
+        : 'unknown',
+      turn: parsed?.turn === 'b' ? 'b' : parsed?.turn === 'w' ? 'w' : '',
+    };
+  } catch (error) {
+    console.error('Failed to classify chess analysis follow-up intent:');
+    console.error(error);
+
+    return {
+      action: 'unknown',
+      turn: '',
+    };
+  }
+}
+
+async function handleChessAnalysisFollowupMessage(message) {
+  const content = String(message.content ?? '').trim();
+
+  if (!content.startsWith('%')) {
+    return false;
+  }
+
+  const text = content.slice(1).trim();
+  const recent = getRecentChessAnalysis(message);
+
+  if (!recent?.fen) {
+    return false;
+  }
+
+  // 실제 대국 중 착수 입력은 체스 대국 핸들러로 넘김
+  const playSession = chessPlaySessions.get(getChessPlaySessionKey(message));
+  if (playSession && playSession.kind !== 'pending-start-choice') {
+    return false;
+  }
+
+  // e4, Nf3 같은 착수 입력은 후속 분석으로 보지 않음
+  if (looksLikeChessMoveInput(text)) {
+    return false;
+  }
+
+  // 비용 줄이기용 넓은 게이트. 의미 판단은 Gemini가 함.
+  if (!/(체스|흑|백|차례|선|수|둬|둘|move|black|white|best|추천|분석)/i.test(text)) {
+    return false;
+  }
+
+  const intent = await classifyChessAnalysisFollowupIntent(message, text, recent);
+
+  if (intent.action !== 'reanalyze_last_position') {
+    return false;
+  }
+
+  const oldParts = String(recent.fen).trim().split(/\s+/);
+  const oldTurn = oldParts[1] === 'b' ? 'b' : 'w';
+  const targetTurn = intent.turn || oldTurn;
+  const fen = replaceFenTurn(recent.fen, targetTurn);
+
+  if (!fen) {
+    return false;
+  }
+
+  await message.channel.sendTyping().catch(() => {});
+
+  try {
+    const result = await analyzeFenWithStockfish(fen, {
+      movetimeMs: Math.max(100, Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 2000),
+      multiPv: 3,
+      multipv: 3,
+    });
+
+    rememberRecentChessAnalysis(message, {
+      fen,
+      result,
+    });
+
+    const reply = await createNaturalChessAnalysisReply({
+      message,
+      fen,
+      result,
+    });
+
+    await message.reply({
+      content: reply || `다시 보면 ${targetTurn === 'b' ? '흑' : '백'} 차례 기준 최선 수는 **${result.san}**다냥.`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Failed to handle chess analysis follow-up:');
+    console.error(error);
+
+    await message.reply({
+      content: '방금 분석한 체스판으로 다시 계산하다가 문제가 생겼다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+}
+
 async function createNaturalChessAnalysisReply({ message, fen, result }) {
+  rememberRecentChessAnalysis(message, {
+  fen,
+  result,
+});
   if (
     geminiApiKeys.length === 0
     || !result.bestMove
