@@ -989,8 +989,32 @@ function normalizeUserChessMoveText(text) {
     .replace(/^0-0-0$/i, 'O-O-O')
     .replace(/^0-0$/i, 'O-O');
 
-  // nc6, nf3, bb5 같은 입력을 Nc6, Nf3, Bb5로 보정
-  move = move.replace(/^([nbrqk])(?=[a-h1-8x])/i, (match) => match.toUpperCase());
+  // UCI 입력: E2E4, e2e4, E7E8Q 같은 건 전부 소문자로
+  if (/^[a-h][1-8][a-h][1-8][qrbn]?$/i.test(move)) {
+    return move.toLowerCase();
+  }
+
+  // 폰 전진: E4, b4 같은 건 e4, b4로
+  if (/^[a-h][1-8](?:=[qrbn])?[+#]?$/i.test(move)) {
+    return move
+      .toLowerCase()
+      .replace(/=([qrbn])/i, (_, piece) => `=${piece.toUpperCase()}`);
+  }
+
+  // 폰 잡기: Dxc3, dxc3, EXD8=Q 같은 건 dxc3, exd8=Q로
+  if (/^[a-h]x[a-h][1-8](?:=[qrbn])?[+#]?$/i.test(move)) {
+    return move
+      .toLowerCase()
+      .replace(/=([qrbn])/i, (_, piece) => `=${piece.toUpperCase()}`);
+  }
+
+  // 말 수: nf3, bb5, qxd7 같은 건 Nf3, Bb5, Qxd7로
+  move = move.replace(/^([nbrqk])(?=[a-h]?[1-8]?x?[a-h][1-8])/i, (match) => {
+    return match.toUpperCase();
+  });
+
+  // 프로모션 기물은 대문자로: e8=q -> e8=Q
+  move = move.replace(/=([qrbn])/i, (_, piece) => `=${piece.toUpperCase()}`);
 
   return move;
 }
