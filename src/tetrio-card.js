@@ -227,25 +227,39 @@ async function fetchTetrioJsonUncached(path) {
 }
 
 function getTetrioJsonCacheTtlCapMs(path) {
+  // 디스코드 ID -> TETR.IO 닉 검색은 %tetra에서도 거치므로 길게 잡지 않음
+  if (path.startsWith('/users/search/')) {
+    return 5_000;
+  }
+
+  // 리그/스탯 반영이 중요한 요약 정보는 짧게
   if (path.endsWith('/summaries')) {
-    return 10_000; // 스탯 반영용: 최대 30초
+    return 5_000;
   }
 
-  if (/^\/users\/[^/]+$/.test(path)) {
-    return 60_000; // 프로필 기본 정보: 최대 60초
+  // 유저 기본 정보
+  if (/^\/users\/[^/?]+$/.test(path)) {
+    return 30_000;
   }
 
-  return 300_000; // 디스코드 ID 검색 등은 5분 유지
+  return 30_000;
 }
 
 function cacheTetrioJsonResult(path, body) {
   const apiExpiresAt = Number(body?.cache?.cached_until);
+
   if (!Number.isFinite(apiExpiresAt) || apiExpiresAt <= Date.now()) {
     console.log(`[TETR.IO CACHE SKIP] ${path}`);
     return;
   }
 
   const ttlCapMs = getTetrioJsonCacheTtlCapMs(path);
+
+  if (!Number.isFinite(ttlCapMs) || ttlCapMs <= 0) {
+    console.log(`[TETR.IO CACHE SKIP] ${path} ttlCap=${ttlCapMs}`);
+    return;
+  }
+
   const expiresAt = Math.min(apiExpiresAt, Date.now() + ttlCapMs);
 
   console.log(`[TETR.IO CACHE SAVE] ${path} ttl=${Math.round((expiresAt - Date.now()) / 1000)}s`);
@@ -256,7 +270,7 @@ function cacheTetrioJsonResult(path, body) {
 
   tetrioJsonCache.set(path, {
     body,
-    expiresAt,
+    expiresAt,      
   });
 }
 

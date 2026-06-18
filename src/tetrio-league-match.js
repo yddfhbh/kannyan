@@ -1018,9 +1018,12 @@ function normalizeTetrioUsername(input) {
 }
 
 async function fetchTetrioJson(path) {
+  console.log(`[TETRA MATCH FETCH] ${path}`);
+
   const response = await fetch(`${tetrioApiBaseUrl}${path}`, {
     headers: tetrioHeaders,
   });
+
   const body = await response.json().catch(() => null);
 
   if (!response.ok || !body?.success) {
