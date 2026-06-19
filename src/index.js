@@ -1,4 +1,4 @@
-import 'dotenv/config';
+﻿import 'dotenv/config';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
 import http from 'node:http';
@@ -1041,19 +1041,18 @@ if (chessAnalysisFollowupHandled) {
   if (chessAnalysisHandled) {
     return;
   }
-  const chessPlayHandled = await handleChessPlayMessage(message);
-if (chessPlayHandled) {
-  return;
-}
- 
-
-  const tetrioLbHandled = await handleTetrioLeaderboardTextCommand(message);
+   const tetrioLbHandled = await handleTetrioLeaderboardTextCommand(message);
   if (tetrioLbHandled) {
     return;
   }
 
   const handled = await handlePercentMessageCommand(message);
   if (handled) {
+    return;
+  }
+
+  const chessPlayHandled = await handleChessPlayMessage(message);
+  if (chessPlayHandled) {
     return;
   }
 
@@ -2845,10 +2844,23 @@ async function handleChessPlayMessage(message) {
     return false;
   }
 
+  const lowerContent = content.toLowerCase();
+
+  if (
+    lowerContent === '%refresh' ||
+    lowerContent === '%lbstatus' ||
+    parseTetrioLeaderboardCommand(content) ||
+    parsePercentCommand(content)
+  ) {
+    return false;
+  }
+
   const text = content.slice(1).trim();
   const mentionedMoveText = extractMentionedChessMove(text);
   const key = getChessPlaySessionKey(message);
   const existingSession = chessPlaySessions.get(key);
+
+  // 아래 기존 코드 그대로 유지
 
   if (isChessSaveRequestText(text)) {
     return saveCurrentChessPlaySessionMessage(message, key, existingSession);
