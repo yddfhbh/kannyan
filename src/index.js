@@ -15,6 +15,7 @@ import {
   GatewayIntentBits,
   MessageFlags,
   Partials,
+  PermissionsBitField,
 } from 'discord.js';
 import {
   createTetrioProfileCard,
@@ -597,6 +598,8 @@ async function loadChessPlayState() {
           fen: '',
           userColor: '',
           botColor: '',
+          playerUserId: String(session.playerUserId ?? ''),
+          userDisplayName: String(session.userDisplayName ?? 'User'),
           startedAtMs,
         });
         continue;
@@ -620,6 +623,7 @@ async function loadChessPlayState() {
         botColor,
         fen: String(session.fen ?? ''),
         moves,
+        playerUserId: String(session.playerUserId ?? ''),
         userDisplayName: String(session.userDisplayName ?? 'User'),
         startedAtMs,
       });
@@ -1154,7 +1158,20 @@ function formatStockfishCandidateContext(result, maxCandidates = 3, maxPlies = 6
 }
 
 function getChessPlaySessionKey(message) {
-  return `${message.guildId ?? 'dm'}:${message.channelId}:${message.author.id}`;
+  return `${message.guildId ?? 'dm'}:${message.channelId}`;
+}
+
+function getMessageDisplayName(message) {
+  return message.member?.displayName || message.author?.username || 'User';
+}
+
+function isChessSessionOwner(message, session) {
+  if (!session) {
+    return true;
+  }
+
+  const ownerId = String(session.playerUserId ?? '').trim();
+  return !ownerId || ownerId === message.author.id;
 }
 
 function normalizeUserChessMoveText(text) {
@@ -1463,6 +1480,156 @@ function buildChessBoardStatusReply(chess, text) {
   }
 
   return lines.join('\n');
+}
+
+function looksLikeAsciiChessBoard(text) {
+  const value = String(text ?? '');
+  return /\+\-+\+/.test(value)
+    || /(?:^|\n)\s*[1-8]\s*\|\s*(?:[prnbqkPRNBQK\.]\s+){7}[prnbqkPRNBQK\.]\s*\|/m.test(value);
+}
+
+function getChessSessionOwnerName(session) {
+  return String(session?.userDisplayName ?? 'User');
+}
+
+async function createChessMoveExplanationReply(message, chess, moveText, options = {}) {
+  const actorName = getMessageDisplayName(message);
+  const ownerName = options.ownerName || actorName;
+  const chessCopy = new Chess(chess.fen());
+  const move = applyUserChessMove(chessCopy, moveText);
+
+  if (!move) {
+    return options.ownerUserId && options.ownerUserId !== message.author.id
+      ? `${ownerName} 님이 진행 중인 대국 기준으로는 ${actorName} 님이 말한 **${moveText}**는 둘 수 없는 수다냥.`
+      : `지금 포지션 기준으로는 **${moveText}**를 둘 수 없는 수다냥.`;
+  }
+
+  let analysis = null;
+  try {
+    analysis = await analyzeFenWithStockfish(chess.fen(), {
+      movetimeMs: Math.max(100, Math.min(1200, Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 800)),
+      multiPv: 3,
+      multipv: 3,
+    });
+  } catch (error) {
+    console.error('[CHESS PLAY] move explanation analysis failed:');
+    console.error(error);
+  }
+
+  const uci = moveToUci(move);
+  const bestUci = String(analysis?.bestMove ?? '').trim();
+  const candidate = Array.isArray(analysis?.candidates)
+    ? analysis.candidates.find((entry) => entry?.uci === uci)
+    : null;
+
+  const prefix = options.ownerUserId && options.ownerUserId !== message.author.id
+    ? `${ownerName} 님이 진행 중인 대국에서 ${actorName} 님이 말한 **${move.san}**는 `
+    : `**${move.san}**는 `;
+
+  if (bestUci && uci === bestUci) {
+    return `${prefix}현재 포지션 기준으로 Stockfish 최선수와 같은 수다냥.`;
+  }
+
+  if (candidate) {
+    const rankText = Number.isFinite(candidate.rank) ? `${candidate.rank}순위 후보` : '후보수';
+    return `${prefix}현재 포지션 기준으로 Stockfish가 보는 ${rankText} 쪽에 들어가는 수다냥.`;
+  }
+
+  if (analysis?.san && analysis.san !== '(none)') {
+    return `${prefix}합법적인 수이긴 하지만, 현재 포지션 기준 최선수는 **${analysis.san}** 쪽이다냥.`;
+  }
+
+  return `${prefix}지금 포지션에서 둘 수는 있는 수다냥.`;
+}
+
+function getLastChessHistoryMove(chess, pliesBack = 1) {
+  const history = chess?.history?.({ verbose: true }) ?? [];
+  const index = history.length - Math.max(1, Number(pliesBack) || 1);
+  return index >= 0 ? history[index] : null;
+}
+
+async function createActiveChessDiscussionReply(message, chess, session) {
+  const lastMove = getLastChessHistoryMove(chess, 1);
+  const previousMove = getLastChessHistoryMove(chess, 2);
+  const isUserTurn = chess.turn() === session.userColor;
+  const fallback = [
+    lastMove?.san ? `방금 진행된 수는 **${lastMove.san}**다냥.` : '',
+    '이건 실제 착수 요청이 아니라 현재 포지션 질문으로 보고 설명해줄게냥.',
+    isUserTurn
+      ? '지금은 네 차례니까, 후보수나 방금 수의 의미를 더 구체적으로 물어보면 이어서 같이 볼 수 있다냥.'
+      : '지금은 내 차례니까, 왜 그런 흐름이 나왔는지도 이어서 설명해줄 수 있다냥.',
+  ].filter(Boolean).join(' ');
+
+  if (geminiApiKeys.length === 0) {
+    return fallback;
+  }
+
+  let analysis = null;
+  try {
+    analysis = await analyzeFenWithStockfish(chess.fen(), {
+      movetimeMs: Math.max(150, Math.min(1500, Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 900)),
+      multiPv: 3,
+      multipv: 3,
+    });
+  } catch (error) {
+    console.error('[CHESS PLAY] active discussion analysis failed:');
+    console.error(error);
+  }
+
+  const candidateContext = analysis ? formatStockfishCandidateContext(analysis, 3, 6) : '';
+  const explanationContext = analysis
+    ? createStockfishExplanationContext(analysis, { maxPlies: 8 })
+    : '';
+
+  return runChessReplyWithTimeout('play-discussion', fallback, async () => {
+    const prompt = [
+      '사용자는 지금 진행 중인 체스 대국에 대해 자연어로 질문하고 있다.',
+      '이 메시지는 실제 착수 요청이 아니다. 수를 두거나 대국 상태를 바꾸지 말고 설명만 해라.',
+      '가능하면 현재 포지션과 가장 최근 수를 기준으로 짧고 자연스럽게 답해라.',
+      '',
+      '[확정 사실]',
+      `사용자 이름: ${session.userDisplayName || getMessageDisplayName(message)}`,
+      `사용자 색: ${session.userColor === 'w' ? '백' : '흑'}`,
+      `깐냥 색: ${session.botColor === 'w' ? '백' : '흑'}`,
+      `현재 차례: ${isUserTurn ? '사용자' : '깐냥'}`,
+      lastMove?.san ? `가장 최근 수: ${lastMove.san}` : '',
+      previousMove?.san ? `그 직전 수: ${previousMove.san}` : '',
+      `현재 FEN: ${chess.fen()}`,
+      '',
+      '[Stockfish 해설 근거]',
+      explanationContext || '없음.',
+      '',
+      '[Stockfish 후보 수]',
+      candidateContext || '없음.',
+      '',
+      '[사용자 질문]',
+      String(message.content ?? '').trim(),
+      '',
+      '[출력 규칙]',
+      '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~4문장으로 답한다.',
+      '이 질문은 착수 요청이 아니라 설명 요청이라고 분명히 이해하고 답한다.',
+      '질문이 "네 수", "방금 수", "그 수"를 가리키면 가장 최근 수를 기준으로 설명한다.',
+      '체스판 ASCII, [체스판 상황], 백:, 흑: 같은 보드 요약은 절대 출력하지 않는다.',
+      '확정되지 않은 수를 지어내지 않는다.',
+      'FEN, UCI, 평가값, 후보수 순위 같은 기술 정보는 사용자가 직접 원할 때만 드러낸다.',
+    ].filter(Boolean).join('\n');
+
+    const answerResult = await generateGeminiAnswer(prompt, {
+      currentUserContext: getGeminiCurrentUserContext(message),
+    });
+
+    const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
+
+    if (
+      /(?:백인|흑인)\s*사용자/.test(answer)
+      || /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
+      || looksLikeAsciiChessBoard(answer)
+    ) {
+      return fallback;
+    }
+
+    return answer || fallback;
+  });
 }
 
 async function replyFinishedChessGamePgn(message, key, existingSession = null) {
@@ -1941,7 +2108,8 @@ async function createNaturalChessDrawReply(message, facts = {}) {
 
     if (
       /(?:백인|흑인)\s*사용자/.test(answer) ||
-      /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
+      /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer) ||
+      looksLikeAsciiChessBoard(answer)
     ) {
       return fallback;
     }
@@ -1987,7 +2155,8 @@ async function createNaturalChessStopReply(message, facts = {}) {
 
    if (
   /(?:백인|흑인)\s*사용자/.test(answer) ||
-  /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
+  /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer) ||
+  looksLikeAsciiChessBoard(answer)
 ) {
   return fallback;
 }
@@ -2011,6 +2180,7 @@ async function createNaturalChessPlayReply(message, facts) {
     '',
     '[확정 사실]',
     `상황: ${facts.kind}`,
+    facts.userDisplayName ? `사용자 이름: ${facts.userDisplayName}` : '',
    `사용자가 잡은 체스 색: ${facts.userColor === 'w' ? '백' : '흑'}`,
 `깐냥이가 잡은 체스 색: ${facts.botColor === 'w' ? '백' : '흑'}`,
     facts.userMoveSan ? `사용자 방금 둔 수: ${facts.userMoveSan}` : '',
@@ -2021,7 +2191,7 @@ async function createNaturalChessPlayReply(message, facts) {
     '',
     '[출력 규칙]',
 '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~3문장으로 답한다.',
-'“[체스판 상황]”, “백:”, “흑:” 같은 판 요약 목록을 절대 출력하지 않는다.',
+'“[체스판 상황]”, “백:”, “흑:”, ASCII 보드판 같은 판 요약 목록을 절대 출력하지 않는다.',
 '체스 색을 말할 때 “백인 사용자”, “흑인 사용자”라고 절대 쓰지 말고, “네가 백”, “네가 흑”, “백을 잡은 쪽”, “흑을 잡은 쪽”처럼 말한다.',
 '체스 수는 반드시 위 확정 사실에 있는 SAN 표기 그대로 출력한다.',
    '수 선택 방식, Stockfish, 후보수, 랜덤, 차선수, 평가값 이야기는 사용자가 직접 묻지 않으면 절대 말하지 않는다.',
@@ -2041,6 +2211,7 @@ async function createNaturalChessPlayReply(message, facts) {
   if (
     /(?:백인|흑인)\s*사용자/.test(answer)
     || /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
+    || looksLikeAsciiChessBoard(answer)
   ) {
     return fallback;
   }
@@ -2065,6 +2236,35 @@ function looksLikeChessMoveInput(text) {
   const value = String(text ?? '').trim();
 
   return /^(?:[a-h][1-8][a-h][1-8][qrbn]?|O-O(?:-O)?[+#]?|0-0(?:-0)?[+#]?|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?|[a-h]x[a-h][1-8](?:=[QRBN])?[+#]?|[a-h][1-8](?:=[QRBN])?[+#]?)$/i.test(value);
+}
+
+function extractMentionedChessMove(text) {
+  const value = String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim();
+
+  if (!value) {
+    return '';
+  }
+
+  if (looksLikeChessMoveInput(value)) {
+    return value;
+  }
+
+  const moveRegex =
+    /(?:O-O-O|O-O|0-0-0|0-0|[a-h][1-8][a-h][1-8][qrbn]?|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBNqrbn])?[+#]?|[a-h]x[a-h][1-8](?:=[QRBNqrbn])?[+#]?|[a-h][1-8](?:=[QRBNqrbn])?[+#]?)/gi;
+
+  const matches = [...value.matchAll(moveRegex)].map((match) => match[0]);
+
+  for (let index = matches.length - 1; index >= 0; index -= 1) {
+    const candidate = matches[index];
+    if (looksLikeChessMoveInput(candidate)) {
+      return candidate;
+    }
+  }
+
+  return '';
 }
 
 function normalizeChessControlIntent(parsed) {
@@ -2224,13 +2424,14 @@ async function startChessPlaySession(message, key, options = {}) {
   const chess = new Chess();
 
   const session = {
-  userColor,
-  botColor,
-  fen: chess.fen(),
-  moves: [],
-  userDisplayName: message.member?.displayName || message.author?.username || 'User',
-  startedAtMs: Date.now(),
-};
+    userColor,
+    botColor,
+    fen: chess.fen(),
+    moves: [],
+    playerUserId: message.author.id,
+    userDisplayName: getMessageDisplayName(message),
+    startedAtMs: Date.now(),
+  };
 
   chessPlaySessions.set(key, session);
   await queueSaveChessPlayState();
@@ -2251,6 +2452,7 @@ await queueSaveChessPlayState();
       kind: 'start-bot-white',
       userColor,
       botColor,
+      userDisplayName: session.userDisplayName,
       botMoveSan: botMove?.san ?? '',
       stockfishSan: choice.stockfishSan,
       usedRandomMove: choice.selectedSource !== 'stockfish' && choice.selectedSource !== 'fallback-random',
@@ -2270,6 +2472,7 @@ await queueSaveChessPlayState();
     kind: 'start-user-white',
     userColor,
     botColor,
+    userDisplayName: session.userDisplayName,
     fen: chess.fen(),
   });
 
@@ -2342,7 +2545,8 @@ async function startChessPlaySessionWithInitialUserMove(message, key, initialMov
     botColor,
     fen: chess.fen(),
     moves: [moveToUci(userMove)],
-    userDisplayName: message.member?.displayName || message.author?.username || 'User',
+    playerUserId: message.author.id,
+    userDisplayName: getMessageDisplayName(message),
     startedAtMs: Date.now(),
   };
 
@@ -2360,6 +2564,7 @@ async function startChessPlaySessionWithInitialUserMove(message, key, initialMov
       kind: 'game-over-after-user',
       userColor,
       botColor,
+      userDisplayName: session.userDisplayName,
       userMoveSan: userMove.san,
       resultText,
       fen: chess.fen(),
@@ -2405,6 +2610,7 @@ await queueSaveChessPlayState();
     kind: 'bot-move',
     userColor,
     botColor,
+    userDisplayName: session.userDisplayName,
     userMoveSan: userMove.san,
     botMoveSan: botMove.san,
     stockfishSan: choice.stockfishSan,
@@ -2500,6 +2706,8 @@ async function createPendingChessStartChoice(message, key) {
     fen: '',
     userColor: '',
     botColor: '',
+    playerUserId: message.author.id,
+    userDisplayName: getMessageDisplayName(message),
     startedAtMs: Date.now(),
   });
 
@@ -2580,6 +2788,15 @@ async function handlePendingChessStartChoice(message, key, text, existingSession
     return false;
   }
 
+  if (!isChessSessionOwner(message, existingSession)) {
+    await message.reply({
+      content: `${getChessSessionOwnerName(existingSession)} 님이 먼저 체스 시작을 고르는 중이라 이 수로 새 대국을 열진 않겠다냥. 직접 두고 싶으면 먼저 \`%체스하자\`부터 말해달라냥.`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
   const firstMoveText = extractPendingChessStartFirstMove(text);
 
   if (firstMoveText) {
@@ -2610,6 +2827,17 @@ function isPlainChessStartText(text) {
   return /^(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|play\s*chess)$/i.test(String(text ?? '').trim());
 }
 
+function hasChessConversationWord(text) {
+  return /(?:泥댁뒪|chess|釉붾씪?몃뱶\s*泥댁뒪|blindfold\s*chess)/i.test(String(text ?? '').trim());
+}
+
+async function replyChessStartClarification(message) {
+  await message.reply({
+    content: '체스를 하자는 건지 말자는 건지 헷갈린다냥. 정말 대국을 시작할 건지 먼저 분명하게 말해달라냥.',
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+}
+
 async function handleChessPlayMessage(message) {
   const content = String(message.content ?? '').trim();
 
@@ -2618,6 +2846,7 @@ async function handleChessPlayMessage(message) {
   }
 
   const text = content.slice(1).trim();
+  const mentionedMoveText = extractMentionedChessMove(text);
   const key = getChessPlaySessionKey(message);
   const existingSession = chessPlaySessions.get(key);
 
@@ -2637,12 +2866,25 @@ async function handleChessPlayMessage(message) {
     /(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
 
   if (wantsStart) {
+    if (existingSession && !isChessSessionOwner(message, existingSession)) {
+      await message.reply({
+        content: `${getChessSessionOwnerName(existingSession)} 님이 이미 이 채널에서 깐냥과 체스 대국 중이다냥. 새로 두고 싶으면 그 대국이 끝난 뒤에 시작해달라냥.`,
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+
+      return true;
+    }
+
     if (isPlainChessStartText(text)) {
       await createPendingChessStartChoice(message, key);
       return true;
     }
 
     const intent = await classifyChessControlIntent(message, text, existingSession);
+    if (intent.action !== 'start' && intent.action !== 'restart') {
+      await replyChessStartClarification(message);
+      return true;
+    }
 
     return startChessPlaySession(message, key, {
       userColor: intent.userColor,
@@ -2651,10 +2893,72 @@ async function handleChessPlayMessage(message) {
   }
 
   if (!existingSession) {
-    return false;
+    if (!mentionedMoveText) {
+      return false;
+    }
+
+    if (hasChessConversationWord(text)) {
+      await replyChessStartClarification(message);
+      return true;
+    }
+
+    const recent = getRecentChessAnalysis(message);
+    if (recent?.fen) {
+      const reply = await createChessMoveExplanationReply(
+        message,
+        new Chess(recent.fen),
+        mentionedMoveText
+      );
+
+      await message.reply({
+        content: reply,
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+
+      return true;
+    }
+
+    await message.reply({
+      content: '지금은 체스 대국을 시작한 상태가 아니라서 그 수를 실제로 두진 않겠다냥. 보드나 FEN이 있으면 그 수 설명은 해줄 수 있다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
   }
 
   const chess = createChessFromPlaySession(existingSession);
+
+  if (!isChessSessionOwner(message, existingSession)) {
+    if (mentionedMoveText) {
+      const reply = await createChessMoveExplanationReply(message, chess, mentionedMoveText, {
+        ownerName: getChessSessionOwnerName(existingSession),
+        ownerUserId: existingSession.playerUserId,
+      });
+
+      await message.reply({
+        content: reply,
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+
+      return true;
+    }
+
+    if (isLocalChessShowBoardText(text)) {
+      await message.reply({
+        content: buildChessBoardStatusReply(chess, message.content),
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+
+      return true;
+    }
+
+    await message.reply({
+      content: `이 대국은 ${getChessSessionOwnerName(existingSession)} 님이 진행 중이라 수를 대신 반영하진 않겠다냥.`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
 
   // 무승부 제안은 Gemini 분류 없이 무조건 수락
   if (isLocalChessDrawOfferText(text)) {
@@ -2692,6 +2996,26 @@ async function handleChessPlayMessage(message) {
     if (controlHandled) {
       return true;
     }
+
+    if (mentionedMoveText) {
+      const reply = await createChessMoveExplanationReply(message, chess, mentionedMoveText);
+
+      await message.reply({
+        content: reply,
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+
+      return true;
+    }
+
+    const reply = await createActiveChessDiscussionReply(message, chess, existingSession);
+
+    await message.reply({
+      content: reply,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
   }
 
   if (chess.turn() !== existingSession.userColor) {
@@ -2703,7 +3027,7 @@ async function handleChessPlayMessage(message) {
     return true;
   }
 
-  const userMove = applyUserChessMove(chess, text);
+  const userMove = applyUserChessMove(chess, mentionedMoveText || text);
 
   if (!userMove) {
     await message.reply({
@@ -2728,6 +3052,7 @@ async function handleChessPlayMessage(message) {
       kind: 'game-over-after-user',
       userColor: existingSession.userColor,
       botColor: existingSession.botColor,
+      userDisplayName: existingSession.userDisplayName,
       userMoveSan: userMove.san,
       resultText,
       fen: chess.fen(),
@@ -2778,6 +3103,7 @@ async function handleChessPlayMessage(message) {
     kind: 'bot-move',
     userColor: existingSession.userColor,
     botColor: existingSession.botColor,
+    userDisplayName: existingSession.userDisplayName,
     userMoveSan: userMove.san,
     botMoveSan: botMove.san,
     stockfishSan: choice.stockfishSan,
@@ -3071,7 +3397,7 @@ async function getChessImageAnalysisContext(imageParts, options = {}) {
 }
 
 function getChessAnalysisSessionKey(message) {
-  return `${message.guildId ?? 'dm'}:${message.channelId}:${message.author.id}`;
+  return `${message.guildId ?? 'dm'}:${message.channelId}`;
 }
 
 function rememberRecentChessAnalysis(message, data) {
@@ -3437,7 +3763,12 @@ async function handleGeminiMemoryResetMessage(message) {
     return false;
   }
 
-  if (message.author.id !== geminiMemoryResetAdminUserId) {
+  const canResetGeminiMemory =
+    message.author.id === geminiMemoryResetAdminUserId
+    || message.guild?.ownerId === message.author.id
+    || message.memberPermissions?.has(PermissionsBitField.Flags.Administrator);
+
+  if (!canResetGeminiMemory) {
     await message.reply({
       content: '이 채널 기억을 리셋할 권한이 없다냥.',
       allowedMentions: { parse: [], repliedUser: false },
