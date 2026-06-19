@@ -143,6 +143,9 @@ const geminiSupportedImageMimeTypes = new Set([
 const geminiMemory = new Map();
 const chessPlaySessions = new Map();
 const recentChessAnalysisSessions = new Map();
+const finishedChessGamePgnCache = new Map();
+const finishedChessGamePgnCacheMaxAgeMs =
+  Number(process.env.CHESS_FINISHED_PGN_CACHE_MS) || 5 * 60 * 1000;
 const recentChessAnalysisMaxAgeMs = Number(process.env.CHESS_ANALYSIS_CONTEXT_MS) || 15 * 60 * 1000;
 
 const configuredChessRandomMoveRate = Number(process.env.CHESS_RANDOM_MOVE_RATE);
@@ -494,6 +497,164 @@ const DATA_DIR =
   path.join(os.homedir(), 'discord-bot-data');
 
 const GUILD_LIST_STATE_PATH = path.join(DATA_DIR, 'guild-list-state.json');
+const CHESS_PLAY_STATE_PATH = path.join(DATA_DIR, 'chess-play-state.json');
+const chessPlaySessionMaxAgeMs =
+  Number(process.env.CHESS_PLAY_SESSION_MAX_AGE_MS) || 6 * 60 * 60 * 1000;
+
+let chessPlayStateSaveQueue = Promise.resolve();
+
+function getSerializableChessPlaySessions(now = Date.now()) {
+  const entries = [];
+
+  for (const [key, session] of chessPlaySessions.entries()) {
+    if (!session || typeof session !== 'object') {
+      continue;
+    }
+
+    const startedAtMs = Number(session.startedAtMs) || now;
+
+    if (now - startedAtMs > chessPlaySessionMaxAgeMs) {
+      continue;
+    }
+
+    entries.push([key, session]);
+  }
+
+  return Object.fromEntries(entries);
+}
+
+function getSerializableFinishedChessPgnCache(now = Date.now()) {
+  pruneFinishedChessGamePgnCache(now);
+
+  return Object.fromEntries(
+    [...finishedChessGamePgnCache.entries()].filter(([, cached]) => {
+      return cached && now - Number(cached.savedAtMs) <= finishedChessGamePgnCacheMaxAgeMs;
+    })
+  );
+}
+
+async function saveChessPlayState() {
+  const now = Date.now();
+
+  const state = {
+    version: 1,
+    savedAtMs: now,
+    sessions: getSerializableChessPlaySessions(now),
+    finishedPgnCache: getSerializableFinishedChessPgnCache(now),
+  };
+
+  await fs.mkdir(DATA_DIR, { recursive: true });
+
+  const tmpPath = `${CHESS_PLAY_STATE_PATH}.tmp`;
+  await fs.writeFile(tmpPath, JSON.stringify(state, null, 2), 'utf8');
+  await fs.rename(tmpPath, CHESS_PLAY_STATE_PATH);
+}
+
+function queueSaveChessPlayState() {
+  chessPlayStateSaveQueue = chessPlayStateSaveQueue
+    .catch(() => {})
+    .then(() => saveChessPlayState())
+    .catch((error) => {
+      console.error('[CHESS PLAY] state save failed:');
+      console.error(error);
+    });
+
+  return chessPlayStateSaveQueue;
+}
+
+async function loadChessPlayState() {
+  let raw = '';
+
+  try {
+    raw = await fs.readFile(CHESS_PLAY_STATE_PATH, 'utf8');
+  } catch {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    const now = Date.now();
+
+    chessPlaySessions.clear();
+
+    for (const [key, session] of Object.entries(parsed.sessions ?? {})) {
+      if (!session || typeof session !== 'object') {
+        continue;
+      }
+
+      const startedAtMs = Number(session.startedAtMs) || now;
+
+      if (now - startedAtMs > chessPlaySessionMaxAgeMs) {
+        continue;
+      }
+
+      if (session.kind === 'pending-start-choice') {
+        chessPlaySessions.set(key, {
+          kind: 'pending-start-choice',
+          fen: '',
+          userColor: '',
+          botColor: '',
+          startedAtMs,
+        });
+        continue;
+      }
+
+      const userColor = session.userColor === 'b' ? 'b' : session.userColor === 'w' ? 'w' : '';
+      const botColor = session.botColor === 'b' ? 'b' : session.botColor === 'w' ? 'w' : '';
+
+      if (!userColor || !botColor || userColor === botColor) {
+        continue;
+      }
+
+      const moves = Array.isArray(session.moves)
+        ? session.moves
+            .map((move) => String(move ?? '').trim())
+            .filter((move) => /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(move))
+        : [];
+
+      chessPlaySessions.set(key, {
+        userColor,
+        botColor,
+        fen: String(session.fen ?? ''),
+        moves,
+        userDisplayName: String(session.userDisplayName ?? 'User'),
+        startedAtMs,
+      });
+    }
+
+    finishedChessGamePgnCache.clear();
+
+    for (const [key, cached] of Object.entries(parsed.finishedPgnCache ?? {})) {
+      const savedAtMs = Number(cached?.savedAtMs);
+
+      if (!Number.isFinite(savedAtMs)) {
+        continue;
+      }
+
+      if (now - savedAtMs > finishedChessGamePgnCacheMaxAgeMs) {
+        continue;
+      }
+
+      const pgn = String(cached?.pgn ?? '').trim();
+
+      if (!pgn) {
+        continue;
+      }
+
+      finishedChessGamePgnCache.set(key, {
+        pgn,
+        savedAtMs,
+      });
+    }
+
+    console.log(
+      `[CHESS PLAY] restored sessions=${chessPlaySessions.size} finishedPgn=${finishedChessGamePgnCache.size}`
+    );
+  } catch (error) {
+    console.error('[CHESS PLAY] state load failed:');
+    console.error(error);
+  }
+}
 
 async function readGuildListState() {
   try {
@@ -796,7 +957,14 @@ client.once(Events.ClientReady, async (readyClient) => {
   });
 
   console.log(`Logged in as ${readyClient.user.tag}`);
+
   void flushDiscordConsoleLogs();
+    try {
+    await loadChessPlayState();
+  } catch (error) {
+    console.error('[CHESS PLAY] restore failed:');
+    console.error(error);
+  }
 
   try {
     await syncCurrentGuildsToGuildListState(readyClient);
@@ -1001,6 +1169,14 @@ function normalizeUserChessMoveText(text) {
     return move.toLowerCase();
   }
 
+  // 대문자 기물 SAN은 폰 입력보다 먼저 처리한다.
+  // Bxf4가 bxf4로 내려가는 문제 방지.
+  if (/^[KQRBN]/.test(move)) {
+    move = move[0].toUpperCase() + move.slice(1);
+    move = move.replace(/=([qrbn])/i, (_, piece) => `=${piece.toUpperCase()}`);
+    return move;
+  }
+
   // 폰 전진: E4, b4 같은 건 e4, b4로
   if (/^[a-h][1-8](?:=[qrbn])?[+#]?$/i.test(move)) {
     return move
@@ -1008,7 +1184,7 @@ function normalizeUserChessMoveText(text) {
       .replace(/=([qrbn])/i, (_, piece) => `=${piece.toUpperCase()}`);
   }
 
-  // 폰 잡기: Dxc3, dxc3, EXD8=Q 같은 건 dxc3, exd8=Q로
+  // 폰 잡기: dxc3, EXD8=Q 같은 건 dxc3, exd8=Q로
   if (/^[a-h]x[a-h][1-8](?:=[qrbn])?[+#]?$/i.test(move)) {
     return move
       .toLowerCase()
@@ -1047,6 +1223,172 @@ function applyUciMove(chess, uci) {
   }
 
   return chess.move(move);
+}
+
+function isChessPgnRequestText(text) {
+  const value = String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim();
+
+  return /(?:pgn|PGN|피지엔|기보|수순|방금\s*한\s*거|방금\s*경기|경기\s*기록)/i.test(value);
+}
+
+function setChessPgnHeader(chess, key, value) {
+  if (typeof chess.setHeader === 'function') {
+    chess.setHeader(key, value);
+    return;
+  }
+
+  if (typeof chess.header === 'function') {
+    chess.header(key, value);
+  }
+}
+
+function formatPgnDate(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}.${m}.${d}`;
+}
+
+function appendChessSessionMove(session, move) {
+  if (!session || !move) {
+    return;
+  }
+
+  session.moves ??= [];
+  session.moves.push(moveToUci(move));
+}
+
+function createChessFromPlaySession(session) {
+  const moves = Array.isArray(session?.moves) ? session.moves : [];
+
+  if (moves.length === 0) {
+    return new Chess(session?.fen);
+  }
+
+  const chess = new Chess();
+
+  for (const uci of moves) {
+    const move = applyUciMove(chess, uci);
+    if (!move) {
+      return new Chess(session?.fen);
+    }
+  }
+
+  return chess;
+}
+
+function getChessPgnResultFromChess(chess, fallback = '*') {
+  if (!chess) {
+    return fallback;
+  }
+
+  if (chess.isCheckmate()) {
+    return chess.turn() === 'w' ? '0-1' : '1-0';
+  }
+
+  if (
+    chess.isStalemate() ||
+    chess.isThreefoldRepetition() ||
+    chess.isInsufficientMaterial() ||
+    chess.isDraw()
+  ) {
+    return '1/2-1/2';
+  }
+
+  return fallback;
+}
+
+function buildChessPlayPgn(session, result = '*') {
+  const chess = createChessFromPlaySession(session);
+
+  const userName = session?.userDisplayName || 'User';
+  const botName = 'Kannyang';
+
+  setChessPgnHeader(chess, 'Event', 'Discord Chess Game');
+  setChessPgnHeader(chess, 'Site', 'Discord');
+  setChessPgnHeader(chess, 'Date', formatPgnDate(new Date(session?.startedAtMs ?? Date.now())));
+  setChessPgnHeader(chess, 'White', session?.userColor === 'w' ? userName : botName);
+  setChessPgnHeader(chess, 'Black', session?.userColor === 'b' ? userName : botName);
+  setChessPgnHeader(chess, 'Result', result);
+
+  let pgn = chess.pgn({ maxWidth: 80, newline: '\n' }).trim();
+
+  if (result && result !== '*' && !pgn.endsWith(result)) {
+    pgn = `${pgn} ${result}`;
+  }
+
+  return pgn;
+}
+
+function pruneFinishedChessGamePgnCache(now = Date.now()) {
+  for (const [key, cached] of finishedChessGamePgnCache.entries()) {
+    if (!cached || now - cached.savedAtMs > finishedChessGamePgnCacheMaxAgeMs) {
+      finishedChessGamePgnCache.delete(key);
+    }
+  }
+}
+
+function rememberFinishedChessGamePgn(key, session, result = '*') {
+  pruneFinishedChessGamePgnCache();
+
+  const pgn = buildChessPlayPgn(session, result);
+
+  finishedChessGamePgnCache.set(key, {
+    pgn,
+    savedAtMs: Date.now(),
+  });
+
+  void queueSaveChessPlayState();
+}
+
+async function replyFinishedChessGamePgn(message, key, existingSession = null) {
+  pruneFinishedChessGamePgnCache();
+
+  if (existingSession?.kind !== 'pending-start-choice') {
+    const activeMoves = Array.isArray(existingSession?.moves) ? existingSession.moves : [];
+    if (activeMoves.length > 0) {
+      const pgn = buildChessPlayPgn(existingSession, '*');
+
+      await message.reply({
+        content: `지금 진행 중인 대국 기보다냥.\n\`\`\`pgn\n${pgn.slice(0, 1800)}\n\`\`\``,
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+
+      return true;
+    }
+  }
+
+  const cached = finishedChessGamePgnCache.get(key);
+
+  if (!cached) {
+    await message.reply({
+      content: '방금 둔 기보는 이제 까먹었다냥. 다음 대국이 끝난 뒤 5분 안에 다시 말해달라냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  if (Date.now() - cached.savedAtMs > finishedChessGamePgnCacheMaxAgeMs) {
+    finishedChessGamePgnCache.delete(key);
+
+    await message.reply({
+      content: '방금 둔 기보는 이제 까먹었다냥. 다음 대국이 끝난 뒤 5분 안에 다시 말해달라냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  await message.reply({
+    content: `방금 둔 대국 기보다냥.\n\`\`\`pgn\n${cached.pgn.slice(0, 1800)}\n\`\`\``,
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+
+  return true;
 }
 
 function applyUserChessMove(chess, input) {
@@ -1757,13 +2099,16 @@ async function startChessPlaySession(message, key, options = {}) {
   const chess = new Chess();
 
   const session = {
-    userColor,
-    botColor,
-    fen: chess.fen(),
-    startedAtMs: Date.now(),
-  };
+  userColor,
+  botColor,
+  fen: chess.fen(),
+  moves: [],
+  userDisplayName: message.member?.displayName || message.author?.username || 'User',
+  startedAtMs: Date.now(),
+};
 
   chessPlaySessions.set(key, session);
+  await queueSaveChessPlayState();
 
   if (botColor === 'w') {
     await message.channel.sendTyping().catch(() => {});
@@ -1771,8 +2116,12 @@ async function startChessPlaySession(message, key, options = {}) {
     const choice = await chooseBotChessMove(chess);
     const botMove = applyUciMove(chess, choice.selectedUci);
 
-    session.fen = chess.fen();
+if (botMove) {
+  appendChessSessionMove(session, botMove);
+}
 
+session.fen = chess.fen();
+await queueSaveChessPlayState();
     const reply = await createNaturalChessPlayReply(message, {
       kind: 'start-bot-white',
       userColor,
@@ -1807,9 +2156,155 @@ async function startChessPlaySession(message, key, options = {}) {
   return true;
 }
 
+function extractPendingChessStartFirstMove(text) {
+  const value = String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim();
+
+  if (!value) {
+    return '';
+  }
+
+  // 대기 상태에서 그냥 %d4, %e4, %Nf3처럼 수만 치면
+  // "내가 백으로 먼저 둔다"로 처리
+  if (looksLikeChessMoveInput(value)) {
+    return value;
+  }
+
+  const hasUserFirstIntent =
+    /(?:^|\s)(?:ㄴㄴ|아니|싫어)(?:\s|$)/i.test(value) ||
+    /(?:내가|나|난|나는)\s*(?:먼저|백|white|둘게|둘|시작|할게|할거|할거임|하겠)/i.test(value);
+
+  if (!hasUserFirstIntent) {
+    return '';
+  }
+
+  const moveRegex =
+    /(?:O-O-O|O-O|0-0-0|0-0|[a-h][1-8][a-h][1-8][qrbn]?|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBNqrbn])?[+#]?|[a-h]x[a-h][1-8](?:=[QRBNqrbn])?[+#]?|[a-h][1-8](?:=[QRBNqrbn])?[+#]?)/gi;
+
+  const matches = [...value.matchAll(moveRegex)].map((match) => match[0]);
+
+  for (let index = matches.length - 1; index >= 0; index -= 1) {
+    const candidate = matches[index];
+
+    if (looksLikeChessMoveInput(candidate)) {
+      return candidate;
+    }
+  }
+
+  return '';
+}
+
+async function startChessPlaySessionWithInitialUserMove(message, key, initialMoveText) {
+  const userColor = 'w';
+  const botColor = 'b';
+  const chess = new Chess();
+
+  const userMove = applyUserChessMove(chess, initialMoveText);
+
+  if (!userMove) {
+    await message.reply({
+      content: `첫 수 **${initialMoveText}**는 지금 시작 포지션에서 둘 수 없는 수다냥.`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  const session = {
+    userColor,
+    botColor,
+    fen: chess.fen(),
+    moves: [moveToUci(userMove)],
+    userDisplayName: message.member?.displayName || message.author?.username || 'User',
+    startedAtMs: Date.now(),
+  };
+
+  chessPlaySessions.set(key, session);
+  await queueSaveChessPlayState();
+  let resultText = getChessResultText(chess);
+
+  if (resultText) {
+    session.fen = chess.fen();
+    chessPlaySessions.delete(key);
+
+    const reply = await createNaturalChessPlayReply(message, {
+      kind: 'game-over-after-user',
+      userColor,
+      botColor,
+      userMoveSan: userMove.san,
+      resultText,
+      fen: chess.fen(),
+    });
+
+    await message.reply({
+      content: reply,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  await message.channel.sendTyping().catch(() => {});
+
+  const choice = await chooseBotChessMove(chess);
+  const botMove = applyUciMove(chess, choice.selectedUci);
+
+  if (!botMove) {
+    session.fen = chess.fen();
+
+    await message.reply({
+      content: `네 첫 수 **${userMove.san}**까지 받았는데, 내 응수 계산에 실패했다냥.`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  session.moves.push(moveToUci(botMove));
+session.fen = chess.fen();
+
+resultText = getChessResultText(chess);
+
+if (resultText) {
+  rememberFinishedChessGamePgn(key, session, getChessPgnResultFromChess(chess));
+  chessPlaySessions.delete(key);
+}
+
+await queueSaveChessPlayState();
+
+  const reply = await createNaturalChessPlayReply(message, {
+    kind: 'bot-move',
+    userColor,
+    botColor,
+    userMoveSan: userMove.san,
+    botMoveSan: botMove.san,
+    stockfishSan: choice.stockfishSan,
+    usedRandomMove:
+      choice.selectedSource !== 'stockfish' &&
+      choice.selectedSource !== 'fallback-random',
+    resultText,
+    fen: chess.fen(),
+  });
+
+  await message.reply({
+    content: reply,
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+
+  return true;
+}
+
 async function handleChessControlIntent(message, key, chess, existingSession, intent) {
   if (intent.action === 'draw_offer') {
+  if (existingSession) {
+    existingSession.fen = chess?.fen?.() ?? existingSession.fen;
+    rememberFinishedChessGamePgn(key, existingSession, '1/2-1/2');
+  }
+
   chessPlaySessions.delete(key);
+  await queueSaveChessPlayState();
 
   const reply = await createNaturalChessDrawReply(message, {
     userColor: existingSession?.userColor,
@@ -1825,21 +2320,29 @@ async function handleChessControlIntent(message, key, chess, existingSession, in
   return true;
 }
   if (intent.action === 'stop') {
-    chessPlaySessions.delete(key);
+  if (existingSession) {
+    existingSession.fen = chess?.fen?.() ?? existingSession.fen;
 
-    const reply = await createNaturalChessStopReply(message, {
-  userColor: existingSession?.userColor,
-  botColor: existingSession?.botColor,
-  fen: chess?.fen?.() ?? existingSession?.fen ?? '',
-});
-
-await message.reply({
-  content: reply,
-  allowedMentions: { parse: [], repliedUser: false },
-});
-
-    return true;
+    const result = existingSession.userColor === 'w' ? '0-1' : '1-0';
+    rememberFinishedChessGamePgn(key, existingSession, result);
   }
+
+  chessPlaySessions.delete(key);
+  await queueSaveChessPlayState();
+
+  const reply = await createNaturalChessStopReply(message, {
+    userColor: existingSession?.userColor,
+    botColor: existingSession?.botColor,
+    fen: chess?.fen?.() ?? existingSession?.fen ?? '',
+  });
+
+  await message.reply({
+    content: reply,
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+
+  return true;
+}
 
   if (intent.action === 'show_board') {
     await message.reply({
@@ -1864,7 +2367,7 @@ await message.reply({
   return false;
 }
 
-function createPendingChessStartChoice(message, key) {
+async function createPendingChessStartChoice(message, key) {
   chessPlaySessions.set(key, {
     kind: 'pending-start-choice',
     fen: '',
@@ -1872,6 +2375,8 @@ function createPendingChessStartChoice(message, key) {
     botColor: '',
     startedAtMs: Date.now(),
   });
+
+  await queueSaveChessPlayState();
 
   return message.reply({
     content: '체스 두는 거 정말 좋다냥! 내가 먼저 시작해도 될까냥?',
@@ -1948,11 +2453,18 @@ async function handlePendingChessStartChoice(message, key, text, existingSession
     return false;
   }
 
+  const firstMoveText = extractPendingChessStartFirstMove(text);
+
+  if (firstMoveText) {
+    chessPlaySessions.delete(key);
+    return startChessPlaySessionWithInitialUserMove(message, key, firstMoveText);
+  }
+
   const choice = classifyPendingChessStartChoice(text);
 
   if (!choice.handled) {
     await message.reply({
-      content: '내가 먼저 둘지, 네가 먼저 둘지만 알려달라냥. 예: `%ㅇㅇ`, `%내가 먼저`, `%내가 백`',
+      content: '내가 먼저 둘지, 네가 먼저 둘지만 알려달라냥. 예: `%ㅇㅇ`, `%내가 먼저`, `%내가 백`, `%d4`, `%내가 먼저 d4`',
       allowedMentions: { parse: [], repliedUser: false },
     });
 
@@ -1982,55 +2494,64 @@ async function handleChessPlayMessage(message) {
   const key = getChessPlaySessionKey(message);
   const existingSession = chessPlaySessions.get(key);
 
-  if (existingSession?.kind === 'pending-start-choice') {
-  return handlePendingChessStartChoice(message, key, text, existingSession);
-}
-
-  const wantsStart =
-  /(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
-
-  if (wantsStart) {
-  if (isPlainChessStartText(text)) {
-    await createPendingChessStartChoice(message, key);
-    return true;
+  if (isChessSaveRequestText(text)) {
+    return saveCurrentChessPlaySessionMessage(message, key, existingSession);
   }
 
-  const intent = await classifyChessControlIntent(message, text, existingSession);
+  if (isChessPgnRequestText(text)) {
+    return replyFinishedChessGamePgn(message, key, existingSession);
+  }
 
-  return startChessPlaySession(message, key, {
-    userColor: intent.userColor,
-    botColor: intent.botColor,
-  });
-}
+  if (existingSession?.kind === 'pending-start-choice') {
+    return handlePendingChessStartChoice(message, key, text, existingSession);
+  }
+
+  const wantsStart =
+    /(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
+
+  if (wantsStart) {
+    if (isPlainChessStartText(text)) {
+      await createPendingChessStartChoice(message, key);
+      return true;
+    }
+
+    const intent = await classifyChessControlIntent(message, text, existingSession);
+
+    return startChessPlaySession(message, key, {
+      userColor: intent.userColor,
+      botColor: intent.botColor,
+    });
+  }
 
   if (!existingSession) {
     return false;
   }
 
-  const chess = new Chess(existingSession.fen);
+  const chess = createChessFromPlaySession(existingSession);
 
   // 무승부 제안은 Gemini 분류 없이 무조건 수락
-if (isLocalChessDrawOfferText(text)) {
-  const controlHandled = await handleChessControlIntent(
-    message,
-    key,
-    chess,
-    existingSession,
-    {
-      action: 'draw_offer',
-      userColor: '',
-      botColor: '',
+  if (isLocalChessDrawOfferText(text)) {
+    const controlHandled = await handleChessControlIntent(
+      message,
+      key,
+      chess,
+      existingSession,
+      {
+        action: 'draw_offer',
+        userColor: '',
+        botColor: '',
+      }
+    );
+
+    if (controlHandled) {
+      return true;
     }
-  );
-
-  if (controlHandled) {
-    return true;
   }
-}
 
-// 체스 수처럼 생기지 않은 말은 먼저 Gemini에게 "대국 제어 의도"인지 분류시킴.
-if (!looksLikeChessMoveInput(text)) {
-  const intent = await classifyChessControlIntent(message, text, existingSession);
+  // 체스 수처럼 생기지 않은 말은 먼저 Gemini에게 "대국 제어 의도"인지 분류시킴.
+  if (!looksLikeChessMoveInput(text)) {
+    const intent = await classifyChessControlIntent(message, text, existingSession);
+
     const controlHandled = await handleChessControlIntent(
       message,
       key,
@@ -2064,11 +2585,15 @@ if (!looksLikeChessMoveInput(text)) {
     return true;
   }
 
+  appendChessSessionMove(existingSession, userMove);
+  existingSession.fen = chess.fen();
+
   let resultText = getChessResultText(chess);
 
   if (resultText) {
-    existingSession.fen = chess.fen();
+    rememberFinishedChessGamePgn(key, existingSession, getChessPgnResultFromChess(chess));
     chessPlaySessions.delete(key);
+    await queueSaveChessPlayState();
 
     const reply = await createNaturalChessPlayReply(message, {
       kind: 'game-over-after-user',
@@ -2087,6 +2612,9 @@ if (!looksLikeChessMoveInput(text)) {
     return true;
   }
 
+  // 유저 수까지 일단 저장
+  await queueSaveChessPlayState();
+
   await message.channel.sendTyping().catch(() => {});
 
   const choice = await chooseBotChessMove(chess);
@@ -2094,6 +2622,7 @@ if (!looksLikeChessMoveInput(text)) {
 
   if (!botMove) {
     existingSession.fen = chess.fen();
+    await queueSaveChessPlayState();
 
     await message.reply({
       content: `네 수 **${userMove.san}**까지 받았는데, 내 응수 계산에 실패했다냥.`,
@@ -2103,12 +2632,18 @@ if (!looksLikeChessMoveInput(text)) {
     return true;
   }
 
+  appendChessSessionMove(existingSession, botMove);
   existingSession.fen = chess.fen();
+
   resultText = getChessResultText(chess);
 
   if (resultText) {
+    rememberFinishedChessGamePgn(key, existingSession, getChessPgnResultFromChess(chess));
     chessPlaySessions.delete(key);
   }
+
+  // 봇 응수까지 반영된 최종 상태 저장
+  await queueSaveChessPlayState();
 
   const reply = await createNaturalChessPlayReply(message, {
     kind: 'bot-move',
@@ -2117,13 +2652,44 @@ if (!looksLikeChessMoveInput(text)) {
     userMoveSan: userMove.san,
     botMoveSan: botMove.san,
     stockfishSan: choice.stockfishSan,
-    usedRandomMove: choice.selectedSource !== 'stockfish' && choice.selectedSource !== 'fallback-random',
+    usedRandomMove:
+      choice.selectedSource !== 'stockfish' &&
+      choice.selectedSource !== 'fallback-random',
     resultText,
     fen: chess.fen(),
   });
 
   await message.reply({
     content: reply,
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+
+  return true;
+}
+
+function isChessSaveRequestText(text) {
+  const value = String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim();
+
+  return /^(?:체스저장|체스\s*저장|대국저장|대국\s*저장|기보저장|save\s*chess)$/i.test(value);
+}
+
+async function saveCurrentChessPlaySessionMessage(message, key, existingSession) {
+  if (!existingSession || existingSession.kind === 'pending-start-choice') {
+    await message.reply({
+      content: '저장할 진행 중인 체스 대국이 없다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
+  await queueSaveChessPlayState();
+
+  await message.reply({
+    content: '지금 진행 중인 체스 대국을 파일에 저장했다냥.',
     allowedMentions: { parse: [], repliedUser: false },
   });
 
