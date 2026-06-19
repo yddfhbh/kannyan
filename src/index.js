@@ -32,7 +32,10 @@ import {
   createQuickPlayAltitudeCard,
   createQuickPlayRecentAltitudeCard,
 } from './tetrio-quickplay.js';
-import { createTetrioLeagueMatchCard } from './tetrio-league-match.js';
+import {
+  createTetrioLeagueMatchCard,
+  createTetrioLeagueRecentListCard,
+} from './tetrio-league-match.js';
 import { createTetrioRankCutImage } from './tetrio-rankcut.js';
 import { fetchTetrioStatsCardData } from './tetrio-stats.js';
 import { createTetrioStatsCard } from './tetrio-stats-card.js';
@@ -145,7 +148,7 @@ const chessPlaySessions = new Map();
 const recentChessAnalysisSessions = new Map();
 const finishedChessGamePgnCache = new Map();
 const finishedChessGamePgnCacheMaxAgeMs =
-  Number(process.env.CHESS_FINISHED_PGN_CACHE_MS) || 5 * 60 * 1000;
+  Number(process.env.CHESS_FINISHED_PGN_CACHE_MS) || 24 * 60 * 60 * 1000;
 const recentChessAnalysisMaxAgeMs = Number(process.env.CHESS_ANALYSIS_CONTEXT_MS) || 15 * 60 * 1000;
 
 const configuredChessRandomMoveRate = Number(process.env.CHESS_RANDOM_MOVE_RATE);
@@ -1261,23 +1264,59 @@ function appendChessSessionMove(session, move) {
   session.moves.push(moveToUci(move));
 }
 
+function createChessFromFenSafe(fen) {
+  try {
+    return fen ? new Chess(fen) : new Chess();
+  } catch {
+    return new Chess();
+  }
+}
+
+function replayChessSessionMoves(session) {
+  const moves = Array.isArray(session?.moves) ? session.moves : [];
+  const chess = new Chess();
+
+  for (let index = 0; index < moves.length; index += 1) {
+    const uci = moves[index];
+    const move = applyUciMove(chess, uci);
+    if (!move) {
+      return {
+        chess: null,
+        invalidMoveIndex: index,
+        invalidUci: uci,
+        ok: false,
+      };
+    }
+  }
+
+  return {
+    chess,
+    invalidMoveIndex: -1,
+    invalidUci: '',
+    ok: true,
+  };
+}
+
 function createChessFromPlaySession(session) {
   const moves = Array.isArray(session?.moves) ? session.moves : [];
 
   if (moves.length === 0) {
-    return new Chess(session?.fen);
+    return createChessFromFenSafe(session?.fen);
   }
 
-  const chess = new Chess();
-
-  for (const uci of moves) {
-    const move = applyUciMove(chess, uci);
-    if (!move) {
-      return new Chess(session?.fen);
+  const replay = replayChessSessionMoves(session);
+  if (replay.ok) {
+    const replayFen = replay.chess.fen();
+    if (session && session.fen !== replayFen) {
+      session.fen = replayFen;
     }
+    return replay.chess;
   }
 
-  return chess;
+  console.warn(
+    `[CHESS PLAY] invalid move history detected at index=${replay.invalidMoveIndex} uci=${replay.invalidUci || '-'}`
+  );
+  return createChessFromFenSafe(session?.fen);
 }
 
 function getChessPgnResultFromChess(chess, fallback = '*') {
@@ -1344,8 +1383,92 @@ function rememberFinishedChessGamePgn(key, session, result = '*') {
   void queueSaveChessPlayState();
 }
 
+function isLocalChessShowBoardText(text) {
+  const value = String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim()
+    .toLowerCase();
+
+  return (
+    value.includes('show board')
+    || value.includes('current board')
+    || value.includes('fen')
+    || value.includes('position')
+    || value.includes('\uBCF4\uB4DC')
+    || value.includes('\uCCB4\uC2A4\uD310')
+    || value.includes('\uD3EC\uC9C0\uC158')
+    || value.includes('\uB9D0 \uBC30\uCE58')
+    || value.includes('\uD604\uC7AC \uD310')
+    || value.includes('\uD604\uC0C1\uD669')
+  );
+}
+
+function wantsChessFenReply(text) {
+  const value = String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim()
+    .toLowerCase();
+
+  return (
+    value.includes('fen')
+    || value.includes('position')
+    || value.includes('\uD3EC\uC9C0\uC158')
+    || value.includes('\uB9D0 \uBC30\uCE58')
+    || value.includes('\uC88C\uD45C')
+  );
+}
+
+function formatChessTurnLabel(turn) {
+  return turn === 'b' ? '\uD751' : '\uBC31';
+}
+
+function renderAsciiChessBoard(chess) {
+  const board = chess.board();
+  const lines = ['  +-----------------+'];
+
+  for (let rankIndex = 0; rankIndex < 8; rankIndex += 1) {
+    const rankLabel = 8 - rankIndex;
+    const cells = board[rankIndex].map((piece) => {
+      if (!piece) {
+        return '.';
+      }
+
+      return piece.color === 'w'
+        ? piece.type.toUpperCase()
+        : piece.type;
+    });
+
+    lines.push(`${rankLabel} | ${cells.join(' ')} |`);
+  }
+
+  lines.push('  +-----------------+');
+  lines.push('    a b c d e f g h');
+
+  return lines.join('\n');
+}
+
+function buildChessBoardStatusReply(chess, text) {
+  const lines = [
+    '\uD604\uC7AC \uBCF4\uB4DC \uC0C1\uD669\uC740 \uC774\uB807\uB2E4\uB0E5.',
+    '```text',
+    renderAsciiChessBoard(chess),
+    '```',
+    `\uC9C0\uAE08 \uCC28\uB840\uB294 ${formatChessTurnLabel(chess.turn())}\uC774\uB2E4\uB0E5.`,
+  ];
+
+  if (wantsChessFenReply(text)) {
+    lines.push(`\uD604\uC7AC FEN\uC740 \`${chess.fen()}\`\uC774\uB2E4\uB0E5.`);
+  }
+
+  return lines.join('\n');
+}
+
 async function replyFinishedChessGamePgn(message, key, existingSession = null) {
   pruneFinishedChessGamePgnCache();
+  const expiredMessage =
+    '\uBC29\uAE08 \uB454 \uB300\uAD6D \uAE30\uBCF4\uB294 \uCD5C\uB300 \uD558\uB8E8\uAE4C\uC9C0\uB9CC \uBCF4\uAD00\uD55C\uB2E4\uB0E5. \uB2E4\uC74C\uC5D4 \uB300\uAD6D\uC774 \uB05D\uB09C \uB4A4 \uD558\uB8E8 \uC548\uC5D0 \uB2E4\uC2DC \uB9D0\uD574\uB2EC\uB77C\uB0E5.';
 
   if (existingSession?.kind !== 'pending-start-choice') {
     const activeMoves = Array.isArray(existingSession?.moves) ? existingSession.moves : [];
@@ -1353,7 +1476,7 @@ async function replyFinishedChessGamePgn(message, key, existingSession = null) {
       const pgn = buildChessPlayPgn(existingSession, '*');
 
       await message.reply({
-        content: `지금 진행 중인 대국 기보다냥.\n\`\`\`pgn\n${pgn.slice(0, 1800)}\n\`\`\``,
+        content: `\uC9C0\uAE08 \uC9C4\uD589 \uC911\uC778 \uB300\uAD6D \uAE30\uBCF4\uB2E4\uB0E5.\n\`\`\`pgn\n${pgn.slice(0, 1800)}\n\`\`\``,
         allowedMentions: { parse: [], repliedUser: false },
       });
 
@@ -1365,7 +1488,7 @@ async function replyFinishedChessGamePgn(message, key, existingSession = null) {
 
   if (!cached) {
     await message.reply({
-      content: '방금 둔 기보는 이제 까먹었다냥. 다음 대국이 끝난 뒤 5분 안에 다시 말해달라냥.',
+      content: expiredMessage,
       allowedMentions: { parse: [], repliedUser: false },
     });
 
@@ -1376,7 +1499,7 @@ async function replyFinishedChessGamePgn(message, key, existingSession = null) {
     finishedChessGamePgnCache.delete(key);
 
     await message.reply({
-      content: '방금 둔 기보는 이제 까먹었다냥. 다음 대국이 끝난 뒤 5분 안에 다시 말해달라냥.',
+      content: expiredMessage,
       allowedMentions: { parse: [], repliedUser: false },
     });
 
@@ -1384,13 +1507,12 @@ async function replyFinishedChessGamePgn(message, key, existingSession = null) {
   }
 
   await message.reply({
-    content: `방금 둔 대국 기보다냥.\n\`\`\`pgn\n${cached.pgn.slice(0, 1800)}\n\`\`\``,
+    content: `\uBC29\uAE08 \uB454 \uB300\uAD6D \uAE30\uBCF4\uB2E4\uB0E5.\n\`\`\`pgn\n${cached.pgn.slice(0, 1800)}\n\`\`\``,
     allowedMentions: { parse: [], repliedUser: false },
   });
 
   return true;
 }
-
 function applyUserChessMove(chess, input) {
   const moveText = normalizeUserChessMoveText(input);
 
@@ -1916,7 +2038,10 @@ async function createNaturalChessPlayReply(message, facts) {
 
   const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
 
-  if (/(?:백인|흑인)\s*사용자/.test(answer)) {
+  if (
+    /(?:백인|흑인)\s*사용자/.test(answer)
+    || /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
+  ) {
     return fallback;
   }
 
@@ -2014,7 +2139,7 @@ async function classifyChessControlIntent(message, text, existingSession) {
 '- start: user wants to start a new chess game',
 '- restart: user wants to restart or change sides/colors',
 '- stop: user wants to stop/resign/end the game',
-'- show_board: user asks for current board, FEN, position, or move record',
+'- show_board: user asks for current board, FEN, or current position',
 '- draw_offer: user offers, requests, or suggests a draw',
 '- unknown: not a chess control command',
             '',
@@ -2227,7 +2352,9 @@ async function startChessPlaySessionWithInitialUserMove(message, key, initialMov
 
   if (resultText) {
     session.fen = chess.fen();
+    rememberFinishedChessGamePgn(key, session, getChessPgnResultFromChess(chess));
     chessPlaySessions.delete(key);
+    await queueSaveChessPlayState();
 
     const reply = await createNaturalChessPlayReply(message, {
       kind: 'game-over-after-user',
@@ -2346,7 +2473,7 @@ async function handleChessControlIntent(message, key, chess, existingSession, in
 
   if (intent.action === 'show_board') {
     await message.reply({
-      content: `현재 FEN은 \`${chess.fen()}\`이다냥.`,
+      content: buildChessBoardStatusReply(chess, message.content),
       allowedMentions: { parse: [], repliedUser: false },
     });
 
@@ -2550,7 +2677,9 @@ async function handleChessPlayMessage(message) {
 
   // 체스 수처럼 생기지 않은 말은 먼저 Gemini에게 "대국 제어 의도"인지 분류시킴.
   if (!looksLikeChessMoveInput(text)) {
-    const intent = await classifyChessControlIntent(message, text, existingSession);
+    const intent = isLocalChessShowBoardText(text)
+      ? { action: 'show_board', userColor: '', botColor: '' }
+      : await classifyChessControlIntent(message, text, existingSession);
 
     const controlHandled = await handleChessControlIntent(
       message,
@@ -4179,6 +4308,11 @@ async function handlePercentMessageCommand(message) {
     return true;
   }
 
+  if (command === 'tetrioLeagueRecentList') {
+    await handleTetrioLeagueRecentListMessage(message, input, parsedCommand.recentCount);
+    return true;
+  }
+
   if (command === 'quickplay') {
     await handleQuickPlayAltitudeMessage(message, input, 'zenith');
     return true;
@@ -5084,6 +5218,15 @@ function parsePercentCommand(content) {
   }
 
   const [commandToken, ...restTokens] = commandBody.split(/\s+/);
+  const specialTetraRecent = parseTetrioLeagueRecentPercentCommand(commandToken);
+  if (specialTetraRecent) {
+    return {
+      command: 'tetrioLeagueRecentList',
+      input: restTokens.join(' ').trim(),
+      recentCount: specialTetraRecent.recentCount,
+    };
+  }
+
   const command = getCanonicalPercentCommand(commandToken.toLowerCase());
   if (!command) {
     return null;
@@ -5092,6 +5235,22 @@ function parsePercentCommand(content) {
   return {
     command,
     input: restTokens.join(' ').trim(),
+  };
+}
+
+function parseTetrioLeagueRecentPercentCommand(commandToken) {
+  const match = String(commandToken ?? '').trim().toLowerCase().match(/^tetra([1-9]\d{0,2})$/);
+  if (!match) {
+    return null;
+  }
+
+  const recentCount = parsePositiveIntegerToken(match[1]);
+  if (!recentCount) {
+    return null;
+  }
+
+  return {
+    recentCount: Math.min(recentCount, 20),
   };
 }
 
@@ -5937,7 +6096,7 @@ function getHelpMessage() {
     '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시한다냥.',
     '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석한다냥.',
     '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여준다냥.',
-    '`/전적 닉네임:[TETR.IO 닉네임] 숫자:[경기 번호]` 또는 `%tetra 닉네임 [경기 번호]` - TETRA LEAGUE 최근 경기 전적을 이미지로 보여준다냥.',
+    '`/전적 닉네임:[TETR.IO 닉네임] 숫자:[경기 번호]` 또는 `%tetra 닉네임 [경기 번호]`, `%tetra10 닉네임` - TETRA LEAGUE 최근 경기 전적이나 최근 N경기 목록을 이미지로 보여준다냥.',
     '`/체스비교 플랫폼:<체닷|리체스> 타임컨트롤:<래피드|블리츠|불렛> 닉네임1:<이름> 닉네임2:<이름>` - 두 사람의 점수와 예상 승률을 비교한다냥.',
     '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산한다냥.',
     '`/알람 내용:<알람 내용> 분:<1~10080>` - 지정한 분 뒤에 멘션으로 알려준다냥.',
@@ -6834,7 +6993,7 @@ async function handleTetrioLeagueMatchMessage(message, input) {
   const parsedInput = parseTetrioLeagueMatchMessageInput(input);
   if (!parsedInput) {
     await message.reply({
-      content: '사용법은 `%tetra 닉네임 [숫자]`, `%tetra @멘션 [숫자]`, `%tetra [숫자]`다냥.',
+      content: '사용법은 `%tetra 닉네임 [숫자]`, `%tetra @멘션 [숫자]`, `%tetra [숫자]`, `%tetra10 닉네임`이다냥.',
       allowedMentions: { repliedUser: false },
     });
     return;
@@ -6880,6 +7039,41 @@ async function handleTetrioLeagueMatchMessage(message, input) {
   }
 
   await showTetrioLeagueMatchMessage(message, parsedInput.targetText, parsedInput.matchIndex);
+}
+
+async function handleTetrioLeagueRecentListMessage(message, input, recentCount = 10) {
+  const trimmedInput = String(input ?? '').trim();
+  const repliedUser = await getRepliedUserFromTetrioMessage(message);
+  if (repliedUser) {
+    await showLinkedTetrioLeagueRecentListMessage(message, repliedUser, recentCount);
+    return;
+  }
+
+  if (!trimmedInput) {
+    await showLinkedTetrioLeagueRecentListMessage(message, message.author, recentCount);
+    return;
+  }
+
+  const mentionedUser = getSingleMentionedUserFromTetrioInput(message, trimmedInput);
+  if (mentionedUser) {
+    await showLinkedTetrioLeagueRecentListMessage(message, mentionedUser, recentCount);
+    return;
+  }
+
+  const tetrioValidationResult = validateTetrioMessageInput(trimmedInput);
+  if (tetrioValidationResult === 'too_long') {
+    await message.reply({
+      content: '닉네임이 너무 길다냥.',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  if (tetrioValidationResult === 'ignore') {
+    return;
+  }
+
+  await showTetrioLeagueRecentListMessage(message, trimmedInput, recentCount);
 }
 
 async function handleAmbiguousNumericTetrioLeagueMatchMessage(message, input, matchIndex) {
@@ -6981,6 +7175,28 @@ async function showLinkedTetrioLeagueMatchMessage(message, user, matchIndex) {
   }
 }
 
+async function showLinkedTetrioLeagueRecentListMessage(message, user, recentCount) {
+  try {
+    await message.channel.sendTyping();
+    const username = await findTetrioUsernameByDiscordId(user.id);
+
+    if (!username) {
+      await sendUnlinkedTetrioImage(message);
+      return;
+    }
+
+    await showTetrioLeagueRecentListMessage(message, username, recentCount, true);
+  } catch (error) {
+    console.error(`Failed to find linked TETR.IO profile for Discord user ${user.id}:`);
+    console.error(error);
+
+    await message.reply({
+      content: 'TETR.IO 연동 정보를 확인하지 못했다냥. 잠시 후 다시 시도해달라냥.',
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+
 async function showTetrioLeagueMatchMessage(message, username, matchIndex, assumeExistingUser = false) {
   try {
     await message.channel.sendTyping();
@@ -6996,6 +7212,33 @@ async function showTetrioLeagueMatchMessage(message, username, matchIndex, assum
     });
   } catch (error) {
     console.error(`Failed to fetch TETRA LEAGUE match for ${username} at position ${matchIndex}:`);
+    console.error(error);
+
+    const content = (await getTetrioLeagueMatchKnownErrorMessage(error, username, assumeExistingUser))
+      ?? 'TETRA LEAGUE 전적을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
+
+    await message.reply({
+      content,
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+
+async function showTetrioLeagueRecentListMessage(message, username, recentCount, assumeExistingUser = false) {
+  try {
+    await message.channel.sendTyping();
+    const card = await createTetrioLeagueRecentListCard(username, recentCount);
+    const attachment = new AttachmentBuilder(card.image, {
+      name: `tetrio-league-recent-${formatAttachmentSafeName(card.username)}-${card.recentCount}.png`,
+    });
+
+    await message.reply({
+      content: `https://ch.tetr.io/u/${encodeURIComponent(card.username)}/league`,
+      files: [attachment],
+      allowedMentions: { repliedUser: false },
+    });
+  } catch (error) {
+    console.error(`Failed to fetch recent TETRA LEAGUE matches for ${username} count ${recentCount}:`);
     console.error(error);
 
     const content = (await getTetrioLeagueMatchKnownErrorMessage(error, username, assumeExistingUser))

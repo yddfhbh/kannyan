@@ -25,6 +25,7 @@ const tetrioHeaders = {
 };
 const tetrioRecordPageSize = 100;
 const leagueFontFamily = `${tetrioFontFamily}, "C"`;
+const recentLeagueListRenderScale = 2;
 const sideThemes = [
   {
     name: 'blue',
@@ -98,6 +99,53 @@ export async function createTetrioLeagueMatchCardSvg(username, matchIndex = 1) {
   };
 }
 
+export async function createTetrioLeagueRecentListCard(username, recentCount = 10) {
+  const normalizedUsername = normalizeTetrioUsername(username);
+  const normalizedRecentCount = normalizeRecentRecordCount(recentCount);
+
+  if (!normalizedUsername) {
+    const error = new Error('TETR.IO username is required');
+    error.status = 400;
+    throw error;
+  }
+
+  const records = await fetchRecentLeagueRecords(normalizedUsername, normalizedRecentCount);
+  if (records.length === 0) {
+    const error = new Error('No TETRA LEAGUE matches found for the requested user');
+    error.code = 'NO_RECORD';
+    error.status = 404;
+    throw error;
+  }
+
+  const rows = records
+    .map((record, index) => buildRecentLeagueMatchRow(record, normalizedUsername, index + 1))
+    .filter(Boolean);
+
+  if (rows.length === 0) {
+    const error = new Error('No TETRA LEAGUE matches found for the requested user');
+    error.code = 'NO_RECORD';
+    error.status = 404;
+    throw error;
+  }
+
+  const usernameLabel = rows[0]?.targetUsername ?? normalizedUsername;
+  const fontDataUris = await fetchTetrioFontDataUris();
+  const svg = renderRecentLeagueListSvg({
+    username: usernameLabel,
+    requestedCount: normalizedRecentCount,
+    rowCount: rows.length,
+    rows,
+  }, fontDataUris);
+  const image = renderTetrioSvgToPng(svg, recentLeagueListRenderScale);
+
+  return {
+    image,
+    recentCount: rows.length,
+    rows,
+    username: usernameLabel,
+  };
+}
+
 async function fetchNthLeagueRecord(username, recordIndex) {
   let remaining = recordIndex;
   let after = null;
@@ -136,6 +184,18 @@ async function fetchNthLeagueRecord(username, recordIndex) {
   }
 
   return null;
+}
+
+async function fetchRecentLeagueRecords(username, recentCount) {
+  const limit = normalizeRecentRecordCount(recentCount);
+  const searchParams = new URLSearchParams({ limit: String(limit) });
+  const response = await fetchTetrioJson(
+    `/users/${encodeURIComponent(username)}/records/league/recent?${searchParams.toString()}`
+  );
+
+  return Array.isArray(response.data?.entries)
+    ? response.data.entries.slice(0, limit)
+    : [];
 }
 
 function buildLeagueMatchView(record, requestedUsername, matchIndex) {
@@ -992,6 +1052,280 @@ function renderInlineStats(stats, valueClass, labelClass, options = {}) {
   return `<tspan class="${valueClass}">${renderTetrioNumericTextMarkup(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${renderTetrioNumericTextMarkup(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${renderTetrioNumericTextMarkup(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>`;
 }
 
+function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
+  const leaderboard = Array.isArray(record?.results?.leaderboard)
+    ? record.results.leaderboard
+    : [];
+
+  if (leaderboard.length < 2) {
+    return null;
+  }
+
+  const requestedUsernameLower = String(requestedUsername ?? '').toLowerCase();
+  const otherUsers = Array.isArray(record?.otherusers) ? record.otherusers : [];
+  const otherUserIds = new Set(otherUsers.map((user) => user?.id).filter(Boolean));
+  const target = leaderboard.find((player) => String(player?.username ?? '').toLowerCase() === requestedUsernameLower)
+    ?? leaderboard.find((player) => player?.id && !otherUserIds.has(player.id))
+    ?? leaderboard[0];
+  const sortedPlayers = leaderboard
+    .slice()
+    .sort((first, second) => normalizeNaturalOrder(first) - normalizeNaturalOrder(second))
+    .slice(0, 2)
+    .map((player, sideIndex) => normalizeMatchPlayer(player, sideIndex));
+  const targetSide = sortedPlayers.find((player) => player.id === target?.id)
+    ?? sortedPlayers.find((player) => player.username.toLowerCase() === requestedUsernameLower)
+    ?? sortedPlayers[0];
+  const opponentSide = sortedPlayers.find((player) => player.id !== targetSide.id) ?? null;
+
+  if (!opponentSide) {
+    return null;
+  }
+
+  const resultType = String(record?.extras?.result ?? '').toLowerCase();
+  const targetWins = Number(targetSide.wins);
+  const opponentWins = Number(opponentSide.wins);
+  const hasWins = Number.isFinite(targetWins) && Number.isFinite(opponentWins);
+  const isWin = hasWins
+    ? targetWins > opponentWins
+    : resultType.includes('victory');
+  const isDq = resultType.includes('dq');
+  const opponentMeta = otherUsers.find((user) => user?.id === opponentSide.id)
+    ?? otherUsers.find((user) => String(user?.username ?? '').toLowerCase() === opponentSide.username.toLowerCase())
+    ?? null;
+  const resultLabel = isDq
+    ? `${isWin ? 'VICTORY' : 'DEFEAT'} by DQ`
+    : `${isWin ? 'VICTORY' : 'DEFEAT'} ${formatRecentMatchScore(targetWins, opponentWins)}`;
+
+  return {
+    apm: formatDecimal(targetSide.stats?.apm, 2),
+    countryCode: normalizeCountryCode(opponentMeta?.country),
+    index: rowIndex,
+    isDq,
+    isWin,
+    opponent: opponentSide.username,
+    playedAtText: formatPlayedAtKorea(record?.ts),
+    pps: formatDecimal(targetSide.stats?.pps, 2),
+    replayId: record?.replayid ?? null,
+    resultLabel,
+    targetUsername: targetSide.username,
+    trDelta: formatSignedDecimal(extractLeagueTrDelta(record, targetSide.id), 2),
+    vs: formatDecimal(targetSide.stats?.vsscore, 2),
+  };
+}
+
+function renderRecentLeagueListSvg(card, fontDataUris = {}) {
+  const width = 1180;
+  const sidePadding = 22;
+  const headerHeight = 86;
+  const headerY = 18;
+  const rowHeight = 74;
+  const rowGap = 6;
+  const rowsY = headerY + headerHeight + 16;
+  const footerHeight = 24;
+  const height = rowsY + card.rows.length * rowHeight + Math.max(0, card.rows.length - 1) * rowGap + footerHeight + 20;
+
+  const rowsMarkup = card.rows
+    .map((row, index) => renderRecentLeagueRow(row, sidePadding, rowsY + index * (rowHeight + rowGap), width - sidePadding * 2, rowHeight))
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <defs>
+    <style>
+      ${renderTetrioFontFace(fontDataUris)}
+      text {
+        font-family: ${leagueFontFamily};
+        letter-spacing: 0;
+        ${renderTetrioTextWeightCss()}
+      }
+      .bg {
+        fill: #081108;
+      }
+      .panel {
+        fill: #0d1b0e;
+        stroke: #274629;
+        stroke-width: 1;
+      }
+      .headerTitle {
+        fill: #f7faf1;
+        font-size: 34px;
+        font-weight: 950;
+      }
+      .headerMeta {
+        fill: #8fbb88;
+        font-size: 18px;
+        font-weight: 900;
+      }
+      .rowBody {
+        fill: #10210f;
+        stroke: #213920;
+        stroke-width: 1;
+      }
+      .rowDivider {
+        stroke: rgba(255,255,255,0.08);
+        stroke-width: 1;
+      }
+      .resultWin {
+        fill: #ffae45;
+      }
+      .resultLoss {
+        fill: #867dff;
+      }
+      .resultText {
+        fill: #0d1208;
+        font-size: 17px;
+        font-weight: 950;
+      }
+      .resultTextLoss {
+        fill: #0a0b15;
+      }
+      .vsText {
+        fill: #edf8df;
+        font-size: 17px;
+        font-weight: 950;
+      }
+      .countryPill {
+        fill: #1a2b19;
+        stroke: #41653f;
+        stroke-width: 1;
+      }
+      .countryText {
+        fill: #d7ead2;
+        font-size: 12px;
+        font-weight: 900;
+      }
+      .statValue {
+        fill: #9df18b;
+        font-size: 18px;
+        font-weight: 900;
+      }
+      .statDate {
+        fill: #99df8a;
+        font-size: 15px;
+        font-weight: 900;
+      }
+      .deltaValue {
+        fill: #f1fff1;
+        font-size: 21px;
+        font-weight: 950;
+      }
+      .deltaPositive {
+        fill: #d7ffd0;
+      }
+      .deltaNegative {
+        fill: #ffe2e2;
+      }
+      .viewText {
+        fill: #c6f08f;
+        font-size: 18px;
+        font-weight: 900;
+      }
+      .rowIndex {
+        fill: #76a670;
+        font-size: 13px;
+        font-weight: 900;
+      }
+      .footer {
+        fill: #62845f;
+        font-size: 14px;
+        font-weight: 900;
+      }
+    </style>
+  </defs>
+  <rect class="bg" width="${width}" height="${height}"/>
+  <rect class="panel" x="${sidePadding}" y="${headerY}" width="${width - sidePadding * 2}" height="${headerHeight}" rx="12"/>
+  <text x="${sidePadding + 22}" y="${headerY + 38}" class="headerTitle">${escapeXml(String(card.username ?? '').toUpperCase())} LEAGUE RECENT</text>
+  <text x="${sidePadding + 22}" y="${headerY + 65}" class="headerMeta">최근 ${escapeXml(String(card.rowCount))}경기 · 명령 %tetra${escapeXml(String(card.requestedCount))}</text>
+  ${rowsMarkup}
+  <text x="${sidePadding}" y="${height - 12}" class="footer">https://ch.tetr.io/u/${escapeXml(String(card.username ?? '').toLowerCase())}/league</text>
+</svg>`;
+}
+
+function renderRecentLeagueRow(row, x, y, width, height) {
+  const resultWidth = 238;
+  const slant = 18;
+  const panelClass = row.isWin ? 'resultWin' : 'resultLoss';
+  const resultTextClass = row.isWin ? 'resultText' : 'resultText resultTextLoss';
+  const deltaClass = row.trDelta.startsWith('-')
+    ? 'deltaValue deltaNegative'
+    : 'deltaValue deltaPositive';
+  const dateX = x + 775;
+  const deltaX = x + width - 146;
+  const viewX = x + width - 26;
+  const country = row.countryCode ? `
+    <rect class="countryPill" x="${x + 403}" y="${y + 25}" width="38" height="20" rx="10"/>
+    <text x="${x + 422}" y="${y + 39}" text-anchor="middle" class="countryText">${escapeXml(row.countryCode)}</text>
+  ` : '';
+
+  return `
+  <g>
+    <rect class="rowBody" x="${x}" y="${y}" width="${width}" height="${height}" rx="4"/>
+    <polygon class="${panelClass}" points="${x},${y} ${x + resultWidth},${y} ${x + resultWidth - slant},${y + height} ${x},${y + height}"/>
+    <line class="rowDivider" x1="${x + resultWidth}" y1="${y + 10}" x2="${x + resultWidth}" y2="${y + height - 10}"/>
+    <text x="${x + 12}" y="${y + 18}" class="rowIndex">#${row.index}</text>
+    <text x="${x + 118}" y="${y + 33}" text-anchor="middle" class="${resultTextClass}">${escapeXml(row.resultLabel)}</text>
+    <text x="${x + 252}" y="${y + 33}" class="vsText">vs ${escapeXml(String(row.opponent ?? '').toUpperCase())}</text>
+    ${country}
+    <text x="${x + 520}" y="${y + 33}" text-anchor="middle" class="statValue">${renderLeagueNumberMarkup(row.apm)}</text>
+    <text x="${x + 624}" y="${y + 33}" text-anchor="middle" class="statValue">${renderLeagueNumberMarkup(row.pps)}</text>
+    <text x="${x + 728}" y="${y + 33}" text-anchor="middle" class="statValue">${renderLeagueNumberMarkup(row.vs)}</text>
+    <text x="${dateX}" y="${y + 33}" class="statDate">${escapeXml(row.playedAtText)}</text>
+    <text x="${deltaX}" y="${y + 33}" text-anchor="end" class="${deltaClass}">${escapeXml(`${row.trDelta} TR`)}</text>
+    <text x="${viewX}" y="${y + 33}" text-anchor="end" class="viewText">VIEW</text>
+  </g>`;
+}
+
+function extractLeagueTrDelta(record, playerId) {
+  const entries = record?.extras?.league?.[playerId];
+  if (!Array.isArray(entries) || entries.length < 2) {
+    return null;
+  }
+
+  const before = Number(entries[0]?.tr);
+  const after = Number(entries[1]?.tr);
+  return Number.isFinite(before) && Number.isFinite(after)
+    ? after - before
+    : null;
+}
+
+function formatRecentMatchScore(targetWins, opponentWins) {
+  if (!Number.isFinite(targetWins) || !Number.isFinite(opponentWins)) {
+    return '-';
+  }
+
+  return `${Math.floor(targetWins)}-${Math.floor(opponentWins)}`;
+}
+
+function normalizeRecentRecordCount(value) {
+  const count = Number(value);
+  if (!Number.isInteger(count) || count < 1) {
+    return 10;
+  }
+
+  return Math.min(count, 20);
+}
+
+function formatSignedDecimal(value, digits = 2) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return '-';
+  }
+
+  const absText = formatDecimal(Math.abs(number), digits);
+  if (number > 0) {
+    return `+${absText}`;
+  }
+  if (number < 0) {
+    return `-${absText}`;
+  }
+  return absText;
+}
+
+function normalizeCountryCode(value) {
+  const country = String(value ?? '').trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(country) ? country : null;
+}
+
 function normalizeRecordIndex(value) {
   const index = Number(value);
   return Number.isInteger(index) && index >= 1 ? index : 1;
@@ -1203,6 +1537,30 @@ function formatPlayedAtUtc(value) {
     second: '2-digit',
     hour12: true,
   }).format(timestamp);
+}
+
+function formatPlayedAtKorea(value) {
+  const timestamp = value ? new Date(value) : null;
+  if (!timestamp || Number.isNaN(timestamp.getTime())) {
+    return '-';
+  }
+
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+  const parts = Object.fromEntries(formatter.formatToParts(timestamp).map((part) => [part.type, part.value]));
+  const dayPeriod = String(parts.dayPeriod ?? '').toUpperCase() === 'AM'
+    ? '오전'
+    : '오후';
+
+  return `${parts.year}. ${Number(parts.month)}. ${Number(parts.day)}. ${dayPeriod} ${Number(parts.hour)}:${parts.minute}:${parts.second}`;
 }
 
 function formatDecimal(value, digits = 2) {
