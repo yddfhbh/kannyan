@@ -3991,10 +3991,172 @@ function hasGeminiImageAttachment(message) {
   });
 }
 
-function looksLikeChessAnalysisFollowup(text) {
-  const value = String(text ?? '').trim();
+function normalizeChessFollowupText(text) {
+  return String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim();
+}
 
-  return /(?:오프닝|왜|이유|후보|최선|차선|수순|라인|변화|평가|좋|나쁨|흑|백|차례|선|메이트|체크|잡|먹|공격|방어|포지션|이거|저거|그거|방금|opening|move|line|why|best|candidate|black|white)/i.test(value);
+function hasExplicitChessAnalysisAnchor(text) {
+  const value = normalizeChessFollowupText(text);
+
+  return /(?:체스|체스판|스톡피시|stockfish|fen|pgn|포지션|기보|착수|최선\s*수|차선\s*수|후보\s*수|수순|메인\s*라인|라인|변화도?|흑선|백선|흑\s*차례|백\s*차례|체크메이트|메이트|체크|캐슬링|앙파상|프로모션|킹|퀸|룩|비숍|나이트|폰|king|queen|rook|bishop|knight|pawn|mate|check|castle|promotion)/i.test(value);
+}
+
+function hasChessMoveNotation(text) {
+  const value = normalizeChessFollowupText(text);
+
+  return /(?:\b[O0]-[O0](?:-[O0])?[+#]?\b|\b[KQRBN][a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?\b|\b[a-h]x[a-h][1-8](?:=[QRBN])?[+#]?\b|\b[a-h][1-8][a-h][1-8][qrbn]?\b)/i.test(value);
+}
+
+function isShortContextualChessFollowup(text) {
+  const value = normalizeChessFollowupText(text);
+
+  if (value.length > 45) {
+    return false;
+  }
+
+  return (
+    /^(?:왜|이유|어떻게|이거|그거|저거|방금)(?:\s|$|[?!.,])/i.test(value)
+    || /(?:그\s*다음|다음|이후|이어|계속).{0,24}(?:진행|설명|수순|라인|변화|보여|말해|어떻게)/i.test(value)
+  );
+}
+
+function looksLikeChessAnalysisFollowup(text) {
+  return (
+    hasExplicitChessAnalysisAnchor(text)
+    || hasChessMoveNotation(text)
+    || isShortContextualChessFollowup(text)
+  );
+}
+
+function looksLikeChessContinuationRequest(text) {
+  const value = normalizeChessFollowupText(text);
+
+  return (
+    /(?:그\s*다음|다음|이후|이어|계속).{0,24}(?:진행|설명|수순|라인|변화|보여|말해|어떻게)/i.test(value)
+    || /(?:이어지는|다음)\s*(?:수순|라인|변화)/i.test(value)
+    || /(?:main\s*line|continuation|continue|next\s*line)/i.test(value)
+  );
+}
+
+function getStockfishMainMoveUci(result, chess) {
+  const direct = getStockfishCandidateUci(result, chess);
+  if (direct) {
+    return direct;
+  }
+
+  const firstCandidate = Array.isArray(result?.candidates)
+    ? result.candidates[0]
+    : null;
+
+  return getStockfishCandidateUci(firstCandidate, chess);
+}
+
+async function buildStockfishContinuationLine(fen, firstResult, options = {}) {
+  const plies = Math.max(1, Math.min(10, Number(options.plies) || 6));
+  const chess = new Chess(fen);
+  const steps = [];
+
+  let result = firstResult ?? null;
+
+  for (let index = 0; index < plies; index += 1) {
+    if (!result) {
+      result = await analyzeFenWithConfiguredStockfish(chess.fen(), {
+        movetimeMs: Math.max(
+          100,
+          Math.min(1500, Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 1200)
+        ),
+        multiPv: 3,
+        multipv: 3,
+      });
+    }
+
+    const color = chess.turn();
+    const uci = getStockfishMainMoveUci(result, chess);
+
+    let move = null;
+
+    if (uci) {
+      move = applyUciMove(chess, uci);
+    }
+
+    if (!move && result?.san) {
+      try {
+        move = chess.move(result.san);
+      } catch {
+        move = null;
+      }
+    }
+
+    if (!move) {
+      break;
+    }
+
+    steps.push({
+      color,
+      san: move.san,
+      uci: moveToUci(move),
+      fenAfter: chess.fen(),
+    });
+
+    if (getChessResultText(chess)) {
+      break;
+    }
+
+    result = null;
+  }
+
+  return {
+    steps,
+    finalFen: chess.fen(),
+    resultText: getChessResultText(chess),
+  };
+}
+
+function formatStockfishContinuationLine(steps) {
+  return steps
+    .map((step, index) => `${index + 1}. ${formatChessTurnLabel(step.color)} ${step.san}`)
+    .join(' → ');
+}
+
+async function createRecentChessContinuationReply(message, text, recent) {
+  const result = recent?.result;
+
+  const fallback = result?.san
+    ? `Stockfish 기준 첫 수는 **${result.san}**다냥. 이어지는 수순은 다시 계산해봐야 한다냥.`
+    : '방금 분석한 포지션 기준으로 이어지는 수순을 다시 계산해야 한다냥.';
+
+  if (!result) {
+    return fallback;
+  }
+
+  try {
+    const line = await buildStockfishContinuationLine(recent.fen, result, {
+      plies: Number(process.env.CHESS_CONTINUATION_PLIES) || 6,
+    });
+
+    if (line.steps.length === 0) {
+      return fallback;
+    }
+
+    const lineText = formatStockfishContinuationLine(line.steps);
+    const firstMove = line.steps[0]?.san ?? result.san;
+    const candidateText = formatStockfishCandidateContext(result, 3, 6)
+      .replace(/\n/g, ' / ');
+
+    return [
+      `Stockfish 기준으로는 먼저 **${firstMove}**가 들어가고, 주 라인은 **${lineText}** 정도로 이어진다냥.`,
+      candidateText ? `첫 수 후보만 보면 ${candidateText} 순서다냥.` : '',
+      line.resultText ? `그 수순 끝에서는 ${line.resultText}` : '',
+      '즉 한 수만 보는 게 아니라, 그 뒤 응수까지 봤을 때도 이 라인이 가장 자연스럽다는 뜻이다냥.',
+    ].filter(Boolean).join('\n');
+  } catch (error) {
+    console.error('Failed to build Stockfish continuation line:');
+    console.error(error);
+    return fallback;
+  }
 }
 
 async function createRecentChessAnalysisFollowupReply(message, text, recent) {
@@ -4217,6 +4379,23 @@ async function handleChessAnalysisFollowupMessage(message) {
     return false;
   }
 
+    if (!recent?.result) {
+    return false;
+  }
+
+  if (looksLikeChessContinuationRequest(text)) {
+    await message.channel.sendTyping().catch(() => {});
+
+    const reply = await createRecentChessContinuationReply(message, text, recent);
+
+    await message.reply({
+      content: reply,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
+  }
+
   const intent = await classifyChessAnalysisFollowupIntent(message, text, recent);
 
   if (intent.action === 'unknown') {
@@ -4224,7 +4403,6 @@ async function handleChessAnalysisFollowupMessage(message) {
   }
 
   await message.channel.sendTyping().catch(() => {});
-
   if (intent.action === 'reanalyze_last_position') {
     const oldParts = String(recent.fen).trim().split(/\s+/);
     const oldTurn = oldParts[1] === 'b' ? 'b' : 'w';
@@ -4272,11 +4450,7 @@ async function handleChessAnalysisFollowupMessage(message) {
     }
   }
 
-  if (!recent?.result) {
-    return false;
-  }
-
-  const reply = await createRecentChessAnalysisFollowupReply(message, text, recent);
+      const reply = await createRecentChessAnalysisFollowupReply(message, text, recent);
 
   await message.reply({
     content: reply,
