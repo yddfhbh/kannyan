@@ -15,6 +15,7 @@ export const tetrioTightCommaDx = '-0.45em';
 export const tetrioTightTextCommaDx = '-0.50em';
 export const tetrioTightILeftDx = '-0.08em';
 export const tetrioTightIRightDx = '-0.12em';
+const tetrioHunDinSupportedGlyphPattern = /^[A-Z0-9 !?",.:;+\-/%'()[\]#&*=<>|]$/;
 
 let tetrioHunDinFontDataUriPromise = null;
 
@@ -72,6 +73,20 @@ export function renderTetrioTextMarkup(value) {
   });
 }
 
+export function shouldUseArialFallbackForHunDin(char) {
+  const value = String(char ?? '');
+
+  if (!value) {
+    return false;
+  }
+
+  if (value === '_') {
+    return true;
+  }
+
+  return [...value].some((glyph) => !tetrioHunDinSupportedGlyphPattern.test(glyph));
+}
+
 function renderTetrioAdjustedTextMarkup(value, options = {}) {
   const text = String(value ?? '');
   const commaDx = options.commaDx ?? tetrioTightCommaDx;
@@ -108,9 +123,13 @@ function renderTetrioAdjustedTextMarkup(value, options = {}) {
     }
 
     const dx = formatCombinedEmDx(dxValues);
+    const fontFamilyAttr = shouldUseArialFallbackForHunDin(char)
+      ? ' font-family="Arial"'
+      : '';
 
-    if (dx) {
-      markup += `<tspan dx="${dx}">${escaped}</tspan>`;
+    if (dx || fontFamilyAttr) {
+      const dxAttr = dx ? ` dx="${dx}"` : '';
+      markup += `<tspan${fontFamilyAttr}${dxAttr}>${escaped}</tspan>`;
     } else {
       markup += escaped;
     }

@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import {
   getTetrioHunDinFontDataUri,
   renderTetrioHunDinFontFace,
+  shouldUseArialFallbackForHunDin,
   renderTetrioTextWeightCss,
   renderTetrioSvgToPng,
   tetrioFontFamily,
@@ -537,12 +538,11 @@ function renderQuickPlayMetaName(rawName, startX, y, options = {}) {
 
   const textClass = isShadow ? 'metaText' : 'metaText metaName';
   const fillAttr = isShadow ? ' fill="#000000"' : '';
-  const underlineFillAttr = isShadow ? ' fill="#000000"' : ' fill="#f6fff5"';
 
   const letterSpacing = 2.4; // 여기 숫자 키우면 자간 더 벌어짐
  const underscoreWidth = fontSize * 0.44;
 const underscoreHeight = Math.max(3.2, fontSize * 0.095);
-const underscoreYOffset = fontSize * 0.34;
+const underscoreYOffset = fontSize * 0.05;
 
 // 언더바 앞/뒤 간격 분리
 const underscoreBeforeGap = fontSize * 0.07;
@@ -553,12 +553,15 @@ const underscoreAdvance = underscoreBeforeGap + underscoreWidth + underscoreAfte
 
   for (const char of text) {
     if (char === '_') {
-      markup += `<rect x="${roundSvgNumber(cursorX + underscoreBeforeGap)}" y="${roundSvgNumber(y + underscoreYOffset)}" width="${roundSvgNumber(underscoreWidth)}" height="${roundSvgNumber(underscoreHeight)}" rx="${roundSvgNumber(underscoreHeight / 2)}"${underlineFillAttr}${opacityAttr}/>`;
+      markup += `<text x="${roundSvgNumber(cursorX + underscoreBeforeGap)}" y="${roundSvgNumber(y + underscoreYOffset)}" dominant-baseline="middle" class="${textClass}" font-family="Arial" style="font-family: Arial !important;" font-size="${roundSvgNumber(fontSize * 0.82)}"${fillAttr}${opacityAttr}>${escapeXml(char)}</text>`;
       cursorX += underscoreAdvance;
       continue;
     }
 
-    markup += `<text x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="${textClass}"${fillAttr}${opacityAttr}>${escapeXml(char)}</text>`;
+    const fontFamilyAttr = shouldUseArialFallbackForHunDin(char)
+      ? ' font-family="Arial"'
+      : '';
+    markup += `<text x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="${textClass}"${fontFamilyAttr}${fillAttr}${opacityAttr}>${escapeXml(char)}</text>`;
     cursorX += estimateQuickPlayMetaNameCharWidth(char, fontSize) + letterSpacing;
   }
 
@@ -666,8 +669,9 @@ function renderQuickPlayMetaTextMarkup(value) {
   return String(value ?? '')
     .split('')
     .map((char) => {
-      if (char === '_') {
-        return '<tspan style="font-family: Arial !important;" font-size="1em" dy="-0.06em">_</tspan>';
+      if (shouldUseArialFallbackForHunDin(char)) {
+        const fontSizeAttr = char === '_' ? ' font-size="1em" dy="-0.06em"' : '';
+        return `<tspan style="font-family: Arial !important;"${fontSizeAttr}>${escapeXml(char)}</tspan>`;
       }
 
       return escapeXml(char);

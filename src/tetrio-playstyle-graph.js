@@ -1,6 +1,7 @@
 import {
   renderTetrioSvgToPng,
   renderTetrioTextWeightCss,
+  shouldUseArialFallbackForHunDin,
   tetrioFontFamily,
 } from './tetrio-font.js';
 
@@ -222,8 +223,9 @@ function renderLegendUsernameMarkup(value) {
       ? ` dy="${roundSvgNumber(deltaEm)}em"`
       : '';
 
-    if (char === '_') {
-      markup += `<tspan${dy} font-family="Arial" font-size="1.05em" font-weight="900" stroke="none">_</tspan>`;
+    if (shouldUseArialFallbackForHunDin(char)) {
+      const fontSizeAttr = char === '_' ? ' font-size="1.05em"' : '';
+      markup += `<tspan${dy} font-family="Arial"${fontSizeAttr} font-weight="900" stroke="none">${escapeXml(char)}</tspan>`;
     } else {
       markup += dy
         ? `<tspan${dy}>${escapeXml(char)}</tspan>`

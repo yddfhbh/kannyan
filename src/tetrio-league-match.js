@@ -4,6 +4,7 @@ import {
   getTetrioHunDinFontDataUri,
   renderTetrioHunDinFontFace,
   renderTetrioNumericTextMarkup,
+  shouldUseArialFallbackForHunDin,
   renderTetrioTextWeightCss,
   renderTetrioSvgToPng,
   tetrioFontFamily,
@@ -373,13 +374,6 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   stroke-width: 0.62px;
   paint-order: stroke fill;
 }
-  .usernameUnderscore {
-  fill: #f6f2ef;
-  stroke: rgba(255,255,255,0.55);
-  stroke-width: 0.35px;
-  opacity: 1;
-}
-
 .versus {
   fill: #ffd620;
   font-size: 39px;
@@ -504,12 +498,6 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   stroke: rgba(168,217,170,0.82);
   stroke-width: 0.5px;
   paint-order: stroke fill;
-}
-  .footerUnderscore {
-  fill: #f1fff0;
-  stroke: rgba(241,255,240,0.65);
-  stroke-width: 0.25px;
-  opacity: 1;
 }
     </style>
   </defs>
@@ -796,12 +784,15 @@ function renderFooterNameText(text, x, y) {
     if (char === '_') {
       const metrics = getFooterUnderscoreMetrics();
 
-      markup += `<rect x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" width="${metrics.width}" height="${metrics.height}" class="footerUnderscore"/>`;
+      markup += `<text x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" dominant-baseline="middle" class="footer footerName" style="font-family: Arial !important;" font-size="13">${escapeXml(char)}</text>`;
       cursorX += metrics.advance;
       continue;
     }
 
-    markup += `<text x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer footerName">${escapeXml(char)}</text>`;
+    const fontFamilyAttr = shouldUseArialFallbackForHunDin(char)
+      ? ' font-family="Arial"'
+      : '';
+    markup += `<text x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer footerName"${fontFamilyAttr}>${escapeXml(char)}</text>`;
     cursorX += estimateFooterNameCharWidth(char);
   }
 
@@ -844,7 +835,7 @@ function getFooterUnderscoreMetrics() {
     afterGap,
     advance: beforeGap + width + afterGap,
     height: 1.7,
-    yOffset: 5.1,
+    yOffset: 0.8,
   };
 }
 
@@ -930,12 +921,15 @@ function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
     if (char === '_') {
       const metrics = getLeagueUsernameUnderscoreMetrics(fontSize);
 
-      markup += `<rect x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" width="${metrics.width}" height="${metrics.height}" class="usernameUnderscore"/>`;
+      markup += `<text x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" class="username" style="font-family: Arial !important;" font-size="16">${escapeXml(char)}</text>`;
       cursorX += metrics.advance;
       continue;
     }
 
-    markup += `<text x="${roundSvgNumber(cursorX)}" y="${y}" class="username">${escapeXml(char)}</text>`;
+    const fontFamilyAttr = shouldUseArialFallbackForHunDin(char)
+      ? ' font-family="Arial"'
+      : '';
+    markup += `<text x="${roundSvgNumber(cursorX)}" y="${y}" class="username"${fontFamilyAttr}>${escapeXml(char)}</text>`;
     cursorX += estimateLeagueUsernameCharWidth(char, fontSize);
   }
 
@@ -968,7 +962,7 @@ function getLeagueUsernameUnderscoreMetrics(fontSize = 17) {
     afterGap,
     advance: beforeGap + width + afterGap,
     height: 2.0,
-    yOffset: 0.3,
+    yOffset: -0.12,
   };
 }
 
@@ -995,8 +989,9 @@ function renderLeagueUsernameMarkup(value) {
       ? ` dy="${roundSvgNumber(deltaEm)}em"`
       : '';
 
-    if (char === '_') {
-      markup += `<tspan${dy} font-family="Arial" font-size="1.05em" font-weight="900" stroke="none">_</tspan>`;
+    if (shouldUseArialFallbackForHunDin(char)) {
+      const fontSizeAttr = char === '_' ? ' font-size="1.05em"' : '';
+      markup += `<tspan${dy} font-family="Arial"${fontSizeAttr} font-weight="900" stroke="none">${escapeXml(char)}</tspan>`;
     } else {
       markup += dy
         ? `<tspan${dy}>${escapeXml(char)}</tspan>`
@@ -1397,7 +1392,7 @@ function renderFooterUsernameMarkup(username, startX, baselineY) {
 
   const underscoreWidth = 6.6;
   const underscoreHeight = 1.9;
-  const underscoreYOffset = 2.1;
+  const underscoreYOffset = 0.6;
   const underscoreAdvance = 7.2;
   const underscoreNudgeX = 0.3;
 
@@ -1407,23 +1402,26 @@ function renderFooterUsernameMarkup(username, startX, baselineY) {
   for (const char of text) {
     if (char === '_') {
       markup += `
-        <rect
+        <text
           x="${roundSvgNumber(x + underscoreNudgeX)}"
           y="${roundSvgNumber(baselineY + underscoreYOffset)}"
-          width="${underscoreWidth}"
-          height="${underscoreHeight}"
-          rx="${roundSvgNumber(underscoreHeight / 2)}"
-          class="footerUnderscore"
-        />`;
+          class="footerName"
+          style="font-family: Arial !important;"
+          font-size="13"
+        >${escapeXml(char)}</text>`;
       x += underscoreAdvance;
       continue;
     }
 
+    const fontFamilyAttr = shouldUseArialFallbackForHunDin(char)
+      ? ' font-family="Arial"'
+      : '';
     markup += `
       <text
         x="${roundSvgNumber(x)}"
         y="${roundSvgNumber(baselineY)}"
         class="footerName"
+        ${fontFamilyAttr}
       >${escapeXml(char)}</text>`;
 
     x += estimateFooterCharWidth(char);
