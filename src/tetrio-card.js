@@ -1879,15 +1879,46 @@ async function measureRenderedHeaderUsernameWidth({
   );
 }
 
+function getHeaderUnderscoreDxEm(previousChar) {
+  const char = String(previousChar ?? '').toUpperCase();
+
+  // 닉네임 맨 앞의 _는 너무 밀면 어색하니 거의 그대로
+  if (!char) {
+    return 0.02;
+  }
+
+  // HEBI_, AIRI_ 같은 I 뒤 언더바는 지금처럼 괜찮음
+  if (char === 'I' || char === '1') {
+    return 0.02;
+  }
+
+  // L, J도 끝 공간이 좀 있어서 많이 안 밀어도 됨
+  if (char === 'L' || char === 'J') {
+    return 0.05;
+  }
+
+  // A, R, K, V, W, M 뒤는 언더바가 붙어 보이기 쉬워서 더 띄움
+  if (/[ARKVWM]/.test(char)) {
+    return 0.14;
+  }
+
+  // E, F, P, T 같은 직선형 끝도 살짝 띄움
+  if (/[EFPT]/.test(char)) {
+    return 0.10;
+  }
+
+  return 0.08;
+}
+
 function renderHeaderUsernameInlineMarkup(text, fontSize) {
   const rawText = String(text ?? '').toUpperCase();
   const parts = rawText.split(/(_+)/);
 
-  const underscoreShiftEm = -0.21;        // 약간 아래로 내려 baseline과 더 가깝게
-  const underscoreDxEm = 0.02;            // 앞 글자와의 간격을 살짝 줄임
-  const underscoreLetterSpacingEm = 0.18; // 언더바 사이 간격
+  const underscoreShiftEm = -0.21;
+  const underscoreLetterSpacingEm = 0.18;
 
   let needsBaselineRestore = false;
+  let previousVisibleChar = '';
 
   return parts.map((part) => {
     if (!part) {
@@ -1897,6 +1928,10 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
     if (/^_+$/.test(part)) {
       needsBaselineRestore = true;
 
+      const underscoreDxEm = getHeaderUnderscoreDxEm(previousVisibleChar);
+
+      previousVisibleChar = '_';
+
       return `<tspan font-family="Arial" font-size="1em" font-weight="900" dy="${underscoreShiftEm}em" dx="${underscoreDxEm}em" letter-spacing="${underscoreLetterSpacingEm}em">${escapeXml(part)}</tspan>`;
     }
 
@@ -1905,6 +1940,11 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
       : '';
 
     needsBaselineRestore = false;
+
+    const visibleChars = [...part].filter((char) => char !== '_');
+    if (visibleChars.length > 0) {
+      previousVisibleChar = visibleChars.at(-1);
+    }
 
     return `<tspan${restoreDy}>${renderTetrioTextMarkup(part)}</tspan>`;
   }).join('');
