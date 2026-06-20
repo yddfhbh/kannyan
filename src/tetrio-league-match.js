@@ -996,11 +996,66 @@ function renderLeagueUsernameMarkup(value) {
     currentOffsetEm = targetOffsetEm;
   }
 
+  if (Math.abs(currentOffsetEm) > 0.0001) {
+    markup += `<tspan dy="${roundSvgNumber(-currentOffsetEm)}em">&#8203;</tspan>`;
+  }
+
   return markup;
+}
+
+function renderRecentLeagueHeaderTitleMarkup(username) {
+  const raw = String(username ?? '').toUpperCase();
+  const headerWordGap = 22;
+  const headerDotGap = 14;
+  if (!raw) {
+    return `<tspan class="headerWord">LEAGUE</tspan><tspan dx="${headerWordGap}" class="headerWord">RECENT</tspan>`;
+  }
+
+  return `<tspan class="headerName">${renderLeagueUsernameMarkup(raw)}</tspan><tspan dx="${headerDotGap}" class="headerDot">&#8226;</tspan><tspan dx="${headerDotGap}" class="headerWord">LEAGUE</tspan><tspan dx="${headerWordGap}" class="headerWord">RECENT</tspan>`;
+}
+
+function renderRecentLeagueVsTextMarkup(opponent) {
+  const raw = String(opponent ?? '').toUpperCase();
+  const labelGap = 7;
+  if (!raw) {
+    return `<tspan class="vsLabel">VS</tspan><tspan dx="${labelGap}">-</tspan>`;
+  }
+
+  return `<tspan class="vsLabel">VS</tspan><tspan dx="${labelGap}">${renderLeagueUsernameMarkup(raw)}</tspan>`;
+}
+
+function renderRecentLeagueHashMarkup(value) {
+  return Array.from(String(value ?? ''))
+    .map((char) => (char === '#'
+      ? '<tspan font-family="Arial" font-weight="900">#</tspan>'
+      : escapeXml(char)))
+    .join('');
 }
 
 function renderLeagueNumberMarkup(value) {
   return renderTetrioNumericTextMarkup(String(value ?? '-'));
+}
+
+function renderRecentLeagueResultMarkup(value) {
+  const tokens = String(value ?? '')
+    .toUpperCase()
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const tokenGap = 6;
+
+  if (tokens.length === 0) {
+    return '-';
+  }
+
+  return tokens
+    .map((token, index) => {
+      const content = renderTetrioNumericTextMarkup(token);
+      return index === 0
+        ? `<tspan>${content}</tspan>`
+        : `<tspan dx="${tokenGap}">${content}</tspan>`;
+    })
+    .join('');
 }
 
 function renderLeagueRoundNumberMarkup(value) {
@@ -1072,12 +1127,11 @@ function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
     ?? otherUsers.find((user) => String(user?.username ?? '').toLowerCase() === opponentSide.username.toLowerCase())
     ?? null;
   const resultLabel = isDq
-    ? `${isWin ? 'VICTORY' : 'DEFEAT'} by DQ`
+    ? `${isWin ? 'VICTORY' : 'DEFEAT'} BY DQ`
     : `${isWin ? 'VICTORY' : 'DEFEAT'} ${formatRecentMatchScore(targetWins, opponentWins)}`;
 
   return {
     apm: formatDecimal(targetSide.stats?.apm, 2),
-    countryCode: normalizeCountryCode(opponentMeta?.country),
     index: rowIndex,
     isDq,
     isWin,
@@ -1095,13 +1149,13 @@ function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
 function renderRecentLeagueListSvg(card, fontDataUris = {}) {
   const width = 1180;
   const sidePadding = 22;
-  const headerHeight = 86;
+  const headerHeight = 72;
   const headerY = 18;
   const rowHeight = 74;
   const rowGap = 6;
-  const rowsY = headerY + headerHeight + 16;
-  const footerHeight = 24;
-  const height = rowsY + card.rows.length * rowHeight + Math.max(0, card.rows.length - 1) * rowGap + footerHeight + 20;
+  const rowsY = headerY + headerHeight + 14;
+  const bottomPadding = 12;
+  const height = rowsY + card.rows.length * rowHeight + Math.max(0, card.rows.length - 1) * rowGap + bottomPadding;
 
   const rowsMarkup = card.rows
     .map((row, index) => renderRecentLeagueRow(row, sidePadding, rowsY + index * (rowHeight + rowGap), width - sidePadding * 2, rowHeight))
@@ -1116,6 +1170,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
         font-family: ${leagueFontFamily};
         letter-spacing: 0;
         ${renderTetrioTextWeightCss()}
+        stroke-width: 0.38px;
       }
       .bg {
         fill: #081108;
@@ -1126,13 +1181,19 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
         stroke-width: 1;
       }
       .headerTitle {
-        fill: #f7faf1;
-        font-size: 34px;
+        font-size: 42px;
         font-weight: 950;
       }
-      .headerMeta {
-        fill: #8fbb88;
-        font-size: 18px;
+      .headerName {
+        fill: #A7E08D;
+      }
+      .headerWord {
+        fill: #6F9153;
+      }
+      .headerDot {
+        fill: #f7faf1;
+        font-family: Arial;
+        font-size: 0.92em;
         font-weight: 900;
       }
       .rowBody {
@@ -1152,7 +1213,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       }
       .resultText {
         fill: #0d1208;
-        font-size: 17px;
+        font-size: 19px;
         font-weight: 950;
       }
       .resultTextLoss {
@@ -1163,15 +1224,8 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
         font-size: 17px;
         font-weight: 950;
       }
-      .countryPill {
-        fill: #1a2b19;
-        stroke: #41653f;
-        stroke-width: 1;
-      }
-      .countryText {
-        fill: #d7ead2;
-        font-size: 12px;
-        font-weight: 900;
+      .vsLabel {
+        fill: #A7E08D;
       }
       .statValue {
         fill: #9df18b;
@@ -1194,13 +1248,8 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       .deltaNegative {
         fill: #ffe2e2;
       }
-      .viewText {
-        fill: #c6f08f;
-        font-size: 18px;
-        font-weight: 900;
-      }
       .rowIndex {
-        fill: #76a670;
+        fill: #000000;
         font-size: 13px;
         font-weight: 900;
       }
@@ -1213,44 +1262,37 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
   </defs>
   <rect class="bg" width="${width}" height="${height}"/>
   <rect class="panel" x="${sidePadding}" y="${headerY}" width="${width - sidePadding * 2}" height="${headerHeight}" rx="12"/>
-  <text x="${sidePadding + 22}" y="${headerY + 38}" class="headerTitle">${escapeXml(String(card.username ?? '').toUpperCase())} LEAGUE RECENT</text>
-  <text x="${sidePadding + 22}" y="${headerY + 65}" class="headerMeta">최근 ${escapeXml(String(card.rowCount))}경기 · 명령 %tetra${escapeXml(String(card.requestedCount))}</text>
+  <text x="${sidePadding + 22}" y="${headerY + 48}" class="headerTitle" xml:space="preserve">${renderRecentLeagueHeaderTitleMarkup(card.username)}</text>
   ${rowsMarkup}
-  <text x="${sidePadding}" y="${height - 12}" class="footer">https://ch.tetr.io/u/${escapeXml(String(card.username ?? '').toLowerCase())}/league</text>
 </svg>`;
 }
 
 function renderRecentLeagueRow(row, x, y, width, height) {
   const resultWidth = 238;
   const slant = 18;
+  const resultCenterX = x + 118;
+  const resultCenterY = y + (height / 2);
   const panelClass = row.isWin ? 'resultWin' : 'resultLoss';
   const resultTextClass = row.isWin ? 'resultText' : 'resultText resultTextLoss';
   const deltaClass = row.trDelta.startsWith('-')
     ? 'deltaValue deltaNegative'
     : 'deltaValue deltaPositive';
   const dateX = x + 775;
-  const deltaX = x + width - 146;
-  const viewX = x + width - 26;
-  const country = row.countryCode ? `
-    <rect class="countryPill" x="${x + 403}" y="${y + 25}" width="38" height="20" rx="10"/>
-    <text x="${x + 422}" y="${y + 39}" text-anchor="middle" class="countryText">${escapeXml(row.countryCode)}</text>
-  ` : '';
+  const deltaX = x + width - 28;
 
   return `
   <g>
     <rect class="rowBody" x="${x}" y="${y}" width="${width}" height="${height}" rx="4"/>
     <polygon class="${panelClass}" points="${x},${y} ${x + resultWidth},${y} ${x + resultWidth - slant},${y + height} ${x},${y + height}"/>
     <line class="rowDivider" x1="${x + resultWidth}" y1="${y + 10}" x2="${x + resultWidth}" y2="${y + height - 10}"/>
-    <text x="${x + 12}" y="${y + 18}" class="rowIndex">#${row.index}</text>
-    <text x="${x + 118}" y="${y + 33}" text-anchor="middle" class="${resultTextClass}">${escapeXml(row.resultLabel)}</text>
-    <text x="${x + 252}" y="${y + 33}" class="vsText">vs ${escapeXml(String(row.opponent ?? '').toUpperCase())}</text>
-    ${country}
+    <text x="${x + 12}" y="${y + 18}" class="rowIndex">${renderRecentLeagueHashMarkup(`#${row.index}`)}</text>
+    <text x="${resultCenterX}" y="${resultCenterY}" text-anchor="middle" dominant-baseline="middle" class="${resultTextClass}" xml:space="preserve">${renderRecentLeagueResultMarkup(row.resultLabel)}</text>
+    <text x="${x + 252}" y="${y + 33}" class="vsText" xml:space="preserve">${renderRecentLeagueVsTextMarkup(row.opponent)}</text>
     <text x="${x + 520}" y="${y + 33}" text-anchor="middle" class="statValue">${renderLeagueNumberMarkup(row.apm)}</text>
     <text x="${x + 624}" y="${y + 33}" text-anchor="middle" class="statValue">${renderLeagueNumberMarkup(row.pps)}</text>
     <text x="${x + 728}" y="${y + 33}" text-anchor="middle" class="statValue">${renderLeagueNumberMarkup(row.vs)}</text>
     <text x="${dateX}" y="${y + 33}" class="statDate">${escapeXml(row.playedAtText)}</text>
     <text x="${deltaX}" y="${y + 33}" text-anchor="end" class="${deltaClass}">${escapeXml(`${row.trDelta} TR`)}</text>
-    <text x="${viewX}" y="${y + 33}" text-anchor="end" class="viewText">VIEW</text>
   </g>`;
 }
 
@@ -1298,11 +1340,6 @@ function formatSignedDecimal(value, digits = 2) {
     return `-${absText}`;
   }
   return absText;
-}
-
-function normalizeCountryCode(value) {
-  const country = String(value ?? '').trim().toUpperCase();
-  return /^[A-Z]{2}$/.test(country) ? country : null;
 }
 
 function normalizeRecordIndex(value) {
