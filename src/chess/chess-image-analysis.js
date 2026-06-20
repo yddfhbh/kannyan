@@ -69,7 +69,7 @@ export async function createChessImageAnalysisContext(recognition, options = {})
     : '정지 이미지에서 현재 차례를 확정할 수 없어 백 차례와 흑 차례를 각각 계산했다.';
   const responseInstruction = recognizedTurn
     ? '답변의 체스 수와 전술 설명은 아래 Stockfish 결과에 맞춰라.'
-    : '차례를 단정하지 말고, 필요하면 "백 차례라면"과 "흑 차례라면"으로 나누어 아래 결과를 조건부로 설명하라.';
+    : '차례를 단정하지 말고, 첫 문장에서 반드시 "백 차례면 ..., 흑 차례면 ..." 형식으로 두 경우의 최선 수를 바로 말한 뒤 아래 결과를 조건부로 설명하라.';
 
   return [
     '[내부 체스 분석 도구 결과]',

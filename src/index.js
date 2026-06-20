@@ -56,6 +56,7 @@ import {
 } from './chess/chess-analysis-command.js';
 import { createChessImageAnalysisContext } from './chess/chess-image-analysis.js';
 import { createStockfishExplanationContext } from './chess/chess-explanation.js';
+import { imageToFen } from './chess/chess-image-reader.js';
 import { analyzeFenWithStockfish, closeStockfishEngine } from './chess/stockfish-lite.js';
 import { Chess } from 'chess.js';
 import {
@@ -3434,9 +3435,24 @@ async function recognizeChessPositionForConversation(imageParts, options = {}) {
 async function getChessImageAnalysisContext(imageParts, options = {}) {
   let detectedChessboard = false;
   let lastError = null;
+  let localBoardFen = '';
+  let localRecognitionUsed = false;
+
+  try {
+    localBoardFen = await recognizeChessBoardFenLocallyForConversation(
+      options.message,
+      options.referencedMessages ?? []
+    );
+    if (localBoardFen) {
+      detectedChessboard = true;
+      localRecognitionUsed = true;
+    }
+  } catch (error) {
+    lastError = error;
+  }
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    if (attempt > 0 && !options.retry && !detectedChessboard) {
+    if (attempt > 0 && !options.retry && !detectedChessboard && !localBoardFen) {
       break;
     }
 
@@ -3444,8 +3460,33 @@ async function getChessImageAnalysisContext(imageParts, options = {}) {
       const recognition = await recognizeChessPositionForConversation(imageParts, {
         retry: attempt > 0,
       });
+      const effectiveRecognition = localBoardFen
+        ? {
+            isChessboard: true,
+            boardFen: localBoardFen,
+            turn: recognition?.turn ?? null,
+          }
+        : recognition;
       detectedChessboard ||= recognition?.isChessboard === true;
-      const context = await createChessImageAnalysisContext(recognition);
+      const context = await createChessImageAnalysisContext(effectiveRecognition);
+      if (context) {
+        return {
+          context,
+          detectedChessboard: true,
+        };
+      }
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (localBoardFen) {
+    try {
+      const context = await createChessImageAnalysisContext({
+        isChessboard: true,
+        boardFen: localBoardFen,
+        turn: null,
+      });
       if (context) {
         return {
           context,
@@ -3458,7 +3499,11 @@ async function getChessImageAnalysisContext(imageParts, options = {}) {
   }
 
   if (lastError) {
-    console.error('Failed to enrich Gemini image response with Stockfish:');
+    console.error(
+      localRecognitionUsed
+        ? 'Failed to enrich Gemini image response with Stockfish after local chess recognition:'
+        : 'Failed to enrich Gemini image response with Stockfish:'
+    );
     console.error(lastError);
   }
 
@@ -3466,6 +3511,89 @@ async function getChessImageAnalysisContext(imageParts, options = {}) {
     context: '',
     detectedChessboard,
   };
+}
+
+async function recognizeChessBoardFenLocallyForConversation(message, referencedMessages = []) {
+  if (!message) {
+    return '';
+  }
+
+  const attachment = findFirstConversationChessAttachment(message, referencedMessages);
+  if (!attachment) {
+    return '';
+  }
+
+  const temporaryImage = await downloadGeminiImageAttachmentToTemp(attachment);
+
+  try {
+    const boardOrientation = (await detectChessBoardOrientationWithGemini({
+      message,
+      imagePath: temporaryImage.filePath,
+    })) === 'b'
+      ? 'b'
+      : 'w';
+    const fen = await imageToFen(temporaryImage.filePath, 'w', {
+      boardOrientation,
+    });
+
+    return String(fen ?? '').trim().split(/\s+/)[0] ?? '';
+  } finally {
+    await temporaryImage.cleanup();
+  }
+}
+
+function findFirstConversationChessAttachment(message, referencedMessages = []) {
+  return getMessageChainAttachments(message, referencedMessages)
+    .filter(isGeminiSupportedImageAttachment)
+    .at(0) ?? null;
+}
+
+async function downloadGeminiImageAttachmentToTemp(attachment) {
+  const contentType = String(attachment.contentType ?? '').split(';')[0].trim().toLowerCase();
+  const response = await fetch(attachment.url);
+  if (!response.ok) {
+    throw new Error(`Discord attachment fetch failed with ${response.status}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  if (arrayBuffer.byteLength > geminiImageMaxBytes) {
+    throw new Error(`Image is too large: ${arrayBuffer.byteLength} bytes`);
+  }
+
+  const extension = getGeminiAttachmentFileExtension(attachment, contentType);
+  const temporaryDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'discord-gemini-chess-'));
+  const filePath = path.join(temporaryDirectory, `conversation-board${extension}`);
+
+  try {
+    await fs.writeFile(filePath, Buffer.from(arrayBuffer));
+  } catch (error) {
+    await fs.rm(temporaryDirectory, { recursive: true, force: true }).catch(() => {});
+    throw error;
+  }
+
+  return {
+    filePath,
+    async cleanup() {
+      await fs.rm(temporaryDirectory, { recursive: true, force: true }).catch(() => {});
+    },
+  };
+}
+
+function getGeminiAttachmentFileExtension(attachment, contentType = '') {
+  const extension = path.extname(String(attachment.name ?? '')).toLowerCase();
+  if (extension === '.png' || extension === '.jpg' || extension === '.jpeg' || extension === '.webp') {
+    return extension;
+  }
+
+  if (contentType === 'image/png') {
+    return '.png';
+  }
+
+  if (contentType === 'image/webp') {
+    return '.webp';
+  }
+
+  return '.jpg';
 }
 
 function getChessAnalysisSessionKey(message) {
@@ -5573,6 +5701,8 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     });
     const chessAnalysis = await getChessImageAnalysisContext(imageParts, {
       retry: prioritizeChessImageAnalysis,
+      message,
+      referencedMessages,
     });
     const isChessPrompt = looksLikeChessTopicPrompt(rawPrompt);
     const shouldForceChessWebSearch = shouldForceWebSearchForChessPrompt(rawPrompt, {
