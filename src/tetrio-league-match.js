@@ -411,10 +411,10 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 }
 
 .blueLabel {
-  fill: ${sideThemes[0].label};
-  stroke: rgba(74,139,228,0.86);
-  stroke-width: 0.48px;
-  font-size: 11.8px;
+  fill: #b7ddff;
+  stroke: rgba(16,42,80,0.64);
+  stroke-width: 0.52px;
+  font-size: 12.1px;
   font-weight: 950;
   paint-order: stroke fill;
 }
@@ -430,10 +430,10 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 }
 
 .summaryBlueLabel {
-  fill: ${sideThemes[0].label};
-  stroke: rgba(74,139,228,0.86);
-  stroke-width: 0.36px;
-  font-size: 9.3px;
+  fill: #afd7ff;
+  stroke: rgba(16,42,80,0.58);
+  stroke-width: 0.42px;
+  font-size: 9.5px;
   font-weight: 950;
   paint-order: stroke fill;
   opacity: 1;
@@ -706,7 +706,7 @@ function renderRelativeRoundStatsMarkup(options = {}) {
   const valueGap = 8.4;
 
   return `<text x="${roundSvgNumber(anchorX)}" y="${baselineY}" text-anchor="${anchor}" dominant-baseline="middle">
-    <tspan class="${valueClass}">${renderLeagueNumberMarkup(statsText.apm ?? '-')}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan><tspan class="${valueClass}" dx="${separatorGap}">-</tspan><tspan class="${valueClass}" dx="${valueGap}">${renderLeagueNumberMarkup(statsText.pps ?? '-')}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan><tspan class="${valueClass}" dx="${separatorGap}">-</tspan><tspan class="${valueClass}" dx="${valueGap}">${renderLeagueNumberMarkup(statsText.vs ?? '-')}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>
+    <tspan class="${valueClass}">${renderLeagueRoundNumberMarkup(statsText.apm ?? '-')}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan><tspan class="${valueClass}" dx="${separatorGap}">-</tspan><tspan class="${valueClass}" dx="${valueGap}">${renderLeagueRoundNumberMarkup(statsText.pps ?? '-')}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan><tspan class="${valueClass}" dx="${separatorGap}">-</tspan><tspan class="${valueClass}" dx="${valueGap}">${renderLeagueRoundNumberMarkup(statsText.vs ?? '-')}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>
   </text>`;
 }
 
@@ -1000,12 +1000,18 @@ function renderLeagueUsernameMarkup(value) {
 }
 
 function renderLeagueNumberMarkup(value) {
+  return renderTetrioNumericTextMarkup(String(value ?? '-'));
+}
+
+function renderLeagueRoundNumberMarkup(value) {
   const text = String(value ?? '-');
   let markup = '';
+  const dotFontSize = '1.38em';
+  const dotShiftEm = '-0.26em';
 
   for (const char of text) {
     if (char === '.') {
-      markup += '<tspan font-family="Arial" stroke="none">.</tspan>';
+      markup += `<tspan font-family="Arial" font-size="${dotFontSize}" stroke="none" style="baseline-shift: ${dotShiftEm};">.</tspan>`;
       continue;
     }
 
