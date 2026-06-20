@@ -20,6 +20,17 @@ const commands = [
     .setDescription('사용 가능한 명령어를 보여줍니다.')
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('검색')
+    .setDescription('웹 검색 결과를 바탕으로 최신 정보를 정리합니다.')
+    .addStringOption((option) =>
+      option
+        .setName('질문')
+        .setDescription('검색할 질문 또는 키워드')
+        .setRequired(true)
+        .setMaxLength(300)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('가르치기')
     .setDescription('만료되지 않는 영구 기억에 정보를 저장합니다.')
     .addStringOption((option) =>

@@ -366,9 +366,9 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
      letter-spacing: 0;
       ${renderTetrioTextWeightCss()}
       }
-      .username {
+.username {
   fill: #f6f2ef;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 950;
   stroke: rgba(246,242,239,0.68);
   stroke-width: 0.62px;
@@ -394,7 +394,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
 
 .summaryValue {
   fill: #f0f3fa;
-  font-size: 11px;
+  font-size: 10.2px;
   font-weight: 950;
   stroke: rgba(255,255,255,0.55);
   stroke-width: 0.5px;
@@ -433,7 +433,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   fill: ${sideThemes[0].label};
   stroke: rgba(74,139,228,0.86);
   stroke-width: 0.36px;
-  font-size: 10px;
+  font-size: 9.3px;
   font-weight: 950;
   paint-order: stroke fill;
   opacity: 1;
@@ -443,7 +443,7 @@ function renderLeagueMatchSvg(match, fontDataUris = {}) {
   fill: #ff6a6a;
   stroke: rgba(120,20,24,0.65);
   stroke-width: 0.36px;
-  font-size: 10px;
+  font-size: 9.3px;
   font-weight: 950;
   paint-order: stroke fill;
   opacity: 1;
@@ -593,16 +593,16 @@ function renderRoundSide(side, sideIndex, y, height, centerX) {
 
 function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueClass, labelClass) {
   const isLeft = sideIndex === 0;
-  const blockWidth = 174;
-  const blockX = isLeft ? x + width - blockWidth - 20 : x - 12;
+  const blockWidth = 188;
+  const blockX = isLeft ? x + width - blockWidth - 16 : x - 8;
 
   const blueLabelNudge = -4;
   const redValueNudge = 3;
 
-  const blueSep1Nudge = -2;
-  const blueSep2Nudge = -2;
-  const redSep1Nudge = 0;
-  const redSep2Nudge = 0;
+  const blueSep1Nudge = -8;
+  const blueSep2Nudge = -10;
+  const redSep1Nudge = -6;
+  const redSep2Nudge = -8;
 
   const labelNudge = isLeft ? blueLabelNudge : 0;
   const valueNudge = isLeft ? 0 : redValueNudge;
@@ -610,17 +610,17 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
   const sep2Nudge = isLeft ? blueSep2Nudge : redSep2Nudge;
 
   const separatorFontSize = 7.2;
-  const separatorYOffset = -1.2;
+  const separatorYOffset = -0.1;
 
   const columns = [
     {
       valueX: 42 + valueNudge,
-      labelX: 49 + labelNudge,
+      labelX: 50 + labelNudge,
       label: 'APM',
       value: formatDecimal(stats?.apm, 2),
     },
     {
-      separatorX: 79 + sep1Nudge,
+      separatorX: 85 + sep1Nudge,
       separator: '&#9635;',
       separatorClass: labelClass,
       fontSize: separatorFontSize,
@@ -628,13 +628,13 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
     },
 
     {
-      valueX: 104 + valueNudge,
-      labelX: 112 + labelNudge,
+      valueX: 108 + valueNudge,
+      labelX: 115 + labelNudge,
       label: 'PPS',
       value: formatDecimal(stats?.pps, 2),
     },
     {
-      separatorX: 138 + sep2Nudge,
+      separatorX: 151 + sep2Nudge,
       separator: '&#9635;',
       separatorClass: labelClass,
       fontSize: separatorFontSize,
@@ -642,8 +642,8 @@ function renderSummaryStatsMarkup(stats, x, width, baselineY, sideIndex, valueCl
     },
 
     {
-      valueX: 173 + valueNudge,
-      labelX: 181 + labelNudge,
+      valueX: 182 + valueNudge,
+      labelX: 187 + labelNudge,
       label: 'VS',
       value: formatDecimal(stats?.vsscore, 2),
     },
@@ -675,17 +675,17 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
 
     const items = [
   // APM 그룹: 조금 더 왼쪽
-  { x: vsEndX - 184, anchor: 'end', className: valueClass, text: apmText, numeric: true },
-  { x: vsEndX - 175, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: vsEndX - 142, anchor: 'middle', className: valueClass, text: '-' },
+  { x: vsEndX - 194, anchor: 'end', className: valueClass, text: apmText, numeric: true },
+  { x: vsEndX - 185, anchor: 'start', className: labelClass, text: 'APM' },
+  { x: vsEndX - 153, anchor: 'middle', className: valueClass, text: '-' },
 
   // PPS 그룹: 살짝 왼쪽
-  { x: vsEndX - 111, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
-  { x: vsEndX - 102, anchor: 'start', className: labelClass, text: 'PPS' },
-  { x: vsEndX - 71, anchor: 'middle', className: valueClass, text: '-' },
+  { x: vsEndX - 119, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
+  { x: vsEndX - 109, anchor: 'start', className: labelClass, text: 'PPS' },
+  { x: vsEndX - 73, anchor: 'middle', className: valueClass, text: '-' },
 
   // VS 그룹은 고정
-  { x: vsEndX - 25, anchor: 'end', className: valueClass, text: vsText, numeric: true },
+  { x: vsEndX - 22, anchor: 'end', className: valueClass, text: vsText, numeric: true },
   { x: vsEndX, anchor: 'end', className: labelClass, text: 'VS' },
 ];
 
@@ -697,18 +697,19 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
 
   const redRoundNudge = -8;
 const redApmValueX = x + 18 + redRoundNudge;
+const redAfterApmShift = 4;
 
 const items = [
   { x: redApmValueX, anchor: 'start', className: valueClass, text: apmText, numeric: true },
-  { x: x + 60 + redRoundNudge, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: x + 96 + redRoundNudge, anchor: 'middle', className: valueClass, text: '-' },
+  { x: x + 60 + redRoundNudge + redAfterApmShift, anchor: 'start', className: labelClass, text: 'APM' },
+  { x: x + 96 + redRoundNudge + redAfterApmShift, anchor: 'middle', className: valueClass, text: '-' },
 
-  { x: x + 107 + redRoundNudge, anchor: 'start', className: valueClass, text: ppsText, numeric: true },
-  { x: x + 141 + redRoundNudge, anchor: 'start', className: labelClass, text: 'PPS' },
-  { x: x + 176 + redRoundNudge, anchor: 'middle', className: valueClass, text: '-' },
+  { x: x + 107 + redRoundNudge + redAfterApmShift, anchor: 'start', className: valueClass, text: ppsText, numeric: true },
+  { x: x + 141 + redRoundNudge + redAfterApmShift, anchor: 'start', className: labelClass, text: 'PPS' },
+  { x: x + 176 + redRoundNudge + redAfterApmShift, anchor: 'middle', className: valueClass, text: '-' },
 
-  { x: x + 188 + redRoundNudge, anchor: 'start', className: valueClass, text: vsText, numeric: true },
-  { x: x + 238 + redRoundNudge, anchor: 'start', className: labelClass, text: 'VS' },
+  { x: x + 188 + redRoundNudge + redAfterApmShift, anchor: 'start', className: valueClass, text: vsText, numeric: true },
+  { x: x + 238 + redRoundNudge + redAfterApmShift, anchor: 'start', className: labelClass, text: 'VS' },
 ];
 
   return items.map(renderItem).join('\n  ');
@@ -903,7 +904,7 @@ function measureLeagueUsernameWidth(text, fontSize = 17) {
 
 function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
   const raw = String(text ?? '').toUpperCase();
-  const fontSize = 18;
+  const fontSize = 17;
 
   if (!raw.includes('_')) {
     return `<text x="${roundSvgNumber(x)}" y="${y}" text-anchor="${anchor}" class="username">${escapeXml(raw)}</text>`;
@@ -921,7 +922,7 @@ function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
     if (char === '_') {
       const metrics = getLeagueUsernameUnderscoreMetrics(fontSize);
 
-      markup += `<text x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" class="username" style="font-family: Arial !important;" font-size="16">${escapeXml(char)}</text>`;
+      markup += `<text x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" class="username" style="font-family: Arial !important;" font-size="15">${escapeXml(char)}</text>`;
       cursorX += metrics.advance;
       continue;
     }

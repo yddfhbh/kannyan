@@ -183,8 +183,9 @@ function normalizeTetrioUsername(input) {
 }
 
 async function fetchTetrioJson(path) {
+  const bypassCache = shouldBypassTetrioJsonCache(path);
   const now = Date.now();
-  const cached = tetrioJsonCache.get(path);
+  const cached = bypassCache ? null : tetrioJsonCache.get(path);
 
   if (cached && cached.expiresAt > now) {
     console.log(`[TETR.IO CACHE HIT] ${path} ttl=${Math.round((cached.expiresAt - now) / 1000)}s`);
@@ -200,7 +201,11 @@ async function fetchTetrioJson(path) {
     console.log(`[TETR.IO PENDING HIT] ${path}`);
     return tetrioJsonPendingPromises.get(path);
   }
-  console.log(`[TETR.IO CACHE MISS] ${path}`);
+  if (bypassCache) {
+    console.log(`[TETR.IO CACHE BYPASS] ${path}`);
+  } else {
+    console.log(`[TETR.IO CACHE MISS] ${path}`);
+  }
   const promise = fetchTetrioJsonUncached(path)
     .finally(() => {
       tetrioJsonPendingPromises.delete(path);
@@ -245,7 +250,17 @@ function getTetrioJsonCacheTtlCapMs(path) {
   return 30_000;
 }
 
+function shouldBypassTetrioJsonCache(path) {
+  // 스탯이 자주 변하는 요약 정보는 항상 새 응답을 사용한다.
+  return path.endsWith('/summaries');
+}
+
 function cacheTetrioJsonResult(path, body) {
+  if (shouldBypassTetrioJsonCache(path)) {
+    console.log(`[TETR.IO CACHE SKIP] ${path} bypass=true`);
+    return;
+  }
+
   const apiExpiresAt = Number(body?.cache?.cached_until);
 
   if (!Number.isFinite(apiExpiresAt) || apiExpiresAt <= Date.now()) {
@@ -1868,8 +1883,8 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
   const rawText = String(text ?? '').toUpperCase();
   const parts = rawText.split(/(_+)/);
 
-  const underscoreShiftEm = -0.26;        // 높이. 낮으면 -0.38, 높으면 -0.30
-  const underscoreDxEm = 0.08;            // 왼쪽으로 당기지 말고 살짝 오른쪽
+  const underscoreShiftEm = -0.21;        // 약간 아래로 내려 baseline과 더 가깝게
+  const underscoreDxEm = 0.02;            // 앞 글자와의 간격을 살짝 줄임
   const underscoreLetterSpacingEm = 0.18; // 언더바 사이 간격
 
   let needsBaselineRestore = false;

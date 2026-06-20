@@ -78,6 +78,29 @@ import {
   getMessageChainAttachments,
   resolveReferencedMessageChain,
 } from './discord-message-context.js';
+import {
+  deriveWebSearchQuery,
+  formatWebSearchContext,
+  searchWeb,
+  shouldUseWebSearch,
+} from './web-search.js';
+import {
+  findSemanticReactionEmojiEntry,
+  isPreviousReactionLikeText,
+  isReactionRequestText,
+} from './reaction-request.js';
+import {
+  extractHexColorPreviewRequest,
+  renderHexColorPreview,
+} from './color-preview.js';
+import {
+  extractChessTurnHint,
+  extractMentionedChessMove,
+  extractMentionedChessMoves,
+  looksLikeChessMoveInput,
+  looksLikeChessMoveSequenceQuestion,
+} from './chess-followup.js';
+import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
 
 
 const execFileAsync = promisify(execFile);
@@ -292,8 +315,11 @@ let unlinkedTetrioImageBufferPromise = null;
 const ambiguousNumericNicknameMinLength = 3;
 const trollingNumericInputMaxLength = 5;
 const quickPlayPersonalLeaderboards = new Set(['top', 'recent']);
+const webSearchMaxResults = 5;
+const webSearchSourceCount = 3;
 const percentCommandAliases = {
   help: ['help', '도움말'],
+  webSearch: ['검색', 'search'],
   chesscom: ['체닷'],
   lichess: ['리체스'],
   teto: ['teto'],
@@ -2231,41 +2257,6 @@ async function createNaturalChessPlayReply(message, facts) {
 });
 }
 
-function looksLikeChessMoveInput(text) {
-  const value = String(text ?? '').trim();
-
-  return /^(?:[a-h][1-8][a-h][1-8][qrbn]?|O-O(?:-O)?[+#]?|0-0(?:-0)?[+#]?|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?|[a-h]x[a-h][1-8](?:=[QRBN])?[+#]?|[a-h][1-8](?:=[QRBN])?[+#]?)$/i.test(value);
-}
-
-function extractMentionedChessMove(text) {
-  const value = String(text ?? '')
-    .trim()
-    .replace(/^%+/, '')
-    .trim();
-
-  if (!value) {
-    return '';
-  }
-
-  if (looksLikeChessMoveInput(value)) {
-    return value;
-  }
-
-  const moveRegex =
-    /(?:O-O-O|O-O|0-0-0|0-0|[a-h][1-8][a-h][1-8][qrbn]?|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBNqrbn])?[+#]?|[a-h]x[a-h][1-8](?:=[QRBNqrbn])?[+#]?|[a-h][1-8](?:=[QRBNqrbn])?[+#]?)/gi;
-
-  const matches = [...value.matchAll(moveRegex)].map((match) => match[0]);
-
-  for (let index = matches.length - 1; index >= 0; index -= 1) {
-    const candidate = matches[index];
-    if (looksLikeChessMoveInput(candidate)) {
-      return candidate;
-    }
-  }
-
-  return '';
-}
-
 function normalizeChessControlIntent(parsed) {
   const allowedActions = new Set([
   'start',
@@ -3615,6 +3606,120 @@ async function createRecentChessAnalysisFollowupReply(message, text, recent) {
   }
 }
 
+async function createRecentChessLineFollowupReply(message, text, recent) {
+  const moves = extractMentionedChessMoves(text);
+  const turnHint = extractChessTurnHint(text);
+  const fen = turnHint ? replaceFenTurn(recent.fen, turnHint) : recent.fen;
+  const chess = new Chess(fen);
+  const appliedMoves = [];
+
+  for (const moveText of moves) {
+    const move = applyUserChessMove(chess, moveText);
+    if (!move) {
+      if (appliedMoves.length === 0) {
+        return `지금 포지션 기준으로는 **${moveText}**를 둘 수 없는 수다냥.`;
+      }
+
+      return `**${appliedMoves.map((entry) => entry.san).join(' ')}**까지는 진행되지만, 그다음 **${moveText}**는 그 포지션에선 둘 수 없는 수다냥.`;
+    }
+
+    appliedMoves.push(move);
+  }
+
+  if (appliedMoves.length === 0) {
+    return createRecentChessAnalysisFollowupReply(message, text, recent);
+  }
+
+  const resultText = getChessResultText(chess);
+  let analysis = null;
+
+  if (!resultText) {
+    try {
+      analysis = await analyzeFenWithStockfish(chess.fen(), {
+        movetimeMs: Math.max(150, Math.min(1500, Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 900)),
+        multiPv: 3,
+        multipv: 3,
+      });
+    } catch (error) {
+      console.error('Failed to analyze recent chess line follow-up:');
+      console.error(error);
+    }
+  }
+
+  const fallback = buildRecentChessLineFollowupFallback(chess, appliedMoves, analysis, resultText);
+
+  if (geminiApiKeys.length === 0 || !analysis) {
+    return fallback;
+  }
+
+  const explanationContext = createStockfishExplanationContext(analysis, {
+    maxPlies: 10,
+  });
+  const candidateContext = formatStockfishCandidateContext(analysis, 4, 8);
+
+  try {
+    const prompt = [
+      '사용자는 방금 분석한 체스 포지션에서 특정 수순을 가정한 뒤 어떻게 되는지 묻고 있다.',
+      '아래 [가정한 수순 확정 정보]를 사실로 두고, 그 다음 상황을 짧고 자연스럽게 설명한다.',
+      '이미지를 다시 요구하지 않는다.',
+      '',
+      '[원래 최근 분석 포지션]',
+      `FEN: ${recent.fen}`,
+      '',
+      '[가정한 수순 확정 정보]',
+      `적용한 수순 SAN: ${appliedMoves.map((move) => move.san).join(' ')}`,
+      `적용한 수순 UCI(출력 금지): ${appliedMoves.map((move) => moveToUci(move)).join(' ')}`,
+      `수순 적용 후 FEN: ${chess.fen()}`,
+      `수순 적용 후 차례: ${formatChessTurnLabel(chess.turn())}`,
+      resultText ? `수순 적용 후 상태: ${resultText}` : '',
+      '',
+      '[Stockfish 해설 근거]',
+      explanationContext || '해설 근거 없음.',
+      '',
+      '[Stockfish 후보 수]',
+      candidateContext || '후보 수 정보 없음.',
+      '',
+      '[사용자 후속 질문]',
+      String(text ?? '').trim(),
+      '',
+      '[출력 규칙]',
+      '사용자가 가정한 수순을 이미 적용한 상태로 답한다.',
+      '이미지나 체스판을 다시 첨부하라고 하지 않는다.',
+      '적용한 수순이 있다면 첫 문장에 그 수순이 실제로 진행됐다는 점을 자연스럽게 짚는다.',
+      '수순이 끝난 뒤 게임이 끝났다면 그 결과를 바로 말한다.',
+      '게임이 아직 안 끝났다면 현재 차례 쪽 최선 수를 짧게 말해도 된다.',
+      'Stockfish가 확인한 수와 후보 수를 바꾸거나 지어내지 않는다.',
+      'FEN, UCI, 평가 수치, 탐색 깊이는 사용자가 직접 요구하지 않으면 출력하지 않는다.',
+      '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~4문장으로 답한다.',
+    ].filter(Boolean).join('\n');
+
+    const answerResult = await generateGeminiAnswer(prompt, {
+      currentUserContext: getGeminiCurrentUserContext(message),
+    });
+    const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
+
+    return answer || fallback;
+  } catch (error) {
+    console.error('Failed to generate recent chess line follow-up reply:');
+    console.error(error);
+    return fallback;
+  }
+}
+
+function buildRecentChessLineFollowupFallback(chess, appliedMoves, analysis, resultText = '') {
+  const sequenceText = appliedMoves.map((move) => move.san).join(' ');
+
+  if (resultText) {
+    return `그 수순대로면 **${sequenceText}**까지 진행된 뒤 ${resultText}`;
+  }
+
+  if (analysis?.san) {
+    return `그 수순대로면 **${sequenceText}**까지 진행된 뒤 ${formatChessTurnLabel(chess.turn())} 차례가 되고, 거기서 최선 수는 **${analysis.san}**다냥.`;
+  }
+
+  return `그 수순대로면 **${sequenceText}**까지 진행된 뒤 ${formatChessTurnLabel(chess.turn())} 차례가 된다냥.`;
+}
+
 async function handleChessAnalysisFollowupMessage(message) {
   const content = String(message.content ?? '').trim();
 
@@ -3642,6 +3747,18 @@ async function handleChessAnalysisFollowupMessage(message) {
   // e4, Nf3 같은 착수 입력은 후속 분석으로 보지 않음
   if (looksLikeChessMoveInput(text)) {
     return false;
+  }
+
+  if (looksLikeChessMoveSequenceQuestion(text)) {
+    await message.channel.sendTyping().catch(() => {});
+    const reply = await createRecentChessLineFollowupReply(message, text, recent);
+
+    await message.reply({
+      content: reply,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    return true;
   }
 
   // 비용 줄이기용 넓은 게이트. 의미 판단은 Gemini가 함.
@@ -3978,6 +4095,11 @@ if (interaction.commandName === '일일퍼즐') {
 
   return;
 }
+
+    if (interaction.commandName === '검색') {
+      await showWebSearch(interaction);
+      return;
+    }
 
     if (interaction.commandName === '체닷') {
       await showChessComRatings(interaction);
@@ -4595,6 +4717,19 @@ async function handlePercentMessageCommand(message) {
   return true;
 }
 
+  if (command === 'webSearch') {
+    if (!input) {
+      await message.reply({
+        content: '검색어를 입력해달라냥. 예: `%검색 오늘 서울 날씨`',
+        allowedMentions: { repliedUser: false },
+      });
+      return true;
+    }
+
+    await handleWebSearchMessage(message, input);
+    return true;
+  }
+
   if (command === 'chesscom') {
     if (!input) {
       await message.reply({
@@ -4747,33 +4882,6 @@ const reactionFailureMessage = '나는 할수없다냥...능이버섯이다냥..
 
 const reactionContextByUser = new Map();
 
-const semanticReactionEmojis = [
-  ['별', '⭐'],
-  ['스타', '⭐'],
-  ['하트', '❤️'],
-  ['좋아요', '👍'],
-  ['따봉', '👍'],
-  ['굿', '👍'],
-  ['싫어요', '👎'],
-  ['체크', '✅'],
-  ['확인', '✅'],
-  ['엑스', '❌'],
-  ['취소', '❌'],
-  ['불', '🔥'],
-  ['화남', '😡'],
-  ['분노', '😡'],
-  ['웃음', '😂'],
-  ['웃긴', '😂'],
-  ['슬픔', '😭'],
-  ['울음', '😭'],
-  ['놀람', '😮'],
-  ['축하', '🎉'],
-  ['박수', '👏'],
-  ['고양이', '🐱'],
-  ['냥', '🐱'],
-  ['해마', customEmojis.seahorse],
-];
-
 async function handleReactionRequestMessage(message) {
   const content = message.content?.trim() ?? '';
 
@@ -4781,7 +4889,13 @@ async function handleReactionRequestMessage(message) {
     return { handled: false };
   }
 
-  if (!isReactionRequestText(content)) {
+  const hasEmojiLikeText = hasReactionEmojiLikeText(content);
+  const hasContextWord = isPreviousReactionLikeText(content);
+
+  if (!isReactionRequestText(content, {
+    hasEmojiLikeText,
+    hasContextWord,
+  })) {
     return { handled: false };
   }
 
@@ -4873,27 +4987,6 @@ function formatReactionEmojiForPrompt(emoji) {
   }
 
   return emoji?.toString?.() ?? emoji?.name ?? emoji?.id ?? String(emoji);
-}
-
-function isReactionRequestText(content) {
-  const text = String(content ?? '').replace(/^%+/, '').trim();
-
-  const hasReactionWord =
-    /(?:반응|리액션|reaction|react|이모지|emoji)/i.test(text);
-
-  const hasAddWord =
-    /(?:달아줘|달아주|달아|붙여줘|찍어줘|추가해줘|해줘|해주셈|해주센|해주세요|해주실|부탁)/i.test(text);
-
-  const hasEmojiLikeText = hasReactionEmojiLikeText(text);
-  const hasSemanticEmoji = findSemanticReactionEmojiText(text);
-  const hasContextWord = isPreviousReactionLikeText(text);
-
-  return hasAddWord && (
-    hasReactionWord
-    || hasEmojiLikeText
-    || hasSemanticEmoji
-    || hasContextWord
-  );
 }
 
 function hasReactionEmojiLikeText(content) {
@@ -4996,22 +5089,6 @@ async function resolveDirectReactionEmoji(message, text) {
   }
 
   return null;
-}
-
-function findSemanticReactionEmojiEntry(text) {
-  const normalized = String(text ?? '').replace(/^%+/, '').trim().toLowerCase();
-
-  for (const [keyword, emojiText] of semanticReactionEmojis) {
-    if (normalized.includes(keyword.toLowerCase())) {
-      return { keyword, emojiText };
-    }
-  }
-
-  return null;
-}
-
-function findSemanticReactionEmojiText(text) {
-  return findSemanticReactionEmojiEntry(text)?.emojiText ?? null;
 }
 
 async function resolveEmojiResolvableFromText(message, value) {
@@ -5125,18 +5202,15 @@ async function findPreviousReactableMessage(message) {
     const content = String(candidate.content ?? '').trim();
 
     // 직전 %명령어에 반응 달리는 사고 방지
-    if (content.startsWith('%') && isReactionRequestText(content)) {
+    if (content.startsWith('%') && isReactionRequestText(content, {
+      hasEmojiLikeText: hasReactionEmojiLikeText(content),
+      hasContextWord: isPreviousReactionLikeText(content),
+    })) {
       return false;
     }
 
     return true;
   }) ?? null;
-}
-
-function isPreviousReactionLikeText(text) {
-  return /(?:여기도|이것도|이거도|그것도|거기도|똑같이|같은\s*거|같은\s*것|아까처럼|전에처럼|방금처럼|또\s*달|또\s*해)/.test(
-    String(text ?? '')
-  );
 }
 
 function getReactionContextKey(message) {
@@ -5354,6 +5428,19 @@ async function handleGeminiFallbackMessage(message, options = {}) {
   const prompt = normalizeDiscordTextForGemini(message, rawPrompt);
   const mentionContext = getGeminiMentionContext(message);
   const currentUserContext = getGeminiCurrentUserContext(message);
+  const hexColorPreviewRequest = extractHexColorPreviewRequest(rawPrompt);
+
+  if (hexColorPreviewRequest) {
+    await handleHexColorPreviewMessage(message, {
+      rawPrompt,
+      prompt,
+      mentionContext,
+      currentUserContext,
+      getReferencedMessages,
+      colorRequest: hexColorPreviewRequest,
+    });
+    return true;
+  }
 
   if (isUnsupportedEmojiPrompt(rawPrompt)) {
     await message.reply({
@@ -5411,10 +5498,23 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     );
 
     // 여기 추가: 현재 메시지/답장한 메시지에 있는 이미지들을 Gemini에 보낼 준비
-    const imageParts = await getGeminiImageParts(message, referencedMessages);
+    const imageParts = await getGeminiImageParts(message, referencedMessages, {
+      includeReferencedImages: shouldUseReplyImagesForGeminiPrompt(rawPrompt),
+      maxReferencedDepth: 2,
+    });
     const chessAnalysis = await getChessImageAnalysisContext(imageParts, {
       retry: prioritizeChessImageAnalysis,
     });
+    let webSearchData = null;
+    if (imageParts.length === 0 && !prioritizeChessImageAnalysis) {
+      try {
+        webSearchData = await tryBuildWebSearchData(rawPrompt);
+      } catch (error) {
+        console.error(`Failed to fetch web search results for Gemini prompt ${JSON.stringify(rawPrompt)}:`);
+        console.error(error);
+      }
+    }
+
     const requireStockfishForChess = prioritizeChessImageAnalysis
       || chessAnalysis.detectedChessboard;
     const answerPrompt = chessAnalysis.context
@@ -5436,6 +5536,7 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       mentionContext,
       currentUserContext,
       permanentMemories,
+      webSearchContext: webSearchData?.context ?? '',
 
       // 여기 추가: 이미지도 같이 넘김
       imageParts,
@@ -5445,9 +5546,12 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       permanentMemories,
       answerResult.usedPermanentMemoryIds
     );
-    const responseText = permanentMemoryAttribution
-      ? `${answer}\n\n${permanentMemoryAttribution}`
-      : answer;
+    const webSearchSources = formatWebSearchSources(webSearchData?.results ?? []);
+    const responseText = [
+      answer,
+      permanentMemoryAttribution,
+      webSearchSources,
+    ].filter(Boolean).join('\n\n');
 
     appendGeminiMemoryEntry(sessionKey, {
       role: 'user',
@@ -5492,6 +5596,341 @@ async function handleGeminiFallbackMessage(message, options = {}) {
   }
 
   return true;
+}
+
+async function handleWebSearchMessage(message, input) {
+  try {
+    await message.channel.sendTyping();
+    const responseText = await createWebSearchResponse(String(input ?? '').trim(), {
+      mentionContext: getGeminiMentionContext(message),
+      currentUserContext: getGeminiCurrentUserContext(message),
+    });
+    const chunks = splitDiscordMessage(responseText, 1900);
+    const [firstChunk, ...remainingChunks] = chunks;
+
+    await message.reply({
+      content: firstChunk,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+
+    for (const chunk of remainingChunks) {
+      await message.channel.send({
+        content: chunk,
+        allowedMentions: { parse: [] },
+      });
+    }
+  } catch (error) {
+    console.error(`Failed to handle web search message ${JSON.stringify(input)}:`);
+    console.error(error);
+    await message.reply({
+      content: '웹 검색을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+  }
+}
+
+async function handleHexColorPreviewMessage(message, options = {}) {
+  const {
+    rawPrompt = '',
+    prompt = '',
+    mentionContext = '',
+    currentUserContext = '',
+    getReferencedMessages = async () => [],
+    colorRequest = null,
+  } = options;
+
+  if (!colorRequest) {
+    return;
+  }
+
+  await message.channel.sendTyping();
+
+  let attachment;
+  try {
+    const image = await renderHexColorPreview(colorRequest);
+    attachment = new AttachmentBuilder(image, {
+      name: getHexColorPreviewAttachmentName(colorRequest.normalizedHex),
+    });
+  } catch (error) {
+    console.error(`Failed to render hex color preview for ${colorRequest.normalizedHex}:`);
+    console.error(error);
+    await message.reply({
+      content: '색상 미리보기를 렌더하지 못했다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return;
+  }
+
+  let answer = buildBasicHexColorPreviewReply(colorRequest);
+  let permanentMemoryAttribution = '';
+
+  if (geminiApiKeys.length > 0) {
+    try {
+      await Promise.all([
+        ensureGeminiMemoryLoaded(),
+        geminiPermanentMemory.ensureLoaded(),
+      ]);
+
+      const sessionKey = getGeminiSessionKey(message);
+      const history = getGeminiSessionHistory(sessionKey);
+      const referencedMessages = await getReferencedMessages();
+      const replyContext = await getGeminiReplyContext(
+        message,
+        referencedMessages[0] ?? null
+      );
+      const permanentMemoryScope = createPermanentMemoryScope(message.guildId, message.author.id);
+      const permanentMemoryQuery = [
+        rawPrompt,
+        prompt,
+        replyContext?.text,
+        ...history
+          .filter((entry) => entry.role === 'user')
+          .slice(-3)
+          .map((entry) => entry.text),
+      ].filter(Boolean).join('\n');
+      const permanentMemories = await geminiPermanentMemory.search(
+        permanentMemoryScope,
+        permanentMemoryQuery,
+        { limit: 4 }
+      );
+      const answerResult = await generateGeminiAnswer(
+        buildHexColorPreviewGeminiPrompt(colorRequest, prompt),
+        {
+          history,
+          replyContext,
+          mentionContext,
+          currentUserContext,
+          permanentMemories,
+        }
+      );
+
+      answer = answerResult.answer || answer;
+      permanentMemoryAttribution = formatPermanentMemoryAttribution(
+        permanentMemories,
+        answerResult.usedPermanentMemoryIds
+      );
+
+      appendGeminiMemoryEntry(sessionKey, {
+        role: 'user',
+        authorName: getMessageAuthorName(message),
+        text: replyContext
+          ? `[답장 원본: ${replyContext.authorName}] ${replyContext.text}\n\n[헥스 색상 미리보기]\n\n[현재 질문] ${prompt}`
+          : `[헥스 색상 미리보기]\n\n${prompt}`,
+        timestamp: Date.now(),
+      });
+
+      appendGeminiMemoryEntry(sessionKey, {
+        role: 'model',
+        authorName: message.client.user?.username ?? 'Bot',
+        text: answer,
+        timestamp: Date.now(),
+      });
+
+      await saveGeminiMemory();
+    } catch (error) {
+      console.error(`Failed to generate Gemini reply for hex color preview ${colorRequest.normalizedHex}:`);
+      console.error(error);
+    }
+  }
+
+  const responseText = [
+    answer,
+    permanentMemoryAttribution,
+  ].filter(Boolean).join('\n\n');
+  const chunks = chunkDiscordMessage(responseText || buildBasicHexColorPreviewReply(colorRequest));
+  const [firstChunk, ...remainingChunks] = chunks;
+
+  await message.reply({
+    content: firstChunk,
+    files: [attachment],
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+
+  for (const chunk of remainingChunks) {
+    await message.channel.send({
+      content: chunk,
+      allowedMentions: { parse: [] },
+    });
+  }
+}
+
+function buildHexColorPreviewGeminiPrompt(colorRequest, prompt) {
+  return [
+    `[사용자 원문 요청]`,
+    prompt,
+    '',
+    '[헥스 색상 응답 규칙]',
+    `사용자가 요청한 헥스코드 ${colorRequest.normalizedHex}의 색상 미리보기 PNG를 함께 보낸다.`,
+    '이미지는 이미 첨부된다고 가정하고, 그 사실을 자연스럽게 언급하면서 짧게 답한다.',
+    'HTML, CSS, 코드 블록, <div>, style, background-color 같은 마크업 예시는 절대 출력하지 않는다.',
+    `헥스코드: ${colorRequest.normalizedHex}`,
+    `RGB: ${colorRequest.rgbText}`,
+    colorRequest.hasAlpha ? `RGBA: ${colorRequest.rgbaText}` : '',
+    colorRequest.hasAlpha ? `투명도: ${colorRequest.alphaPercent}%` : '',
+    '색 이름을 억지로 단정할 필요는 없지만, 보이는 인상은 가볍게 말해도 된다.',
+  ].filter(Boolean).join('\n');
+}
+
+function buildBasicHexColorPreviewReply(colorRequest) {
+  if (colorRequest.hasAlpha) {
+    return `${colorRequest.normalizedHex} 색상 미리보기다냥. 투명도는 ${colorRequest.alphaPercent}%다냥.`;
+  }
+
+  return `${colorRequest.normalizedHex} 색상 미리보기다냥.`;
+}
+
+function getHexColorPreviewAttachmentName(hex) {
+  const safeHex = String(hex ?? '')
+    .replace(/^#/, '')
+    .toLowerCase()
+    .replace(/[^a-f0-9]/g, '');
+
+  return `hex-color-${safeHex || 'preview'}.png`;
+}
+
+async function showWebSearch(interaction) {
+  const query = interaction.options.getString('질문', true).trim();
+  await interaction.deferReply();
+
+  try {
+    const responseText = await createWebSearchResponse(query, {
+      currentUserContext: [
+        `작성자 표시 이름: ${interaction.member?.displayName ?? interaction.user.globalName ?? interaction.user.username}`,
+        `작성자 계정명: ${interaction.user.username}`,
+        `작성자 Discord ID: ${interaction.user.id}`,
+      ].join('\n'),
+    });
+    const chunks = splitDiscordMessage(responseText, 1900);
+    const [firstChunk, ...remainingChunks] = chunks;
+
+    await interaction.editReply(firstChunk);
+
+    for (const chunk of remainingChunks) {
+      await interaction.followUp({
+        content: chunk,
+      });
+    }
+  } catch (error) {
+    console.error(`Failed to handle web search interaction ${interaction.id}:`);
+    console.error(error);
+    await interaction.editReply('웹 검색을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.');
+  }
+}
+
+async function createWebSearchResponse(prompt, options = {}) {
+  const {
+    history = [],
+    replyContext = null,
+    mentionContext = '',
+    currentUserContext = '',
+    permanentMemories = [],
+  } = options;
+
+  const webSearchData = await tryBuildWebSearchData(prompt, { force: true });
+  if (!webSearchData || webSearchData.results.length === 0) {
+    return '검색 결과를 찾지 못했다냥.';
+  }
+
+  if (geminiApiKeys.length === 0) {
+    return formatPlainWebSearchResults(webSearchData.query, webSearchData.results);
+  }
+
+  const answerResult = await generateGeminiAnswer(prompt, {
+    history,
+    replyContext,
+    mentionContext,
+    currentUserContext,
+    permanentMemories,
+    webSearchContext: webSearchData.context,
+  });
+
+  return [
+    answerResult.answer,
+    formatWebSearchSources(webSearchData.results),
+  ].filter(Boolean).join('\n\n');
+}
+
+async function tryBuildWebSearchData(prompt, options = {}) {
+  const normalizedPrompt = String(prompt ?? '').trim();
+  if (!normalizedPrompt) {
+    return null;
+  }
+
+  const force = Boolean(options.force);
+  if (!force && !shouldUseWebSearch(normalizedPrompt)) {
+    return null;
+  }
+
+  const query = deriveWebSearchQuery(normalizedPrompt);
+  if (!query) {
+    return null;
+  }
+
+  const searchResult = await searchWeb(query, {
+    maxResults: webSearchMaxResults,
+  });
+
+  if (!searchResult.results.length) {
+    return {
+      query: searchResult.query,
+      results: [],
+      context: '',
+    };
+  }
+
+  return {
+    query: searchResult.query,
+    results: searchResult.results,
+    context: formatWebSearchContext(searchResult.query, searchResult.results, {
+      searchedAtText: formatKstTime(new Date()),
+    }),
+  };
+}
+
+function formatWebSearchSources(results) {
+  if (!Array.isArray(results) || results.length === 0) {
+    return '';
+  }
+
+  return [
+    '출처:',
+    ...results.slice(0, webSearchSourceCount).map((result, index) => {
+      return `${index + 1}. ${truncateWebSearchDisplayText(result.title, 90)} - ${result.url}`;
+    }),
+  ].join('\n');
+}
+
+function formatPlainWebSearchResults(query, results) {
+  if (!Array.isArray(results) || results.length === 0) {
+    return '검색 결과를 찾지 못했다냥.';
+  }
+
+  return [
+    '검색 결과를 찾았다냥.',
+    `검색어: ${query}`,
+    '',
+    ...results.map((result, index) => {
+      const lines = [
+        `${index + 1}. ${truncateWebSearchDisplayText(result.title, 120)}`,
+        result.url,
+      ];
+
+      if (result.snippet) {
+        lines.push(truncateWebSearchDisplayText(result.snippet, 240));
+      }
+
+      return lines.join('\n');
+    }),
+  ].join('\n\n');
+}
+
+function truncateWebSearchDisplayText(value, maxLength) {
+  const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, Math.max(0, maxLength - 3)).trim()}...`;
 }
 
 function isUnsupportedEmojiPrompt(prompt) {
@@ -5646,6 +6085,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     mentionContext = '',
     currentUserContext = '',
     permanentMemories = [],
+    webSearchContext = '',
     imageParts = [],
   } = options;
 
@@ -5656,6 +6096,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     mentionContext,
     currentUserContext,
     permanentMemories,
+    webSearchContext,
   });
 
   const modelsToUse = imageParts.length > 0
@@ -5901,9 +6342,12 @@ async function getGeminiReplyContext(message, resolvedReferencedMessage = undefi
   }
 }
 
-async function getGeminiImageParts(message, resolvedReferencedMessages = undefined) {
+async function getGeminiImageParts(message, resolvedReferencedMessages = undefined, options = {}) {
+  const includeReferencedImages = Boolean(options.includeReferencedImages);
+  const maxReferencedDepth = Math.max(0, Number(options.maxReferencedDepth) || 0);
   const referencedMessages = resolvedReferencedMessages ?? (
     await resolveReferencedMessageChain(message, {
+      maxDepth: includeReferencedImages ? Math.max(1, maxReferencedDepth) : 1,
       onError(error, sourceMessage) {
         console.error(
           `Failed to fetch referenced message images ${sourceMessage.reference?.messageId}:`
@@ -5912,7 +6356,10 @@ async function getGeminiImageParts(message, resolvedReferencedMessages = undefin
       },
     })
   );
-  const imageAttachments = getMessageChainAttachments(message, referencedMessages)
+  const targetMessages = includeReferencedImages
+    ? [message, ...referencedMessages.slice(0, maxReferencedDepth)]
+    : [message];
+  const imageAttachments = getMessageChainAttachments(null, targetMessages)
     .filter(isGeminiSupportedImageAttachment)
     .slice(0, 4);
 
@@ -6083,6 +6530,7 @@ function buildGeminiContextualPrompt({
   mentionContext,
   currentUserContext,
   permanentMemories = [],
+  webSearchContext = '',
 }) {
   const sections = [
     [
@@ -6127,6 +6575,14 @@ function buildGeminiContextualPrompt({
       '답변에 사용한 항목이 있으면 최종 답변 맨 끝에 [[PERMANENT_MEMORY_USED:id1,id2]] 형식의 표식을 정확히 한 줄 추가한다.',
       '사용하지 않았다면 표식을 절대 추가하지 않는다. 이 표식이나 저장소 자체를 사용자에게 설명하지 않는다.',
       ...permanentMemories.map((entry) => `- [${entry.id}] ${entry.text}`),
+    ].join('\n'));
+  }
+
+  if (webSearchContext) {
+    sections.push([
+      '[웹 검색 참고 결과]',
+      webSearchContext,
+      '웹 검색 결과가 있으면 최신 정보는 그 결과를 우선 참고하고, 검색 결과에 없는 사실은 추측하지 않는다.',
     ].join('\n'));
   }
 
@@ -6430,6 +6886,7 @@ function getHelpMessage() {
   return [
     '**사용 가능한 명령어다냥**',
     '`/도움말`, `%도움말`, `%help` - 이 안내를 보여준다냥.',
+    '`/검색 질문:<검색어>` 또는 `%검색 검색어` - 웹 검색 결과를 바탕으로 최신 정보를 정리한다냥.',
     '`/가르치기 정보:<내용>` 또는 `%...기억해줘`, `%...기억해둬`, `%...기억해` - 만료되지 않는 영구 기억에 정보와 작성자를 저장한다냥.',
     '`/체닷 닉네임:<Chess.com 닉네임>` 또는 `%체닷 닉네임` - Chess.com 래피드, 블리츠, 불렛, 퍼즐 레이팅을 보여준다냥.',
     '`/리체스 멤버이름:<Lichess 멤버 이름>` 또는 `%리체스 멤버이름` - Lichess 래피드, 블리츠, 불렛 레이팅을 보여준다냥.',
