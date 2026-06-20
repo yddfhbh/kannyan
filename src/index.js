@@ -2921,12 +2921,7 @@ async function handleChessPlayMessage(message) {
       return true;
     }
 
-    await message.reply({
-      content: '지금은 체스 대국을 시작한 상태가 아니라서 그 수를 실제로 두진 않겠다냥. 보드나 FEN이 있으면 그 수 설명은 해줄 수 있다냥.',
-      allowedMentions: { parse: [], repliedUser: false },
-    });
-
-    return true;
+    return false;
   }
 
   const chess = createChessFromPlaySession(existingSession);
