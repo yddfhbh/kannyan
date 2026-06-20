@@ -660,7 +660,7 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
   const vsText = formatDecimal(stats?.vsscore, 2);
 
   if (isLeft) {
-    const vsEndX = x + width - 12;
+    const vsEndX = x + width - 64;
     return renderRelativeRoundStatsMarkup({
       anchorX: vsEndX,
       anchor: 'end',
@@ -1002,31 +1002,14 @@ function renderLeagueUsernameMarkup(value) {
 function renderLeagueNumberMarkup(value) {
   const text = String(value ?? '-');
   let markup = '';
-  let resetDyEm = 0;
-
-  // 여기만 조절
-  const dotFontSize = '1.26em'; // 점 크기, 기존 1.18em보다 큼
-  const dotDyEm = 0.008;         // 점만 아래로 내리는 정도
 
   for (const char of text) {
     if (char === '.') {
-      // 점만 아래로 내림
-      markup += `<tspan dy="${dotDyEm}em" font-family="Arial" font-size="${dotFontSize}" stroke="none">.</tspan>`;
-
-      // 다음 숫자는 다시 원래 기준선으로 복귀
-      resetDyEm = dotDyEm;
+      markup += '<tspan font-family="Arial" stroke="none">.</tspan>';
       continue;
     }
 
-    const dy = resetDyEm
-      ? ` dy="${roundSvgNumber(-resetDyEm)}em"`
-      : '';
-
-    markup += dy
-      ? `<tspan${dy}>${escapeXml(char)}</tspan>`
-      : escapeXml(char);
-
-    resetDyEm = 0;
+    markup += escapeXml(char);
   }
 
   return markup;
