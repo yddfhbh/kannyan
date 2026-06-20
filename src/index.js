@@ -100,6 +100,16 @@ import {
   looksLikeChessMoveInput,
   looksLikeChessMoveSequenceQuestion,
 } from './chess-followup.js';
+import {
+  buildChessGroundedPrompt,
+  createUngroundedChessReply,
+  looksLikeChessTopicPrompt,
+  shouldForceWebSearchForChessPrompt,
+} from './chess-grounding.js';
+import {
+  getChessOrientationProbeRegions,
+  inferChessBoardOrientation,
+} from './chess-orientation.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
 
 
@@ -3173,12 +3183,12 @@ function isDirectBotMention(message) {
 
 
 
-async function detectChessBoardOrientationWithGemini({ message }) {
+async function detectChessBoardOrientationWithGemini({ message, imagePath }) {
   if (geminiApiKeys.length === 0) {
     return null;
   }
 
-  const imageParts = await getGeminiImageParts(message);
+  const imageParts = await buildChessOrientationProbeGeminiParts(message, imagePath);
   if (imageParts.length === 0) {
     return null;
   }
@@ -3206,17 +3216,19 @@ async function detectChessBoardOrientationWithGemini({ message }) {
           text: [
             'Look at the chessboard coordinate labels only.',
             'Return exactly one JSON object:',
-            '{"orientation":"w"}',
+            '{"orientation":"w","bottomLeftFile":"a","bottomRightFile":"h","bottomLeftRank":"1","topLeftRank":"8"}',
             'Use "w" if the board is viewed from White side.',
             'Use "b" if the board is viewed from Black side.',
             'Use "" if the coordinate labels are not readable.',
+            'If a file or rank label is unreadable, use an empty string for that field.',
+            'Do not infer any label from piece placement.',
           ].join('\n'),
         },
-        imageParts[0],
+        ...imageParts,
       ],
     }],
     generationConfig: {
-      maxOutputTokens: 40,
+      maxOutputTokens: 120,
       temperature: 0,
       topP: 0.1,
       responseMimeType: 'application/json',
@@ -3226,11 +3238,73 @@ async function detectChessBoardOrientationWithGemini({ message }) {
   });
 
   const parsed = parseJsonObjectText(extractGeminiResponseText(response));
-  return parsed?.orientation === 'b'
-    ? 'b'
-    : parsed?.orientation === 'w'
-      ? 'w'
-      : null;
+  return inferChessBoardOrientation(parsed);
+}
+
+async function buildChessOrientationProbeGeminiParts(message, imagePath = '') {
+  let imageData = Buffer.alloc(0);
+
+  if (imagePath) {
+    try {
+      imageData = await fs.readFile(imagePath);
+    } catch (error) {
+      console.error(`Failed to read local chess orientation image ${imagePath}:`);
+      console.error(error);
+    }
+  }
+
+  let fallbackOriginalPart = null;
+  if (imageData.length === 0) {
+    const imageParts = await getGeminiImageParts(message);
+    if (imageParts.length === 0) {
+      return [];
+    }
+
+    fallbackOriginalPart = imageParts[0];
+    imageData = Buffer.from(fallbackOriginalPart.inline_data?.data ?? '', 'base64');
+  }
+
+  if (imageData.length === 0) {
+    return fallbackOriginalPart ? [fallbackOriginalPart] : [];
+  }
+
+  try {
+    const metadata = await sharp(imageData).metadata();
+    const width = Number(metadata.width) || 0;
+    const height = Number(metadata.height) || 0;
+    if (width <= 0 || height <= 0) {
+      return fallbackOriginalPart ? [fallbackOriginalPart] : [bufferToGeminiImagePart(imageData, 'image/png')];
+    }
+
+    const probeParts = [];
+    for (const region of getChessOrientationProbeRegions(width, height)) {
+      const buffer = await sharp(imageData)
+        .extract({
+          left: region.left,
+          top: region.top,
+          width: region.width,
+          height: region.height,
+        })
+        .resize({
+          width: region.targetWidth,
+          fit: 'inside',
+          withoutEnlargement: false,
+          kernel: sharp.kernel.nearest,
+        })
+        .sharpen()
+        .png()
+        .toBuffer();
+
+      probeParts.push({ text: region.label });
+      probeParts.push(bufferToGeminiImagePart(buffer, 'image/png'));
+    }
+
+    return probeParts;
+  } catch (error) {
+    console.error('Failed to build chess orientation probe images:');
+    console.error(error);
+    return fallbackOriginalPart ? [fallbackOriginalPart] : [bufferToGeminiImagePart(imageData, 'image/png')];
+  }
 }
 
 async function recognizeChessFenWithGemini({ message, turn }) {
@@ -5500,10 +5574,18 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     const chessAnalysis = await getChessImageAnalysisContext(imageParts, {
       retry: prioritizeChessImageAnalysis,
     });
+    const isChessPrompt = looksLikeChessTopicPrompt(rawPrompt);
+    const shouldForceChessWebSearch = shouldForceWebSearchForChessPrompt(rawPrompt, {
+      hasStockfishContext: Boolean(chessAnalysis.context),
+      detectedChessboard: chessAnalysis.detectedChessboard,
+      prioritizeChessImageAnalysis,
+    });
     let webSearchData = null;
-    if (imageParts.length === 0 && !prioritizeChessImageAnalysis) {
+    if ((imageParts.length === 0 && !prioritizeChessImageAnalysis) || shouldForceChessWebSearch) {
       try {
-        webSearchData = await tryBuildWebSearchData(rawPrompt);
+        webSearchData = await tryBuildWebSearchData(rawPrompt, {
+          force: shouldForceChessWebSearch,
+        });
       } catch (error) {
         console.error(`Failed to fetch web search results for Gemini prompt ${JSON.stringify(rawPrompt)}:`);
         console.error(error);
@@ -5512,18 +5594,38 @@ async function handleGeminiFallbackMessage(message, options = {}) {
 
     const requireStockfishForChess = prioritizeChessImageAnalysis
       || chessAnalysis.detectedChessboard;
+    const hasChessGrounding = Boolean(chessAnalysis.context)
+      || (isChessPrompt && Array.isArray(webSearchData?.results) && webSearchData.results.length > 0);
+
+    if ((isChessPrompt || requireStockfishForChess) && !hasChessGrounding) {
+      await message.reply({
+        content: createUngroundedChessReply({
+          needsBoardEvidence: requireStockfishForChess,
+          webSearchAttempted: shouldForceChessWebSearch,
+        }),
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+      return true;
+    }
+
     const answerPrompt = chessAnalysis.context
-      ? `${prompt}\n\n${chessAnalysis.context}`
-      : requireStockfishForChess
-        ? [
-            prompt,
-            '',
-            '[체스 이미지 응답 규칙]',
-            '이미지가 체스판이라면 검증 가능한 FEN을 얻지 못해 Stockfish를 실행하지 못한 상태다.',
-            '이 경우 최선 수나 예상 수순을 추측해서 만들지 말고, 체스판 판독에 실패했다고 짧게 알려라.',
-            '이미지가 체스판이 아니라면 이 규칙을 무시하고 원래 요청에 답하라.',
-          ].join('\n')
-        : prompt;
+      ? [
+          buildChessGroundedPrompt(prompt, { mode: 'stockfish' }),
+          '',
+          chessAnalysis.context,
+        ].join('\n')
+      : isChessPrompt && Array.isArray(webSearchData?.results) && webSearchData.results.length > 0
+        ? buildChessGroundedPrompt(prompt, { mode: 'web' })
+        : requireStockfishForChess
+          ? [
+              prompt,
+              '',
+              '[체스 이미지 응답 규칙]',
+              '이미지가 체스판이라면 검증 가능한 FEN을 얻지 못해 Stockfish를 실행하지 못한 상태다.',
+              '이 경우 최선 수나 예상 수순을 추측해서 만들지 말고, 체스판 판독에 실패했다고 짧게 알려라.',
+              '이미지가 체스판이 아니라면 이 규칙을 무시하고 원래 요청에 답하라.',
+            ].join('\n')
+          : prompt;
 
     const answerResult = await generateGeminiAnswer(answerPrompt, {
       history,
@@ -6403,12 +6505,14 @@ async function discordAttachmentToGeminiImagePart(attachment) {
     throw new Error(`Image is too large: ${arrayBuffer.byteLength} bytes`);
   }
 
-  const base64Data = Buffer.from(arrayBuffer).toString('base64');
+  return bufferToGeminiImagePart(Buffer.from(arrayBuffer), contentType);
+}
 
+function bufferToGeminiImagePart(buffer, contentType) {
   return {
     inline_data: {
-      mime_type: contentType,
-      data: base64Data,
+      mime_type: String(contentType ?? '').trim().toLowerCase() || 'image/png',
+      data: Buffer.from(buffer).toString('base64'),
     },
   };
 }

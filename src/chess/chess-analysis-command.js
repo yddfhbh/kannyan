@@ -23,13 +23,13 @@ const chessImageMaxBytes = Math.max(
 const solveIntentPattern =
   /(풀|분석|해설|정답|해답|답\s*(?:이|은)?\s*(?:뭐|무엇|알려|찾)|봐\s*(?:줘|봐|주라)|최선\s*수|베스트\s*수|best\s*move|좋은\s*수|다음\s*수|어떻게\s*(?:둬|해|해야)|어떡해|뭐\s*둬|뭘\s*둬|무슨\s*수|수\s*(?:찾아|알려|추천)|이길\s*수|메이트|체크메이트|해결)/i;
 const whiteTurnPattern =
-  /(백선|백\s*(?:의\s*)?(?:차례|턴|수)|백\s*(?:으로|입장|이야|임)|(?:^|\s)백(?=\s|$)|white(?:\s+to\s+move|\s+turn)?)/i;
+  /(백선|백\s*(?:의\s*)?(?:차례|턴|수)|백(?:은|는|이|가)|백\s*(?:으로|입장|이야|임)|(?:^|\s)백(?=\s|$)|white(?:\s+to\s+move|\s+turn)?)/i;
 const blackTurnPattern =
-  /(흑선|흑\s*(?:의\s*)?(?:차례|턴|수)|흑\s*(?:으로|입장|이야|임)|(?:^|\s)흑(?=\s|$)|black(?:\s+to\s+move|\s+turn)?)/i;
+  /(흑선|흑\s*(?:의\s*)?(?:차례|턴|수)|흑(?:은|는|이|가)|흑\s*(?:으로|입장|이야|임)|(?:^|\s)흑(?=\s|$)|black(?:\s+to\s+move|\s+turn)?)/i;
 const explicitChessContextPattern =
   /(체스|체스판|chess(?:board)?|fen|포지션|기보|체크메이트|메이트)/i;
 const bareTurnCommandPattern =
-  /^(?:백선|흑선|백\s*(?:의\s*)?(?:차례|턴|수)|흑\s*(?:의\s*)?(?:차례|턴|수)|white(?:\s+to\s+move|\s+turn)?|black(?:\s+to\s+move|\s+turn)?)$/i;
+  /^(?:백선|흑선|백\s*(?:의\s*)?(?:차례|턴|수)|흑\s*(?:의\s*)?(?:차례|턴|수)|백\s*(?:이야|임)|흑\s*(?:이야|임)|white(?:\s+to\s+move|\s+turn)?|black(?:\s+to\s+move|\s+turn)?)$/i;
   
 export function parseChessImageAnalysisPrompt(content) {
   const text = String(content ?? '').trim();
@@ -52,7 +52,7 @@ export function parseChessImageAnalysisPrompt(content) {
 
   return {
     turn: white === black ? null : white ? 'w' : 'b',
-    explicitChess: explicitChessContextPattern.test(prompt) || isBareTurnCommand || hasSolveIntent,
+    explicitChess: explicitChessContextPattern.test(prompt) || isBareTurnCommand || white !== black,
   };
 }
 
