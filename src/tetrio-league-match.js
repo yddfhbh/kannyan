@@ -659,61 +659,55 @@ function renderRoundStatsMarkup(stats, x, width, baselineY, sideIndex, valueClas
   const ppsText = formatDecimal(stats?.pps, 2);
   const vsText = formatDecimal(stats?.vsscore, 2);
 
-  const renderItem = (item) => {
-    const className = item.className ?? valueClass;
-    const anchor = item.anchor ?? 'start';
-    const content = item.numeric
-    ? renderLeagueNumberMarkup(item.text)
-    : escapeXml(item.text);
-
-    return `<text x="${roundSvgNumber(item.x)}" y="${baselineY}" text-anchor="${anchor}" dominant-baseline="middle" class="${className}">${content}</text>`;
-  };
-
   if (isLeft) {
-    // 파란쪽: 마지막 "VS"의 S 끝을 기준으로 정렬
     const vsEndX = x + width - 12;
-
-    const items = [
-  // APM 그룹: 조금 더 왼쪽
-  { x: vsEndX - 194, anchor: 'end', className: valueClass, text: apmText, numeric: true },
-  { x: vsEndX - 185, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: vsEndX - 153, anchor: 'middle', className: valueClass, text: '-' },
-
-  // PPS 그룹: 살짝 왼쪽
-  { x: vsEndX - 119, anchor: 'end', className: valueClass, text: ppsText, numeric: true },
-  { x: vsEndX - 109, anchor: 'start', className: labelClass, text: 'PPS' },
-  { x: vsEndX - 73, anchor: 'middle', className: valueClass, text: '-' },
-
-  // VS 그룹은 고정
-  { x: vsEndX - 22, anchor: 'end', className: valueClass, text: vsText, numeric: true },
-  { x: vsEndX, anchor: 'end', className: labelClass, text: 'VS' },
-];
-
-    return items.map(renderItem).join('\n  ');
+    return renderRelativeRoundStatsMarkup({
+      anchorX: vsEndX,
+      anchor: 'end',
+      baselineY,
+      valueClass,
+      labelClass,
+      statsText: {
+        apm: apmText,
+        pps: ppsText,
+        vs: vsText,
+      },
+    });
   }
 
-  // 빨간쪽: "APM" 글자 시작 위치를 기준으로 정렬
-    // 빨간쪽: APM 숫자 시작 위치를 기준으로 정렬
-
   const redRoundNudge = -8;
-const redApmValueX = x + 18 + redRoundNudge;
-const redAfterApmShift = 4;
+  const redApmValueX = x + 18 + redRoundNudge;
 
-const items = [
-  { x: redApmValueX, anchor: 'start', className: valueClass, text: apmText, numeric: true },
-  { x: x + 60 + redRoundNudge + redAfterApmShift, anchor: 'start', className: labelClass, text: 'APM' },
-  { x: x + 96 + redRoundNudge + redAfterApmShift, anchor: 'middle', className: valueClass, text: '-' },
+  return renderRelativeRoundStatsMarkup({
+    anchorX: redApmValueX,
+    anchor: 'start',
+    baselineY,
+    valueClass,
+    labelClass,
+    statsText: {
+      apm: apmText,
+      pps: ppsText,
+      vs: vsText,
+    },
+  });
+}
 
-  { x: x + 107 + redRoundNudge + redAfterApmShift, anchor: 'start', className: valueClass, text: ppsText, numeric: true },
-  { x: x + 141 + redRoundNudge + redAfterApmShift, anchor: 'start', className: labelClass, text: 'PPS' },
-  { x: x + 176 + redRoundNudge + redAfterApmShift, anchor: 'middle', className: valueClass, text: '-' },
+function renderRelativeRoundStatsMarkup(options = {}) {
+  const {
+    anchorX = 0,
+    anchor = 'start',
+    baselineY = 0,
+    valueClass = 'roundValue',
+    labelClass = 'blueLabel',
+    statsText = {},
+  } = options;
+  const labelGap = 6.2;
+  const separatorGap = 8.4;
+  const valueGap = 8.4;
 
-  { x: x + 188 + redRoundNudge + redAfterApmShift, anchor: 'start', className: valueClass, text: vsText, numeric: true },
-  { x: x + 238 + redRoundNudge + redAfterApmShift, anchor: 'start', className: labelClass, text: 'VS' },
-];
-
-  return items.map(renderItem).join('\n  ');
-
+  return `<text x="${roundSvgNumber(anchorX)}" y="${baselineY}" text-anchor="${anchor}" dominant-baseline="middle">
+    <tspan class="${valueClass}">${renderLeagueNumberMarkup(statsText.apm ?? '-')}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan><tspan class="${valueClass}" dx="${separatorGap}">-</tspan><tspan class="${valueClass}" dx="${valueGap}">${renderLeagueNumberMarkup(statsText.pps ?? '-')}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan><tspan class="${valueClass}" dx="${separatorGap}">-</tspan><tspan class="${valueClass}" dx="${valueGap}">${renderLeagueNumberMarkup(statsText.vs ?? '-')}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>
+  </text>`;
 }
 
 function renderStatsColumns(columns, blockX, baselineY, valueClass, labelClass) {

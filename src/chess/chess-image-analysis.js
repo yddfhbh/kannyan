@@ -33,7 +33,14 @@ function formatAnalyzedMove(turn, result) {
 
 export async function createChessImageAnalysisContext(recognition, options = {}) {
   if (!recognition?.isChessboard || !recognition.boardFen) {
-    return '';
+    return options.returnDetails
+      ? {
+          context: '',
+          recognizedTurn: null,
+          boardFen: '',
+          analyses: [],
+        }
+      : '';
   }
 
   const analyzeFen = options.analyzeFen ?? analyzeFenWithStockfish;
@@ -52,7 +59,7 @@ export async function createChessImageAnalysisContext(recognition, options = {})
           Number(options.movetimeMs ?? process.env.CHESS_STOCKFISH_MOVETIME_MS) || 2000
         ),
       });
-      analyses.push({ turn, result });
+      analyses.push({ turn, fen, result });
     } catch (error) {
       if (recognizedTurn) {
         throw error;
@@ -61,19 +68,26 @@ export async function createChessImageAnalysisContext(recognition, options = {})
   }
 
   if (analyses.length === 0) {
-    return '';
+    return options.returnDetails
+      ? {
+          context: '',
+          recognizedTurn,
+          boardFen: recognition.boardFen,
+          analyses: [],
+        }
+      : '';
   }
 
   const turnInstruction = recognizedTurn
-    ? `이미지 UI에서 현재 차례를 ${recognizedTurn === 'w' ? '백' : '흑'}으로 판독했다.`
+    ? `현재 차례는 ${recognizedTurn === 'w' ? '백' : '흑'}으로 보고 계산했다.`
     : '정지 이미지에서 현재 차례를 확정할 수 없어 백 차례와 흑 차례를 각각 계산했다.';
   const responseInstruction = recognizedTurn
     ? '답변의 체스 수와 전술 설명은 아래 Stockfish 결과에 맞춰라.'
     : '차례를 단정하지 말고, 첫 문장에서 반드시 "백 차례면 ..., 흑 차례면 ..." 형식으로 두 경우의 최선 수를 바로 말한 뒤 아래 결과를 조건부로 설명하라.';
 
-  return [
+  const context = [
     '[내부 체스 분석 도구 결과]',
-    '첨부 이미지에서 실제 8x8 체스판을 확인했다.',
+    '아래 포지션을 기준으로 계산했다.',
     turnInstruction,
     ...analyses.map(({ turn, result }) => formatAnalyzedMove(turn, result)),
     '',
@@ -82,7 +96,19 @@ export async function createChessImageAnalysisContext(recognition, options = {})
     '최선 수가 왜 좋은지는 반드시 상대의 최선 대응과 후속 수를 근거로 설명하라.',
     '확인된 수순으로 입증되지 않은 "공격을 막는다", "기물을 정리한다", "주도권을 잡는다" 같은 상투적 표현은 쓰지 마라.',
     '짧은 주 변형만으로 전략적 목적을 확정하기 어렵다면 추측하지 말고 예상 수순 자체를 자연스럽게 설명하라.',
+    '답변 첫머리에 사진, 이미지, 체스판 같은 메타 설명을 넣지 말고 바로 수나 상황 설명으로 시작하라.',
     '사용자의 질문과 이미지 전체 맥락에 자연스럽게 답하고, 딱딱한 분석 보고서 형식으로 바꾸지 마라.',
     '내부 FEN, UCI, 평가 수치, 탐색 깊이는 출력하지 마라.',
   ].join('\n');
+
+  if (options.returnDetails) {
+    return {
+      context,
+      recognizedTurn,
+      boardFen: recognition.boardFen,
+      analyses,
+    };
+  }
+
+  return context;
 }

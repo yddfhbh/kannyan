@@ -8,6 +8,7 @@ const explicitSearchPattern = /(검색|찾아봐|찾아보|찾아줘|찾아 줘|
 const strongTimeSensitivePattern = /(최신|실시간|뉴스|속보|업데이트|환율|주가|시세|날씨|기온|영업시간|운영시간|업무시간)/i;
 const relativeTimePattern = /(오늘|지금|현재|최근|이번 주|이번주|이번 달|이번달|올해|어제|내일)/i;
 const timelyTopicPattern = /(날씨|기온|환율|주가|시세|가격|뉴스|일정|결과|스코어|순위|랭킹|업데이트|발표|출시|발매|영업시간|운영시간|업무시간)/i;
+const sourceRequestPattern = /(출처|링크|원문|근거|참고자료|레퍼런스|reference|references|source|sources|link|links|url)/i;
 
 export async function searchWeb(query, options = {}) {
   const normalizedQuery = normalizeSearchText(query);
@@ -109,6 +110,15 @@ export function deriveWebSearchQuery(prompt) {
   }
 
   return normalizeSearchText(query);
+}
+
+export function shouldIncludeWebSearchSources(prompt) {
+  const text = normalizeSearchText(prompt);
+  if (!text) {
+    return false;
+  }
+
+  return sourceRequestPattern.test(text);
 }
 
 export function formatWebSearchContext(query, results, options = {}) {

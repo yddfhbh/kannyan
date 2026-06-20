@@ -83,6 +83,7 @@ import {
   deriveWebSearchQuery,
   formatWebSearchContext,
   searchWeb,
+  shouldIncludeWebSearchSources,
   shouldUseWebSearch,
 } from './web-search.js';
 import {
@@ -3468,11 +3469,14 @@ async function getChessImageAnalysisContext(imageParts, options = {}) {
           }
         : recognition;
       detectedChessboard ||= recognition?.isChessboard === true;
-      const context = await createChessImageAnalysisContext(effectiveRecognition);
-      if (context) {
+      const details = await createChessImageAnalysisContext(effectiveRecognition, {
+        returnDetails: true,
+      });
+      if (details?.context) {
         return {
-          context,
+          context: details.context,
           detectedChessboard: true,
+          details,
         };
       }
     } catch (error) {
@@ -3482,15 +3486,18 @@ async function getChessImageAnalysisContext(imageParts, options = {}) {
 
   if (localBoardFen) {
     try {
-      const context = await createChessImageAnalysisContext({
+      const details = await createChessImageAnalysisContext({
         isChessboard: true,
         boardFen: localBoardFen,
         turn: null,
+      }, {
+        returnDetails: true,
       });
-      if (context) {
+      if (details?.context) {
         return {
-          context,
+          context: details.context,
           detectedChessboard: true,
+          details,
         };
       }
     } catch (error) {
@@ -3601,13 +3608,25 @@ function getChessAnalysisSessionKey(message) {
 }
 
 function rememberRecentChessAnalysis(message, data) {
-  if (!data?.fen) {
+  const boardFen = String(
+    data?.boardFen
+      ?? String(data?.fen ?? '').trim().split(/\s+/)[0]
+      ?? ''
+  ).trim();
+  const fen = String(
+    data?.fen
+      ?? (boardFen ? `${boardFen} w - - 0 1` : '')
+  ).trim();
+
+  if (!fen) {
     return;
   }
 
   recentChessAnalysisSessions.set(getChessAnalysisSessionKey(message), {
-    fen: data.fen,
+    fen,
+    boardFen,
     result: data.result ?? null,
+    analysesByTurn: data.analysesByTurn ?? null,
     rememberedAtMs: Date.now(),
   });
 }
@@ -3626,6 +3645,196 @@ function getRecentChessAnalysis(message) {
   }
 
   return recent;
+}
+
+function getFenTurn(fen) {
+  return String(fen ?? '').trim().split(/\s+/)[1] === 'b' ? 'b' : 'w';
+}
+
+function createFenFromBoardFen(boardFen, turn) {
+  const normalizedBoardFen = String(boardFen ?? '').trim().split(/\s+/)[0];
+  if (!normalizedBoardFen) {
+    return '';
+  }
+
+  return `${normalizedBoardFen} ${turn === 'b' ? 'b' : 'w'} - - 0 1`;
+}
+
+async function analyzeFenWithConfiguredStockfish(fen, options = {}) {
+  return analyzeFenWithStockfish(fen, {
+    movetimeMs: Math.max(100, Number(process.env.CHESS_STOCKFISH_MOVETIME_MS) || 2000),
+    multiPv: 3,
+    multipv: 3,
+    ...options,
+  });
+}
+
+async function ensureRecentChessAnalysisForTurn(message, recent, turn) {
+  const normalizedTurn = turn === 'b' ? 'b' : 'w';
+  const storedEntry = recent?.analysesByTurn?.[normalizedTurn] ?? null;
+  let fen = String(storedEntry?.fen ?? '').trim();
+
+  if (!fen) {
+    fen = recent?.boardFen
+      ? createFenFromBoardFen(recent.boardFen, normalizedTurn)
+      : replaceFenTurn(recent?.fen, normalizedTurn);
+  }
+
+  if (!fen) {
+    return null;
+  }
+
+  let result = storedEntry?.result ?? null;
+
+  if (!result) {
+    try {
+      result = await analyzeFenWithConfiguredStockfish(fen);
+    } catch (error) {
+      console.error(`Failed to analyze recent chess context for turn ${normalizedTurn}:`);
+      console.error(error);
+      return null;
+    }
+  }
+
+  const currentTurn = getFenTurn(recent?.fen);
+  const updatedRecent = {
+    ...recent,
+    fen: currentTurn === normalizedTurn ? fen : (recent?.fen ?? fen),
+    boardFen: recent?.boardFen ?? String(fen).trim().split(/\s+/)[0],
+    result: recent?.result ?? (currentTurn === normalizedTurn ? result : null),
+    analysesByTurn: {
+      ...(recent?.analysesByTurn ?? {}),
+      [normalizedTurn]: {
+        fen,
+        result,
+      },
+    },
+  };
+
+  rememberRecentChessAnalysis(message, updatedRecent);
+
+  return {
+    recent: updatedRecent,
+    fen,
+    result,
+  };
+}
+
+function buildRecentChessDualTurnFallback(whiteAnalysis, blackAnalysis) {
+  const whiteSan = whiteAnalysis?.result?.san ?? '';
+  const blackSan = blackAnalysis?.result?.san ?? '';
+
+  if (whiteSan && blackSan) {
+    return `차례를 딱 잘라 말하긴 어렵지만, 백 차례면 **${whiteSan}**, 흑 차례면 **${blackSan}**가 가장 좋다냥.`;
+  }
+
+  if (whiteSan) {
+    return `차례를 확정하긴 어렵지만, 백 차례로 보면 **${whiteSan}**가 가장 좋다냥.`;
+  }
+
+  if (blackSan) {
+    return `차례를 확정하긴 어렵지만, 흑 차례로 보면 **${blackSan}**가 가장 좋다냥.`;
+  }
+
+  return '지금 포지션은 차례가 애매해서 경우를 나눠 다시 봐야 한다냥.';
+}
+
+async function createRecentChessDualTurnFollowupReply(message, text, recent) {
+  const whiteAnalysis = await ensureRecentChessAnalysisForTurn(message, recent, 'w');
+  const blackAnalysis = await ensureRecentChessAnalysisForTurn(
+    message,
+    whiteAnalysis?.recent ?? recent,
+    'b'
+  );
+
+  if (!whiteAnalysis && !blackAnalysis) {
+    return '';
+  }
+
+  const fallback = buildRecentChessDualTurnFallback(whiteAnalysis, blackAnalysis);
+
+  if (geminiApiKeys.length === 0) {
+    return fallback;
+  }
+
+  try {
+    const prompt = [
+      '사용자는 방금 다루던 체스 포지션에 대해 이어서 질문하고 있다.',
+      '현재 차례는 확정되지 않아 백 차례와 흑 차례를 각각 Stockfish로 계산했다.',
+      '',
+      '[백 차례 계산 결과]',
+      whiteAnalysis?.fen ? `FEN: ${whiteAnalysis.fen}` : '결과 없음',
+      whiteAnalysis?.result?.san ? `최선 수 SAN: ${whiteAnalysis.result.san}` : '',
+      whiteAnalysis?.result?.bestMove ? `최선 수 UCI(출력 금지): ${whiteAnalysis.result.bestMove}` : '',
+      whiteAnalysis?.result ? createStockfishExplanationContext(whiteAnalysis.result, {
+        maxPlies: 8,
+      }) : '백 차례 계산 결과 없음.',
+      '',
+      '[흑 차례 계산 결과]',
+      blackAnalysis?.fen ? `FEN: ${blackAnalysis.fen}` : '결과 없음',
+      blackAnalysis?.result?.san ? `최선 수 SAN: ${blackAnalysis.result.san}` : '',
+      blackAnalysis?.result?.bestMove ? `최선 수 UCI(출력 금지): ${blackAnalysis.result.bestMove}` : '',
+      blackAnalysis?.result ? createStockfishExplanationContext(blackAnalysis.result, {
+        maxPlies: 8,
+      }) : '흑 차례 계산 결과 없음.',
+      '',
+      '[사용자 질문]',
+      String(text ?? '').trim(),
+      '',
+      '[출력 규칙]',
+      '첫 문장에서 바로 "백 차례면 ..., 흑 차례면 ..." 형식으로 답한다.',
+      '사진, 이미지, 체스판, 검색 결과, 출처를 언급하지 않는다.',
+      '오프닝 이름은 현재 포지션만으로 단정이 어려우면 단정하지 말고, 계산상 좋은 수와 이어지는 수순 위주로 설명한다.',
+      'Stockfish가 확인한 수와 수순을 바꾸거나 지어내지 않는다.',
+      'FEN, UCI, 평가 수치, 탐색 깊이는 사용자가 직접 요구하지 않으면 출력하지 않는다.',
+      '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~4문장으로 답한다.',
+    ].filter(Boolean).join('\n');
+
+    const answerResult = await generateGeminiAnswer(prompt, {
+      currentUserContext: getGeminiCurrentUserContext(message),
+    });
+    const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
+
+    return answer || fallback;
+  } catch (error) {
+    console.error('Failed to generate dual-turn chess follow-up reply:');
+    console.error(error);
+    return fallback;
+  }
+}
+
+async function createRecentChessConversationReply(message, text, recent) {
+  if (!recent?.fen) {
+    return '';
+  }
+
+  if (looksLikeChessMoveSequenceQuestion(text)) {
+    return createRecentChessLineFollowupReply(message, text, recent);
+  }
+
+  const turnHint = extractChessTurnHint(text);
+  if (turnHint) {
+    const ensured = await ensureRecentChessAnalysisForTurn(message, recent, turnHint);
+    if (!ensured?.result) {
+      return '';
+    }
+
+    return createRecentChessAnalysisFollowupReply(message, text, {
+      ...ensured.recent,
+      fen: ensured.fen,
+      result: ensured.result,
+    });
+  }
+
+  if (recent?.result) {
+    return createRecentChessAnalysisFollowupReply(message, text, recent);
+  }
+
+  if (recent?.analysesByTurn?.w || recent?.analysesByTurn?.b || recent?.boardFen) {
+    return createRecentChessDualTurnFollowupReply(message, text, recent);
+  }
+
+  return '';
 }
 
 function replaceFenTurn(fen, turn) {
@@ -3931,7 +4140,7 @@ async function handleChessAnalysisFollowupMessage(message) {
   const text = content.slice(1).trim();
   const recent = getRecentChessAnalysis(message);
 
-  if (!recent?.fen || !recent?.result) {
+  if (!recent?.fen) {
     return false;
   }
 
@@ -4016,6 +4225,10 @@ async function handleChessAnalysisFollowupMessage(message) {
 
       return true;
     }
+  }
+
+  if (!recent?.result) {
+    return false;
   }
 
   const reply = await createRecentChessAnalysisFollowupReply(message, text, recent);
@@ -5704,7 +5917,63 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       message,
       referencedMessages,
     });
+    if (chessAnalysis.details?.boardFen) {
+      const analysesByTurn = Object.fromEntries(
+        (Array.isArray(chessAnalysis.details.analyses) ? chessAnalysis.details.analyses : [])
+          .map((entry) => [entry.turn, {
+            fen: entry.fen,
+            result: entry.result ?? null,
+          }])
+      );
+      const rememberedTurn = chessAnalysis.details.recognizedTurn === 'b'
+        ? 'b'
+        : chessAnalysis.details.recognizedTurn === 'w'
+          ? 'w'
+          : '';
+      const rememberedEntry = rememberedTurn
+        ? analysesByTurn[rememberedTurn] ?? null
+        : analysesByTurn.w ?? analysesByTurn.b ?? null;
+
+      rememberRecentChessAnalysis(message, {
+        fen: rememberedEntry?.fen ?? `${chessAnalysis.details.boardFen} w - - 0 1`,
+        boardFen: chessAnalysis.details.boardFen,
+        result: rememberedTurn ? (rememberedEntry?.result ?? null) : null,
+        analysesByTurn,
+      });
+    }
     const isChessPrompt = looksLikeChessTopicPrompt(rawPrompt);
+    const recentChessContext = isChessPrompt && imageParts.length === 0
+      ? getRecentChessAnalysis(message)
+      : null;
+    const includeWebSearchSources = shouldIncludeWebSearchSources(rawPrompt);
+
+    if (recentChessContext?.fen) {
+      const stockfishReply = await createRecentChessConversationReply(
+        message,
+        rawPrompt,
+        recentChessContext
+      );
+
+      if (stockfishReply) {
+        const chunks = chunkDiscordMessage(stockfishReply);
+        const [firstChunk, ...remainingChunks] = chunks;
+
+        await message.reply({
+          content: firstChunk,
+          allowedMentions: { parse: [], repliedUser: false },
+        });
+
+        for (const chunk of remainingChunks) {
+          await message.channel.send({
+            content: chunk,
+            allowedMentions: { parse: [] },
+          });
+        }
+
+        return true;
+      }
+    }
+
     const shouldForceChessWebSearch = shouldForceWebSearchForChessPrompt(rawPrompt, {
       hasStockfishContext: Boolean(chessAnalysis.context),
       detectedChessboard: chessAnalysis.detectedChessboard,
@@ -5773,7 +6042,9 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       permanentMemories,
       answerResult.usedPermanentMemoryIds
     );
-    const webSearchSources = formatWebSearchSources(webSearchData?.results ?? []);
+    const webSearchSources = includeWebSearchSources
+      ? formatWebSearchSources(webSearchData?.results ?? [])
+      : '';
     const responseText = [
       answer,
       permanentMemoryAttribution,
@@ -6051,7 +6322,9 @@ async function createWebSearchResponse(prompt, options = {}) {
     mentionContext = '',
     currentUserContext = '',
     permanentMemories = [],
+    includeSources = false,
   } = options;
+  const resolvedIncludeSources = includeSources || shouldIncludeWebSearchSources(prompt);
 
   const webSearchData = await tryBuildWebSearchData(prompt, { force: true });
   if (!webSearchData || webSearchData.results.length === 0) {
@@ -6059,7 +6332,9 @@ async function createWebSearchResponse(prompt, options = {}) {
   }
 
   if (geminiApiKeys.length === 0) {
-    return formatPlainWebSearchResults(webSearchData.query, webSearchData.results);
+    return formatPlainWebSearchResults(webSearchData.query, webSearchData.results, {
+      includeSources: resolvedIncludeSources,
+    });
   }
 
   const answerResult = await generateGeminiAnswer(prompt, {
@@ -6073,7 +6348,7 @@ async function createWebSearchResponse(prompt, options = {}) {
 
   return [
     answerResult.answer,
-    formatWebSearchSources(webSearchData.results),
+    resolvedIncludeSources ? formatWebSearchSources(webSearchData.results) : '',
   ].filter(Boolean).join('\n\n');
 }
 
@@ -6127,7 +6402,8 @@ function formatWebSearchSources(results) {
   ].join('\n');
 }
 
-function formatPlainWebSearchResults(query, results) {
+function formatPlainWebSearchResults(query, results, options = {}) {
+  const includeSources = Boolean(options.includeSources);
   if (!Array.isArray(results) || results.length === 0) {
     return '검색 결과를 찾지 못했다냥.';
   }
@@ -6139,8 +6415,11 @@ function formatPlainWebSearchResults(query, results) {
     ...results.map((result, index) => {
       const lines = [
         `${index + 1}. ${truncateWebSearchDisplayText(result.title, 120)}`,
-        result.url,
       ];
+
+      if (includeSources) {
+        lines.push(result.url);
+      }
 
       if (result.snippet) {
         lines.push(truncateWebSearchDisplayText(result.snippet, 240));
