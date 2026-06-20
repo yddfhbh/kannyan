@@ -972,13 +972,16 @@ function getLeagueUsernameUnderscoreNudge(previousChar) {
   return 5.6;
 }
 
-function renderLeagueUsernameMarkup(value) {
+function renderLeagueUsernameMarkup(value, options = {}) {
   const text = String(value ?? '');
+  const underscoreOffsetEm = Number.isFinite(options.underscoreOffsetEm)
+    ? Number(options.underscoreOffsetEm)
+    : -0.08;
   let markup = '';
   let currentOffsetEm = 0;
 
   for (const char of text) {
-    const targetOffsetEm = char === '_' ? -0.08 : 0;
+    const targetOffsetEm = char === '_' ? underscoreOffsetEm : 0;
     const deltaEm = targetOffsetEm - currentOffsetEm;
     const dy = Math.abs(deltaEm) > 0.0001
       ? ` dy="${roundSvgNumber(deltaEm)}em"`
@@ -1021,7 +1024,7 @@ function renderRecentLeagueVsTextMarkup(opponent) {
     return `<tspan class="vsLabel">VS</tspan><tspan dx="${labelGap}">-</tspan>`;
   }
 
-  return `<tspan class="vsLabel">VS</tspan><tspan dx="${labelGap}">${renderLeagueUsernameMarkup(raw)}</tspan>`;
+  return `<tspan class="vsLabel">VS</tspan><tspan dx="${labelGap}">&#8203;</tspan>${renderLeagueUsernameMarkup(raw, { underscoreOffsetEm: 0 })}`;
 }
 
 function renderRecentLeagueHashMarkup(value) {
@@ -1147,14 +1150,14 @@ function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
 }
 
 function renderRecentLeagueListSvg(card, fontDataUris = {}) {
-  const width = 1180;
+  const width = 1300;
   const sidePadding = 22;
-  const headerHeight = 72;
+  const headerHeight = 64;
   const headerY = 18;
-  const rowHeight = 74;
-  const rowGap = 6;
-  const rowsY = headerY + headerHeight + 14;
-  const bottomPadding = 12;
+  const rowHeight = 50;
+  const rowGap = 4;
+  const rowsY = headerY + headerHeight + 10;
+  const bottomPadding = 10;
   const height = rowsY + card.rows.length * rowHeight + Math.max(0, card.rows.length - 1) * rowGap + bottomPadding;
 
   const rowsMarkup = card.rows
@@ -1181,7 +1184,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
         stroke-width: 1;
       }
       .headerTitle {
-        font-size: 42px;
+        font-size: 40px;
         font-weight: 950;
       }
       .headerName {
@@ -1213,7 +1216,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       }
       .resultText {
         fill: #0d1208;
-        font-size: 19px;
+        font-size: 18px;
         font-weight: 950;
       }
       .resultTextLoss {
@@ -1221,7 +1224,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       }
       .vsText {
         fill: #edf8df;
-        font-size: 17px;
+        font-size: 16px;
         font-weight: 950;
       }
       .vsLabel {
@@ -1229,17 +1232,17 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       }
       .statValue {
         fill: #9df18b;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 900;
       }
       .statDate {
         fill: #99df8a;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 900;
       }
       .deltaValue {
         fill: #f1fff1;
-        font-size: 21px;
+        font-size: 16px;
         font-weight: 950;
       }
       .deltaPositive {
@@ -1262,7 +1265,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
   </defs>
   <rect class="bg" width="${width}" height="${height}"/>
   <rect class="panel" x="${sidePadding}" y="${headerY}" width="${width - sidePadding * 2}" height="${headerHeight}" rx="12"/>
-  <text x="${sidePadding + 22}" y="${headerY + 48}" class="headerTitle" xml:space="preserve">${renderRecentLeagueHeaderTitleMarkup(card.username)}</text>
+  <text x="${sidePadding + 22}" y="${headerY + 43}" class="headerTitle" xml:space="preserve">${renderRecentLeagueHeaderTitleMarkup(card.username)}</text>
   ${rowsMarkup}
 </svg>`;
 }
@@ -1272,27 +1275,32 @@ function renderRecentLeagueRow(row, x, y, width, height) {
   const slant = 18;
   const resultCenterX = x + 118;
   const resultCenterY = y + (height / 2);
+  const contentCenterY = y + (height / 2) + 1;
   const panelClass = row.isWin ? 'resultWin' : 'resultLoss';
   const resultTextClass = row.isWin ? 'resultText' : 'resultText resultTextLoss';
   const deltaClass = row.trDelta.startsWith('-')
     ? 'deltaValue deltaNegative'
     : 'deltaValue deltaPositive';
-  const dateX = x + 775;
+  const apmX = x + 540;
+  const ppsX = x + 624;
+  const vsValueX = x + 708;
   const deltaX = x + width - 28;
+  const dateX = deltaX - 92;
+  const dividerInset = 6;
 
   return `
   <g>
     <rect class="rowBody" x="${x}" y="${y}" width="${width}" height="${height}" rx="4"/>
     <polygon class="${panelClass}" points="${x},${y} ${x + resultWidth},${y} ${x + resultWidth - slant},${y + height} ${x},${y + height}"/>
-    <line class="rowDivider" x1="${x + resultWidth}" y1="${y + 10}" x2="${x + resultWidth}" y2="${y + height - 10}"/>
-    <text x="${x + 12}" y="${y + 18}" class="rowIndex">${renderRecentLeagueHashMarkup(`#${row.index}`)}</text>
+    <line class="rowDivider" x1="${x + resultWidth}" y1="${y + dividerInset}" x2="${x + resultWidth}" y2="${y + height - dividerInset}"/>
+    <text x="${x + 12}" y="${y + 16}" class="rowIndex">${renderRecentLeagueHashMarkup(`#${row.index}`)}</text>
     <text x="${resultCenterX}" y="${resultCenterY}" text-anchor="middle" dominant-baseline="middle" class="${resultTextClass}" xml:space="preserve">${renderRecentLeagueResultMarkup(row.resultLabel)}</text>
-    <text x="${x + 252}" y="${y + 33}" class="vsText" xml:space="preserve">${renderRecentLeagueVsTextMarkup(row.opponent)}</text>
-    <text x="${x + 520}" y="${y + 33}" text-anchor="middle" class="statValue">${renderLeagueNumberMarkup(row.apm)}</text>
-    <text x="${x + 624}" y="${y + 33}" text-anchor="middle" class="statValue">${renderLeagueNumberMarkup(row.pps)}</text>
-    <text x="${x + 728}" y="${y + 33}" text-anchor="middle" class="statValue">${renderLeagueNumberMarkup(row.vs)}</text>
-    <text x="${dateX}" y="${y + 33}" class="statDate">${escapeXml(row.playedAtText)}</text>
-    <text x="${deltaX}" y="${y + 33}" text-anchor="end" class="${deltaClass}">${escapeXml(`${row.trDelta} TR`)}</text>
+    <text x="${x + 252}" y="${contentCenterY}" dominant-baseline="middle" class="vsText" xml:space="preserve">${renderRecentLeagueVsTextMarkup(row.opponent)}</text>
+    <text x="${apmX}" y="${contentCenterY}" text-anchor="middle" dominant-baseline="middle" class="statValue">${renderLeagueNumberMarkup(row.apm)}</text>
+    <text x="${ppsX}" y="${contentCenterY}" text-anchor="middle" dominant-baseline="middle" class="statValue">${renderLeagueNumberMarkup(row.pps)}</text>
+    <text x="${vsValueX}" y="${contentCenterY}" text-anchor="middle" dominant-baseline="middle" class="statValue">${renderLeagueNumberMarkup(row.vs)}</text>
+    <text x="${dateX}" y="${contentCenterY}" text-anchor="end" dominant-baseline="middle" class="statDate">${escapeXml(row.playedAtText)}</text>
+    <text x="${deltaX}" y="${contentCenterY}" text-anchor="end" dominant-baseline="middle" class="${deltaClass}">${escapeXml(`${row.trDelta} TR`)}</text>
   </g>`;
 }
 
