@@ -150,7 +150,16 @@ if (typeof options.detectBoardOrientation === 'function') {
   }
 }
 
-const boardOrientation = detectedBoardOrientation === 'b' ? 'b' : 'w';
+const boardOrientation =
+  detectedBoardOrientation === 'b'
+    ? 'b'
+    : detectedBoardOrientation === 'w'
+      ? 'w'
+      : null;
+
+if (!boardOrientation) {
+  throw new Error('Chess board orientation could not be detected');
+}
 
 console.log(
   `[CHESS IMAGE] turn=${prompt.turn} boardOrientation=${boardOrientation}`

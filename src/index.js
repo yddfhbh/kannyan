@@ -3195,52 +3195,93 @@ async function detectChessBoardOrientationWithGemini({ message, imagePath }) {
     return null;
   }
 
-  const response = await fetchGeminiGenerateContent({
-    system_instruction: {
-      parts: [{
-        text: [
-          'You detect the visual orientation of a chessboard image.',
-          'Return JSON only and never explain your reasoning.',
-          'Use only visible board coordinate labels such as files a-h and ranks 1-8.',
-          'Do not infer orientation from whose turn it is.',
-          'Do not infer orientation from clocks, player names, piece colors, or side to move.',
-          'White orientation means the bottom file labels go a b c d e f g h from left to right.',
-          'Black orientation means the bottom file labels go h g f e d c b a from left to right.',
-          'If bottom labels are hidden, use rank labels: White orientation has rank 1 at the bottom and rank 8 at the top; Black orientation has rank 8 at the bottom and rank 1 at the top.',
-          'If coordinate labels are not visible or not readable, return an empty orientation.',
-        ].join('\n'),
-      }],
-    },
-    contents: [{
-      role: 'user',
-      parts: [
-        {
-          text: [
-            'Look at the chessboard coordinate labels only.',
-            'Return exactly one JSON object:',
-            '{"orientation":"w","bottomLeftFile":"a","bottomRightFile":"h","bottomLeftRank":"1","topLeftRank":"8"}',
-            'Use "w" if the board is viewed from White side.',
-            'Use "b" if the board is viewed from Black side.',
-            'Use "" if the coordinate labels are not readable.',
-            'If a file or rank label is unreadable, use an empty string for that field.',
-            'Do not infer any label from piece placement.',
-          ].join('\n'),
-        },
-        ...imageParts,
-      ],
-    }],
-    generationConfig: {
-      maxOutputTokens: 120,
-      temperature: 0,
-      topP: 0.1,
-      responseMimeType: 'application/json',
-    },
-  }, {
-    models: geminiVisionModels,
-  });
+  let response;
 
-  const parsed = parseJsonObjectText(extractGeminiResponseText(response));
-  return inferChessBoardOrientation(parsed);
+  try {
+    response = await fetchGeminiGenerateContent({
+      system_instruction: {
+        parts: [{
+          text: [
+            'You detect the visual orientation of a chessboard image.',
+            'Return JSON only and never explain your reasoning.',
+            'Use only visible board coordinate labels such as files a-h and ranks 1-8.',
+            'Do not infer orientation from piece placement.',
+            'Do not infer orientation from whose turn it is.',
+            'Do not infer orientation from clocks, player names, piece colors, or side to move.',
+            '',
+            'White orientation:',
+            '- bottom file labels go a b c d e f g h from left to right.',
+            '- top rank labels show rank 8.',
+            '- bottom rank labels show rank 1.',
+            '',
+            'Black orientation:',
+            '- bottom file labels go h g f e d c b a from left to right.',
+            '- top rank labels show rank 1.',
+            '- bottom rank labels show rank 8.',
+            '',
+            'If coordinate labels are not visible or not readable, return an empty orientation.',
+          ].join('\n'),
+        }],
+      },
+      contents: [{
+        role: 'user',
+        parts: [
+          {
+            text: [
+              'Look at the chessboard coordinate labels only.',
+              'Return exactly one JSON object and nothing else.',
+              '',
+              'JSON schema:',
+              '{',
+              '  "orientation": "w or b or empty string",',
+              '  "bottomLeftFile": "a-h or empty string",',
+              '  "bottomRightFile": "a-h or empty string",',
+              '  "topLeftFile": "a-h or empty string",',
+              '  "topRightFile": "a-h or empty string",',
+              '  "bottomLeftRank": "1-8 or empty string",',
+              '  "bottomRightRank": "1-8 or empty string",',
+              '  "topLeftRank": "1-8 or empty string",',
+              '  "topRightRank": "1-8 or empty string"',
+              '}',
+              '',
+              'Use "w" if the board is viewed from White side.',
+              'Use "b" if the board is viewed from Black side.',
+              'Use "" if the coordinate labels are not readable.',
+              'If a file or rank label is unreadable, use an empty string for that field.',
+              'Do not infer any label from piece placement.',
+            ].join('\n'),
+          },
+          ...imageParts,
+        ],
+      }],
+      generationConfig: {
+        maxOutputTokens: 200,
+        temperature: 0,
+        topP: 0.1,
+        responseMimeType: 'application/json',
+      },
+    }, {
+      models: geminiVisionModels,
+    });
+  } catch (error) {
+    console.error('[CHESS IMAGE] orientation detection Gemini request failed:');
+    console.error(error);
+    return null;
+  }
+
+  const rawText = extractGeminiResponseText(response);
+  const parsed = parseJsonObjectText(rawText);
+  const inferred = inferChessBoardOrientation(parsed);
+
+  console.log(
+    `[CHESS IMAGE] orientation raw=${JSON.stringify(parsed)} inferred=${inferred || '-'}`
+  );
+
+  if (inferred !== 'w' && inferred !== 'b') {
+    return null;
+  }
+
+  return inferred;
 }
 
 async function buildChessOrientationProbeGeminiParts(message, imagePath = '') {
@@ -3533,12 +3574,16 @@ async function recognizeChessBoardFenLocallyForConversation(message, referencedM
   const temporaryImage = await downloadGeminiImageAttachmentToTemp(attachment);
 
   try {
-    const boardOrientation = (await detectChessBoardOrientationWithGemini({
+      const boardOrientation = await detectChessBoardOrientationWithGemini({
       message,
       imagePath: temporaryImage.filePath,
-    })) === 'b'
-      ? 'b'
-      : 'w';
+    });
+
+    if (boardOrientation !== 'w' && boardOrientation !== 'b') {
+      console.warn('[CHESS IMAGE] local recognition skipped: board orientation unreadable');
+      return '';
+    }
+
     const fen = await imageToFen(temporaryImage.filePath, 'w', {
       boardOrientation,
     });
