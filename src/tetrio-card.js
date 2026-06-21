@@ -2346,29 +2346,61 @@ function getBioEndingDotState(value) {
   return prevWasDot;
 }
 
+function getBioUrlRanges(text) {
+  const value = String(text ?? '');
+  const ranges = [];
+  const urlPattern = /https?:\/\/[^\s]+|www\.[^\s]+|discord\.gg\/[^\s]+/gi;
+
+  for (const match of value.matchAll(urlPattern)) {
+    ranges.push({
+      start: match.index,
+      end: match.index + match[0].length,
+    });
+  }
+
+  return ranges;
+}
+
+function isIndexInRanges(index, ranges) {
+  return ranges.some((range) => index >= range.start && index < range.end);
+}
+
 function renderBioTextMarkup(value) {
   const text = String(value ?? '');
+  const urlRanges = getBioUrlRanges(text);
+
   let markup = '';
   let prevWasDot = false;
+  let index = 0;
 
   for (const char of text) {
     const escaped = escapeXml(char);
+    const isUrlChar = isIndexInRanges(index, urlRanges);
+    const fillAttr = isUrlChar ? ' fill="#9eeaa4"' : '';
 
     if (char === '.') {
-      markup += `<tspan dx="${bioDotDxPx}px">${escaped}</tspan>`;
+      markup += `<tspan dx="${bioDotDxPx}px"${fillAttr}>${escaped}</tspan>`;
       prevWasDot = true;
+      index += char.length;
       continue;
     }
 
     if (isBioSmallTextChar(char)) {
       const dxAttr = prevWasDot ? ` dx="${bioAfterDotDxPx}px"` : '';
-      markup += `<tspan font-size="${bioSmallTextFontSize}"${dxAttr}>${escaped}</tspan>`;
+      markup += `<tspan font-size="${bioSmallTextFontSize}"${dxAttr}${fillAttr}>${escaped}</tspan>`;
       prevWasDot = false;
+      index += char.length;
       continue;
     }
 
+    if (isUrlChar) {
+      markup += `<tspan${fillAttr}>${escaped}</tspan>`;
+    } else {
+      markup += escaped;
+    }
+
     prevWasDot = false;
-    markup += escaped;
+    index += char.length;
   }
 
   return markup;
