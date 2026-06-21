@@ -376,6 +376,8 @@ let discordReady = false;
 let vmStatusMessage = null;
 let vmStatusTimer = null;
 let vmStatusUpdateInFlight = false;
+let chessPlayInactivityTimer = null;
+let chessPlayInactivitySweepInFlight = false;
 let previousCpuSample = sampleCpuTimes();
 
 const server = http.createServer((request, response) => {
@@ -548,6 +550,12 @@ const GUILD_LIST_STATE_PATH = path.join(DATA_DIR, 'guild-list-state.json');
 const CHESS_PLAY_STATE_PATH = path.join(DATA_DIR, 'chess-play-state.json');
 const chessPlaySessionMaxAgeMs =
   Number(process.env.CHESS_PLAY_SESSION_MAX_AGE_MS) || 6 * 60 * 60 * 1000;
+const chessPlayIdleForfeitMs =
+  Number(process.env.CHESS_PLAY_IDLE_FORFEIT_MS) || 60 * 60 * 1000;
+const chessPlayIdleSweepIntervalMs = Math.max(
+  30 * 1000,
+  Number(process.env.CHESS_PLAY_IDLE_SWEEP_INTERVAL_MS) || 60 * 1000
+);
 
 let chessPlayStateSaveQueue = Promise.resolve();
 
@@ -559,9 +567,9 @@ function getSerializableChessPlaySessions(now = Date.now()) {
       continue;
     }
 
-    const startedAtMs = Number(session.startedAtMs) || now;
+    const lastActivityAtMs = getChessSessionLastActivityAtMs(session, now);
 
-    if (now - startedAtMs > chessPlaySessionMaxAgeMs) {
+    if (now - lastActivityAtMs > chessPlaySessionMaxAgeMs) {
       continue;
     }
 
@@ -585,7 +593,7 @@ async function saveChessPlayState() {
   const now = Date.now();
 
   const state = {
-    version: 1,
+    version: 2,
     savedAtMs: now,
     sessions: getSerializableChessPlaySessions(now),
     finishedPgnCache: getSerializableFinishedChessPgnCache(now),
@@ -631,13 +639,16 @@ async function loadChessPlayState() {
       }
 
       const startedAtMs = Number(session.startedAtMs) || now;
+      const lastActivityAtMs = getChessSessionLastActivityAtMs(session, startedAtMs);
+      const lastMoveAtMs = getChessSessionLastMoveAtMs(session, startedAtMs);
+      const normalizedKey = getNormalizedStoredChessPlaySessionKey(key, session);
 
-      if (now - startedAtMs > chessPlaySessionMaxAgeMs) {
+      if (now - lastActivityAtMs > chessPlaySessionMaxAgeMs) {
         continue;
       }
 
       if (session.kind === 'pending-start-choice') {
-        chessPlaySessions.set(key, {
+        chessPlaySessions.set(normalizedKey, {
           kind: 'pending-start-choice',
           fen: '',
           userColor: '',
@@ -645,6 +656,7 @@ async function loadChessPlayState() {
           playerUserId: String(session.playerUserId ?? ''),
           userDisplayName: String(session.userDisplayName ?? 'User'),
           startedAtMs,
+          lastMoveAtMs,
         });
         continue;
       }
@@ -662,7 +674,7 @@ async function loadChessPlayState() {
             .filter((move) => /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(move))
         : [];
 
-      chessPlaySessions.set(key, {
+      chessPlaySessions.set(normalizedKey, {
         userColor,
         botColor,
         fen: String(session.fen ?? ''),
@@ -670,6 +682,7 @@ async function loadChessPlayState() {
         playerUserId: String(session.playerUserId ?? ''),
         userDisplayName: String(session.userDisplayName ?? 'User'),
         startedAtMs,
+        lastMoveAtMs,
       });
     }
 
@@ -1025,6 +1038,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   }
 
   startVmStatusUpdater(readyClient);
+  startChessPlayInactivityMonitor(readyClient);
   initDailyChessPuzzle(readyClient);
 });
 
@@ -1201,7 +1215,74 @@ function formatStockfishCandidateContext(result, maxCandidates = 3, maxPlies = 6
 }
 
 function getChessPlaySessionKey(message) {
+  return buildChessPlaySessionKey(
+    message.guildId ?? 'dm',
+    message.channelId,
+    String(message.author?.id ?? '')
+  );
+}
+
+function getLegacyChessPlaySessionKey(message) {
   return `${message.guildId ?? 'dm'}:${message.channelId}`;
+}
+
+function buildChessPlaySessionKey(guildId, channelId, userId) {
+  return `${guildId ?? 'dm'}:${channelId}:${userId}`;
+}
+
+function parseChessPlaySessionKey(key) {
+  const parts = String(key ?? '').split(':');
+
+  if (parts.length < 2) {
+    return null;
+  }
+
+  const [guildId, channelId, ...userIdParts] = parts;
+
+  return {
+    guildId: guildId || 'dm',
+    channelId: channelId || '',
+    userId: userIdParts.join(':'),
+  };
+}
+
+function getNormalizedStoredChessPlaySessionKey(key, session = null) {
+  const parsed = parseChessPlaySessionKey(key);
+  const ownerId = String(session?.playerUserId ?? parsed?.userId ?? '').trim();
+
+  if (!parsed?.channelId || !ownerId) {
+    return String(key ?? '');
+  }
+
+  return buildChessPlaySessionKey(parsed.guildId, parsed.channelId, ownerId);
+}
+
+function getChessSessionLastMoveAtMs(session, fallback = Date.now()) {
+  const lastMoveAtMs = Number(session?.lastMoveAtMs);
+
+  if (Number.isFinite(lastMoveAtMs) && lastMoveAtMs > 0) {
+    return lastMoveAtMs;
+  }
+
+  const startedAtMs = Number(session?.startedAtMs);
+
+  if (Number.isFinite(startedAtMs) && startedAtMs > 0) {
+    return startedAtMs;
+  }
+
+  return fallback;
+}
+
+function getChessSessionLastActivityAtMs(session, fallback = Date.now()) {
+  return getChessSessionLastMoveAtMs(session, fallback);
+}
+
+function touchChessSessionLastMoveAt(session, atMs = Date.now()) {
+  if (!session || typeof session !== 'object') {
+    return;
+  }
+
+  session.lastMoveAtMs = Number.isFinite(atMs) ? atMs : Date.now();
 }
 
 function getMessageDisplayName(message) {
@@ -1315,13 +1396,14 @@ function formatPgnDate(date = new Date()) {
   return `${y}.${m}.${d}`;
 }
 
-function appendChessSessionMove(session, move) {
+function appendChessSessionMove(session, move, atMs = Date.now()) {
   if (!session || !move) {
     return;
   }
 
   session.moves ??= [];
   session.moves.push(moveToUci(move));
+  touchChessSessionLastMoveAt(session, atMs);
 }
 
 function createChessFromFenSafe(fen) {
@@ -1441,6 +1523,96 @@ function rememberFinishedChessGamePgn(key, session, result = '*') {
   });
 
   void queueSaveChessPlayState();
+}
+
+function getChessAutoForfeitResult(session) {
+  return session?.userColor === 'w' ? '0-1' : '1-0';
+}
+
+function buildChessAutoForfeitNotice(session) {
+  return `${getChessSessionOwnerName(session)} 님이 1시간 넘게 아무 수도 두지 않아서 이번 체스 대국은 자동 기권 처리했다냥.`;
+}
+
+async function forfeitIdleChessPlaySessions(client, now = Date.now()) {
+  if (chessPlayInactivitySweepInFlight) {
+    return;
+  }
+
+  chessPlayInactivitySweepInFlight = true;
+
+  try {
+    const expiredSessions = [];
+
+    for (const [key, session] of chessPlaySessions.entries()) {
+      if (!session || session.kind === 'pending-start-choice') {
+        continue;
+      }
+
+      if (now - getChessSessionLastMoveAtMs(session, now) < chessPlayIdleForfeitMs) {
+        continue;
+      }
+
+      const parsedKey = parseChessPlaySessionKey(key);
+      const chess = createChessFromPlaySession(session);
+
+      session.fen = chess.fen();
+      rememberFinishedChessGamePgn(key, session, getChessAutoForfeitResult(session));
+      chessPlaySessions.delete(key);
+
+      expiredSessions.push({
+        channelId: parsedKey?.channelId ?? '',
+        session,
+      });
+    }
+
+    if (expiredSessions.length === 0) {
+      return;
+    }
+
+    await queueSaveChessPlayState();
+
+    for (const expired of expiredSessions) {
+      if (!expired.channelId) {
+        continue;
+      }
+
+      const channel = await fetchTextChannel(client, expired.channelId, 'CHESS PLAY');
+
+      if (!channel) {
+        continue;
+      }
+
+      await channel.send({
+        content: buildChessAutoForfeitNotice(expired.session),
+        allowedMentions: { parse: [] },
+      }).catch((error) => {
+        console.error('[CHESS PLAY] 자동 기권 메시지 전송 실패');
+        console.error(error);
+      });
+    }
+  } finally {
+    chessPlayInactivitySweepInFlight = false;
+  }
+}
+
+function startChessPlayInactivityMonitor(readyClient) {
+  stopChessPlayInactivityMonitor();
+  console.log(
+    `[CHESS PLAY] inactivity monitor enabled every ${chessPlayIdleSweepIntervalMs}ms (forfeit=${chessPlayIdleForfeitMs}ms).`
+  );
+  void forfeitIdleChessPlaySessions(readyClient);
+  chessPlayInactivityTimer = setInterval(() => {
+    void forfeitIdleChessPlaySessions(readyClient);
+  }, chessPlayIdleSweepIntervalMs);
+}
+
+function stopChessPlayInactivityMonitor() {
+  if (chessPlayInactivityTimer) {
+    clearInterval(chessPlayInactivityTimer);
+    chessPlayInactivityTimer = null;
+  }
+
+  chessPlayInactivitySweepInFlight = false;
 }
 
 function isLocalChessShowBoardText(text) {
@@ -1694,7 +1866,19 @@ async function replyFinishedChessGamePgn(message, key, existingSession = null) {
     }
   }
 
-  const cached = finishedChessGamePgnCache.get(key);
+  let cachedKey = key;
+  let cached = finishedChessGamePgnCache.get(cachedKey);
+
+  if (!cached) {
+    const legacyKey = getLegacyChessPlaySessionKey(message);
+
+    if (legacyKey !== cachedKey) {
+      cached = finishedChessGamePgnCache.get(legacyKey);
+      if (cached) {
+        cachedKey = legacyKey;
+      }
+    }
+  }
 
   if (!cached) {
     await message.reply({
@@ -1706,7 +1890,7 @@ async function replyFinishedChessGamePgn(message, key, existingSession = null) {
   }
 
   if (Date.now() - cached.savedAtMs > finishedChessGamePgnCacheMaxAgeMs) {
-    finishedChessGamePgnCache.delete(key);
+    finishedChessGamePgnCache.delete(cachedKey);
 
     await message.reply({
       content: expiredMessage,
@@ -2469,6 +2653,7 @@ async function startChessPlaySession(message, key, options = {}) {
   }
 
   const chess = new Chess();
+  const startedAtMs = Date.now();
 
   const session = {
     userColor,
@@ -2477,7 +2662,8 @@ async function startChessPlaySession(message, key, options = {}) {
     moves: [],
     playerUserId: message.author.id,
     userDisplayName: getMessageDisplayName(message),
-    startedAtMs: Date.now(),
+    startedAtMs,
+    lastMoveAtMs: startedAtMs,
   };
 
   chessPlaySessions.set(key, session);
@@ -2587,6 +2773,7 @@ async function startChessPlaySessionWithInitialUserMove(message, key, initialMov
     return true;
   }
 
+  const startedAtMs = Date.now();
   const session = {
     userColor,
     botColor,
@@ -2594,7 +2781,8 @@ async function startChessPlaySessionWithInitialUserMove(message, key, initialMov
     moves: [moveToUci(userMove)],
     playerUserId: message.author.id,
     userDisplayName: getMessageDisplayName(message),
-    startedAtMs: Date.now(),
+    startedAtMs,
+    lastMoveAtMs: startedAtMs,
   };
 
   chessPlaySessions.set(key, session);
@@ -2641,7 +2829,7 @@ async function startChessPlaySessionWithInitialUserMove(message, key, initialMov
     return true;
   }
 
-  session.moves.push(moveToUci(botMove));
+  appendChessSessionMove(session, botMove);
 session.fen = chess.fen();
 
 resultText = getChessResultText(chess);
@@ -2746,6 +2934,7 @@ async function handleChessControlIntent(message, key, chess, existingSession, in
 }
 
 async function createPendingChessStartChoice(message, key) {
+  const startedAtMs = Date.now();
   chessPlaySessions.set(key, {
     kind: 'pending-start-choice',
     fen: '',
@@ -2753,7 +2942,8 @@ async function createPendingChessStartChoice(message, key) {
     botColor: '',
     playerUserId: message.author.id,
     userDisplayName: getMessageDisplayName(message),
-    startedAtMs: Date.now(),
+    startedAtMs,
+    lastMoveAtMs: startedAtMs,
   });
 
   await queueSaveChessPlayState();
@@ -2933,7 +3123,7 @@ async function handleChessPlayMessage(message) {
       return true;
     }
 
-    if (isPlainChessStartText(text)) {
+    if (!existingSession && isPlainChessStartText(text)) {
       await createPendingChessStartChoice(message, key);
       return true;
     }
@@ -4960,6 +5150,7 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => {
     console.log(`Received ${signal}, shutting down...`);
     stopVmStatusUpdater();
+    stopChessPlayInactivityMonitor();
     closeStockfishEngine();
     client.destroy();
     server.close(() => process.exit(0));
