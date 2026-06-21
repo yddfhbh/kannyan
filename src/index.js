@@ -115,7 +115,6 @@ import {
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
 import {
   chooseLichessPlayerOpeningMove,
-  isLichessPlayerOpeningBookWarmupRunning,
   loadLichessPlayerOpeningBookCache,
   warmLichessPlayerOpeningBook,
 } from './opening-book.js';
@@ -2880,13 +2879,6 @@ async function replyChessStartClarification(message) {
   });
 }
 
-async function replyChessOpeningWarmupBusy(message) {
-  await message.reply({
-    content: '바쁜 일이 있다냥. 잠시만 기달려달라냥',
-    allowedMentions: { parse: [], repliedUser: false },
-  });
-}
-
 async function handleChessPlayMessage(message) {
   const content = String(message.content ?? '').trim();
 
@@ -2921,11 +2913,6 @@ async function handleChessPlayMessage(message) {
   }
 
   if (existingSession?.kind === 'pending-start-choice') {
-    if (isLichessPlayerOpeningBookWarmupRunning()) {
-      await replyChessOpeningWarmupBusy(message);
-      return true;
-    }
-
     return handlePendingChessStartChoice(message, key, text, existingSession);
   }
 
@@ -2933,11 +2920,6 @@ async function handleChessPlayMessage(message) {
     /(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
 
   if (wantsStart) {
-    if (isLichessPlayerOpeningBookWarmupRunning()) {
-      await replyChessOpeningWarmupBusy(message);
-      return true;
-    }
-
     if (existingSession && !isChessSessionOwner(message, existingSession)) {
       await message.reply({
         content: `${getChessSessionOwnerName(existingSession)} 님이 이미 이 채널에서 깐냥과 체스 대국 중이다냥. 새로 두고 싶으면 그 대국이 끝난 뒤에 시작해달라냥.`,
@@ -2991,11 +2973,6 @@ async function handleChessPlayMessage(message) {
     }
 
     return false;
-  }
-
-  if (isLichessPlayerOpeningBookWarmupRunning()) {
-    await replyChessOpeningWarmupBusy(message);
-    return true;
   }
 
   const chess = createChessFromPlaySession(existingSession);

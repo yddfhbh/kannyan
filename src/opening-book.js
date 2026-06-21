@@ -288,7 +288,11 @@ function normalizeManualBookOpening(opening) {
 async function loadManualBook(manualBookPath) {
   const resolvedPath = path.resolve(manualBookPath);
 
-  if (manualBookLoaded && loadedManualBookPath === resolvedPath) {
+  if (
+    manualBookLoaded
+    && loadedManualBookPath === resolvedPath
+    && manualBookPositions.size > 0
+  ) {
     return;
   }
 
