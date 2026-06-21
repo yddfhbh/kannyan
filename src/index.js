@@ -4888,6 +4888,15 @@ const openingBookCacheStatus = await loadLichessPlayerOpeningBookCache();
 console.log(
   `[CHESS OPENING] loaded networkEnabled=${openingBookCacheStatus.networkEnabled ? 'yes' : 'no'} cacheEntries=${openingBookCacheStatus.cacheEntries} cachePath=${openingBookCacheStatus.cachePath} manualEntries=${openingBookCacheStatus.manualBookEntries} manualPlayer=${openingBookCacheStatus.manualBookPlayer ?? '-'} manualPath=${openingBookCacheStatus.manualBookPath}`
 );
+if (
+  openingBookCacheStatus.enabled
+  && !openingBookCacheStatus.networkEnabled
+  && openingBookCacheStatus.manualBookEntries === 0
+) {
+  console.error(
+    `[CHESS OPENING] manual book missing while network fetch is disabled. expectedPath=${openingBookCacheStatus.manualBookPath}`
+  );
+}
 
 void warmLichessPlayerOpeningBook({
   onProgress: ({ visited, maxNodes, lineKey, fromCache }) => {
