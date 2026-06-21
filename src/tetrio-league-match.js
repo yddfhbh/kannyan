@@ -733,9 +733,9 @@ function renderFooterTextMarkup(text) {
     return `<tspan class="footerName">${renderLeagueUsernameMarkup(text)}</tspan>`;
   }
 
-  const dateMatch = match[3].match(/^(.+?),\s+(.+?)\s+(AM|PM)$/i);
+  const dateMatch = match[3].match(/^(\d{1,2}\/\d{1,2}\/\d{4})(,)?\s+(.+?)\s+(AM|PM)$/i);
   const dateMarkup = dateMatch
-    ? `<tspan dx="7" class="footerDate">${escapeXml(dateMatch[1])},</tspan><tspan dx="7" class="footerDate">${escapeXml(dateMatch[2])}</tspan><tspan dx="5" class="footerDate">${escapeXml(dateMatch[3].toUpperCase())}</tspan>`
+    ? `<tspan dx="7" class="footerDate">${escapeXml(`${dateMatch[1]}${dateMatch[2] ?? ''}`)}</tspan><tspan dx="7" class="footerTime">${escapeXml(dateMatch[3])}</tspan><tspan dx="5" class="footerDate">${escapeXml(dateMatch[4].toUpperCase())}</tspan>`
     : `<tspan dx="7" class="footerDate">${escapeXml(match[3])}</tspan>`;
 
   return `<tspan class="footerName">${renderLeagueUsernameMarkup(match[1])}</tspan><tspan dx="8" class="footerKeyword">VERSUS</tspan><tspan dx="8" class="footerName">${renderLeagueUsernameMarkup(match[2])}</tspan><tspan dx="8" class="footerKeyword">PLAYED</tspan><tspan dx="5" class="footerKeyword">ON</tspan>${dateMarkup}`;}
@@ -839,46 +839,7 @@ function getFooterUnderscoreMetrics() {
 
 
 function renderFooterLineMarkup(text, x, y) {
-  const match = String(text ?? '').match(/^(.+?) VERSUS (.+?) PLAYED ON (.+)$/);
-
-  if (!match) {
-    const fallback = renderFooterNameText(text, x, y);
-    return `<g>${fallback.markup}</g>`;
-  }
-
-  const parts = [];
-  let cursorX = x;
-
-  const addName = (value, gap = 0) => {
-    cursorX += gap;
-    const part = renderFooterNameText(value, cursorX, y);
-    parts.push(part.markup);
-    cursorX += part.width;
-  };
-
-  const addText = (value, className, gap = 0, fontSize = 14) => {
-  cursorX += gap;
-  const part = renderFooterPlainText(value, cursorX, y, className, fontSize);
-  parts.push(part.markup);
-  cursorX += part.width;
-};
-
-  addName(match[1]);
-  addText('VERSUS', 'footerKeyword', 8);
-  addName(match[2], 8);
-  addText('PLAYED', 'footerKeyword', 8);
-  addText('ON', 'footerKeyword', 12);
-
-  const dateMatch = match[3].match(/^(.+?),\s+(.+?)\s+(AM|PM)$/i);
-  if (dateMatch) {
- addText(`${dateMatch[1]},`, 'footerDate', 6);
-addText(dateMatch[2], 'footerTime', 3);
-addText(dateMatch[3].toUpperCase(), 'footerDate', 7);
-} else {
-  addText(match[3], 'footerDate', 7);
-}
-
-  return `<g>${parts.join('\n  ')}</g>`;
+  return `<text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer" xml:space="preserve">${renderFooterTextMarkup(text)}</text>`;
 }
 
 function estimateLeagueUsernameCharWidth(char, fontSize = 18) {
@@ -1250,7 +1211,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       }
       .columnLabel {
         fill: #6f9153;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 900;
       }
       .columnLabelStrong {
@@ -1305,7 +1266,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       }
       .statValue {
         fill: #9df18b;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 940;
         stroke: rgba(157,241,139,0.12);
         stroke-width: 0.32px;
@@ -1313,7 +1274,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       }
       .statDate {
         fill: #99df8a;
-        font-size: 14px;
+        font-size: 15.5px;
         font-weight: 930;
         stroke: rgba(153,223,138,0.12);
         stroke-width: 0.3px;
@@ -1321,7 +1282,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       }
       .deltaValue {
         fill: #f1fff1;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 980;
         stroke: rgba(241,255,241,0.14);
         stroke-width: 0.32px;

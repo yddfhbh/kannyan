@@ -8697,8 +8697,28 @@ async function handleAmbiguousNumericTetrioLeagueMatchMessage(message, input, ma
     const username = await findTetrioUsername(input);
 
     if (username) {
-      await showTetrioLeagueMatchMessage(message, username, 1, true);
-      return;
+      try {
+        const replyData = await createTetrioLeagueMatchReplyData(username, 1);
+        await message.reply({
+          ...replyData,
+          allowedMentions: { repliedUser: false },
+        });
+        return;
+      } catch (error) {
+        console.error(`Failed to fetch TETRA LEAGUE match for ambiguous numeric username ${username} at position 1:`);
+        console.error(error);
+
+        if (!shouldFallbackToLinkedTetrioLeagueMatch(error, matchIndex)) {
+          const content = (await getTetrioLeagueMatchKnownErrorMessage(error, username, true))
+            ?? 'TETRA LEAGUE 전적을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
+
+          await message.reply({
+            content,
+            allowedMentions: { repliedUser: false },
+          });
+          return;
+        }
+      }
     }
 
     if (isTrollingNumericInput(input)) {
@@ -8812,17 +8832,29 @@ async function showLinkedTetrioLeagueRecentListMessage(message, user, recentCoun
   }
 }
 
+function shouldFallbackToLinkedTetrioLeagueMatch(error, matchIndex) {
+  return Boolean(matchIndex) && (error?.code === 'NO_RECORD' || error?.status === 404);
+}
+
+async function createTetrioLeagueMatchReplyData(username, matchIndex) {
+  const card = await createTetrioLeagueMatchCard(username, matchIndex);
+  const attachment = new AttachmentBuilder(card.image, {
+    name: getTetrioLeagueMatchAttachmentName(card.username, matchIndex),
+  });
+
+  return {
+    content: `https://ch.tetr.io/u/${encodeURIComponent(card.username)}/league`,
+    files: [attachment],
+  };
+}
+
 async function showTetrioLeagueMatchMessage(message, username, matchIndex, assumeExistingUser = false) {
   try {
     await message.channel.sendTyping();
-    const card = await createTetrioLeagueMatchCard(username, matchIndex);
-    const attachment = new AttachmentBuilder(card.image, {
-      name: getTetrioLeagueMatchAttachmentName(card.username, matchIndex),
-    });
+    const replyData = await createTetrioLeagueMatchReplyData(username, matchIndex);
 
     await message.reply({
-      content: `https://ch.tetr.io/u/${encodeURIComponent(card.username)}/league`,
-      files: [attachment],
+      ...replyData,
       allowedMentions: { repliedUser: false },
     });
   } catch (error) {
@@ -8971,8 +9003,28 @@ async function handleAmbiguousNumericQuickPlayAltitudeMessage(
     const username = await findTetrioUsername(input);
 
     if (username) {
-      await showQuickPlayAltitudeMessage(message, username, 1, mode, leaderboard, true);
-      return;
+      try {
+        const replyData = await createQuickPlayAltitudeReplyData(username, 1, mode, leaderboard);
+        await message.reply({
+          ...replyData,
+          allowedMentions: { repliedUser: false },
+        });
+        return;
+      } catch (error) {
+        console.error(`Failed to fetch ambiguous numeric ${mode} record for ${username} at rank 1 (${leaderboard}):`);
+        console.error(error);
+
+        if (!shouldFallbackToLinkedQuickPlayRecord(error, recordIndex)) {
+          const content = (await getQuickPlayKnownErrorMessage(error, username, true))
+            ?? getTetrioPersonalRecordErrorMessage(mode);
+
+          await message.reply({
+            content,
+            allowedMentions: { repliedUser: false },
+          });
+          return;
+        }
+      }
     }
 
     if (isTrollingNumericInput(input)) {
@@ -9084,6 +9136,21 @@ async function showLinkedQuickPlayAltitudeMessage(message, user, recordIndex, mo
   }
 }
 
+function shouldFallbackToLinkedQuickPlayRecord(error, recordIndex) {
+  return Boolean(recordIndex) && (error?.code === 'NO_RECORD' || error?.status === 404);
+}
+
+async function createQuickPlayAltitudeReplyData(username, recordIndex, mode = 'zenith', leaderboard = 'top') {
+  const card = await createQuickPlayAltitudeCardForLeaderboard(username, recordIndex, mode, leaderboard);
+  const attachment = new AttachmentBuilder(card.image, {
+    name: getQuickPlayAttachmentName(card.username, recordIndex, mode, leaderboard),
+  });
+
+  return {
+    files: [attachment],
+  };
+}
+
 async function showQuickPlayAltitudeMessage(
   message,
   username,
@@ -9096,13 +9163,10 @@ async function showQuickPlayAltitudeMessage(
 
   try {
     await message.channel.sendTyping();
-    const card = await createQuickPlayAltitudeCardForLeaderboard(username, recordIndex, mode, leaderboard);
-    const attachment = new AttachmentBuilder(card.image, {
-      name: getQuickPlayAttachmentName(card.username, recordIndex, mode, leaderboard),
-    });
+    const replyData = await createQuickPlayAltitudeReplyData(username, recordIndex, mode, leaderboard);
 
     await message.reply({
-      files: [attachment],
+      ...replyData,
       allowedMentions: { repliedUser: false },
     });
   } catch (error) {
