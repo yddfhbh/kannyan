@@ -17,6 +17,7 @@ const DEFAULT_PRELOAD_DELAY_MS = 60;
 const START_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const UCI_MOVE_PATTERN = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
 const disabledEnvPattern = /^(?:0|false|off|no)$/i;
+const enabledEnvPattern = /^(?:1|true|on|yes)$/i;
 
 const DEFAULT_DATA_DIR = fileURLToPath(new URL('../data/', import.meta.url));
 const DEFAULT_CACHE_PATH = path.join(
@@ -143,6 +144,14 @@ function isOpeningBookEnabled(options = {}) {
   return !disabledEnvPattern.test(String(process.env.CHESS_OPENING_ENABLED ?? '').trim());
 }
 
+function isOpeningBookNetworkEnabled(options = {}) {
+  if (options.networkEnabled !== undefined) {
+    return Boolean(options.networkEnabled);
+  }
+
+  return enabledEnvPattern.test(String(process.env.CHESS_OPENING_NETWORK_ENABLED ?? '').trim());
+}
+
 function resolveCachePath(options = {}) {
   return path.resolve(options.cachePath || process.env.CHESS_OPENING_CACHE_PATH || DEFAULT_CACHE_PATH);
 }
@@ -195,6 +204,7 @@ function getOpeningBookConfig(options = {}) {
       options.cacheTtlMs ?? process.env.CHESS_OPENING_CACHE_TTL_MS,
       DEFAULT_CACHE_TTL_MS
     ),
+    networkEnabled: isOpeningBookNetworkEnabled(options),
     cachePath: resolveCachePath(options),
     manualBookPath: resolveManualBookPath(options),
     since: options.since || process.env.CHESS_OPENING_SINCE || null,
@@ -578,12 +588,14 @@ function getTurnColorFromHistory(uciHistory) {
 }
 
 export async function loadLichessPlayerOpeningBookCache(options = {}) {
-  const { cachePath, manualBookPath } = getOpeningBookConfig(options);
+  const config = getOpeningBookConfig(options);
+  const { cachePath, manualBookPath } = config;
   await loadCache(cachePath);
   await loadManualBook(manualBookPath);
 
   return {
     enabled: isOpeningBookEnabled(options),
+    networkEnabled: config.networkEnabled,
     cacheEntries: memoryCache.size,
     cachePath,
     manualBookEntries: manualBookPositions.size,
@@ -603,6 +615,7 @@ export async function warmLichessPlayerOpeningBook(options = {}) {
     return {
       enabled: false,
       started: false,
+      networkDisabled: true,
       positionsVisited: 0,
       networkFetches: 0,
       cacheFallbacks: 0,
@@ -625,6 +638,19 @@ export async function warmLichessPlayerOpeningBook(options = {}) {
       manualBook: true,
       manualBookPath: config.manualBookPath,
       manualBookPositions: manualBookPositions.size,
+      positionsVisited: 0,
+      networkFetches: 0,
+      cacheFallbacks: 0,
+      failures: 0,
+      truncated: false,
+    };
+  }
+
+  if (!config.networkEnabled) {
+    return {
+      enabled: true,
+      started: false,
+      networkDisabled: true,
       positionsVisited: 0,
       networkFetches: 0,
       cacheFallbacks: 0,
@@ -780,7 +806,7 @@ export async function chooseLichessPlayerOpeningMove(chess, options = {}) {
   if (!chess || !isOpeningBookEnabled(options)) return null;
 
   const config = getOpeningBookConfig(options);
-  const allowNetwork = options.allowNetwork ?? false;
+  const allowNetwork = options.allowNetwork ?? config.networkEnabled;
 
   const uciHistory = Array.isArray(options.uciHistory)
     ? options.uciHistory.filter(Boolean)
@@ -808,7 +834,7 @@ export async function chooseLichessPlayerOpeningMove(chess, options = {}) {
       play,
     });
 
-    if (!data) {
+    if (!data && allowNetwork) {
       data = await getPlayerOpeningPosition({
         ...config,
         color,

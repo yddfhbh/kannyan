@@ -4886,7 +4886,7 @@ await initializeTetrioLeagueCache({
 
 const openingBookCacheStatus = await loadLichessPlayerOpeningBookCache();
 console.log(
-  `[CHESS OPENING] loaded cacheEntries=${openingBookCacheStatus.cacheEntries} cachePath=${openingBookCacheStatus.cachePath} manualEntries=${openingBookCacheStatus.manualBookEntries} manualPlayer=${openingBookCacheStatus.manualBookPlayer ?? '-'} manualPath=${openingBookCacheStatus.manualBookPath}`
+  `[CHESS OPENING] loaded networkEnabled=${openingBookCacheStatus.networkEnabled ? 'yes' : 'no'} cacheEntries=${openingBookCacheStatus.cacheEntries} cachePath=${openingBookCacheStatus.cachePath} manualEntries=${openingBookCacheStatus.manualBookEntries} manualPlayer=${openingBookCacheStatus.manualBookPlayer ?? '-'} manualPath=${openingBookCacheStatus.manualBookPath}`
 );
 
 void warmLichessPlayerOpeningBook({
@@ -4908,6 +4908,11 @@ void warmLichessPlayerOpeningBook({
       console.log(
         `[CHESS OPENING] manual book active positions=${summary.manualBookPositions} path=${summary.manualBookPath}`
       );
+      return;
+    }
+
+    if (summary.networkDisabled) {
+      console.log('[CHESS OPENING] network opening fetch disabled');
       return;
     }
 
