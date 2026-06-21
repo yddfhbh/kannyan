@@ -36,6 +36,10 @@ const tetrioHeaders = {
   'X-Session-ID': 'discord-bot-tetrio-card',
 };
 const bioTextFontSize = 17;
+const bioSmallTextFontSize = bioTextFontSize - 1;
+const bioSmallTextScale = bioSmallTextFontSize / bioTextFontSize;
+const bioDotDxPx = -1.0;
+const bioAfterDotDxPx = -0.8;
 const bioCjkReferenceFontSize = 17;
 const bioCjkReferenceWidth = 16.375;
 const bioTextBaselineOffsetY = 45;
@@ -84,6 +88,9 @@ const graphemeSegmenter = typeof Intl !== 'undefined' && typeof Intl.Segmenter =
 const emojiPresentationPattern = /\p{Emoji_Presentation}/u;
 const extendedPictographicPattern = /\p{Extended_Pictographic}/u;
 const tetrioCardDebug = process.env.TETRIO_CARD_DEBUG === '1';
+
+
+
 
 function debugTetrioCard(label, data) {
   if (!tetrioCardDebug) return;
@@ -989,7 +996,8 @@ const cardHeight = svgHeight - 32;
   font-family: ${bioFontFamily};
   fill: #6faa6b;
   text-shadow: 0 1px 2px #07150a;
-  word-spacing: 0px;
+  letter-spacing: -0.28px;
+  word-spacing: -0.35px;
 
   stroke: rgba(255,255,255,0.22);
   stroke-width: 0.12px;
@@ -997,6 +1005,7 @@ const cardHeight = svgHeight - 32;
   stroke-linejoin: round;
   paint-order: stroke fill;
 }
+ 
     </style>
   </defs>
 
@@ -2311,17 +2320,58 @@ function renderBio(lines, emojiAssets, y, height, x = 36, width = 888) {
   </g>`;
 }
 
-function renderBioTextMarkup(value) {
-  return String(value ?? '')
-    .split('')
-    .map((char) => {
-      if (/[a-z_@#:/.]/.test(char)) {
-        return `<tspan font-family="Arial" font-weight="900" stroke="none">${escapeXml(char)}</tspan>`;
-      }
+function isBioSmallTextChar(char) {
+  return /[A-Za-z0-9]/.test(String(char ?? ''));
+}
 
-      return escapeXml(char);
-    })
-    .join('');
+function getBioInlineDx(char, prevWasDot) {
+  if (char === '.') {
+    return bioDotDxPx;
+  }
+
+  if (isBioSmallTextChar(char) && prevWasDot) {
+    return bioAfterDotDxPx;
+  }
+
+  return 0;
+}
+
+function getBioEndingDotState(value) {
+  let prevWasDot = false;
+
+  for (const char of String(value ?? '')) {
+    prevWasDot = char === '.';
+  }
+
+  return prevWasDot;
+}
+
+function renderBioTextMarkup(value) {
+  const text = String(value ?? '');
+  let markup = '';
+  let prevWasDot = false;
+
+  for (const char of text) {
+    const escaped = escapeXml(char);
+
+    if (char === '.') {
+      markup += `<tspan dx="${bioDotDxPx}px">${escaped}</tspan>`;
+      prevWasDot = true;
+      continue;
+    }
+
+    if (isBioSmallTextChar(char)) {
+      const dxAttr = prevWasDot ? ` dx="${bioAfterDotDxPx}px"` : '';
+      markup += `<tspan font-size="${bioSmallTextFontSize}"${dxAttr}>${escaped}</tspan>`;
+      prevWasDot = false;
+      continue;
+    }
+
+    prevWasDot = false;
+    markup += escaped;
+  }
+
+  return markup;
 }
 
 function renderBioLine(line, emojiAssets, x, baselineY) {
@@ -2329,6 +2379,7 @@ function renderBioLine(line, emojiAssets, x, baselineY) {
   let cursorX = x;
   let textRun = '';
   let textRunX = cursorX;
+  let prevWasDot = false;
 
   const flushTextRun = () => {
     if (!textRun) {
@@ -2336,25 +2387,34 @@ function renderBioLine(line, emojiAssets, x, baselineY) {
     }
 
     parts.push(
-  `<text x="${roundSvgNumber(textRunX)}" y="${roundSvgNumber(baselineY)}" class="bioText" font-size="${bioTextFontSize}" font-weight="800">${escapeXml(textRun)}</text>`
-);
+      `<text x="${roundSvgNumber(textRunX)}" y="${roundSvgNumber(baselineY)}" class="bioText" font-size="${bioTextFontSize}" font-weight="800">${renderBioTextMarkup(textRun)}</text>`
+    );
+
     textRun = '';
   };
 
   for (const grapheme of splitGraphemes(line)) {
     const emojiCode = getTwemojiCode(grapheme);
     const emoji = emojiCode ? emojiAssets?.[emojiCode] : null;
-    const graphemeWidth = getBioGraphemeWidth(grapheme);
+    const graphemeWidth = getBioGraphemeWidth(grapheme, null, {
+      prevWasDot,
+    });
 
     if (emoji) {
       flushTextRun();
-      parts.push(`<image href="${emoji}" x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(baselineY - bioEmojiSize + 2)}" width="${bioEmojiSize}" height="${bioEmojiSize}" preserveAspectRatio="xMidYMid meet"/>`);
+
+      parts.push(
+        `<image href="${emoji}" x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(baselineY - bioEmojiSize + 2)}" width="${bioEmojiSize}" height="${bioEmojiSize}" preserveAspectRatio="xMidYMid meet"/>`
+      );
+
+      prevWasDot = false;
     } else {
       if (!textRun) {
         textRunX = cursorX;
       }
 
       textRun += grapheme;
+      prevWasDot = getBioEndingDotState(grapheme);
     }
 
     cursorX += graphemeWidth;
@@ -3435,13 +3495,24 @@ async function wrapBioText(value, maxWidth = 864, options = {}) {
     }
 
     const hasJapaneseKana = containsJapaneseKana(paragraph);
-    const hasCjkText = containsCjkBioText(paragraph);
-    const paragraphMaxWidth = maxWidth + (
-      hasJapaneseKana
-        ? -japaneseWrapSafety
-        : generalWrapAllowance
-    );
-    const hasBreakSpace = /[ \t]/.test(paragraph);
+const hasCjkText = containsCjkBioText(paragraph);
+const hasBreakSpace = /[ \t]/.test(paragraph);
+
+// URL/디스코드 링크/영문이 섞인 바이오만 살짝 더 널널하게 잡음
+const hasUrlLikeText = /https?:\/\/|discord\.gg|www\./i.test(paragraph);
+const hasLatinText = /[A-Za-z0-9]/.test(paragraph);
+const hasMixedLatinCjk = hasCjkText && hasLatinText;
+
+// 처음엔 10~14 정도 추천
+const mixedLatinUrlWrapAllowance = hasUrlLikeText || hasMixedLatinCjk ? 12 : 0;
+
+const paragraphMaxWidth = maxWidth + (
+  hasJapaneseKana
+    ? -japaneseWrapSafety
+    : generalWrapAllowance + mixedLatinUrlWrapAllowance
+);
+
+
 
     const shouldUseMeasuredWrap = fontDataUri
       && paragraph.length <= measuredBioWrapMaxLength
@@ -3570,19 +3641,130 @@ async function measureBioTextWidthCached(text, fontSize, fontDataUri, measuremen
   }
 
   const globalCacheKey = [
+    'bio-inline-v2',
     fontSize,
     fontDataUri ? fontDataUri.length : 0,
     text,
   ].join('|');
+
   if (bioTextWidthCache.has(globalCacheKey)) {
     const width = bioTextWidthCache.get(globalCacheKey);
     measurementCache.set(text, width);
     return width;
   }
 
-  const width = await measureBioSampleWidth(text, fontSize, fontDataUri);
+  const rawWidth = await measureBioSampleWidth(text, fontSize, fontDataUri);
+  const width = adjustBioMeasuredWidthForInlineMarkup(text, rawWidth, fontSize);
+
   measurementCache.set(text, width);
   cacheMeasuredTextWidth(bioTextWidthCache, globalCacheKey, width);
+  return width;
+}
+
+function adjustBioMeasuredWidthForInlineMarkup(text, rawWidth, fontSize) {
+  if (!Number.isFinite(rawWidth) || rawWidth <= 0 || fontSize !== bioTextFontSize) {
+    return rawWidth;
+  }
+
+  const estimatedNormalWidth = getBioEstimatedTextWidth(text, null, {
+    applyInlineMarkup: false,
+  });
+
+  const estimatedVisualWidth = getBioEstimatedTextWidth(text, null, {
+    applyInlineMarkup: true,
+  });
+
+  if (!Number.isFinite(estimatedNormalWidth) || estimatedNormalWidth <= 0) {
+    return rawWidth;
+  }
+
+  return rawWidth * (estimatedVisualWidth / estimatedNormalWidth);
+}
+
+function getBioEstimatedTextWidth(text, hangulWidth = null, options = {}) {
+  const applyInlineMarkup = options.applyInlineMarkup === true;
+  let width = 0;
+  let prevWasDot = false;
+
+  for (const grapheme of splitGraphemes(text)) {
+    if (isBioEmojiGrapheme(grapheme)) {
+      width += bioEmojiSize;
+      prevWasDot = false;
+      continue;
+    }
+
+    for (const char of Array.from(grapheme)) {
+      const baseWidth = getBioCharWidth(char, hangulWidth);
+
+      if (applyInlineMarkup) {
+        const scaledWidth = isBioSmallTextChar(char)
+          ? baseWidth * bioSmallTextScale
+          : baseWidth;
+
+        width += Math.max(0, scaledWidth + getBioInlineDx(char, prevWasDot));
+      } else {
+        width += baseWidth;
+      }
+
+      prevWasDot = char === '.';
+    }
+  }
+
+  return width;
+}
+
+function wrapBioParagraphEstimated(paragraph, maxWidth, hangulWidth = null) {
+  const lines = [];
+  let line = '';
+  let lineWidth = 0;
+  let prevWasDot = false;
+
+  for (const grapheme of splitGraphemes(paragraph)) {
+    let graphemeWidth = getBioGraphemeWidth(grapheme, hangulWidth, {
+      prevWasDot,
+    });
+
+    if (line && lineWidth + graphemeWidth > maxWidth) {
+      lines.push(line.trimEnd());
+      line = '';
+      lineWidth = 0;
+      prevWasDot = false;
+
+      graphemeWidth = getBioGraphemeWidth(grapheme, hangulWidth, {
+        prevWasDot,
+      });
+    }
+
+    line += grapheme;
+    lineWidth += graphemeWidth;
+    prevWasDot = getBioEndingDotState(grapheme);
+  }
+
+  if (line) {
+    lines.push(line.trimEnd());
+  }
+
+  return lines;
+}
+
+function getBioGraphemeWidth(grapheme, hangulWidth = null, options = {}) {
+  if (isBioEmojiGrapheme(grapheme)) {
+    return bioEmojiSize;
+  }
+
+  let width = 0;
+  let prevWasDot = options.prevWasDot === true;
+
+  for (const char of Array.from(grapheme)) {
+    const baseWidth = getBioCharWidth(char, hangulWidth);
+    const scaledWidth = isBioSmallTextChar(char)
+      ? baseWidth * bioSmallTextScale
+      : baseWidth;
+
+    width += Math.max(0, scaledWidth + getBioInlineDx(char, prevWasDot));
+    prevWasDot = char === '.';
+  }
+
   return width;
 }
 
@@ -3598,37 +3780,6 @@ function cacheMeasuredTextWidth(cache, key, width) {
   cache.set(key, width);
 }
 
-function wrapBioParagraphEstimated(paragraph, maxWidth, hangulWidth = null) {
-  const lines = [];
-  let line = '';
-  let lineWidth = 0;
-
-  for (const grapheme of splitGraphemes(paragraph)) {
-    const graphemeWidth = getBioGraphemeWidth(grapheme, hangulWidth);
-    if (line && lineWidth + graphemeWidth > maxWidth) {
-      lines.push(line.trimEnd());
-      line = '';
-      lineWidth = 0;
-    }
-
-    line += grapheme;
-    lineWidth += graphemeWidth;
-  }
-
-  if (line) {
-    lines.push(line.trimEnd());
-  }
-
-  return lines;
-}
-
-function getBioGraphemeWidth(grapheme, hangulWidth = null) {
-  if (isBioEmojiGrapheme(grapheme)) {
-    return bioEmojiSize;
-  }
-
-  return Array.from(grapheme).reduce((sum, char) => sum + getBioCharWidth(char, hangulWidth), 0);
-}
 
 function scaleBioWidth(width) {
   return width * bioTextFontSize / 16;

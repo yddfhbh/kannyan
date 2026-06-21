@@ -113,6 +113,12 @@ import {
   inferChessBoardOrientation,
 } from './chess-orientation.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
+import {
+  chooseLichessPlayerOpeningMove,
+  isLichessPlayerOpeningBookWarmupRunning,
+  loadLichessPlayerOpeningBookCache,
+  warmLichessPlayerOpeningBook,
+} from './opening-book.js';
 
 
 const execFileAsync = promisify(execFile);
@@ -198,6 +204,7 @@ const chessBotMaxCandidateLossCp = 200;
 //실력조절용
 const chessBotBestMoveRate = 0.70;
 const chessBotSecondThirdRate = 0.20;
+const disabledEnvPattern = /^(?:0|false|off|no)$/i;
 
 const geminiPermanentMemory = new PermanentMemoryStore(geminiPermanentMemoryPath);
 let geminiMemoryLoaded = false;
@@ -1959,6 +1966,41 @@ async function chooseBotChessMove(chess) {
     };
   }
 
+  const legalUcis = legalMoves.map(moveToUci);
+  const openingBookEnabled = !disabledEnvPattern.test(
+    String(process.env.CHESS_OPENING_ENABLED ?? '').trim()
+  );
+
+  if (openingBookEnabled) {
+    try {
+      const openingMove = await chooseLichessPlayerOpeningMove(chess);
+
+      if (openingMove?.uci && legalUcis.includes(openingMove.uci)) {
+        const openingName = String(
+          openingMove?.opening?.name
+          ?? openingMove?.opening
+          ?? ''
+        ).trim();
+
+        console.log(
+          `[CHESS PLAY] selected=${openingMove.san || openingMove.uci} source=opening-book player=${openingMove.player} games=${openingMove.games ?? 0}${openingName ? ` opening=${openingName}` : ''}`
+        );
+
+        return {
+          selectedUci: openingMove.uci,
+          selectedSource: 'opening-book',
+          selectedRank: null,
+          selectedLossCp: null,
+          analysis: null,
+          stockfishSan: openingMove.san ?? '',
+        };
+      }
+    } catch (error) {
+      console.warn('[CHESS PLAY] opening book failed:');
+      console.warn(error);
+    }
+  }
+
   let analysis = null;
 
   try {
@@ -1975,7 +2017,6 @@ async function chooseBotChessMove(chess) {
     console.error(error);
   }
 
-  const legalUcis = legalMoves.map(moveToUci);
   const candidates = normalizeStockfishCandidates(chess, analysis, legalUcis);
   const bestCandidate = candidates.find((candidate) => candidate.rank === 1) ?? candidates[0];
 
@@ -2457,7 +2498,7 @@ await queueSaveChessPlayState();
       userDisplayName: session.userDisplayName,
       botMoveSan: botMove?.san ?? '',
       stockfishSan: choice.stockfishSan,
-      usedRandomMove: choice.selectedSource !== 'stockfish' && choice.selectedSource !== 'fallback-random',
+      usedRandomMove: /^candidate-|^fallback-random$/.test(choice.selectedSource),
       resultText: getChessResultText(chess),
       fen: chess.fen(),
     });
@@ -2616,9 +2657,7 @@ await queueSaveChessPlayState();
     userMoveSan: userMove.san,
     botMoveSan: botMove.san,
     stockfishSan: choice.stockfishSan,
-    usedRandomMove:
-      choice.selectedSource !== 'stockfish' &&
-      choice.selectedSource !== 'fallback-random',
+    usedRandomMove: /^candidate-|^fallback-random$/.test(choice.selectedSource),
     resultText,
     fen: chess.fen(),
   });
@@ -2840,6 +2879,13 @@ async function replyChessStartClarification(message) {
   });
 }
 
+async function replyChessOpeningWarmupBusy(message) {
+  await message.reply({
+    content: '바쁜 일이 있다냥. 잠시만 기달려달라냥',
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+}
+
 async function handleChessPlayMessage(message) {
   const content = String(message.content ?? '').trim();
 
@@ -2874,6 +2920,11 @@ async function handleChessPlayMessage(message) {
   }
 
   if (existingSession?.kind === 'pending-start-choice') {
+    if (isLichessPlayerOpeningBookWarmupRunning()) {
+      await replyChessOpeningWarmupBusy(message);
+      return true;
+    }
+
     return handlePendingChessStartChoice(message, key, text, existingSession);
   }
 
@@ -2881,6 +2932,11 @@ async function handleChessPlayMessage(message) {
     /(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
 
   if (wantsStart) {
+    if (isLichessPlayerOpeningBookWarmupRunning()) {
+      await replyChessOpeningWarmupBusy(message);
+      return true;
+    }
+
     if (existingSession && !isChessSessionOwner(message, existingSession)) {
       await message.reply({
         content: `${getChessSessionOwnerName(existingSession)} 님이 이미 이 채널에서 깐냥과 체스 대국 중이다냥. 새로 두고 싶으면 그 대국이 끝난 뒤에 시작해달라냥.`,
@@ -2934,6 +2990,11 @@ async function handleChessPlayMessage(message) {
     }
 
     return false;
+  }
+
+  if (isLichessPlayerOpeningBookWarmupRunning()) {
+    await replyChessOpeningWarmupBusy(message);
+    return true;
   }
 
   const chess = createChessFromPlaySession(existingSession);
@@ -3117,9 +3178,7 @@ async function handleChessPlayMessage(message) {
     userMoveSan: userMove.san,
     botMoveSan: botMove.san,
     stockfishSan: choice.stockfishSan,
-    usedRandomMove:
-      choice.selectedSource !== 'stockfish' &&
-      choice.selectedSource !== 'fallback-random',
+    usedRandomMove: /^candidate-|^fallback-random$/.test(choice.selectedSource),
     resultText,
     fen: chess.fen(),
   });
@@ -4842,6 +4901,35 @@ await initializeTetrioLeagueCache({
     console.log(`[TETR.IO LB] auto page=${page} users=${users} last=${lastUsername}`);
   },
 });
+
+const openingBookCacheStatus = await loadLichessPlayerOpeningBookCache();
+console.log(
+  `[CHESS OPENING] loaded entries=${openingBookCacheStatus.cacheEntries} path=${openingBookCacheStatus.cachePath}`
+);
+
+void warmLichessPlayerOpeningBook({
+  onProgress: ({ visited, maxNodes, lineKey, fromCache }) => {
+    if (visited === 1 || visited % 25 === 0 || visited === maxNodes) {
+      console.log(
+        `[CHESS OPENING] warmup visited=${visited}/${maxNodes} source=${fromCache ? 'cache-fallback' : 'network'} line=${lineKey || '<start>'}`
+      );
+    }
+  },
+})
+  .then((summary) => {
+    if (!summary?.enabled || !summary.started) {
+      console.log('[CHESS OPENING] warmup skipped');
+      return;
+    }
+
+    console.log(
+      `[CHESS OPENING] warmup done visited=${summary.positionsVisited} network=${summary.networkFetches} cacheFallbacks=${summary.cacheFallbacks} failures=${summary.failures} truncated=${summary.truncated ? 'yes' : 'no'} entries=${summary.cacheEntries}`
+    );
+  })
+  .catch((error) => {
+    console.error('[CHESS OPENING] warmup failed:');
+    console.error(error);
+  });
 
 client.login(DISCORD_TOKEN).catch((error) => {
   console.error('Failed to login to Discord:');

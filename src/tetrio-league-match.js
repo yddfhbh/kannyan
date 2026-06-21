@@ -1028,7 +1028,19 @@ function renderRecentLeagueHashMarkup(value) {
 }
 
 function renderLeagueNumberMarkup(value) {
-  return renderTetrioNumericTextMarkup(String(value ?? '-'));
+  const text = String(value ?? '-');
+  if (!text.includes('.')) {
+    return renderTetrioNumericTextMarkup(text);
+  }
+
+  const dotMarkup = '<tspan font-family="Arial" font-size="1.16em" font-weight="900" stroke="none" style="baseline-shift: -0.08em;">.</tspan>';
+  return text
+    .split('.')
+    .map((segment, index) => {
+      const prefix = index === 0 ? '' : dotMarkup;
+      return `${prefix}${renderTetrioNumericTextMarkup(segment)}`;
+    })
+    .join('');
 }
 
 function renderRecentLeagueResultMarkup(value) {
@@ -1385,7 +1397,7 @@ function renderRecentLeagueRow(row, x, y, width, height) {
     <text x="${vsValueX}" y="${contentCenterY}" text-anchor="middle" dominant-baseline="middle" class="statValue">${renderLeagueNumberMarkup(row.vs)}</text>
     <text x="${appX}" y="${contentCenterY}" text-anchor="middle" dominant-baseline="middle" class="statValue">${renderLeagueNumberMarkup(row.app)}</text>
     <text x="${dateX}" y="${contentCenterY}" text-anchor="end" dominant-baseline="middle" class="statDate">${escapeXml(row.playedAtText)}</text>
-    <text x="${deltaX}" y="${contentCenterY}" text-anchor="end" dominant-baseline="middle" class="${deltaClass}">${escapeXml(row.trDelta === '-' ? '-' : `${row.trDelta} TR`)}</text>
+    <text x="${deltaX}" y="${contentCenterY}" text-anchor="end" dominant-baseline="middle" class="${deltaClass}">${renderLeagueNumberMarkup(row.trDelta === '-' ? '-' : `${row.trDelta} TR`)}</text>
   </g>`;
 }
 
