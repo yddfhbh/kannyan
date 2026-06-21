@@ -43,6 +43,7 @@ let warmupPromise = null;
 let manualBookLoaded = false;
 let loadedManualBookPath = '';
 let manualBookMeta = null;
+let manualBookLastModifiedMs = -1;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -287,10 +288,19 @@ function normalizeManualBookOpening(opening) {
 
 async function loadManualBook(manualBookPath) {
   const resolvedPath = path.resolve(manualBookPath);
+  let stats = null;
+
+  try {
+    stats = await fs.stat(resolvedPath);
+  } catch {
+    stats = null;
+  }
 
   if (
     manualBookLoaded
     && loadedManualBookPath === resolvedPath
+    && stats
+    && Number(stats.mtimeMs) === manualBookLastModifiedMs
     && manualBookPositions.size > 0
   ) {
     return;
@@ -303,6 +313,13 @@ async function loadManualBook(manualBookPath) {
 
   manualBookLoaded = true;
   loadedManualBookPath = resolvedPath;
+  manualBookLastModifiedMs = Number(stats?.mtimeMs ?? -1);
+
+  if (!stats) {
+    manualBookPositions.clear();
+    manualBookMeta = null;
+    return;
+  }
 
   try {
     const raw = await fs.readFile(resolvedPath, 'utf8');

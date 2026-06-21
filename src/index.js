@@ -1995,6 +1995,10 @@ async function chooseBotChessMove(chess) {
           stockfishSan: openingMove.san ?? '',
         };
       }
+
+      console.log(
+        `[CHESS PLAY] opening-book miss fen="${chess.fen()}" history="${chess.history().join(' ')}" candidate=${openingMove?.uci ?? 'none'}`
+      );
     } catch (error) {
       console.warn('[CHESS PLAY] opening book failed:');
       console.warn(error);
@@ -4882,7 +4886,7 @@ await initializeTetrioLeagueCache({
 
 const openingBookCacheStatus = await loadLichessPlayerOpeningBookCache();
 console.log(
-  `[CHESS OPENING] loaded cacheEntries=${openingBookCacheStatus.cacheEntries} cachePath=${openingBookCacheStatus.cachePath} manualEntries=${openingBookCacheStatus.manualBookEntries} manualPath=${openingBookCacheStatus.manualBookPath}`
+  `[CHESS OPENING] loaded cacheEntries=${openingBookCacheStatus.cacheEntries} cachePath=${openingBookCacheStatus.cachePath} manualEntries=${openingBookCacheStatus.manualBookEntries} manualPlayer=${openingBookCacheStatus.manualBookPlayer ?? '-'} manualPath=${openingBookCacheStatus.manualBookPath}`
 );
 
 void warmLichessPlayerOpeningBook({
