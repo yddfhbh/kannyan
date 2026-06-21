@@ -56,6 +56,32 @@ export function parseChessImageAnalysisPrompt(content) {
   };
 }
 
+function getPromptTurnHint(prompt) {
+  const white = whiteTurnPattern.test(prompt);
+  const black = blackTurnPattern.test(prompt);
+  return white === black ? null : white ? 'w' : 'b';
+}
+
+function parseFenExtractionPrompt(content) {
+  const directFenMatch = String(content ?? '').trim().match(/^%fen(?:\s+(.+))?$/i);
+  if (!directFenMatch) {
+    return null;
+  }
+
+  const prompt = String(directFenMatch[1] ?? '').trim();
+  if (
+    !prompt
+    || !/(?:추출|뽑(?:아|아서)?|읽(?:어|어줘)?|인식|알려(?:줘)?|보여(?:줘)?|적어(?:줘)?|써줘|extract|read|tell)/i.test(prompt)
+  ) {
+    return null;
+  }
+
+  return {
+    prompt,
+    turn: getPromptTurnHint(prompt),
+  };
+}
+
 export function normalizeDirectFen(input) {
   const fields = String(input ?? '').trim().split(/\s+/).filter(Boolean);
   const fen = fields.length === 4
@@ -83,6 +109,11 @@ export function normalizeDirectFen(input) {
 export async function handleChessAnalysisMessage(message, options = {}) {
   const directFenMatch = String(message.content ?? '').trim().match(/^%fen(?:\s+(.+))?$/i);
   if (directFenMatch) {
+    const extractionPrompt = parseFenExtractionPrompt(message.content);
+    if (extractionPrompt) {
+      return handleFenExtractionMessage(message, extractionPrompt, options);
+    }
+
     if (!directFenMatch[1]) {
       await replyWithoutPing(
         message,
@@ -212,6 +243,100 @@ fen = validateAnalyzableChessFen(recognizedFen, prompt.turn);
     createReply: options.createReply,
   });
   return true;
+}
+
+async function handleFenExtractionMessage(message, prompt, options = {}) {
+  const attachment = await resolveChessImageAttachment(message);
+  if (!attachment) {
+    await replyWithoutPing(
+      message,
+      'FEN을 추출할 체스판 이미지를 첨부하거나 그 이미지를 답글로 지정해달라냥.'
+    );
+    return true;
+  }
+
+  await message.channel.sendTyping().catch(() => {});
+
+  let temporaryImage = null;
+
+  try {
+    temporaryImage = await downloadChessImageAttachment(attachment);
+    const fen = await extractFenFromImage(message, temporaryImage.filePath, prompt, options);
+
+    if (typeof options.onFenExtracted === 'function') {
+      try {
+        await options.onFenExtracted({
+          message,
+          fen,
+          boardFen: String(fen).trim().split(/\s+/)[0] ?? '',
+        });
+      } catch (error) {
+        console.error('Failed to remember extracted chess FEN:');
+        console.error(error);
+      }
+    }
+
+    await replyWithoutPing(message, `추출한 FEN은 \`${fen}\` 이다냥.`);
+  } catch (error) {
+    console.error('Chess FEN extraction failed:');
+    console.error(error);
+    await replyWithoutPing(
+      message,
+      '이미지에서 FEN을 추출하지 못했다냥. 체스판이 더 잘 보이게 다시 보내주거나 `%fen <FEN>`으로 직접 입력해달라냥.'
+    );
+  } finally {
+    await temporaryImage?.cleanup();
+  }
+
+  return true;
+}
+
+async function extractFenFromImage(message, imagePath, prompt, options = {}) {
+  if (typeof options.extractFenFromImage === 'function') {
+    return normalizeDirectFen(
+      await options.extractFenFromImage({
+        message,
+        imagePath,
+        turn: prompt.turn,
+      })
+    );
+  }
+
+  if (!prompt.turn) {
+    throw new Error('FEN extraction needs a side-to-move hint or custom extractor');
+  }
+
+  let detectedBoardOrientation = null;
+
+  if (typeof options.detectBoardOrientation === 'function') {
+    try {
+      detectedBoardOrientation = await options.detectBoardOrientation({
+        message,
+        imagePath,
+        turn: prompt.turn,
+      });
+    } catch (error) {
+      console.error('Chess board orientation detection failed during FEN extraction:');
+      console.error(error);
+    }
+  }
+
+  const boardOrientation =
+    detectedBoardOrientation === 'b'
+      ? 'b'
+      : detectedBoardOrientation === 'w'
+        ? 'w'
+        : null;
+
+  if (!boardOrientation) {
+    throw new Error('Chess board orientation could not be detected');
+  }
+
+  const recognizedFen = await (options.imageToFen ?? imageToFen)(imagePath, prompt.turn, {
+    boardOrientation,
+  });
+
+  return normalizeDirectFen(recognizedFen);
 }
 
 async function analyzeAndReply(message, fen, options = {}) {

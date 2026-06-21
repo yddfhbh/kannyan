@@ -263,7 +263,7 @@ if [ ! -f data/lichess-puzzle-pool.jsonl ]; then
     curl -L https://database.lichess.org/lichess_db_puzzle.csv.zst -o data/lichess_db_puzzle.csv.zst
   fi
 
-  LICHESS_PUZZLE_MIN_RATING=2200 \
+  LICHESS_PUZZLE_MIN_RATING=2600 \
   LICHESS_PUZZLE_MAX_RATING=3400 \
   LICHESS_PUZZLE_MAX_RD=120 \
   LICHESS_PUZZLE_MIN_POPULARITY=60 \

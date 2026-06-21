@@ -1096,6 +1096,13 @@ if (chessAnalysisFollowupHandled) {
   createReply: createNaturalChessAnalysisReply,
   recognizeFenFallback: recognizeChessFenWithGemini,
   detectBoardOrientation: detectChessBoardOrientationWithGemini,
+  extractFenFromImage: extractChessFenFromImage,
+  onFenExtracted({ message: extractionMessage, fen, boardFen }) {
+    rememberRecentChessAnalysis(extractionMessage, {
+      fen,
+      boardFen,
+    });
+  },
 });
   if (chessAnalysisHandled) {
     return;
@@ -3707,6 +3714,82 @@ async function recognizeChessFenWithGemini({ message, turn }) {
   }
 
   return normalizeDirectFen(`${boardFen} ${sideToMove} - - 0 1`);
+}
+
+async function extractChessFenFromImage({ message, imagePath, turn }) {
+  const turnHint = turn === 'b' ? 'b' : turn === 'w' ? 'w' : null;
+  let localBoardFen = '';
+
+  try {
+    const boardOrientation = await detectChessBoardOrientationWithGemini({
+      message,
+      imagePath,
+    });
+
+    if (boardOrientation === 'w' || boardOrientation === 'b') {
+      const localFen = await imageToFen(imagePath, turnHint ?? 'w', {
+        boardOrientation,
+      });
+      localBoardFen = String(localFen ?? '').trim().split(/\s+/)[0] ?? '';
+    }
+  } catch (error) {
+    console.error('Local chess FEN extraction failed:');
+    console.error(error);
+  }
+
+  let recognizedBoardFen = '';
+  let recognizedTurn = null;
+
+  if (geminiApiKeys.length > 0) {
+    try {
+      const imageParts = await buildGeminiImagePartsFromLocalFile(imagePath);
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const recognition = await recognizeChessPositionForConversation(imageParts, {
+          retry: attempt > 0,
+        });
+
+        if (recognition?.isChessboard && recognition.boardFen) {
+          recognizedBoardFen = recognition.boardFen;
+          recognizedTurn = recognition.turn === 'w' || recognition.turn === 'b'
+            ? recognition.turn
+            : null;
+          break;
+        }
+      }
+    } catch (error) {
+      console.error('Gemini chess FEN extraction failed:');
+      console.error(error);
+    }
+  }
+
+  const boardFen = localBoardFen || recognizedBoardFen;
+  const sideToMove = turnHint ?? recognizedTurn;
+
+  if (!boardFen || !sideToMove) {
+    throw new Error('Chess FEN extraction could not determine a full FEN');
+  }
+
+  return normalizeDirectFen(`${boardFen} ${sideToMove} - - 0 1`);
+}
+
+async function buildGeminiImagePartsFromLocalFile(imagePath) {
+  const imageData = await fs.readFile(imagePath);
+  if (imageData.length === 0) {
+    return [];
+  }
+
+  return [bufferToGeminiImagePart(imageData, getImageContentTypeFromPath(imagePath))];
+}
+
+function getImageContentTypeFromPath(imagePath) {
+  switch (path.extname(String(imagePath ?? '')).toLowerCase()) {
+    case '.png':
+      return 'image/png';
+    case '.webp':
+      return 'image/webp';
+    default:
+      return 'image/jpeg';
+  }
 }
 
 async function recognizeChessPositionForConversation(imageParts, options = {}) {
@@ -8009,6 +8092,7 @@ function getHelpMessage() {
     '`/라이브레이팅 종류:<클래시컬|블리츠|래피드> 사람수:<1~50>` - 2700chess 라이브레이팅을 이미지 카드로 보여준다냥.',
     '체스판 이미지와 `%백선`, `%흑선`, `%분석해봐`, `%답이 뭐야` 같은 말을 보내면 FEN으로 읽고 Stockfish 최선 수를 보여준다냥.',
     '`%fen <FEN>` - 직접 입력한 FEN을 Stockfish로 분석한다냥.',
+    '`%fen 추출해줘` - 체스판 이미지에서 FEN을 읽어서 그대로 알려준다냥.',
     '팁: 슬래시 명령어는 옵션 선택이 편하고, `%...` 명령어는 채팅에 바로 입력해서 빠르게 쓸 수 있다냥.',
     '`/퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%qp 닉네임 [기록 번호]` - QUICK PLAY 고도 카드를 보여준다냥.',
     '`/익스퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%exqp 닉네임 [기록 번호]` - EXPERT QUICK PLAY 고도 카드를 보여준다냥.',
