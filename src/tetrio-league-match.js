@@ -981,29 +981,17 @@ function renderLeagueUsernameMarkup(value, options = {}) {
     ? Number(options.underscoreOffsetEm)
     : -0.08;
   let markup = '';
-  let currentOffsetEm = 0;
 
   for (const char of text) {
-    const targetOffsetEm = char === '_' ? underscoreOffsetEm : 0;
-    const deltaEm = targetOffsetEm - currentOffsetEm;
-    const dy = Math.abs(deltaEm) > 0.0001
-      ? ` dy="${roundSvgNumber(deltaEm)}em"`
-      : '';
-
     if (shouldUseArialFallbackForHunDin(char)) {
       const fontSizeAttr = char === '_' ? ' font-size="1.05em"' : '';
-      markup += `<tspan${dy} font-family="Arial"${fontSizeAttr} font-weight="900" stroke="none">${escapeXml(char)}</tspan>`;
+      const styleAttr = char === '_' && Math.abs(underscoreOffsetEm) > 0.0001
+        ? ` style="baseline-shift: ${roundSvgNumber(underscoreOffsetEm)}em;"`
+        : '';
+      markup += `<tspan font-family="Arial"${fontSizeAttr} font-weight="900" stroke="none"${styleAttr}>${escapeXml(char)}</tspan>`;
     } else {
-      markup += dy
-        ? `<tspan${dy}>${escapeXml(char)}</tspan>`
-        : escapeXml(char);
+      markup += escapeXml(char);
     }
-
-    currentOffsetEm = targetOffsetEm;
-  }
-
-  if (Math.abs(currentOffsetEm) > 0.0001) {
-    markup += `<tspan dy="${roundSvgNumber(-currentOffsetEm)}em">&#8203;</tspan>`;
   }
 
   return markup;
@@ -1013,11 +1001,12 @@ function renderRecentLeagueHeaderTitleMarkup(username) {
   const raw = String(username ?? '').toUpperCase();
   const headerWordGap = 22;
   const headerDotGap = 14;
+  const headerUnderscoreOffsetEm = -0.03;
   if (!raw) {
     return `<tspan class="headerWord">LEAGUE</tspan><tspan dx="${headerWordGap}" class="headerWord">RECENT</tspan>`;
   }
 
-  return `<tspan class="headerName">${renderLeagueUsernameMarkup(raw)}</tspan><tspan dx="${headerDotGap}" class="headerDot">&#8226;</tspan><tspan dx="${headerDotGap}" class="headerWord">LEAGUE</tspan><tspan dx="${headerWordGap}" class="headerWord">RECENT</tspan>`;
+  return `<tspan class="headerName">${renderLeagueUsernameMarkup(raw, { underscoreOffsetEm: headerUnderscoreOffsetEm })}</tspan><tspan dx="${headerDotGap}" class="headerDot">&#8226;</tspan><tspan dx="${headerDotGap}" class="headerWord">LEAGUE</tspan><tspan dx="${headerWordGap}" class="headerWord">RECENT</tspan>`;
 }
 
 function renderRecentLeagueVsTextMarkup(opponent) {
@@ -1027,7 +1016,7 @@ function renderRecentLeagueVsTextMarkup(opponent) {
     return `<tspan class="vsLabel">VS</tspan><tspan dx="${labelGap}">-</tspan>`;
   }
 
-  return `<tspan class="vsLabel">VS</tspan><tspan dx="${labelGap}">&#8203;</tspan><tspan class="vsName">${renderLeagueUsernameMarkup(raw, { underscoreOffsetEm: 0 })}</tspan>`;
+  return `<tspan class="vsLabel">VS</tspan><tspan dx="${labelGap}">&#8203;</tspan><tspan class="vsName">${renderLeagueUsernameMarkup(raw)}</tspan>`;
 }
 
 function renderRecentLeagueHashMarkup(value) {
@@ -1273,21 +1262,24 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       .resultText {
         fill: #0d1208;
         font-size: 20px;
-        font-weight: 950;
+        font-weight: 1000;
         stroke: rgba(13,18,8,0.5);
-        stroke-width: 0.72px;
+        stroke-width: 0.8px;
         paint-order: stroke fill;
       }
       .resultTextLoss {
         fill: #0a0b15;
         stroke: rgba(10,11,21,0.54);
-        stroke-width: 0.72px;
+        stroke-width: 0.8px;
         paint-order: stroke fill;
       }
       .vsText {
         fill: #edf8df;
         font-size: 16px;
-        font-weight: 950;
+        font-weight: 980;
+        stroke: rgba(237,248,223,0.12);
+        stroke-width: 0.34px;
+        paint-order: stroke fill;
       }
       .vsLabel {
         fill: #A7E08D;
@@ -1295,24 +1287,33 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       .vsName {
         font-size: 19.5px;
         font-weight: 1000;
-        stroke: rgba(237,248,223,0.22);
-        stroke-width: 0.5px;
+        stroke: rgba(237,248,223,0.28);
+        stroke-width: 0.56px;
         paint-order: stroke fill;
       }
       .statValue {
         fill: #9df18b;
         font-size: 16px;
-        font-weight: 900;
+        font-weight: 940;
+        stroke: rgba(157,241,139,0.12);
+        stroke-width: 0.32px;
+        paint-order: stroke fill;
       }
       .statDate {
         fill: #99df8a;
         font-size: 14px;
-        font-weight: 900;
+        font-weight: 930;
+        stroke: rgba(153,223,138,0.12);
+        stroke-width: 0.3px;
+        paint-order: stroke fill;
       }
       .deltaValue {
         fill: #f1fff1;
         font-size: 16px;
-        font-weight: 950;
+        font-weight: 980;
+        stroke: rgba(241,255,241,0.14);
+        stroke-width: 0.32px;
+        paint-order: stroke fill;
       }
       .deltaPositive {
         fill: #ffd84d;
@@ -1326,7 +1327,7 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       .rowIndex {
         fill: #000000;
         font-size: 15px;
-        font-weight: 900;
+        font-weight: 950;
       }
       .footer {
         fill: #62845f;
