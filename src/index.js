@@ -107,6 +107,7 @@ import {
   createUngroundedChessReply,
   looksLikeChessTopicPrompt,
   shouldForceWebSearchForChessPrompt,
+  shouldRequireStockfishForChessPrompt,
 } from './chess-grounding.js';
 import {
   getChessOrientationProbeRegions,
@@ -1836,7 +1837,8 @@ async function createActiveChessDiscussionReply(message, chess, session) {
     const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
 
     if (
-      /(?:백인|흑인)\s*사용자/.test(answer)
+      !looksLikeConsistentKannyangSpeech(answer)
+      || /(?:백인|흑인)\s*사용자/.test(answer)
       || /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
       || looksLikeAsciiChessBoard(answer)
     ) {
@@ -1845,6 +1847,31 @@ async function createActiveChessDiscussionReply(message, chess, session) {
 
     return answer || fallback;
   });
+}
+
+function looksLikeActiveChessDiscussionText(text) {
+  const value = String(text ?? '')
+    .trim()
+    .replace(/^%+/, '')
+    .trim();
+
+  if (!value) {
+    return false;
+  }
+
+  if (looksLikeChessMoveSequenceQuestion(value) || /[?？]/.test(value)) {
+    return true;
+  }
+
+  return /(?:왜|무슨\s*(?:뜻|의미|수)|어떻게|설명|해설|분석|평가|후보수|최선수|베스트\s*무브|좋은\s*수|왜\s*좋|실수|블런더|이유|의도|노림수|전략|포지션|판세|지금\s*(?:상황|포지션)|방금\s*수|그\s*수|이\s*수|내\s*수|네\s*수)/i.test(value);
+}
+
+function buildActiveChessInputClarificationReply(chess, session) {
+  if (chess.turn() === session.userColor) {
+    return '그 입력은 체스 수나 질문으로 읽기 어렵다냥. 수를 두려면 `%e4`, `%Nf3`, `%O-O`처럼 보내고, 설명이 필요하면 왜 좋은 수인지 같이 물어봐달라냥.';
+  }
+
+  return '그 입력은 체스 수나 질문으로 읽기 어렵다냥. 보드를 보려면 `%보드`나 `%fen`처럼 말하고, 설명이 필요하면 방금 수가 왜 좋았는지 같이 물어봐달라냥.';
 }
 
 async function replyFinishedChessGamePgn(message, key, existingSession = null) {
@@ -2373,7 +2400,8 @@ async function createNaturalChessDrawReply(message, facts = {}) {
     const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
 
     if (
-      /(?:백인|흑인)\s*사용자/.test(answer) ||
+      !looksLikeConsistentKannyangSpeech(answer)
+      || /(?:백인|흑인)\s*사용자/.test(answer) ||
       /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer) ||
       looksLikeAsciiChessBoard(answer)
     ) {
@@ -2419,13 +2447,14 @@ async function createNaturalChessStopReply(message, facts = {}) {
 
     const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
 
-   if (
-  /(?:백인|흑인)\s*사용자/.test(answer) ||
-  /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer) ||
-  looksLikeAsciiChessBoard(answer)
-) {
-  return fallback;
-}
+    if (
+      !looksLikeConsistentKannyangSpeech(answer)
+      || /(?:백인|흑인)\s*사용자/.test(answer)
+      || /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
+      || looksLikeAsciiChessBoard(answer)
+    ) {
+      return fallback;
+    }
 
     return answer || fallback;
   });
@@ -2475,7 +2504,8 @@ async function createNaturalChessPlayReply(message, facts) {
   const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
 
   if (
-    /(?:백인|흑인)\s*사용자/.test(answer)
+    !looksLikeConsistentKannyangSpeech(answer)
+    || /(?:백인|흑인)\s*사용자/.test(answer)
     || /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
     || looksLikeAsciiChessBoard(answer)
   ) {
@@ -3251,10 +3281,19 @@ async function handleChessPlayMessage(message) {
       return true;
     }
 
-    const reply = await createActiveChessDiscussionReply(message, chess, existingSession);
+    if (looksLikeActiveChessDiscussionText(text)) {
+      const reply = await createActiveChessDiscussionReply(message, chess, existingSession);
+
+      await message.reply({
+        content: reply,
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+
+      return true;
+    }
 
     await message.reply({
-      content: reply,
+      content: buildActiveChessInputClarificationReply(chess, existingSession),
       allowedMentions: { parse: [], repliedUser: false },
     });
 
@@ -3403,6 +3442,37 @@ function normalizeKannyangSpeech(text) {
     .trim();
 
   return normalized || '냥.';
+}
+
+function looksLikeConsistentKannyangSpeech(text) {
+  const value = String(text ?? '').trim();
+
+  if (!value) {
+    return false;
+  }
+
+  const sentences = value
+    .split(/\n+|(?<=[.!?。！？])\s+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  if (sentences.length === 0) {
+    return false;
+  }
+
+  return sentences.every((sentence) => {
+    const normalizedSentence = sentence
+      .replace(/\s+/g, ' ')
+      .replace(/[.!?。！？]+$/g, '')
+      .replace(/[`*_~"'”’)\]]+$/g, '')
+      .trim();
+
+    if (!normalizedSentence) {
+      return true;
+    }
+
+    return /냥$/u.test(normalizedSentence);
+  });
 }
 
 function isDirectBotMention(message) {
@@ -6505,8 +6575,9 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       }
     }
 
-    const requireStockfishForChess = prioritizeChessImageAnalysis
-      || chessAnalysis.detectedChessboard;
+    const requireStockfishForChess = shouldRequireStockfishForChessPrompt(rawPrompt, {
+      detectedChessboard: chessAnalysis.detectedChessboard,
+    });
     const hasChessGrounding = Boolean(chessAnalysis.context)
       || (isChessPrompt && Array.isArray(webSearchData?.results) && webSearchData.results.length > 0);
 

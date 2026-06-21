@@ -25,6 +25,14 @@ export function shouldForceWebSearchForChessPrompt(text, options = {}) {
     && !options.prioritizeChessImageAnalysis;
 }
 
+export function shouldRequireStockfishForChessPrompt(text, options = {}) {
+  if (options.detectedChessboard) {
+    return true;
+  }
+
+  return looksLikeChessTopicPrompt(text);
+}
+
 export function buildChessGroundedPrompt(prompt, options = {}) {
   const mode = options.mode === 'web' ? 'web' : 'stockfish';
 

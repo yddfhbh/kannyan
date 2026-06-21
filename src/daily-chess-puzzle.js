@@ -233,6 +233,12 @@ async function startDailyPuzzleForUser({
     index: previousSession?.index ?? 0,
     startedAtMs: keepStartedAt,
     sourceGuildId: announcementConfig.guildId,
+    sourceGuildDisplayName: await resolveDailyPuzzleUserDisplayName(
+      client,
+      user.id,
+      announcementConfig.guildId,
+      user.globalName ?? user.username ?? user.tag
+    ),
     sourceChannelId: announcementConfig.channelId,
     rating: puzzle.rating,
     themes: puzzle.themes,
@@ -404,6 +410,12 @@ async function recordDailyPuzzleSolve(user, session, elapsedMs) {
   loadedState.solved[session.dateKey][user.id] = {
     userId: user.id,
     userTag: user.tag,
+    guildDisplayName: normalizeDailyPuzzleDisplayName(
+      session.sourceGuildDisplayName
+        ?? user.globalName
+        ?? user.username
+        ?? user.tag
+    ),
     elapsedMs,
     solvedAt: new Date().toISOString(),
     guildId: session.sourceGuildId,
@@ -527,7 +539,7 @@ async function checkDailyPuzzlePosts(client) {
   });
 
   const yesterdayKey = addDaysToDateKey(dateKey, -1);
-  const content = createDailyPostContent(loadedState, puzzle, dateKey, yesterdayKey);
+  const content = await createDailyPostContent(loadedState, client, puzzle, dateKey, yesterdayKey);
 
   for (const [guildId, config] of targets) {
     const channel = await client.channels.fetch(config.channelId).catch((error) => {
@@ -569,13 +581,13 @@ async function checkDailyPuzzlePosts(client) {
   }
 }
 
-function createDailyPostContent(loadedState, puzzle, dateKey, yesterdayKey) {
+async function createDailyPostContent(loadedState, client, puzzle, dateKey, yesterdayKey) {
   return [
     `**${formatKoreanDateKey(dateKey)} 일일 체스 퍼즐이다냥!**`,
     `${puzzle.turnText} 차례다냥. 난이도는 ${puzzle.rating}이다냥.`,
     '풀려면 %일일퍼즐을 입력하라냥.',
     '',
-    createLeaderboardText(loadedState, yesterdayKey),
+    await createLeaderboardText(loadedState, client, yesterdayKey),
   ].join('\n');
 }
 
@@ -593,7 +605,7 @@ function parseOptionalInteger(value, fallback) {
   return Math.trunc(number);
 }
 
-function createLeaderboardText(loadedState, dateKey) {
+export async function createLeaderboardText(loadedState, client, dateKey) {
   const records = Object.values(loadedState.solved[dateKey] ?? {}).sort(
     (a, b) => a.elapsedMs - b.elapsedMs
   );
@@ -602,9 +614,10 @@ function createLeaderboardText(loadedState, dateKey) {
     return `**어제의 리더보드 (${formatKoreanDateKey(dateKey)})**\n기록이 없다냥.`;
   }
 
-  const lines = records.slice(0, 10).map((record, index) => {
-    return `${index + 1}. <@${record.userId}> - ${formatElapsed(record.elapsedMs)}`;
-  });
+  const lines = await Promise.all(records.slice(0, 10).map(async (record, index) => {
+    const displayName = await getDailyPuzzleLeaderboardDisplayName(client, record);
+    return `${index + 1}. ${displayName} - ${formatElapsed(record.elapsedMs)}`;
+  }));
 
   return [
     `**어제의 리더보드 (${formatKoreanDateKey(dateKey)}, 전체 서버 통합)**`,
@@ -1028,6 +1041,7 @@ async function persistDailyPuzzleSession(session) {
     index: session.index,
     startedAtMs: session.startedAtMs,
     sourceGuildId: session.sourceGuildId,
+    sourceGuildDisplayName: session.sourceGuildDisplayName,
     sourceChannelId: session.sourceChannelId,
     rating: session.rating,
     themes: session.themes,
@@ -1181,6 +1195,56 @@ function formatElapsed(ms) {
   return [hours, minutes, seconds]
     .map((value) => String(value).padStart(2, '0'))
     .join(':');
+}
+
+function normalizeDailyPuzzleDisplayName(value) {
+  return String(value ?? '').trim();
+}
+
+async function getDailyPuzzleLeaderboardDisplayName(client, record) {
+  const storedName = normalizeDailyPuzzleDisplayName(record?.guildDisplayName);
+  if (storedName) {
+    return storedName;
+  }
+
+  const fetchedName = await resolveDailyPuzzleUserDisplayName(
+    client,
+    record?.userId,
+    record?.guildId,
+    record?.userTag ?? record?.userId ?? 'User'
+  );
+
+  const normalizedFetchedName = normalizeDailyPuzzleDisplayName(fetchedName);
+  if (normalizedFetchedName && record && typeof record === 'object') {
+    record.guildDisplayName = normalizedFetchedName;
+  }
+
+  return normalizedFetchedName || record?.userTag || record?.userId || 'User';
+}
+
+async function resolveDailyPuzzleUserDisplayName(client, userId, guildId, fallback = '') {
+  const fallbackName = normalizeDailyPuzzleDisplayName(fallback) || String(userId ?? 'User');
+
+  if (!client || !userId || !guildId) {
+    return fallbackName;
+  }
+
+  try {
+    const guild = client.guilds?.cache?.get(guildId) ?? await client.guilds?.fetch?.(guildId);
+    if (!guild) {
+      return fallbackName;
+    }
+
+    const member = guild.members?.cache?.get(userId) ?? await guild.members?.fetch?.(userId);
+    return normalizeDailyPuzzleDisplayName(
+      member?.displayName
+        ?? member?.user?.globalName
+        ?? member?.user?.username
+        ?? fallbackName
+    ) || fallbackName;
+  } catch {
+    return fallbackName;
+  }
 }
 
 function createPostKey(guildId, dateKey) {
