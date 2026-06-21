@@ -18,7 +18,8 @@ $includePaths = @(
 )
 
 $optionalIncludePaths = @(
-  "data/tetrio-league-cache.json"
+  "data/tetrio-league-cache.json",
+  "data/lichess-player-opening-manual-book.json"
 )
 
 $deployScript = @'
@@ -172,6 +173,11 @@ fi
 cd "$APP_DIR"
 
 echo "[7/12] Linking persistent data dir..."
+if [ -f data/lichess-player-opening-manual-book.json ]; then
+  cp -f data/lichess-player-opening-manual-book.json "$DATA_DIR"/
+  echo "Seeded lichess-player-opening-manual-book.json into persistent data dir."
+fi
+
 rm -rf data
 ln -sfn "$DATA_DIR" data
 

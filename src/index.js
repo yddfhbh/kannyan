@@ -1981,14 +1981,15 @@ async function chooseBotChessMove(chess) {
           ?? openingMove?.opening
           ?? ''
         ).trim();
+        const openingSource = openingMove?.fromManualBook ? 'manual-opening-book' : 'opening-book';
 
         console.log(
-          `[CHESS PLAY] selected=${openingMove.san || openingMove.uci} source=opening-book player=${openingMove.player} games=${openingMove.games ?? 0}${openingName ? ` opening=${openingName}` : ''}`
+          `[CHESS PLAY] selected=${openingMove.san || openingMove.uci} source=${openingSource} player=${openingMove.player} games=${openingMove.games ?? 0}${openingName ? ` opening=${openingName}` : ''}`
         );
 
         return {
           selectedUci: openingMove.uci,
-          selectedSource: 'opening-book',
+          selectedSource: openingMove?.fromManualBook ? 'manual-opening-book' : 'opening-book',
           selectedRank: null,
           selectedLossCp: null,
           analysis: null,
@@ -4904,7 +4905,7 @@ await initializeTetrioLeagueCache({
 
 const openingBookCacheStatus = await loadLichessPlayerOpeningBookCache();
 console.log(
-  `[CHESS OPENING] loaded entries=${openingBookCacheStatus.cacheEntries} path=${openingBookCacheStatus.cachePath}`
+  `[CHESS OPENING] loaded cacheEntries=${openingBookCacheStatus.cacheEntries} cachePath=${openingBookCacheStatus.cachePath} manualEntries=${openingBookCacheStatus.manualBookEntries} manualPath=${openingBookCacheStatus.manualBookPath}`
 );
 
 void warmLichessPlayerOpeningBook({
@@ -4917,7 +4918,19 @@ void warmLichessPlayerOpeningBook({
   },
 })
   .then((summary) => {
-    if (!summary?.enabled || !summary.started) {
+    if (!summary?.enabled) {
+      console.log('[CHESS OPENING] warmup skipped');
+      return;
+    }
+
+    if (summary.manualBook) {
+      console.log(
+        `[CHESS OPENING] manual book active positions=${summary.manualBookPositions} path=${summary.manualBookPath}`
+      );
+      return;
+    }
+
+    if (!summary.started) {
       console.log('[CHESS OPENING] warmup skipped');
       return;
     }

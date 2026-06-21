@@ -94,8 +94,11 @@ PORT=8080
 | `CHESS_OPENING_PRELOAD_BRANCHES` | 각 포지션에서 다음 수를 몇 갈래까지 따라 내려가며 선적재할지 정합니다. 기본값은 `12`입니다. |
 | `CHESS_OPENING_PRELOAD_DELAY_MS` | 오프닝북 선적재 요청 사이 대기 시간입니다. 기본값은 `60`ms입니다. |
 | `CHESS_OPENING_CACHE_PATH` | 오프닝북 캐시 파일 경로입니다. 비우면 데이터 디렉터리 아래 `lichess-player-opening-cache.json`을 사용합니다. |
+| `CHESS_OPENING_MANUAL_BOOK_PATH` | 수동 오프닝북 JSON 경로입니다. 이 파일이 있으면 시작 시 네트워크 워밍업 대신 이 파일을 우선 사용합니다. 기본값은 데이터 디렉터리 아래 `lichess-player-opening-manual-book.json`입니다. |
 
 체스 대국 중에는 Lichess에 매 수마다 다시 붙지 않고, 시작 시 메모리/파일 캐시에 올려둔 오프닝 데이터만 사용합니다. 캐시에 없는 변형으로 벗어나면 그때는 바로 Stockfish 쪽으로 넘어갑니다.
+
+수동 오프닝북을 다시 만들고 싶으면 `npm run build:opening-book -- --player bears4347`를 실행하면 됩니다. 기본 출력 경로는 `data/lichess-player-opening-manual-book.json`입니다.
 
 Gemini/Gemma 대화 기억은 `data/gemini-memory.json`에 저장되고 `GEMINI_MEMORY_DAYS`에 따라 정리됩니다. `/가르치기`와 `%...기억해줘`, `%...기억해둬`, `%...기억해`로 저장한 영구 기억은 `data/gemini-permanent-memory.json`에 별도로 저장되며 만료되지 않습니다. 두 파일은 런타임에 자동 생성되고 git에는 올리지 않습니다.
 

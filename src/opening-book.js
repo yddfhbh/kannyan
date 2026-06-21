@@ -1,8 +1,8 @@
 // src/opening-book.js
 
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const DEFAULT_PLAYER = 'bears4347';
 const DEFAULT_SPEEDS = 'blitz,rapid,classical';
@@ -18,20 +18,31 @@ const START_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -
 const UCI_MOVE_PATTERN = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
 const disabledEnvPattern = /^(?:0|false|off|no)$/i;
 
+const DEFAULT_DATA_DIR = fileURLToPath(new URL('../data/', import.meta.url));
 const DEFAULT_CACHE_PATH = path.join(
   process.env.TETRIO_LEAGUE_DATA_DIR
     || process.env.DATA_DIR
-    || path.join(os.homedir(), 'discord-bot-data'),
+    || DEFAULT_DATA_DIR,
   'lichess-player-opening-cache.json',
+);
+const DEFAULT_MANUAL_BOOK_PATH = path.join(
+  process.env.TETRIO_LEAGUE_DATA_DIR
+    || process.env.DATA_DIR
+    || DEFAULT_DATA_DIR,
+  'lichess-player-opening-manual-book.json',
 );
 
 const memoryCache = new Map();
+const manualBookPositions = new Map();
 
 let cacheLoaded = false;
 let loadedCachePath = '';
 let cacheDirty = false;
 let cacheSaveQueue = Promise.resolve();
 let warmupPromise = null;
+let manualBookLoaded = false;
+let loadedManualBookPath = '';
+let manualBookMeta = null;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -135,6 +146,14 @@ function resolveCachePath(options = {}) {
   return path.resolve(options.cachePath || process.env.CHESS_OPENING_CACHE_PATH || DEFAULT_CACHE_PATH);
 }
 
+function resolveManualBookPath(options = {}) {
+  return path.resolve(
+    options.manualBookPath
+    || process.env.CHESS_OPENING_MANUAL_BOOK_PATH
+    || DEFAULT_MANUAL_BOOK_PATH
+  );
+}
+
 function getCacheKey(params) {
   return JSON.stringify({
     player: params.player,
@@ -176,6 +195,7 @@ function getOpeningBookConfig(options = {}) {
       DEFAULT_CACHE_TTL_MS
     ),
     cachePath: resolveCachePath(options),
+    manualBookPath: resolveManualBookPath(options),
     since: options.since || process.env.CHESS_OPENING_SINCE || null,
     until: options.until || process.env.CHESS_OPENING_UNTIL || null,
   };
@@ -224,6 +244,97 @@ async function saveCache(cachePath) {
     cacheDirty = false;
   } catch (error) {
     console.warn('[Lichess opening book] failed to save cache:', error);
+  }
+}
+
+function normalizeManualBookMove(move) {
+  if (!move || typeof move !== 'object') return null;
+
+  const uci = String(move.uci ?? '').trim();
+  if (!UCI_MOVE_PATTERN.test(uci)) {
+    return null;
+  }
+
+  return {
+    uci,
+    san: typeof move.san === 'string' ? move.san : '',
+    white: Number(move.white ?? 0),
+    draws: Number(move.draws ?? 0),
+    black: Number(move.black ?? 0),
+    ...(move.opening && typeof move.opening === 'object'
+      ? { opening: move.opening }
+      : {}),
+  };
+}
+
+function normalizeManualBookOpening(opening) {
+  if (!opening || typeof opening !== 'object') {
+    return null;
+  }
+
+  const eco = typeof opening.eco === 'string' ? opening.eco : '';
+  const name = typeof opening.name === 'string' ? opening.name : '';
+
+  if (!eco && !name) {
+    return null;
+  }
+
+  return {
+    ...(eco ? { eco } : {}),
+    ...(name ? { name } : {}),
+  };
+}
+
+async function loadManualBook(manualBookPath) {
+  const resolvedPath = path.resolve(manualBookPath);
+
+  if (manualBookLoaded && loadedManualBookPath === resolvedPath) {
+    return;
+  }
+
+  if (manualBookLoaded && loadedManualBookPath !== resolvedPath) {
+    manualBookPositions.clear();
+    manualBookMeta = null;
+  }
+
+  manualBookLoaded = true;
+  loadedManualBookPath = resolvedPath;
+
+  try {
+    const raw = await fs.readFile(resolvedPath, 'utf8');
+    const parsed = JSON.parse(raw);
+    const positions = parsed?.positions;
+
+    manualBookPositions.clear();
+    manualBookMeta = parsed?.meta && typeof parsed.meta === 'object'
+      ? parsed.meta
+      : null;
+
+    if (!positions || typeof positions !== 'object') {
+      return;
+    }
+
+    for (const [lineKey, value] of Object.entries(positions)) {
+      if (!value || typeof value !== 'object' || !Array.isArray(value.moves)) {
+        continue;
+      }
+
+      const moves = value.moves
+        .map(normalizeManualBookMove)
+        .filter(Boolean);
+
+      if (!moves.length) {
+        continue;
+      }
+
+      manualBookPositions.set(lineKey, {
+        opening: normalizeManualBookOpening(value.opening),
+        moves,
+      });
+    }
+  } catch {
+    manualBookPositions.clear();
+    manualBookMeta = null;
   }
 }
 
@@ -361,6 +472,24 @@ function buildCachedResponse(cached, extra = {}) {
   };
 }
 
+async function getManualBookPosition(params) {
+  const manualBookPath = resolveManualBookPath(params);
+  await loadManualBook(manualBookPath);
+
+  const lineKey = params.play || '';
+  const position = manualBookPositions.get(lineKey);
+
+  if (!position?.moves?.length) {
+    return null;
+  }
+
+  return {
+    opening: position.opening,
+    moves: position.moves.map((move) => ({ ...move })),
+    fromManualBook: true,
+  };
+}
+
 async function getPlayerOpeningPosition(params) {
   const {
     cachePath = DEFAULT_CACHE_PATH,
@@ -428,13 +557,17 @@ function getTurnColorFromHistory(uciHistory) {
 }
 
 export async function loadLichessPlayerOpeningBookCache(options = {}) {
-  const { cachePath } = getOpeningBookConfig(options);
+  const { cachePath, manualBookPath } = getOpeningBookConfig(options);
   await loadCache(cachePath);
+  await loadManualBook(manualBookPath);
 
   return {
     enabled: isOpeningBookEnabled(options),
     cacheEntries: memoryCache.size,
     cachePath,
+    manualBookEntries: manualBookPositions.size,
+    manualBookPath,
+    manualBookPlayer: manualBookMeta?.player ?? null,
   };
 }
 
@@ -462,6 +595,23 @@ export async function warmLichessPlayerOpeningBook(options = {}) {
   }
 
   const config = getOpeningBookConfig(options);
+  await loadManualBook(config.manualBookPath);
+
+  if (manualBookPositions.size > 0) {
+    return {
+      enabled: true,
+      started: false,
+      manualBook: true,
+      manualBookPath: config.manualBookPath,
+      manualBookPositions: manualBookPositions.size,
+      positionsVisited: 0,
+      networkFetches: 0,
+      cacheFallbacks: 0,
+      failures: 0,
+      truncated: false,
+    };
+  }
+
   const preloadMaxNodes = toPositiveInt(
     options.preloadMaxNodes ?? process.env.CHESS_OPENING_PRELOAD_MAX_NODES,
     DEFAULT_PRELOAD_MAX_NODES
@@ -631,13 +781,21 @@ export async function chooseLichessPlayerOpeningMove(chess, options = {}) {
   let data = null;
 
   try {
-    data = await getPlayerOpeningPosition({
+    data = await getManualBookPosition({
       ...config,
       color,
       play,
-      fen: play ? null : chess.fen(),
-      allowNetwork,
     });
+
+    if (!data) {
+      data = await getPlayerOpeningPosition({
+        ...config,
+        color,
+        play,
+        fen: play ? null : chess.fen(),
+        allowNetwork,
+      });
+    }
   } catch (error) {
     console.warn('[Lichess opening book] fetch failed:', error?.message ?? error);
     return null;
@@ -708,6 +866,7 @@ export async function chooseLichessPlayerOpeningMove(chess, options = {}) {
     scoreRate: picked.scoreRate,
     opening: picked.move.opening ?? data.opening ?? null,
     fromCache: Boolean(data.fromCache),
+    fromManualBook: Boolean(data.fromManualBook),
     lineKey: play || chess.fen(),
   };
 }
