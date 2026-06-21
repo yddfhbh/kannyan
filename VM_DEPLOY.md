@@ -1,150 +1,60 @@
 # Google Compute Engine VM Deployment
 
-Use this when running the bot on a regular Google Cloud VM through browser SSH.
+현재 기준 배포는 `discord-bot-vm.tar.gz` 업로드 후 heredoc 스크립트를 한 번에 실행하는 흐름입니다. 영구 데이터는 `~/discord-bot-data`, 앱 디렉터리는 `~/discord-bot-new`를 사용합니다.
 
-## 1. Upload the project
+## 1. Windows에서 압축 만들기
 
-In the browser SSH window, click **File upload** and upload `discord-bot-vm.zip`.
-
-Then run:
-
-```bash
-unzip discord-bot-vm.zip -d discord-bot
-cd discord-bot
+```powershell
+.\deploy-vm.ps1
 ```
 
-## 2. Install Node.js
+이 스크립트는 `discord-bot-vm.tar.gz`를 만들고, VM에서 그대로 붙여넣을 배포 스크립트도 같이 출력합니다.
 
-Check if Node is already installed:
+## 2. VM에 업로드
 
-```bash
-node -v
-npm -v
-```
+브라우저 SSH 창의 **File upload**로 `discord-bot-vm.tar.gz`를 홈 디렉터리(`~`)에 업로드합니다.
 
-If Node is missing or older than 18, install Node.js 22:
+## 3. VM에서 배포 실행
 
-```bash
-sudo apt update
-sudo apt install -y curl unzip
-curl -fsSL https://deb.nodesource.com/setup_22.x -o nodesource_setup.sh
-sudo -E bash nodesource_setup.sh
-sudo apt install -y nodejs
-node -v
-npm -v
-```
+`.\deploy-vm.ps1`가 출력한 heredoc 전체를 그대로 붙여넣어 실행하세요.
 
-### If `sudo` is not allowed
+배포 스크립트는 다음을 자동으로 처리합니다.
 
-Some VM users do not have administrator privileges. If you see a message like `I'm afraid I can't do that`, install Node.js in your home directory with `nvm` instead:
+- 기존 `discord-bot` / `discord-bot-new` 프로세스 중지
+- `.env` 백업 및 복원
+- `~/discord-bot-data` 영구 데이터 유지
+- `daily-chess-puzzle.json` 병합
+- 새 tarball 압축 해제
+- `data -> ~/discord-bot-data` 심볼릭 링크 재생성
+- 시스템 폰트/패키지 설치
+- `npm ci --omit=dev`
+- Lichess puzzle pool 확인 또는 생성
+- `npm run register`
+- `pm2` 시작, 상태 확인, 헬스 체크 출력
 
-```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-nvm install 22
-nvm use 22
-node -v
-npm -v
-```
+## 4. 성공 확인
 
-## 3. Install Korean-capable fonts
+정상 배포라면 마지막에 아래를 확인할 수 있어야 합니다.
 
-`sharp` renders the profile card from SVG, so the VM needs fonts that include Korean glyphs. Install Noto CJK once on the VM:
+- `pm2 status`에 `discord-bot`가 `online`
+- `curl -s http://127.0.0.1:8080/health` 결과가 `{"ok":true,"discordReady":true}`
+- `Persistent data dir:` 아래에 `~/discord-bot-data` 파일 목록 출력
+- `npm run register` 후 글로벌 슬래시 명령어 등록 완료 메시지
 
-```bash
-sudo apt update
-sudo apt install -y fontconfig fonts-dejavu-core fonts-noto-cjk
-sudo fc-cache -f
-fc-match "Noto Sans CJK KR"
-```
+글로벌 명령어는 반영까지 최대 1시간 정도 걸릴 수 있습니다.
 
-If `sudo` is not allowed, ask the VM owner/admin to install those packages. Without a system font that supports Korean, SVG text may render as square boxes.
-
-## 4. Install dependencies
-
-```bash
-npm ci --omit=dev
-sudo apt install -y python3 python3-pip python3-venv
-python3 -m venv "$HOME/discord-bot-chess-venv"
-"$HOME/discord-bot-chess-venv/bin/pip" install --upgrade pip
-"$HOME/discord-bot-chess-venv/bin/pip" install \
-  --index-url https://download.pytorch.org/whl/cpu \
-  --extra-index-url https://pypi.org/simple \
-  torch torchvision
-"$HOME/discord-bot-chess-venv/bin/pip" install -r requirements-chess.txt
-```
-
-## 5. Create `.env`
-
-Use an editor so your bot token is not saved in shell history:
-
-```bash
-nano .env
-```
-
-Paste:
-
-```env
-DISCORD_TOKEN=YOUR_DISCORD_BOT_TOKEN
-CLIENT_ID=1502588698246778960
-GEMINI_API_KEY=YOUR_GEMINI_API_KEY
-GEMINI_MODEL=gemini-3.5-flash
-GEMINI_FALLBACK_MODELS=gemini-2.5-flash,gemini-2.5-flash-lite
-GUILD_ID=1219197226572840990
-CHESS_IMAGE_PYTHON=/home/YOUR_USER/discord-bot-chess-venv/bin/python
-```
-
-Save with `Ctrl+O`, press `Enter`, then exit with `Ctrl+X`.
-
-## 6. Register slash commands
-
-```bash
-npm run register
-```
-
-`npm run register` registers global commands and clears server-only commands for `GUILD_ID` to avoid duplicates.
-
-## 7. Run with PM2
-
-```bash
-sudo npm install -g pm2
-pm2 start ecosystem.config.cjs
-pm2 save
-pm2 startup
-```
-
-The `pm2 startup` command prints one extra `sudo env ... pm2 startup ...` command. Copy and run that printed command once, then run:
-
-```bash
-pm2 save
-```
-
-If `sudo` is not allowed and you installed Node with `nvm`, install PM2 without `sudo`:
-
-```bash
-npm install -g pm2
-pm2 start ecosystem.config.cjs
-pm2 save
-```
-
-Without `sudo`, PM2 cannot install a system service. Use a user crontab instead:
-
-```bash
-crontab -e
-```
-
-Add this line, replacing `YOUR_USER` with your Linux username:
-
-```cron
-@reboot /home/YOUR_USER/.nvm/versions/node/v22.*/bin/pm2 resurrect
-```
-
-## Useful commands
+## 5. 자주 보는 확인 명령
 
 ```bash
 pm2 status
-pm2 logs discord-bot
-pm2 restart discord-bot
-pm2 stop discord-bot
+pm2 logs discord-bot --lines 80 --nostream
+curl -s http://127.0.0.1:8080/health
+ls -lah ~/discord-bot-data
 ```
+
+## 참고
+
+- `.env`는 tarball에 포함되지 않습니다.
+- 영구 데이터는 앱 폴더가 아니라 `~/discord-bot-data`에 저장됩니다.
+- `daily-chess-puzzle.json`이 없으면 `/일일퍼즐지정` 실행 후 생성될 수 있습니다.
+- `[Lichess opening book] preload failed ... fetch failed` 로그는 외부 fetch 실패일 수 있으며, 헬스 체크가 정상이면 배포 자체 실패와는 별개일 수 있습니다.

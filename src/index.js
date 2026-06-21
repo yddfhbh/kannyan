@@ -5508,6 +5508,14 @@ async function handlePercentMessageCommand(message) {
     return true;
   }
 
+  if (command === 'tetrioLeagueRecentListTooLarge') {
+    await message.reply({
+      content: '숫자는 20 아래로 해달라냥.',
+      allowedMentions: { repliedUser: false },
+    });
+    return true;
+  }
+
   if (command === 'quickplay') {
     await handleQuickPlayAltitudeMessage(message, input, 'zenith');
     return true;
@@ -6815,6 +6823,13 @@ function parsePercentCommand(content) {
   const [commandToken, ...restTokens] = commandBody.split(/\s+/);
   const specialTetraRecent = parseTetrioLeagueRecentPercentCommand(commandToken);
   if (specialTetraRecent) {
+    if (specialTetraRecent.error === 'recent_count_too_large') {
+      return {
+        command: 'tetrioLeagueRecentListTooLarge',
+        input: restTokens.join(' ').trim(),
+      };
+    }
+
     return {
       command: 'tetrioLeagueRecentList',
       input: restTokens.join(' ').trim(),
@@ -6844,8 +6859,14 @@ function parseTetrioLeagueRecentPercentCommand(commandToken) {
     return null;
   }
 
+  if (recentCount >= 21) {
+    return {
+      error: 'recent_count_too_large',
+    };
+  }
+
   return {
-    recentCount: Math.min(recentCount, 20),
+    recentCount,
   };
 }
 
