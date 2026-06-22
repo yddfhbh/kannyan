@@ -2566,26 +2566,32 @@ async function chooseBotChessMove(chess) {
   };
 }
 
+function getChessPlayerDisplayNameFromFacts(facts) {
+  const name = String(facts?.userDisplayName ?? '').trim();
+  return name || '사용자';
+}
+
 function buildChessPlayFallback(facts) {
+  const playerName = getChessPlayerDisplayNameFromFacts(facts);
+
   if (facts.kind === 'start-user-white') {
-    return '좋다냥. 너는 백, 나는 흑으로 두겠다냥. 첫 수를 `%e4`처럼 입력해달라냥.';
+    return `좋다냥. ${playerName} 님은 백, 나는 흑으로 두겠다냥. 첫 수를 \`%e4\`처럼 입력해달라냥.`;
   }
 
   if (facts.kind === 'start-bot-white') {
-    return `좋다냥. 너는 흑, 나는 백으로 두겠다냥. 내 첫 수는 **${facts.botMoveSan}**다냥. 이제 네 차례다냥.`;
+    return `좋다냥. ${playerName} 님은 흑, 나는 백으로 두겠다냥. 내 첫 수는 **${facts.botMoveSan}**다냥. 다음엔 어떤 수를 둘거냥?`;
   }
 
   if (facts.kind === 'game-over-after-user') {
-    return `네 수 **${facts.userMoveSan}**까지 진행했다냥. ${facts.resultText}`;
+    return `${playerName} 님이 **${facts.userMoveSan}**를 뒀고, ${facts.resultText}`;
   }
 
   if (facts.kind === 'bot-move') {
-  return [
-    `네 수 **${facts.userMoveSan}** 받았다냥.`,
-    `내 수는 **${facts.botMoveSan}**다냥.`,
-    facts.resultText || '이제 네 차례다냥.',
-  ].filter(Boolean).join(' ');
-}
+    return [
+      `${playerName} 님이 **${facts.userMoveSan}**를 뒀으니, 나는 **${facts.botMoveSan}**를 두겠다냥.`,
+      facts.resultText || '다음엔 어떤 수를 둘거냥?',
+    ].filter(Boolean).join(' ');
+  }
 
   return '좋다냥.';
 }
@@ -2725,6 +2731,8 @@ async function createNaturalChessPlayReply(message, facts) {
     return fallback;
   }
 
+  const playerName = getChessPlayerDisplayNameFromFacts(facts);
+
   const prompt = [
     '사용자와 깐냥이가 체스 대국 중이다.',
     '체스 수와 결과는 아래 [확정 사실]만 따른다.',
@@ -2733,59 +2741,57 @@ async function createNaturalChessPlayReply(message, facts) {
     '',
     '[확정 사실]',
     `상황: ${facts.kind}`,
-    facts.userDisplayName ? `사용자 이름: ${facts.userDisplayName}` : '',
-   `사용자가 잡은 체스 색: ${facts.userColor === 'w' ? '백' : '흑'}`,
-`깐냥이가 잡은 체스 색: ${facts.botColor === 'w' ? '백' : '흑'}`,
+    `사용자 이름: ${playerName}`,
+    `사용자가 잡은 체스 색: ${facts.userColor === 'w' ? '백' : '흑'}`,
+    `깐냥이가 잡은 체스 색: ${facts.botColor === 'w' ? '백' : '흑'}`,
     facts.userMoveSan ? `사용자 방금 둔 수: ${facts.userMoveSan}` : '',
     facts.botMoveSan ? `깐냥이 방금 둔 수: ${facts.botMoveSan}` : '',
-    
     facts.resultText ? `대국 결과/상태: ${facts.resultText}` : '',
-    `현재 FEN(사용자가 물어볼 때만 출력 가능): ${facts.fen}`,
+    facts.fen ? `현재 FEN(사용자가 물어볼 때만 출력 가능): ${facts.fen}` : '',
     '',
     '[출력 규칙]',
-'디스코드 채팅에 바로 보낼 자연스러운 한국어 1~3문장으로 답한다.',
-'“[체스판 상황]”, “백:”, “흑:”, ASCII 보드판 같은 판 요약 목록을 절대 출력하지 않는다.',
-'체스 색을 말할 때 “백인 사용자”, “흑인 사용자”라고 절대 쓰지 말고, “네가 백”, “네가 흑”, “백을 잡은 쪽”, “흑을 잡은 쪽”처럼 말한다.',
-'체스 수는 반드시 위 확정 사실에 있는 SAN 표기 그대로 출력한다.',
-   '수 선택 방식, Stockfish, 후보수, 랜덤, 차선수, 평가값 이야기는 사용자가 직접 묻지 않으면 절대 말하지 않는다.',
-'사용자를 “상대방”, “상대”, “플레이어” 라고 부르지 말고 반드시 “너” 또는 “네”라고 부른다.',
-'예: “상대방이 bxa6 수를 두었다”가 아니라 “네 수 bxa6 받았다”처럼 말한다.',
-'깐냥이 둔 수는 “내 수”, “나는 ...를 뒀다”처럼 말한다.',
+    '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~2문장으로 답한다.',
+    '“[체스판 상황]”, “백:”, “흑:”, ASCII 보드판 같은 판 요약 목록을 절대 출력하지 않는다.',
+    '체스 색을 말할 때 “백인 사용자”, “흑인 사용자”라고 절대 쓰지 않는다.',
+    '체스 수는 반드시 위 확정 사실에 있는 SAN 표기 그대로 출력한다.',
+    `사용자를 “너”, “네”, “상대방”, “상대”, “플레이어”, “사용자”라고 부르지 말고 반드시 “${playerName} 님”이라고 부른다.`,
+    `사용자가 둔 수는 “${playerName} 님이 **사용자수**를 뒀으니”처럼 말한다.`,
+    '깐냥이가 둔 수는 “나는 **깐냥이수**를 두겠다냥”처럼 말한다.',
+    'bot-move 상황이면 가능하면 “사용자이름 님이 **사용자수**를 뒀으니, 나는 **깐냥이수**를 두겠다냥. 다음엔 어떤 수를 둘거냥?” 형식으로 답한다.',
+    '질문 문장은 “다음엔 어떤 수를 둘거냥?”을 사용한다.',
+    '“둘 거냐냥?”, “둘 거냥?”, “둘 거냐?”, “냐냥” 같은 어색한 표현은 절대 쓰지 않는다.',
+    '이미 완료된 수를 전달하는 문장으로만 말하고, “뒀구나”, “두었구나”, “두었으니 이제 내가” 같은 혼잣말식 표현은 쓰지 않는다.',
+    '포지션 평가를 지어내지 않는다. “팽팽하다”, “유리하다”, “불리하다”, “좋은 수다”, “강한 수다” 같은 평가는 사용자가 직접 묻지 않으면 말하지 않는다.',
+    '수 선택 방식, Stockfish, 후보수, 랜덤, 차선수, 평가값 이야기는 사용자가 직접 묻지 않으면 절대 말하지 않는다.',
     'FEN, UCI, 평가 수치, 탐색 깊이는 사용자가 요구하지 않으면 출력하지 않는다.',
     '“응냥”으로 시작하지 말고 바로 본론부터 말한다.',
+    '',
     `사용자 원문: ${String(message.content ?? '').trim()}`,
   ].filter(Boolean).join('\n');
 
   return runChessReplyWithTimeout('play', fallback, async () => {
-  const answerResult = await generateGeminiAnswer(prompt, {
-    currentUserContext: getGeminiCurrentUserContext(message),
+    const answerResult = await generateGeminiAnswer(prompt, {
+      currentUserContext: getGeminiCurrentUserContext(message),
+    });
+
+    const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
+
+    if (
+      !looksLikeConsistentKannyangSpeech(answer)
+      || /(?:백인|흑인)\s*사용자/.test(answer)
+      || /(?:상대방|상대|플레이어|사용자)[이가은는을를]?/.test(answer)
+      || /(?:네가|너가|네\s*수|너는|네\s*차례)/.test(answer)
+      || /(?:둘\s*거냐냥|둘\s*거\s*냥|둘\s*거냐|냐냥)/.test(answer)
+      || /(?:뒀구나|두었구나|두었으니\s*이제\s*내가|두었으니\s*내가)/.test(answer)
+      || /(?:팽팽|유리|불리|좋은\s*수|강한\s*수|실수|악수|묘수)/.test(answer)
+      || /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
+      || looksLikeAsciiChessBoard(answer)
+    ) {
+      return fallback;
+    }
+
+    return answer || fallback;
   });
-
-  const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
-
-  if (
-    !looksLikeConsistentKannyangSpeech(answer)
-    || /(?:백인|흑인)\s*사용자/.test(answer)
-    || /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer)
-    || looksLikeAsciiChessBoard(answer)
-  ) {
-    return fallback;
-  }
-
-  if (facts.botMoveSan && !answer.includes(facts.botMoveSan)) {
-    return fallback;
-  }
-
-  if (
-    facts.userMoveSan
-    && facts.kind !== 'start-bot-white'
-    && !answer.includes(facts.userMoveSan)
-  ) {
-    return fallback;
-  }
-
-  return answer || fallback;
-});
 }
 
 function normalizeChessControlIntent(parsed) {
@@ -3709,8 +3715,12 @@ function normalizeKannyangSpeech(text) {
     .replace(/(^|\n)\s*응냥\s*[,，.!?。！？]?\s*/g, '$1')
     // 혹시 "응 냥,"처럼 띄어져 나온 경우도 제거
     .replace(/(^|\n)\s*응\s+냥\s*[,，.!?。！？]?\s*/g, '$1')
-    // 그냥 "응,"으로 시작하는 것도 원하면 제거
+    // 그냥 "응,"으로 시작하는 것도 제거
     .replace(/(^|\n)\s*응\s*[,，]\s*/g, '$1')
+    // 체스 진행 응답에서 어색한 말투 보정
+    .replace(/둘\s*거냐냥/g, '둘거냥')
+    .replace(/둘\s*거\s*냥/g, '둘거냥')
+    .replace(/냐냥/g, '냥')
     .trim();
 
   return normalized || '냥.';
