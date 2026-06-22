@@ -1504,8 +1504,8 @@ function parseChessMoveRevisionIntent(text) {
     return null;
   }
 
-  const hasPlayIntent =
-    /(?:둘래|둘게|둘거|둘까|둔다|두자|착수|바꿔|바꾸|바꿀|수정|대신|되돌|무르|take\s*back|takeback|undo)/i.test(value);
+    const hasPlayIntent =
+    /(?:말고|대신|둘래|둘게|둘거|둘까|둔다|두자|두고\s*싶|두고싶|두고\s*싶어|두고싶어|두고\s*싶다|착수|바꿔|바꾸|바꿀|수정|되돌|무르|take\s*back|takeback|undo)/i.test(value);
 
   if (!hasPlayIntent) {
     return null;
