@@ -3210,11 +3210,25 @@ async function handlePendingChessStartChoice(message, key, text, existingSession
 }
 
 function isPlainChessStartText(text) {
-  return /^(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|play\s*chess)$/i.test(String(text ?? '').trim());
+  const value = String(text ?? '').trim();
+
+  return /^(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|play\s*chess)$/i.test(value);
+}
+
+function isExplicitChessStartText(text) {
+  const value = String(text ?? '').trim();
+
+  return (
+    isPlainChessStartText(value) ||
+    /^(?:블라인드\s*체스|블라인드체스|blindfold\s*chess)$/i.test(value) ||
+    /^(?:기보\s*보면서\s*)?체스\s*(?:하자|두자|시작)$/i.test(value)
+  );
 }
 
 function hasChessConversationWord(text) {
-  return /(?:泥댁뒪|chess|釉붾씪?몃뱶\s*泥댁뒪|blindfold\s*chess)/i.test(String(text ?? '').trim());
+  const value = String(text ?? '').trim();
+
+  return /(?:\bchess\b|블라인드\s*체스|blindfold\s*chess)/i.test(value);
 }
 
 async function replyChessStartClarification(message) {
@@ -3448,8 +3462,7 @@ async function handleChessPlayMessage(message) {
     return handlePendingChessStartChoice(message, key, text, existingSession);
   }
 
-  const wantsStart =
-    /(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
+   const wantsStart = isExplicitChessStartText(text);
 
   if (wantsStart) {
     if (existingSession && !isChessSessionOwner(message, existingSession)) {
