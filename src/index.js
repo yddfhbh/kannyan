@@ -2480,6 +2480,117 @@ async function runChessReplyWithTimeout(label, fallback, task) {
   return Promise.race([work, timeout]);
 }
 
+async function createNaturalChessPlayReply(message, facts) {
+  const fallback = buildChessPlayFallback(facts);
+
+  if (geminiApiKeys.length === 0) {
+    return fallback;
+  }
+
+  const escapeRegExp = (value) =>
+    String(value ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  const forbiddenUserReferencePattern =
+    /(?:상대방|상대|사용자|유저|플레이어|player|opponent|상대\s*플레이어)/i;
+
+  const uncertainPreviousMovePattern =
+    /(?:둔\s*건가|둔\s*거냐|뒀(?:나|니|냐)|맞(?:나|니)|확인(?:해|한)|입력한\s*건가|이\s*수\s*맞)/i;
+
+  const plainPreviousMoveEchoPattern = facts.userMoveSan
+    ? new RegExp(
+        `(?:\\*\\*)?${escapeRegExp(facts.userMoveSan)}(?:\\*\\*)?\\s*(?:을|를|은|는)?\\s*(?:뒀|두었|둔|받았|받았다|입력했|진행했|처리했|확인했)(?:구나|네|다|어|으니|으니까|고|지만|는데)?`,
+        'i'
+      )
+    : null;
+
+  const botMoveSelfEchoPattern = facts.botMoveSan
+    ? new RegExp(
+        `(?:내가|나는|내\\s*수는)?\\s*(?:\\*\\*)?${escapeRegExp(facts.botMoveSan)}(?:\\*\\*)?\\s*(?:을|를)?\\s*(?:뒀|두었|둔)(?:구나|네|다|어|으니|으니까|고|지만|는데)?`,
+        'i'
+      )
+    : null;
+
+  const vagueGameCommentPattern =
+    /(?:정말\s*)?(?:팽팽한|치열한|흥미로운|재밌는)\s*대국|대국이\s*(?:팽팽|치열|흥미|재밌)/i;
+
+  const mentionsUserMoveWithoutComment =
+    facts.userMoveSan &&
+    !facts.userMoveComment;
+
+  const prompt = [
+    '사용자와 깐냥이가 체스 대국 중이다.',
+    '체스 수와 결과는 아래 [확정 사실]만 따른다.',
+    '절대 새로운 수를 만들거나, 수를 바꾸거나, 합법성 판단을 새로 하지 마라.',
+    '너는 문장만 자연스럽게 만들어라.',
+    '',
+    '[확정 사실]',
+    `상황: ${facts.kind}`,
+    facts.userDisplayName ? `사용자 이름: ${facts.userDisplayName}` : '',
+    `사용자가 잡은 체스 색: ${facts.userColor === 'w' ? '백' : '흑'}`,
+    `깐냥이가 잡은 체스 색: ${facts.botColor === 'w' ? '백' : '흑'}`,
+    facts.userMoveComment ? `네 직전 수에 대한 짧은 평가: ${facts.userMoveComment}` : '',
+    facts.botMoveSan ? `내가 방금 둘 수: ${facts.botMoveSan}` : '',
+    facts.resultText ? `대국 결과/상태: ${facts.resultText}` : '',
+    `현재 FEN(사용자가 물어볼 때만 출력 가능): ${facts.fen}`,
+    '',
+    '[출력 규칙]',
+    '디스코드 채팅에 바로 보낼 자연스러운 한국어 1~3문장으로 답한다.',
+    '사용자를 절대 “상대방”, “상대”, “사용자”, “유저”, “플레이어”라고 부르지 않는다.',
+    '사용자를 가리킬 때는 반드시 “너”, “네 수”, “네가 둔 수”, “네 차례”처럼 말한다.',
+    '깐냥이를 가리킬 때는 반드시 “나”, “내 수”, “내 차례”처럼 말한다.',
+    facts.botMoveSan
+      ? '내가 방금 둔 수는 “내 수는 **수**다냥.” 또는 “나는 **수**로 ...한다냥.”처럼 말한다.'
+      : '내가 방금 둔 수가 없는 상황이면 내 수를 지어내지 않는다.',
+    '“내가 Qg7를 뒀구나”, “이제 내가 Qg7를 뒀다”처럼 자기 수를 확인하는 말투를 쓰지 않는다.',
+    '사용자가 직전에 둔 수는 이미 확정된 사실이므로 “뒀구나”, “둔 건가”, “받았다”, “두었으니”처럼 확인하거나 복창하지 않는다.',
+    facts.userMoveComment
+      ? '네 직전 수를 언급한다면, 위의 “네 직전 수에 대한 짧은 평가” 내용만 자연스럽게 활용한다.'
+      : '네 직전 수에 대한 평가가 없으면 네 직전 수 자체를 언급하지 않는다.',
+    '“정말 팽팽한 대국이다”, “흥미로운 대국이다” 같은 빈 총평은 쓰지 않는다.',
+    '좋은 예: “a4로 퀸사이드 공간을 넓히는 수다냥. 내 수는 **Qg7**다냥. 이제 네 차례다냥.”',
+    '나쁜 예: “a4를 두었으니 이제 내가 Qg7를 뒀구나냥. 정말 팽팽한 대국이다냥.”',
+    '“[체스판 상황]”, “백:”, “흑:”, ASCII 보드판 같은 판 요약 목록을 절대 출력하지 않는다.',
+    '체스 색을 말할 때 “백인 사용자”, “흑인 사용자”라고 절대 쓰지 말고, “네가 백”, “네가 흑”, “백을 잡은 쪽”, “흑을 잡은 쪽”처럼 말한다.',
+    '체스 수는 반드시 위 확정 사실에 있는 SAN 표기 그대로 출력한다.',
+    '수 선택 방식, Stockfish, 후보수, 랜덤, 차선수, 평가값 이야기는 사용자가 직접 묻지 않으면 절대 말하지 않는다.',
+    'FEN, UCI, 평가 수치, 탐색 깊이는 사용자가 요구하지 않으면 출력하지 않는다.',
+    '“응냥”으로 시작하지 말고 바로 본론부터 말한다.',
+    `사용자 원문: ${String(message.content ?? '').trim()}`,
+  ].filter(Boolean).join('\n');
+
+  return runChessReplyWithTimeout('play', fallback, async () => {
+    const answerResult = await generateGeminiAnswer(prompt, {
+      currentUserContext: getGeminiCurrentUserContext(message),
+    });
+
+    const answer = normalizeKannyangSpeech(String(answerResult.answer ?? '').trim());
+
+    if (
+      !looksLikeConsistentKannyangSpeech(answer) ||
+      /(?:백인|흑인)\s*사용자/.test(answer) ||
+      forbiddenUserReferencePattern.test(answer) ||
+      uncertainPreviousMovePattern.test(answer) ||
+      plainPreviousMoveEchoPattern?.test(answer) ||
+      botMoveSelfEchoPattern?.test(answer) ||
+      vagueGameCommentPattern.test(answer) ||
+      (
+        mentionsUserMoveWithoutComment &&
+        answer.includes(facts.userMoveSan)
+      ) ||
+      /\[체스판\s*상황\]|(?:^|\n)\s*백\s*:|(?:^|\n)\s*흑\s*:/.test(answer) ||
+      looksLikeAsciiChessBoard(answer)
+    ) {
+      return fallback;
+    }
+
+    if (facts.botMoveSan && !answer.includes(facts.botMoveSan)) {
+      return fallback;
+    }
+
+    return answer || fallback;
+  });
+}
+
 async function createNaturalChessDrawReply(message, facts = {}) {
   const fallback = '무승부 제안 받아들일게냥. 이번 판은 무승부로 마무리하자냥.';
 
