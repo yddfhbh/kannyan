@@ -2696,6 +2696,48 @@ function isLocalChessDrawOfferText(text) {
   return /^(?:무승부|무승부\s*제안|비기자|비길래|비기자고|draw|draw\?|draw\s*offer|offer\s*draw)$/i.test(value);
 }
 
+function normalizeChessControlIntent(parsed) {
+  const allowedActions = new Set([
+    'start',
+    'restart',
+    'stop',
+    'show_board',
+    'draw_offer',
+    'unknown',
+  ]);
+
+  const action = allowedActions.has(parsed?.action)
+    ? parsed.action
+    : 'unknown';
+
+  let userColor = parsed?.userColor === 'w' || parsed?.userColor === 'b'
+    ? parsed.userColor
+    : '';
+
+  let botColor = parsed?.botColor === 'w' || parsed?.botColor === 'b'
+    ? parsed.botColor
+    : '';
+
+  if (userColor && !botColor) {
+    botColor = userColor === 'w' ? 'b' : 'w';
+  }
+
+  if (botColor && !userColor) {
+    userColor = botColor === 'w' ? 'b' : 'w';
+  }
+
+  if (userColor && botColor && userColor === botColor) {
+    userColor = '';
+    botColor = '';
+  }
+
+  return {
+    action,
+    userColor,
+    botColor,
+  };
+}
+
 async function classifyChessControlIntent(message, text, existingSession) {
   if (geminiApiKeys.length === 0) {
     return {
