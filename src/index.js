@@ -3409,7 +3409,16 @@ async function handleChessPlayMessage(message) {
   const wantsStart =
     /(?:체스\s*(?:하자|두자)|체스(?:하자|두자)|블라인드\s*체스|블라인드체스|기보\s*.*체스|play\s*chess|blindfold\s*chess)/i.test(text);
 
-  if (wantsStart) {
+    if (wantsStart) {
+    if (existingSession && isChessSessionOwner(message, existingSession)) {
+      await message.reply({
+        content: '이미 두는 중이다냥. 빨리 수나 말하라냥.',
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+
+      return true;
+    }
+
     if (existingSession && !isChessSessionOwner(message, existingSession)) {
       await message.reply({
         content: `${getChessSessionOwnerName(existingSession)} 님이 이미 이 채널에서 깐냥과 체스 대국 중이다냥. 새로 두고 싶으면 그 대국이 끝난 뒤에 시작해달라냥.`,
@@ -3511,7 +3520,7 @@ async function handleChessPlayMessage(message) {
     return true;
   }
 
-  // 무승부 제안은 Gemini 분류 없이 무조건 수락
+    // 무승부 제안은 Gemini 분류 없이 무조건 수락
   if (isLocalChessDrawOfferText(text)) {
     const controlHandled = await handleChessControlIntent(
       message,
@@ -3570,12 +3579,9 @@ async function handleChessPlayMessage(message) {
       return true;
     }
 
-    await message.reply({
-      content: buildActiveChessInputClarificationReply(chess, existingSession),
-      allowedMentions: { parse: [], repliedUser: false },
-    });
-
-    return true;
+    // 여기까지 왔으면 기권/무승부/보드/체스 질문/수 설명이 아닌 일반 잡담으로 보고
+    // handleChessPlayMessage 밖의 Gemini fallback으로 넘긴다.
+    return false;
   }
 
   if (chess.turn() !== existingSession.userColor) {
