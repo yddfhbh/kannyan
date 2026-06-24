@@ -1770,7 +1770,11 @@ function adjustHeaderFlagNameWidth(text, measuredWidth, fontSize) {
 
   // 언더바 없음: 측정폭이 실제보다 살짝 크게 잡혀서 국기가 멀어짐
   if (underscoreCount === 0) {
-    return measuredWidth - fontSize * 0.28;
+    // I, J, 1 처럼 폭이 좁은 글자가 많을수록 측정값이 실제보다 짧게 나옴
+    // 2개 이상부터 누적 오차가 생기므로 보정 추가
+    const narrowCount = (rawText.match(/[IJ1]/g) ?? []).length;
+    const narrowBonus = narrowCount >= 2 ? fontSize * 0.09 * (narrowCount - 1) : 0;
+    return measuredWidth - fontSize * 0.28 + narrowBonus;
   }
 
   // _ILIS 같은 케이스: 시작 언더바 1개는 국기가 너무 가까움
@@ -2011,7 +2015,7 @@ function getHeaderCharUnits(char) {
   }
 
   if (char === 'I' || char === 'J' || char === '1') {
-    return 0.32;
+    return 0.28;
   }
 
   if (char === '_' || char === '-' || char === '.') {

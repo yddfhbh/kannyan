@@ -6776,7 +6776,7 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       .some(isGeminiSupportedImageAttachment);
 
     if (!hasDirectImage && !hasReplyImage) {
-      rawPrompt = '사용자가 %만 입력했다. 짧게 자연스럽게 반응해줘.';
+      rawPrompt = '사용자가 %만 입력했다. 시스템 프롬프트의 말투 규칙을 지키면서 짧고 자연스럽게 반응해줘. 인사나 가벼운 반응 정도면 충분하다.';
     }
 
     rawPrompt = '이 사진을 보고 자연스럽게 설명해줘';
