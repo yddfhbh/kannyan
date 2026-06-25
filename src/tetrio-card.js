@@ -725,14 +725,18 @@ const bannerRightEdgeCoverY = bannerEdgeCoverY ;
   const headerNameFontWeight = 900;
   const headerUsername = String(user.username ?? '').toUpperCase();
   const bannerCropLeft = 0; // 왼쪽을  더 자름
- const headerNameWidth = await measureRenderedHeaderUsernameWidth({
-  text: headerUsername,
-  fontSize: headerNameFontSize,
-  fontDataUri: assets.hunFont,
-  fontWeight: headerNameFontWeight,
-});
-
-const headerFlagGap = 110;
+  const measuredHeaderNameWidth = await measureRenderedHeaderUsernameWidth({
+    text: headerUsername,
+    fontSize: headerNameFontSize,
+    fontDataUri: assets.hunFont,
+    fontWeight: headerNameFontWeight,
+  });
+  const headerNameWidth = getHeaderNamePlacementWidth(
+    headerUsername,
+    headerNameFontSize,
+    measuredHeaderNameWidth,
+  );
+  const headerFlagGap = getHeaderFlagGap(headerUsername, headerNameFontSize);
 const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
 const headerFlagY = bannerY + 18;
 const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
@@ -1975,6 +1979,38 @@ async function renderHeaderUsernameMarkup({
   const rawText = String(text ?? '').toUpperCase();
 
   return `<text x="${x}" y="${y}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderHeaderUsernameInlineMarkup(rawText, fontSize)}</text>`;
+}
+
+function getHeaderNamePlacementWidth(text, fontSize, measuredWidth) {
+  const normalizedText = String(text ?? '').toUpperCase();
+  const estimatedWidth = estimateHeaderNameWidth(normalizedText, fontSize);
+  const safeMeasuredWidth = Number.isFinite(measuredWidth) ? measuredWidth : 0;
+  const minimumTrustedWidth = estimatedWidth * 0.82;
+  const narrowGlyphCount = countHeaderNarrowGlyphs(normalizedText);
+  const opticalPadding = Math.min(
+    fontSize * 0.4,
+    fontSize * 0.2 + narrowGlyphCount * fontSize * 0.05,
+  );
+  const baseWidth = safeMeasuredWidth >= minimumTrustedWidth
+    ? safeMeasuredWidth
+    : estimatedWidth;
+
+  return Math.ceil(baseWidth + opticalPadding);
+}
+
+function getHeaderFlagGap(text, fontSize) {
+  const narrowGlyphCount = countHeaderNarrowGlyphs(text);
+
+  return Math.round(
+    fontSize * 0.24
+    + Math.min(fontSize * 0.18, narrowGlyphCount * fontSize * 0.06),
+  );
+}
+
+function countHeaderNarrowGlyphs(text) {
+  return [...String(text ?? '').toUpperCase()]
+    .filter((char) => char === 'I' || char === 'J' || char === '1')
+    .length;
 }
 
 function getHeaderUnderscorePullback(previousChar, fontSize) {
