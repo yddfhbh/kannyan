@@ -13,8 +13,8 @@ import {
 } from '../opening-book.js';
 
 const UCI_MOVE_PATTERN = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
-const DEFAULT_MOVE_OVERHEAD_MS = 30;
-const DEFAULT_MIN_THINK_MS = 20;
+const DEFAULT_MOVE_OVERHEAD_MS = 250;
+const DEFAULT_MIN_THINK_MS = 50;
 const DEFAULT_MAX_THINK_MS = 60_000;
 
 function clamp(value, min, max) {
@@ -171,16 +171,31 @@ function computeMoveTime(goParams, turn, options) {
   const increment = turn === 'w' ? goParams.winc : goParams.binc;
 
   if (!Number.isFinite(remaining) || remaining <= 0) {
-    return Math.max(options.minThinkMs, 250);
+    return Math.max(options.minThinkMs, 150);
   }
 
   const movesToGo = Number.isFinite(goParams.movestogo) && goParams.movestogo > 0
     ? goParams.movestogo
-    : 24;
-  const base = Math.floor(remaining / movesToGo);
-  const bonus = Math.floor((Number.isFinite(increment) ? increment : 0) * 0.8);
-  const safeCap = Math.max(options.minThinkMs, remaining - options.moveOverheadMs);
-  const planned = base + bonus - options.moveOverheadMs;
+    : 30;
+  const safeRemaining = Math.max(0, remaining - options.moveOverheadMs);
+  const reserve = Math.max(
+    options.minThinkMs * 6,
+    options.moveOverheadMs * 4,
+    Math.floor((Number.isFinite(increment) ? increment : 0) * 2),
+    Math.min(2_000, Math.floor(remaining * 0.10))
+  );
+  const spendable = Math.max(options.minThinkMs, safeRemaining - reserve);
+  const base = Math.floor(spendable / Math.max(8, movesToGo));
+  const bonus = Math.floor((Number.isFinite(increment) ? increment : 0) * 0.5);
+  const planned = Math.floor(base * 0.7) + bonus;
+  const safeCap = Math.max(
+    options.minThinkMs,
+    Math.min(
+      DEFAULT_MAX_THINK_MS,
+      safeRemaining,
+      Math.floor(remaining * 0.20)
+    )
+  );
 
   return clamp(planned, options.minThinkMs, Math.min(DEFAULT_MAX_THINK_MS, safeCap));
 }
@@ -425,12 +440,29 @@ class KannyaUciEngine {
       id: searchId,
       emitted: false,
       fallbackMove,
+      timer: null,
     };
 
-    void this.runSearch(searchId, goParams);
+    const thinkTimeMs = goParams.infinite
+      ? DEFAULT_MAX_THINK_MS
+      : computeMoveTime(goParams, this.board.turn(), this.options);
+
+    if (!goParams.infinite) {
+      this.search.timer = setTimeout(() => {
+        if (!this.search || this.search.id !== searchId || this.search.emitted) {
+          return;
+        }
+
+        writeInfoString(`hard timeout ${thinkTimeMs}ms; using fallback move`);
+        closeStockfishEngine();
+        this.emitBestMove(this.search.fallbackMove || '0000');
+      }, thinkTimeMs + Math.min(100, this.options.moveOverheadMs));
+    }
+
+    void this.runSearch(searchId, goParams, thinkTimeMs);
   }
 
-  async runSearch(searchId, goParams) {
+  async runSearch(searchId, goParams, thinkTimeMs) {
     try {
       try {
         await this.pendingInit;
@@ -447,9 +479,7 @@ class KannyaUciEngine {
           style: this.options.openingBookStyle,
         },
         depth: Number.isFinite(goParams.depth) && goParams.depth > 0 ? goParams.depth : null,
-        movetimeMs: goParams.infinite
-          ? DEFAULT_MAX_THINK_MS
-          : computeMoveTime(goParams, board.turn(), this.options),
+        movetimeMs: thinkTimeMs,
         multiPv: this.options.multiPv,
         maxCandidateLossCp: this.options.maxCandidateLossCp,
         bestMoveRate: this.options.bestMoveRate,
@@ -497,6 +527,9 @@ class KannyaUciEngine {
     }
 
     const fallbackMove = this.search.fallbackMove;
+    if (this.search.timer) {
+      clearTimeout(this.search.timer);
+    }
     this.search.emitted = true;
     closeStockfishEngine();
 
@@ -511,6 +544,9 @@ class KannyaUciEngine {
       : '0000';
 
     if (this.search) {
+      if (this.search.timer) {
+        clearTimeout(this.search.timer);
+      }
       this.search.emitted = true;
       this.search = null;
     }

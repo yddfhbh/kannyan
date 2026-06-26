@@ -1995,16 +1995,79 @@ function getHeaderNamePlacementWidth(text, fontSize, measuredWidth) {
     ? safeMeasuredWidth
     : estimatedWidth;
 
-  return Math.ceil(baseWidth + opticalPadding);
+  return Math.ceil(
+    baseWidth
+    + opticalPadding
+    + getHeaderTrailingOpticalPadding(normalizedText, fontSize)
+  );
 }
 
 function getHeaderFlagGap(text, fontSize) {
-  const narrowGlyphCount = countHeaderNarrowGlyphs(text);
+  const normalizedText = String(text ?? '').toUpperCase();
+  const narrowGlyphCount = countHeaderNarrowGlyphs(normalizedText);
 
   return Math.round(
     fontSize * 0.24
     + Math.min(fontSize * 0.18, narrowGlyphCount * fontSize * 0.06),
-  );
+  ) + Math.round(getHeaderTrailingFlagGapBonus(normalizedText, fontSize));
+}
+
+function getHeaderTrailingVisibleChar(text) {
+  const chars = [...String(text ?? '').toUpperCase()].filter((char) => char !== '_');
+  return chars.at(-1) ?? '';
+}
+
+function getHeaderTrailingOpticalPadding(text, fontSize) {
+  const normalizedText = String(text ?? '').toUpperCase();
+  const trailingVisibleChar = getHeaderTrailingVisibleChar(normalizedText);
+  const hasTrailingUnderscore = /_+$/.test(normalizedText);
+
+  if (!trailingVisibleChar) {
+    return 0;
+  }
+
+  if (hasTrailingUnderscore) {
+    if (trailingVisibleChar === 'I' || trailingVisibleChar === '1') {
+      return fontSize * 0.24;
+    }
+
+    if (trailingVisibleChar === 'J' || trailingVisibleChar === 'L') {
+      return fontSize * 0.16;
+    }
+
+    return fontSize * 0.10;
+  }
+
+  if (trailingVisibleChar === 'I' || trailingVisibleChar === '1') {
+    return fontSize * 0.12;
+  }
+
+  if (trailingVisibleChar === 'J') {
+    return fontSize * 0.08;
+  }
+
+  return 0;
+}
+
+function getHeaderTrailingFlagGapBonus(text, fontSize) {
+  const normalizedText = String(text ?? '').toUpperCase();
+  const trailingVisibleChar = getHeaderTrailingVisibleChar(normalizedText);
+
+  if (!trailingVisibleChar) {
+    return 0;
+  }
+
+  if (/_+$/.test(normalizedText)) {
+    if (trailingVisibleChar === 'I' || trailingVisibleChar === '1') {
+      return fontSize * 0.10;
+    }
+
+    if (trailingVisibleChar === 'J' || trailingVisibleChar === 'L') {
+      return fontSize * 0.06;
+    }
+  }
+
+  return 0;
 }
 
 function countHeaderNarrowGlyphs(text) {
