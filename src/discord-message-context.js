@@ -56,3 +56,12 @@ export function getMessageChainAttachments(message, referencedMessages = []) {
         : []
     ));
 }
+
+export function getMessageChainStickers(message, referencedMessages = []) {
+  return [message, ...referencedMessages]
+    .flatMap((targetMessage) => (
+      targetMessage?.stickers
+        ? [...targetMessage.stickers.values()]
+        : []
+    ));
+}

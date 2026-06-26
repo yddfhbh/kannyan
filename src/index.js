@@ -77,6 +77,7 @@ import {
 } from './gemini-permanent-memory.js';
 import {
   getMessageChainAttachments,
+  getMessageChainStickers,
   resolveReferencedMessageChain,
 } from './discord-message-context.js';
 import {
@@ -6738,6 +6739,29 @@ function extractFirstUnicodeEmoji(text) {
   return null;
 }
 
+function buildPercentOnlyStickerPrompt(message, referencedMessages = []) {
+  const stickerNames = getUniqueValues(
+    getMessageChainStickers(message, referencedMessages)
+      .map((sticker) => String(sticker?.name ?? '').trim())
+      .filter(Boolean)
+  );
+
+  if (stickerNames.length === 0) {
+    return null;
+  }
+
+  const stickerLabel = stickerNames.length === 1
+    ? `스티커 이름은 "${stickerNames[0]}"이다.`
+    : `스티커 이름들은 ${stickerNames.map((name) => `"${name}"`).join(', ')} 이다.`;
+
+  return [
+    '사용자가 %만 입력했고 디스코드 스티커를 함께 보냈다.',
+    stickerLabel,
+    '시스템 프롬프트의 말투 규칙을 지키면서 스티커 이름에서 느껴지는 분위기에 맞춰 짧고 자연스럽게 반응해줘.',
+    '사진이 안 보인다고 말하지 말고, 스티커 이름을 가볍게 받아 주는 대화면 충분하다.',
+  ].join(' ');
+}
+
 async function handleGeminiFallbackMessage(message, options = {}) {
   let rawPrompt = options.forcedPrompt ?? parseGeminiFallbackPrompt(message.content);
   let prioritizeChessImageAnalysis = Boolean(
@@ -6774,13 +6798,16 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     const referencedMessages = await getReferencedMessages();
     const hasReplyImage = getMessageChainAttachments(null, referencedMessages)
       .some(isGeminiSupportedImageAttachment);
+    const stickerPrompt = buildPercentOnlyStickerPrompt(message, referencedMessages);
 
-    if (!hasDirectImage && !hasReplyImage) {
-      rawPrompt = '사용자가 %만 입력했다. 시스템 프롬프트의 말투 규칙을 지키면서 짧고 자연스럽게 반응해줘. 인사나 가벼운 반응 정도면 충분하다.';
+    if (hasDirectImage || hasReplyImage) {
+      rawPrompt = '이 사진을 보고 자연스럽게 설명해줘';
+      prioritizeChessImageAnalysis = true;
+    } else if (stickerPrompt) {
+      rawPrompt = stickerPrompt;
+    } else {
+      rawPrompt = '사용자가 %만 단독으로 입력했다. 사진이나 스티커는 없었다. 시스템 프롬프트의 말투 규칙을 지키면서 왜 불렀는지 가볍게 되묻는 짧고 자연스러운 반응으로 답해줘.';
     }
-
-    rawPrompt = '이 사진을 보고 자연스럽게 설명해줘';
-    prioritizeChessImageAnalysis = true;
   }
 
   const prompt = normalizeDiscordTextForGemini(message, rawPrompt);
