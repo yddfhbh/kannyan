@@ -125,6 +125,52 @@ curl http://127.0.0.1:8080/health
 
 봇이 온라인이면 `/도움말`, `%도움말`, `%help` 중 하나로 동작을 확인할 수 있습니다.
 
+## Cute Chess UCI 엔진으로 쓰기
+
+Cute Chess에서 이 프로젝트의 착수 로직을 UCI 엔진처럼 붙이려면 아래처럼 등록하면 됩니다.
+
+- Windows Command: [scripts/run-kannyan-uci.cmd](./scripts/run-kannyan-uci.cmd)
+- Linux VM Command: `bash ./scripts/run-kannyan-uci.sh` 또는 `node src/chess/kannyan-uci.js`
+- Protocol: `uci`
+- Working directory: 이 저장소 루트
+
+직접 터미널에서 확인할 때는 다음처럼 실행할 수 있습니다.
+
+```bash
+npm run uci
+```
+
+Cute Chess GUI에서 자주 쓸 만한 UCI 옵션은 다음과 같습니다.
+
+- `UseOpeningBook`: `true`면 현재 수동 오프닝북과 선택적으로 Lichess Explorer 캐시/네트워크를 사용합니다.
+- `OpeningBookStyle`: `stronger` 또는 `wider`
+- `OpeningBookNetwork`: `true`면 `CHESS_OPENING_NETWORK_ENABLED`와 같은 성격으로 네트워크 조회를 허용합니다.
+- `MultiPV`, `BestMoveRate`, `SecondThirdRate`, `MaxCandidateLossCp`: 후보수 선택 성향 조절
+
+이 UCI 엔진은 디스코드 봇 대국 로직과 같은 공용 선택 모듈을 사용합니다. 즉 오프닝북 hit/miss, Stockfish MultiPV 후보 정리, 1순위/2~3순위/4~6순위 가중 선택 규칙이 동일합니다.
+
+Windows `cutechess-cli` 예시는 다음과 같습니다.
+
+```powershell
+cutechess-cli `
+  -engine name=Kannya cmd="C:\Users\MSI\OneDrive\바탕 화면\디코봇\discord\scripts\run-kannyan-uci.cmd" proto=uci `
+  -engine name=Stockfish cmd="C:\path\to\stockfish.exe" proto=uci `
+  -each tc=40/60+0.1 `
+  -games 2 -repeat
+```
+
+Linux VM에서 직접 붙일 때는 다음처럼 실행하면 됩니다.
+
+```bash
+cutechess-cli \
+  -engine name=Kannya cmd="bash ./scripts/run-kannyan-uci.sh" proto=uci \
+  -engine name=Stockfish cmd="/usr/games/stockfish" proto=uci \
+  -each tc=40/60+0.1 \
+  -games 2 -repeat
+```
+
+오프닝북 기본 동작은 이 README 위의 환경 변수 설명과 같습니다. 수동 북만 쓰려면 `CHESS_OPENING_ENABLED=true`, `CHESS_OPENING_NETWORK_ENABLED=false` 조합이면 되고, 네트워크 오프닝 조회까지 허용하려면 `CHESS_OPENING_NETWORK_ENABLED=true`로 켜면 됩니다.
+
 ## 명령어
 
 | Slash 명령어 | `%` 명령어 | 설명 |
