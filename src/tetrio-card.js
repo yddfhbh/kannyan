@@ -329,7 +329,10 @@ async function fetchTetrioAssets(user, summaries) {
     fetchImageDataUri(flagUrl),
     Promise.all(uniqueBadges.map(async (badge) => [
       badge.id,
-      await fetchImageDataUri(`${tetrioGameBaseUrl}/res/badges/${formatTetrioAssetPath(badge.id)}.png`),
+      await fetchImageDataUri(`${tetrioGameBaseUrl}/res/badges/${formatTetrioAssetPath(badge.id)}.png`, {
+        includeMetadata: true,
+        trimTransparent: true,
+      }),
     ])),
     Promise.all(featuredAchievements.map(fetchFeaturedAchievementAsset)),
     fetchImageDataUri(leagueRank ? `${tetrioGameBaseUrl}/res/league-ranks/${formatTetrioAssetPath(leagueRank)}.png` : null, {
@@ -747,7 +750,7 @@ const bannerRightEdgeCoverY = bannerEdgeCoverY ;
       headerNameFontWeight,
     ),
   );
-  const headerFlagGap = headerNameAsset?.flagGap ?? (getHeaderFlagGap(headerUsername, headerNameFontSize) + Math.round(headerNameFontSize * 0.08));
+  const headerFlagGap = headerNameAsset?.flagGap ?? (getHeaderFlagGap(headerUsername, headerNameFontSize) + Math.round(headerNameFontSize * 0.26));
 const headerFlagX = Math.round(nameX + headerNamePlacementWidth + headerFlagGap);
 const headerFlagY = bannerY + 18;
 const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
@@ -768,7 +771,7 @@ const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
   const zenithEx = summaries.zenithex;
   const badges = user.badges ?? [];
   const levelTag = getLevelTag(user.xp);
-  const badgeLayout = getBadgeLayout(badges.length, contentWidth);
+  const badgeLayout = getBadgeLayout(badges, assets.badgeIcons, contentWidth);
   const levelTagY = bannerY + bannerHeight + 8;
   const levelRowCenterY = levelTagY + levelTagHeight / 2;
   const profileStats = getCompactProfileStats(user, league);
@@ -1838,7 +1841,7 @@ async function renderHeaderNameAsset({
     const asset = {
       baselineY,
       image: dataUri,
-      flagGap: Math.max(8, Math.round(fontSize * 0.18)),
+      flagGap: Math.max(26, Math.round(fontSize * 0.38)),
       imageHeight: svgHeight,
       imageWidth: svgWidth,
       placementWidth: textWidth,
@@ -2461,32 +2464,44 @@ function roundSvgNumber(value) {
   return Number(value.toFixed(2));
 }
 
-function getBadgeLayout(badgeCount, width = 888) {
+function getBadgeLayout(badges, badgeIcons, width = 888) {
   const iconSize = 30;
   const gap = 5;
   const padding = 10;
   const inset = 6;
-  const badgesPerRow = 25;
-  const step = badgesPerRow > 1
-    ? (width - inset * 2 - iconSize) / (badgesPerRow - 1)
-    : 0;
-  const rowCount = Math.max(1, Math.ceil(badgeCount / badgesPerRow));
+  const badgeItems = Array.isArray(badges) ? badges : [];
+  const maxRowWidth = Math.max(0, width - inset * 2);
+  let rowCount = badgeItems.length > 0 ? 1 : 1;
+  let rowWidth = 0;
+
+  for (const badge of badgeItems) {
+    const metrics = getBadgeIconMetrics(badgeIcons?.[badge?.id], iconSize);
+    const itemWidth = metrics.displayWidth;
+    const nextWidth = rowWidth === 0 ? itemWidth : rowWidth + gap + itemWidth;
+
+    if (rowWidth > 0 && nextWidth > maxRowWidth) {
+      rowCount += 1;
+      rowWidth = itemWidth;
+      continue;
+    }
+
+    rowWidth = nextWidth;
+  }
+
   const boxHeight = rowCount * iconSize + (rowCount - 1) * gap + padding * 2;
 
   return {
-    badgesPerRow,
     boxHeight,
     gap,
     iconSize,
     inset,
     padding,
     rowCount,
-    step,
   };
 }
 
-function renderBadgeRow(badges, badgeIcons, y, x = 36, width = 888, layout = getBadgeLayout(badges.length, width)) {
-  const { badgesPerRow, boxHeight, gap, iconSize, inset, padding, step } = layout;
+function renderBadgeRow(badges, badgeIcons, y, x = 36, width = 888, layout = getBadgeLayout(badges, badgeIcons, width)) {
+  const { boxHeight, gap, iconSize, inset, padding } = layout;
   const boxY = y - padding;
   const textX = x + 12;
 
@@ -2501,17 +2516,67 @@ function renderBadgeRow(badges, badgeIcons, y, x = 36, width = 888, layout = get
   return `
   <g>
     <rect x="${x}" y="${boxY}" width="${width}" height="${boxHeight}" fill="${tetrioPalette.panelBg}" stroke="${tetrioPalette.panelBorder}" stroke-width="2"/>
-    ${badges.map((badge, index) => {
-      const icon = badgeIcons?.[badge.id];
-      const row = Math.floor(index / badgesPerRow);
-      const column = index % badgesPerRow;
-      const iconX = roundSvgNumber(x + inset + column * step);
-      const iconY = y + row * (iconSize + gap);
-      return icon
-        ? `<image href="${icon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid meet"/>`
-        : `<rect x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" fill="#284f2d" stroke="#6da774" stroke-width="2"/>`;
-    }).join('')}
+    ${(() => {
+      const fragments = [];
+      const maxRowWidth = Math.max(0, width - inset * 2);
+      let cursorX = x + inset;
+      let cursorY = y;
+      let rowWidth = 0;
+
+      for (const badge of badges) {
+        const icon = badgeIcons?.[badge.id];
+        const metrics = getBadgeIconMetrics(icon, iconSize);
+        const itemWidth = metrics.displayWidth;
+        const nextWidth = rowWidth === 0 ? itemWidth : rowWidth + gap + itemWidth;
+
+        if (rowWidth > 0 && nextWidth > maxRowWidth) {
+          cursorX = x + inset;
+          cursorY += iconSize + gap;
+          rowWidth = 0;
+        } else if (rowWidth > 0) {
+          cursorX += gap;
+        }
+
+        const iconX = roundSvgNumber(cursorX);
+        const iconY = cursorY;
+
+        fragments.push(icon
+          ? `<image href="${metrics.imageHref}" x="${iconX}" y="${iconY}" width="${roundSvgNumber(itemWidth)}" height="${iconSize}" preserveAspectRatio="xMinYMid meet"/>`
+          : `<rect x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" fill="#284f2d" stroke="#6da774" stroke-width="2"/>`);
+
+        cursorX += itemWidth;
+        rowWidth = rowWidth === 0 ? itemWidth : rowWidth + gap + itemWidth;
+      }
+
+      return fragments.join('');
+    })()}
   </g>`;
+}
+
+function getBadgeIconMetrics(icon, iconSize) {
+  if (!icon) {
+    return {
+      displayWidth: iconSize,
+      imageHref: null,
+    };
+  }
+
+  const imageHref = typeof icon === 'string' ? icon : icon.image;
+  const sourceWidth = Number(icon?.width);
+  const sourceHeight = Number(icon?.height);
+
+  if (!imageHref || !Number.isFinite(sourceWidth) || !Number.isFinite(sourceHeight) || sourceWidth <= 0 || sourceHeight <= 0) {
+    return {
+      displayWidth: iconSize,
+      imageHref,
+    };
+  }
+
+  const rawDisplayWidth = iconSize * sourceWidth / sourceHeight;
+  return {
+    displayWidth: Math.max(iconSize * 0.7, Math.min(iconSize * 1.8, rawDisplayWidth)),
+    imageHref,
+  };
 }
 
 function renderBio(lines, emojiAssets, y, height, x = 36, width = 888) {
