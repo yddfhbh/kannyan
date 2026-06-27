@@ -1806,9 +1806,11 @@ async function renderHeaderNameAsset({
       measuredTextWidth,
     );
     const horizontalPadding = Math.max(14, Math.ceil(fontSize * 0.3));
+    // HUN 글리프와 헤더 그림자는 측정 폭보다 오른쪽으로 더 튀는 경우가 있어서
+    // 여백이 타이트하면 마지막 글자가 잘리고 국기 배치도 왼쪽으로 당겨진다.
     const rightRenderPadding = Math.max(
-      horizontalPadding + Math.ceil(fontSize * 0.22),
-      Math.ceil(fontSize * 0.95),
+      horizontalPadding + Math.ceil(fontSize * 0.58),
+      Math.ceil(fontSize * 1.68),
     );
     const topPadding = Math.max(12, Math.ceil(fontSize * 0.28));
     const bottomPadding = Math.max(16, Math.ceil(fontSize * 0.34));
