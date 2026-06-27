@@ -665,20 +665,6 @@ function renderQuickPlayMainValueMarkup({
   </g>`;
 }
 
-function renderQuickPlayMetaTextMarkup(value) {
-  return String(value ?? '')
-    .split('')
-    .map((char) => {
-      if (shouldUseArialFallbackForHunDin(char)) {
-        const fontSizeAttr = char === '_' ? ' font-size="1em" dy="-0.06em"' : '';
-        return `<tspan style="font-family: Arial !important;"${fontSizeAttr}>${escapeXml(char)}</tspan>`;
-      }
-
-      return escapeXml(char);
-    })
-    .join('');
-}
-
 function renderQuickPlayMainNumberMarkup(value) {
   return renderQuickPlayNumberMarkup(value, {
     decimalDyEm: 0.14,
@@ -756,10 +742,6 @@ function getQuickPlayInlineUnitDx(value) {
     return 4;
   }
   return -4;
-}
-
-function getQuickPlayUnitBottomAlignmentOffset(fontSize) {
-  return Math.round(fontSize * 0.17);
 }
 
 function renderTetrioFontFace(fontDataUri) {

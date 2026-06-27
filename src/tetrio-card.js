@@ -81,6 +81,7 @@ const achievementIconPendingPromises = new Map();
 const achievementSpriteCache = new Map();
 const achievementSpritePendingPromises = new Map();
 const headerNameWidthCache = new Map();
+const headerNameRenderCache = new Map();
 const bioTextWidthCache = new Map();
 const graphemeSegmenter = typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'
   ? new Intl.Segmenter('en', { granularity: 'grapheme' })
@@ -728,32 +729,33 @@ const bannerRightEdgeCoverY = bannerEdgeCoverY ;
   const headerNameFontWeight = 900;
   const headerUsername = String(user.username ?? '').toUpperCase();
   const bannerCropLeft = 0; // 왼쪽을  더 자름
-  const measuredHeaderNameWidth = await measureRenderedHeaderUsernameWidth({
+  const headerBaselineY = bannerY + 52;
+  const headerNameAsset = await renderHeaderNameAsset({
+    hasBanner: Boolean(assets.banner),
     text: headerUsername,
     fontSize: headerNameFontSize,
     fontDataUri: assets.hunFont,
     fontWeight: headerNameFontWeight,
   });
-  const headerNameWidth = getHeaderNamePlacementWidth(
+  const headerNamePlacementWidth = headerNameAsset?.visibleRightEdgeFromTextOrigin ?? getHeaderNamePlacementWidth(
     headerUsername,
     headerNameFontSize,
-    measuredHeaderNameWidth,
+    await measureHeaderNameWidth(
+      headerUsername,
+      headerNameFontSize,
+      assets.hunFont,
+      headerNameFontWeight,
+    ),
   );
-  const headerFlagGap = getHeaderFlagGap(headerUsername, headerNameFontSize);
-const headerFlagX = Math.round(nameX + headerNameWidth + headerFlagGap);
+  const headerFlagGap = headerNameAsset?.flagGap ?? (getHeaderFlagGap(headerUsername, headerNameFontSize) + Math.round(headerNameFontSize * 0.08));
+const headerFlagX = Math.round(nameX + headerNamePlacementWidth + headerFlagGap);
 const headerFlagY = bannerY + 18;
 const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
   
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
-  const headerNameMarkup = await renderHeaderUsernameMarkup({
-    className: headerNameClass,
-    fontDataUri: assets.hunFont,
-    fontSize: headerNameFontSize,
-    fontWeight: headerNameFontWeight,
-    text: headerUsername,
-    x: nameX,
-    y: bannerY + 52,
-  });
+  const headerNameMarkup = headerNameAsset
+    ? renderHeaderNameImageMarkup(headerNameAsset, nameX, headerBaselineY)
+    : `<text x="${nameX}" y="${headerBaselineY}" class="${headerNameClass}" font-size="${headerNameFontSize}" font-weight="${headerNameFontWeight}" xml:space="preserve">${renderHeaderUsernameInlineMarkup(headerUsername, headerNameFontSize)}</text>`;
   const headerMetaClass = assets.banner ? 'meta' : 'meta noBannerMeta';
   const flag = getCountryFlag(user.country, assets.flag);
   const joined = user.ts ? `JOINED ${formatRelativeDate(user.ts).toUpperCase()}` : 'JOIN DATE HIDDEN';
@@ -1095,18 +1097,6 @@ ${renderHeaderFlag(flag, headerFlagX, headerFlagY)}
 </svg>`;
 }
 
-function getHeaderFlagNudgeX(text, fontSize) {
-  const rawText = String(text ?? '').toUpperCase();
-
-  // 닉네임이 _로 시작하면 renderHeaderUsernameMarkup 쪽에서
-  // 언더바/뒤 글자 전체를 오른쪽으로 밀었으므로 국기도 같이 밀기
-  if (rawText.startsWith('_')) {
-    return fontSize * 0.45;
-  }
-
-  return 0;
-}
-
 function getSupporterBadgeLayout(tier, rightEdge = 920, y = 160) {
   const starCount = Math.max(0, Math.min(4, Number(tier) - 1));
   const height = supporterBadgeHeight;
@@ -1131,10 +1121,6 @@ function getSupporterBadgeLayout(tier, rightEdge = 920, y = 160) {
     x,
     y,
   };
-}
-
-function renderSupporterBadge(tier, rightEdge = 920, y = 160) {
-  return renderSupporterBadgeMarkup(getSupporterBadgeLayout(tier, rightEdge, y));
 }
 
 function renderTetrioFontFace(fontDataUri) {
@@ -1770,40 +1756,171 @@ function getCountryFlag(country, image) {
     : null;
 }
 
-function adjustHeaderFlagNameWidth(text, measuredWidth, fontSize) {
-  const rawText = String(text ?? '').toUpperCase();
-  const underscoreCount = (rawText.match(/_/g) ?? []).length;
-  const leadingUnderscoreCount = rawText.match(/^_*/)?.[0]?.length ?? 0;
-
-  // 언더바 없음: 측정폭이 실제보다 살짝 크게 잡혀서 국기가 멀어짐
-  if (underscoreCount === 0) {
-    // I, J, 1 처럼 폭이 좁은 글자가 많을수록 측정값이 실제보다 짧게 나옴
-    // 2개 이상부터 누적 오차가 생기므로 보정 추가
-    const narrowCount = (rawText.match(/[IJ1]/g) ?? []).length;
-    const narrowBonus = narrowCount >= 2 ? fontSize * 0.09 * (narrowCount - 1) : 0;
-    return measuredWidth - fontSize * 0.28 + narrowBonus;
-  }
-
-  // _ILIS 같은 케이스: 시작 언더바 1개는 국기가 너무 가까움
-  if (leadingUnderscoreCount === 1 && underscoreCount === 1) {
-    return measuredWidth + fontSize * 0.12;
-  }
-
-  // ___NEKO 같은 케이스: 언더바가 여러 개면 폭이 과하게 커짐
-  if (underscoreCount >= 2) {
-    return measuredWidth - fontSize * (0.12 + 0.10 * underscoreCount);
-  }
-
-  // TENDO_ARISU 같은 일반 1개 언더바 케이스
-  return measuredWidth;
-}
-
 function renderHeaderFlag(flag, x, y) {
   if (!flag?.image) {
     return '';
   }
 
   return `<image href="${flag.image}" x="${x}" y="${y}" width="32" height="18" preserveAspectRatio="xMidYMid meet"/>`;
+}
+
+async function renderHeaderNameAsset({
+  hasBanner,
+  text,
+  fontSize,
+  fontDataUri = null,
+  fontWeight = 700,
+}) {
+  const normalizedText = String(text ?? '').trim().toUpperCase();
+  if (!normalizedText) {
+    return null;
+  }
+
+  const cacheKey = [
+    'header-image-v3',
+    hasBanner ? 1 : 0,
+    fontSize,
+    fontWeight,
+    fontDataUri ? fontDataUri.length : 0,
+    normalizedText,
+  ].join('|');
+
+  if (headerNameRenderCache.has(cacheKey)) {
+    return headerNameRenderCache.get(cacheKey);
+  }
+
+  try {
+    const scale = 2;
+    const measuredTextWidth = await measureHeaderNameWidth(
+      normalizedText,
+      fontSize,
+      fontDataUri,
+      fontWeight,
+    );
+    const textWidth = getHeaderNamePlacementWidth(
+      normalizedText,
+      fontSize,
+      measuredTextWidth,
+    );
+    const horizontalPadding = Math.max(14, Math.ceil(fontSize * 0.3));
+    const rightRenderPadding = Math.max(
+      horizontalPadding + Math.ceil(fontSize * 0.22),
+      Math.ceil(fontSize * 0.95),
+    );
+    const topPadding = Math.max(12, Math.ceil(fontSize * 0.28));
+    const bottomPadding = Math.max(16, Math.ceil(fontSize * 0.34));
+    const baselineY = topPadding + fontSize * 0.82;
+    const svgWidth = Math.max(
+      96,
+      Math.ceil(textWidth + horizontalPadding + rightRenderPadding),
+    );
+    const svgHeight = Math.max(
+      72,
+      Math.ceil(baselineY + bottomPadding),
+    );
+    const className = hasBanner ? 'headerName' : 'headerName noBannerHeaderName';
+    const svg = buildHeaderNameRenderSvg({
+      baselineY,
+      className,
+      fontDataUri,
+      fontSize,
+      fontWeight,
+      height: svgHeight,
+      text: normalizedText,
+      width: svgWidth,
+      x: horizontalPadding,
+    });
+    const { dataUri, trimOffsetLeft, trimWidth } = await renderSvgImageAsset(svg, scale);
+    const visibleRightEdgeFromTextOrigin = Math.max(
+      0,
+      (trimOffsetLeft + trimWidth) / scale - horizontalPadding,
+    );
+    const asset = {
+      baselineY,
+      image: dataUri,
+      flagGap: Math.max(8, Math.round(fontSize * 0.18)),
+      imageHeight: svgHeight,
+      imageWidth: svgWidth,
+      placementWidth: textWidth,
+      textInsetX: horizontalPadding,
+      visibleRightEdgeFromTextOrigin,
+    };
+
+    headerNameRenderCache.set(cacheKey, asset);
+    return asset;
+  } catch (error) {
+    console.warn('[HEADER IMAGE FALLBACK]', normalizedText, error?.message ?? error);
+    return null;
+  }
+}
+
+function renderHeaderNameImageMarkup(asset, textX, baselineY) {
+  if (!asset?.image) {
+    return '';
+  }
+
+  return `<image href="${asset.image}" x="${roundSvgNumber(textX - asset.textInsetX)}" y="${roundSvgNumber(baselineY - asset.baselineY)}" width="${roundSvgNumber(asset.imageWidth)}" height="${roundSvgNumber(asset.imageHeight)}" preserveAspectRatio="xMidYMid meet"/>`;
+}
+
+function buildHeaderNameRenderSvg({
+  baselineY,
+  className,
+  fontDataUri = null,
+  fontSize,
+  fontWeight,
+  height,
+  text,
+  width,
+  x,
+}) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <defs>
+    <filter id="headerNameShadow" x="-24%" y="-35%" width="180%" height="220%">
+      <feOffset in="SourceAlpha" dx="0" dy="5" result="shadowOffset"/>
+      <feGaussianBlur in="shadowOffset" stdDeviation="4.2" result="shadowBlur"/>
+      <feFlood flood-color="#071109" flood-opacity="0.58" result="shadowColor"/>
+      <feComposite in="shadowColor" in2="shadowBlur" operator="in" result="shadow"/>
+      <feMerge>
+        <feMergeNode in="shadow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <style>
+      ${renderTetrioFontFace(fontDataUri)}
+      .headerName {
+        font-family: ${cardFontFamily};
+        letter-spacing: 0;
+        fill: #fbfff8;
+        filter: url(#headerNameShadow);
+        stroke: rgba(251,255,248,0.54);
+        stroke-width: 1.8px;
+        paint-order: stroke fill;
+      }
+      .noBannerHeaderName {
+        fill: #b7d9af;
+      }
+    </style>
+  </defs>
+  <rect width="${width}" height="${height}" fill="transparent"/>
+  <text x="${x}" y="${baselineY}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderHeaderUsernameInlineMarkup(text, fontSize)}</text>
+</svg>`;
+}
+
+async function renderSvgImageAsset(svg, scale = 1) {
+  const buffer = await sharp(renderTetrioSvgToPng(svg, scale))
+    .png()
+    .toBuffer();
+
+  const { info } = await sharp(buffer)
+    .trim()
+    .toBuffer({ resolveWithObject: true });
+
+  return {
+    dataUri: `data:image/png;base64,${buffer.toString('base64')}`,
+    trimOffsetLeft: Number.isFinite(info.trimOffsetLeft) ? info.trimOffsetLeft : 0,
+    trimWidth: Number.isFinite(info.width) ? info.width : 0,
+  };
 }
 
 async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWeight = 700) {
@@ -1842,7 +1959,7 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
     const measurementSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
   <defs>
-    <filter id="measureHeaderNameShadow" x="-20%" y="-35%" width="160%" height="220%">
+    <filter id="measureHeaderNameShadow" x="-24%" y="-35%" width="180%" height="220%">
       <feOffset in="SourceAlpha" dx="0" dy="5" result="shadowOffset"/>
       <feGaussianBlur in="shadowOffset" stdDeviation="4.2" result="shadowBlur"/>
       <feFlood flood-color="#071109" flood-opacity="0.58" result="shadowColor"/>
@@ -1890,31 +2007,6 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
     cacheMeasuredTextWidth(headerNameWidthCache, cacheKey, fallbackWidth);
     return fallbackWidth;
   }
-}
-
-function getHeaderUnderscoreMetrics(fontSize) {
-  return {
-    width: getHeaderCharUnits('_') * fontSize * 1.7,
-    height: Math.max(5.0, fontSize * 0.11),
-    beforeGap: fontSize * 0.10,
-    afterGap: fontSize * 0.15,
-  };
-}
-
-async function measureRenderedHeaderUsernameWidth({
-  text,
-  fontSize,
-  fontDataUri,
-  fontWeight,
-}) {
-  const rawText = String(text ?? '').toUpperCase();
-
-  return measureHeaderNameWidth(
-    rawText,
-    fontSize,
-    fontDataUri,
-    fontWeight,
-  );
 }
 
 function getHeaderUnderscoreDxEm(previousChar) {
@@ -1987,21 +2079,6 @@ function renderHeaderUsernameInlineMarkup(text, fontSize) {
     return `<tspan${restoreDy}>${renderTetrioTextMarkup(part)}</tspan>`;
   }).join('');
 }
-
-
-async function renderHeaderUsernameMarkup({
-  className,
-  fontSize,
-  fontWeight,
-  text,
-  x,
-  y,
-}) {
-  const rawText = String(text ?? '').toUpperCase();
-
-  return `<text x="${x}" y="${y}" class="${className}" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderHeaderUsernameInlineMarkup(rawText, fontSize)}</text>`;
-}
-
 function getHeaderNamePlacementWidth(text, fontSize, measuredWidth) {
   const normalizedText = String(text ?? '').toUpperCase();
   const estimatedWidth = estimateHeaderNameWidth(normalizedText, fontSize);
@@ -2021,17 +2098,22 @@ function getHeaderNamePlacementWidth(text, fontSize, measuredWidth) {
     + opticalPadding
     + getHeaderLongNamePlacementPadding(normalizedText, fontSize)
     + getHeaderTrailingOpticalPadding(normalizedText, fontSize)
+    + fontSize * 0.18
   );
 }
 
 function getHeaderFlagGap(text, fontSize) {
   const normalizedText = String(text ?? '').toUpperCase();
   const narrowGlyphCount = countHeaderNarrowGlyphs(normalizedText);
+  const visibleCharCount = getHeaderVisibleCharCount(normalizedText);
+  const longNameGapBonus = visibleCharCount > 10
+    ? Math.min(fontSize * 0.36, (visibleCharCount - 10) * fontSize * 0.1)
+    : 0;
 
   return Math.round(
     fontSize * 0.27
     + Math.min(fontSize * 0.18, narrowGlyphCount * fontSize * 0.06),
-  ) + Math.round(getHeaderTrailingFlagGapBonus(normalizedText, fontSize));
+  ) + Math.round(getHeaderTrailingFlagGapBonus(normalizedText, fontSize) + longNameGapBonus);
 }
 
 function getHeaderVisibleCharCount(text) {
@@ -2123,27 +2205,6 @@ function countHeaderNarrowGlyphs(text) {
   return [...String(text ?? '').toUpperCase()]
     .filter((char) => char === 'I' || char === 'J' || char === '1')
     .length;
-}
-
-function getHeaderUnderscorePullback(previousChar, fontSize) {
-  const char = String(previousChar ?? '').toUpperCase();
-
-  // _ILIS 같은 시작 언더바는 오른쪽으로 밀어야 하니까 유지
-  if (!char) {
-    return fontSize * -0.12;
-  }
-
-  // HEBI_, AIRI_ 같은 I 뒤 언더바는 거의 당기면 안 됨
-  if (char === 'I' || char === '1') {
-    return fontSize * 0.02;
-  }
-
-  if (char === 'L' || char === 'J') {
-    return fontSize * 0.07;
-  }
-
-  // TENDO_ 같은 일반 케이스는 더 왼쪽으로 당김
-  return fontSize * 0.28;
 }
 
 function estimateHeaderNameWidth(username, fontSize) {
@@ -2979,32 +3040,6 @@ function renderStatSubtextMarkup(value) {
 
     resetDyEm = 0;
     tightenNext = char === ',';
-  }
-
-  return markup;
-}
-
-function renderTetrioCardDecimalTextMarkup(value, options = {}) {
-  const text = String(value ?? '');
-  const dotFontSize = options.dotFontSize ?? '1.4em';
-  const dotDyEm = options.dotDyEm ?? 0.02;
-
-  let markup = '';
-  let resetDyEm = 0;
-
-  for (const char of text) {
-    if (char === '.') {
-      markup += `<tspan dy="${dotDyEm}em" font-family="Arial" font-size="${dotFontSize}" stroke="none">.</tspan>`;
-      resetDyEm = dotDyEm;
-      continue;
-    }
-
-    const dy = resetDyEm ? ` dy="${roundSvgNumber(-resetDyEm)}em"` : '';
-    markup += dy
-      ? `<tspan${dy}>${escapeXml(char)}</tspan>`
-      : escapeXml(char);
-
-    resetDyEm = 0;
   }
 
   return markup;

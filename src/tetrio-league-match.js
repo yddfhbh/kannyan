@@ -741,103 +741,6 @@ function renderFooterTextMarkup(text) {
   return `<tspan class="footerName">${renderLeagueUsernameMarkup(match[1])}</tspan><tspan dx="8" class="footerKeyword">VERSUS</tspan><tspan dx="8" class="footerName">${renderLeagueUsernameMarkup(match[2])}</tspan><tspan dx="8" class="footerKeyword">PLAYED</tspan><tspan dx="5" class="footerKeyword">ON</tspan>${dateMarkup}`;}
 
 
-function estimateFooterCharWidth(char, fontSize = 14) {
-  if (char === ' ') return fontSize * 0.34;
-  if (char === 'I' || char === '1' || char === 'L') return fontSize * 0.34;
-  if (char === 'M' || char === 'W') return fontSize * 0.88;
-
-  // 추가
-  if (char === ':') return fontSize * 0.24;
-  if (char === '/') return fontSize * 0.34;
-  if (char === ',') return fontSize * 0.22;
-  if (char === '.') return fontSize * 0.22;
-
-  if (/[0-9]/.test(char)) return fontSize * 0.58;
-  return fontSize * 0.62;
-}
-
-function measureFooterTextWidth(text, fontSize = 14) {
-  return [...String(text ?? '')].reduce((sum, char) => {
-    if (char === '_') return sum + 8.8;
-    return sum + estimateFooterCharWidth(char, fontSize);
-  }, 0);
-}
-
-function renderFooterPlainText(text, x, y, className, fontSize = 14) {
-  const value = String(text ?? '');
-
-  return {
-    markup: `<text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer ${className}">${escapeXml(value)}</text>`,
-    width: measureFooterTextWidth(value, fontSize),
-  };
-}
-
-function renderFooterNameText(text, x, y) {
-  const raw = String(text ?? '').toUpperCase();
-
-  let cursorX = x;
-  let markup = '';
-
-  for (const char of raw) {
-    if (char === '_') {
-      const metrics = getFooterUnderscoreMetrics();
-
-      markup += `<text x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" dominant-baseline="middle" class="footer footerName" style="font-family: Arial !important;" font-size="13">${escapeXml(char)}</text>`;
-      cursorX += metrics.advance;
-      continue;
-    }
-
-    const fontFamilyAttr = shouldUseArialFallbackForHunDin(char)
-      ? ' font-family="Arial"'
-      : '';
-    markup += `<text x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer footerName"${fontFamilyAttr}>${escapeXml(char)}</text>`;
-    cursorX += estimateFooterNameCharWidth(char);
-  }
-
-  return {
-    markup: `<g>${markup}</g>`,
-    width: cursorX - x,
-  };
-}
-
-function estimateFooterNameCharWidth(char, fontSize = 14) {
-  if (char === ' ') return fontSize * 0.34;
-  if (char === 'I' || char === '1') return fontSize * 0.46;
-  if (char === 'L') return fontSize * 0.38;
-  if (char === 'M' || char === 'W') return fontSize * 0.88;
-  return fontSize * 0.62;
-}
-
-function measureFooterNameTextWidth(text, fontSize = 14) {
-  let width = 0;
-
-  for (const char of String(text ?? '').toUpperCase()) {
-    if (char === '_') {
-      width += getFooterUnderscoreMetrics().advance;
-    } else {
-      width += estimateFooterNameCharWidth(char, fontSize);
-    }
-  }
-
-  return width;
-}
-
-function getFooterUnderscoreMetrics() {
-  const beforeGap = 2.6;
-  const width = 8.8;
-  const afterGap = 2.4;
-
-  return {
-    beforeGap,
-    width,
-    afterGap,
-    advance: beforeGap + width + afterGap,
-    height: 1.7,
-    yOffset: 0.8,
-  };
-}
-
-
 function renderFooterLineMarkup(text, x, y) {
   return `<text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="footer" xml:space="preserve">${renderFooterTextMarkup(text)}</text>`;
 }
@@ -851,13 +754,6 @@ function estimateLeagueUsernameCharWidth(char, fontSize = 18) {
   if (char === 'M' || char === 'W') return fontSize * 0.72;
 
   return fontSize * 0.60;
-}
-
-function measureLeagueUsernameWidth(text, fontSize = 17) {
-  return [...String(text ?? '')].reduce((sum, char) => {
-    if (char === '_') return sum;
-    return sum + estimateLeagueUsernameCharWidth(char, fontSize);
-  }, 0);
 }
 
 function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
@@ -923,17 +819,6 @@ function getLeagueUsernameUnderscoreMetrics(fontSize = 17) {
     height: 2.0,
     yOffset: -0.12,
   };
-}
-
-function getLeagueUsernameUnderscoreNudge(previousChar) {
-  const char = String(previousChar ?? '').toUpperCase();
-
-  // I 뒤는 너무 오른쪽으로 밀면 밖으로 나가기 쉬움
-  if (char === 'I' || char === '1' || char === 'L') {
-    return 3;
-  }
-
-  return 5.6;
 }
 
 function renderLeagueUsernameMarkup(value, options = {}) {
@@ -1042,16 +927,6 @@ function renderLeagueRoundNumberMarkup(value) {
   }
 
   return markup;
-}
-
-function renderInlineStats(stats, valueClass, labelClass, options = {}) {
-  const labelGap = options.compact ? 2.5 : 5;
-  const separatorGap = options.compact ? 4.5 : 7;
-  const valueGap = options.compact ? 4.5 : 7;
-  const separator = options.compact
-    ? `<tspan class="${labelClass}" dx="${separatorGap}" font-size="7" font-weight="900">&#9635;</tspan>`
-    : `<tspan class="${valueClass}" dx="${separatorGap}">-</tspan>`;
-  return `<tspan class="${valueClass}">${renderTetrioNumericTextMarkup(formatDecimal(stats?.apm, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">APM</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${renderTetrioNumericTextMarkup(formatDecimal(stats?.pps, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">PPS</tspan>${separator}<tspan class="${valueClass}" dx="${valueGap}">${renderTetrioNumericTextMarkup(formatDecimal(stats?.vsscore, 2))}</tspan><tspan class="${labelClass}" dx="${labelGap}">VS</tspan>`;
 }
 
 function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
@@ -1482,97 +1357,6 @@ async function fetchTetrioJson(path) {
 
   return body;
 }
-
-function renderModeFooterMarkup(username, playedAtText, x, y) {
-  const prefix = 'PLAYED BY ';
-  const separator = ' · ';
-  const fontSize = 14;
-
-  const prefixWidth = estimateFooterTextWidth(prefix, fontSize);
-  const nameWidth = estimateFooterTextWidthWithUnderscore(username, fontSize);
-  const separatorWidth = estimateFooterTextWidth(separator, fontSize);
-
-  const nameX = x + prefixWidth;
-  const separatorX = nameX + nameWidth;
-  const dateX = separatorX + separatorWidth;
-
-  return `
-    <g class="footer">
-      <text x="${roundSvgNumber(x)}" y="${roundSvgNumber(y)}" class="footerKeyword">${escapeXml(prefix)}</text>
-      ${renderFooterUsernameMarkup(username, nameX, y)}
-      <text x="${roundSvgNumber(separatorX)}" y="${roundSvgNumber(y)}" class="footerKeyword">${escapeXml(separator)}</text>
-      <text x="${roundSvgNumber(dateX)}" y="${roundSvgNumber(y)}" class="footerDate">${escapeXml(playedAtText)}</text>
-    </g>
-  `;
-}
-
-function renderFooterUsernameMarkup(username, startX, baselineY) {
-  const text = String(username ?? '').toUpperCase();
-
-  const underscoreWidth = 6.6;
-  const underscoreHeight = 1.9;
-  const underscoreYOffset = 0.6;
-  const underscoreAdvance = 7.2;
-  const underscoreNudgeX = 0.3;
-
-  let x = startX;
-  let markup = '';
-
-  for (const char of text) {
-    if (char === '_') {
-      markup += `
-        <text
-          x="${roundSvgNumber(x + underscoreNudgeX)}"
-          y="${roundSvgNumber(baselineY + underscoreYOffset)}"
-          class="footerName"
-          style="font-family: Arial !important;"
-          font-size="13"
-        >${escapeXml(char)}</text>`;
-      x += underscoreAdvance;
-      continue;
-    }
-
-    const fontFamilyAttr = shouldUseArialFallbackForHunDin(char)
-      ? ' font-family="Arial"'
-      : '';
-    markup += `
-      <text
-        x="${roundSvgNumber(x)}"
-        y="${roundSvgNumber(baselineY)}"
-        class="footerName"
-        ${fontFamilyAttr}
-      >${escapeXml(char)}</text>`;
-
-    x += estimateFooterCharWidth(char);
-  }
-
-  return markup;
-}
-
-function estimateFooterTextWidthWithUnderscore(text, fontSize = 14) {
-  let width = 0;
-
-  for (const char of String(text ?? '').toUpperCase()) {
-    if (char === '_') {
-      width += fontSize * 0.52;
-    } else {
-      width += estimateFooterCharWidth(char, fontSize);
-    }
-  }
-
-  return width;
-}
-
-function estimateFooterTextWidth(text, fontSize = 14) {
-  let width = 0;
-
-  for (const char of String(text ?? '')) {
-    width += estimateFooterCharWidth(char, fontSize);
-  }
-
-  return width;
-}
-
 
 function formatPrisecter(prisecter) {
   const pri = Number(prisecter?.pri);

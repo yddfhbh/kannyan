@@ -929,33 +929,6 @@ function wrapPieceSvg(parsed, x, y, size) {
 </svg>`;
 }
 
-async function getPieceImageHref(piece) {
-  const pieceName = `${piece.color}${piece.type.toUpperCase()}.svg`;
-
-  if (chessPieceSvgCache.has(pieceName)) {
-    return chessPieceSvgCache.get(pieceName);
-  }
-
-  const pieceUrl = new URL(pieceName, chessPieceDir);
-
-  try {
-    const svg = await fs.readFile(pieceUrl, 'utf8');
-    const dataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
-
-    chessPieceSvgCache.set(pieceName, dataUri);
-    return dataUri;
-  } catch (error) {
-    console.error(`Failed to load chess piece SVG: ${pieceUrl.pathname}`);
-    console.error(error);
-
-    const fallbackSvg = createFallbackPieceSvg(piece);
-    const dataUri = `data:image/svg+xml;base64,${Buffer.from(fallbackSvg).toString('base64')}`;
-
-    chessPieceSvgCache.set(pieceName, dataUri);
-    return dataUri;
-  }
-}
-
 function createFallbackPieceSvg(piece) {
   const symbol = getPieceSymbol(piece);
 

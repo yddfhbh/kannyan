@@ -2125,14 +2125,6 @@ function looksLikeActiveChessDiscussionText(text) {
   return /(?:왜|무슨\s*(?:뜻|의미|수)|어떻게|설명|해설|분석|평가|후보수|최선수|베스트\s*무브|좋은\s*수|왜\s*좋|실수|블런더|이유|의도|노림수|전략|포지션|판세|지금\s*(?:상황|포지션)|방금\s*수|그\s*수|이\s*수|내\s*수|네\s*수)/i.test(value);
 }
 
-function buildActiveChessInputClarificationReply(chess, session) {
-  if (chess.turn() === session.userColor) {
-    return '그 입력은 체스 수나 질문으로 읽기 어렵다냥. 수를 두려면 `%e4`, `%Nf3`, `%O-O`처럼 보내고, 설명이 필요하면 왜 좋은 수인지 같이 물어봐달라냥.';
-  }
-
-  return '그 입력은 체스 수나 질문으로 읽기 어렵다냥. 보드를 보려면 `%보드`나 `%fen`처럼 말하고, 설명이 필요하면 방금 수가 왜 좋았는지 같이 물어봐달라냥.';
-}
-
 async function replyFinishedChessGamePgn(message, key, existingSession = null) {
   pruneFinishedChessGamePgnCache();
   const expiredMessage =
@@ -5574,17 +5566,6 @@ function clampPercent(value) {
   }
 
   return Math.max(0, Math.min(100, value));
-}
-
-function formatLoadAverage(loadAverage) {
-  if (!Array.isArray(loadAverage) || loadAverage.length < 3) {
-    return '0.00 / 0.00 / 0.00';
-  }
-
-  return loadAverage
-    .slice(0, 3)
-    .map((value) => Number(value).toFixed(2))
-    .join(' / ');
 }
 
 function formatBytes(bytes) {
