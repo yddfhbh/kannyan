@@ -87,6 +87,9 @@ const graphemeSegmenter = typeof Intl !== 'undefined' && typeof Intl.Segmenter =
   : null;
 const emojiPresentationPattern = /\p{Emoji_Presentation}/u;
 const extendedPictographicPattern = /\p{Extended_Pictographic}/u;
+const bioDecorationStroke = 'rgba(255,255,255,0.22)';
+const bioDecorationFill = '#6faa6b';
+const bioDecorativeGlyphPattern = /[∼〜⠄‧・･₊⁺˚⊹❅❆❈]/u;
 const tetrioCardDebug = process.env.TETRIO_CARD_DEBUG === '1';
 
 
@@ -1810,7 +1813,7 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
   }
 
   const cacheKey = [
-    'header-v2',
+    'header-v3',
     fontSize,
     fontWeight,
     fontDataUri ? fontDataUri.length : 0,
@@ -1839,13 +1842,31 @@ async function measureHeaderNameWidth(text, fontSize, fontDataUri = null, fontWe
     const measurementSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
   <defs>
+    <filter id="measureHeaderNameShadow" x="-20%" y="-35%" width="160%" height="220%">
+      <feOffset in="SourceAlpha" dx="0" dy="5" result="shadowOffset"/>
+      <feGaussianBlur in="shadowOffset" stdDeviation="4.2" result="shadowBlur"/>
+      <feFlood flood-color="#071109" flood-opacity="0.58" result="shadowColor"/>
+      <feComposite in="shadowColor" in2="shadowBlur" operator="in" result="shadow"/>
+      <feMerge>
+        <feMergeNode in="shadow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
     <style>
       ${renderTetrioFontFace(fontDataUri)}
-      text { font-family: ${cardFontFamily}; letter-spacing: 0; ${renderTetrioTextWeightCss()} }
+      .headerNameMeasure {
+        font-family: ${cardFontFamily};
+        letter-spacing: 0;
+        fill: #fbfff8;
+        filter: url(#measureHeaderNameShadow);
+        stroke: rgba(251,255,248,0.54);
+        stroke-width: 1.8px;
+        paint-order: stroke fill;
+      }
     </style>
   </defs>
   <rect width="${svgWidth}" height="${svgHeight}" fill="transparent"/>
-  <text x="${horizontalPadding}" y="${baselineY}" font-family="${escapeXml(cardFontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}" fill="#ffffff" xml:space="preserve">${renderHeaderUsernameInlineMarkup(normalizedText, fontSize)}</text>
+  <text x="${horizontalPadding}" y="${baselineY}" class="headerNameMeasure" font-size="${fontSize}" font-weight="${fontWeight}" xml:space="preserve">${renderHeaderUsernameInlineMarkup(normalizedText, fontSize)}</text>
 </svg>`;
 
     const { info } = await sharp(renderTetrioSvgToPng(measurementSvg, 1))
@@ -1998,6 +2019,7 @@ function getHeaderNamePlacementWidth(text, fontSize, measuredWidth) {
   return Math.ceil(
     baseWidth
     + opticalPadding
+    + getHeaderLongNamePlacementPadding(normalizedText, fontSize)
     + getHeaderTrailingOpticalPadding(normalizedText, fontSize)
   );
 }
@@ -2007,9 +2029,28 @@ function getHeaderFlagGap(text, fontSize) {
   const narrowGlyphCount = countHeaderNarrowGlyphs(normalizedText);
 
   return Math.round(
-    fontSize * 0.24
+    fontSize * 0.27
     + Math.min(fontSize * 0.18, narrowGlyphCount * fontSize * 0.06),
   ) + Math.round(getHeaderTrailingFlagGapBonus(normalizedText, fontSize));
+}
+
+function getHeaderVisibleCharCount(text) {
+  return [...String(text ?? '').toUpperCase()]
+    .filter((char) => char !== '_')
+    .length;
+}
+
+function getHeaderLongNamePlacementPadding(text, fontSize) {
+  const visibleCharCount = getHeaderVisibleCharCount(text);
+
+  if (visibleCharCount <= 8) {
+    return 0;
+  }
+
+  return Math.min(
+    fontSize * 0.9,
+    (visibleCharCount - 8) * fontSize * 0.16,
+  );
 }
 
 function getHeaderTrailingVisibleChar(text) {
@@ -2065,6 +2106,14 @@ function getHeaderTrailingFlagGapBonus(text, fontSize) {
     if (trailingVisibleChar === 'J' || trailingVisibleChar === 'L') {
       return fontSize * 0.06;
     }
+  }
+
+  if (trailingVisibleChar === 'T') {
+    return fontSize * 0.10;
+  }
+
+  if (/[AFPRYVWKMN]/.test(trailingVisibleChar)) {
+    return fontSize * 0.06;
   }
 
   return 0;
@@ -2531,6 +2580,9 @@ function renderBioLine(line, emojiAssets, x, baselineY) {
   for (const grapheme of splitGraphemes(line)) {
     const emojiCode = getTwemojiCode(grapheme);
     const emoji = emojiCode ? emojiAssets?.[emojiCode] : null;
+    const decoration = isBioDecorativeGrapheme(grapheme)
+      ? renderBioDecoration(grapheme, cursorX, baselineY)
+      : '';
     const graphemeWidth = getBioGraphemeWidth(grapheme, null, {
       prevWasDot,
     });
@@ -2542,6 +2594,10 @@ function renderBioLine(line, emojiAssets, x, baselineY) {
         `<image href="${emoji}" x="${roundSvgNumber(cursorX)}" y="${roundSvgNumber(baselineY - bioEmojiSize + 2)}" width="${bioEmojiSize}" height="${bioEmojiSize}" preserveAspectRatio="xMidYMid meet"/>`
       );
 
+      prevWasDot = false;
+    } else if (decoration) {
+      flushTextRun();
+      parts.push(decoration);
       prevWasDot = false;
     } else {
       if (!textRun) {
@@ -2557,6 +2613,141 @@ function renderBioLine(line, emojiAssets, x, baselineY) {
 
   flushTextRun();
   return parts.join('');
+}
+
+function isBioDecorativeGrapheme(grapheme) {
+  return bioDecorativeGlyphPattern.test(String(grapheme ?? ''));
+}
+
+function getBioDecorationKind(grapheme) {
+  switch (String(grapheme ?? '')) {
+    case '∼':
+    case '〜':
+      return 'wave';
+    case '⠄':
+      return 'lowDot';
+    case '‧':
+    case '・':
+    case '･':
+      return 'midDot';
+    case '₊':
+      return 'lowPlus';
+    case '⁺':
+      return 'plus';
+    case '˚':
+      return 'ring';
+    case '⊹':
+      return 'sparkle';
+    case '❅':
+    case '❆':
+    case '❈':
+      return 'snowflake';
+    default:
+      return '';
+  }
+}
+
+function getBioDecorationWidth(grapheme) {
+  switch (getBioDecorationKind(grapheme)) {
+    case 'wave':
+      return 12.8;
+    case 'lowDot':
+      return 4.6;
+    case 'midDot':
+      return 5.2;
+    case 'lowPlus':
+      return 8.2;
+    case 'plus':
+      return 7.8;
+    case 'ring':
+      return 6.6;
+    case 'sparkle':
+      return 9.2;
+    case 'snowflake':
+      return 11.4;
+    default:
+      return 0;
+  }
+}
+
+function renderBioDecoration(grapheme, x, baselineY) {
+  const kind = getBioDecorationKind(grapheme);
+  const width = getBioDecorationWidth(grapheme);
+
+  if (!kind || width <= 0) {
+    return '';
+  }
+
+  const left = roundSvgNumber(x);
+  const centerX = roundSvgNumber(x + width / 2);
+  const centerY = roundSvgNumber(baselineY - 8.8);
+  const strokeWidth = kind === 'snowflake' ? 1.1 : 1.05;
+  const commonAttrs = `fill="none" stroke="${bioDecorationFill}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"`;
+  const glowAttrs = `stroke="${bioDecorationStroke}" stroke-width="${strokeWidth + 0.35}" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"`;
+
+  switch (kind) {
+    case 'wave': {
+      const startX = roundSvgNumber(x + 0.7);
+      const endX = roundSvgNumber(x + width - 0.7);
+      const cp1X = roundSvgNumber(x + width * 0.23);
+      const cp2X = roundSvgNumber(x + width * 0.52);
+      const cp3X = roundSvgNumber(x + width * 0.77);
+      const midX = roundSvgNumber(x + width * 0.5);
+      const y1 = roundSvgNumber(centerY + 0.9);
+      const y2 = roundSvgNumber(centerY - 1.7);
+      const y3 = roundSvgNumber(centerY + 1.3);
+      const path = `M ${startX} ${y1} Q ${cp1X} ${y2}, ${midX} ${centerY} Q ${cp3X} ${y3}, ${endX} ${roundSvgNumber(centerY - 0.4)}`;
+      return `<g><path d="${path}" ${glowAttrs}/><path d="${path}" ${commonAttrs}/></g>`;
+    }
+    case 'lowDot':
+      return `<g><circle cx="${centerX}" cy="${roundSvgNumber(baselineY - 2.15)}" r="1.45" fill="${bioDecorationStroke}" opacity="0.9"/><circle cx="${centerX}" cy="${roundSvgNumber(baselineY - 2.15)}" r="1.12" fill="${bioDecorationFill}"/></g>`;
+    case 'midDot':
+      return `<g><circle cx="${centerX}" cy="${roundSvgNumber(centerY - 0.35)}" r="1.45" fill="${bioDecorationStroke}" opacity="0.9"/><circle cx="${centerX}" cy="${roundSvgNumber(centerY - 0.35)}" r="1.1" fill="${bioDecorationFill}"/></g>`;
+    case 'lowPlus':
+    case 'plus': {
+      const plusCenterY = roundSvgNumber(kind === 'lowPlus' ? baselineY - 3.6 : centerY - 0.1);
+      const half = kind === 'lowPlus' ? 2.15 : 2.0;
+      return `<g>
+  <line x1="${roundSvgNumber(centerX - half)}" y1="${plusCenterY}" x2="${roundSvgNumber(centerX + half)}" y2="${plusCenterY}" ${glowAttrs}/>
+  <line x1="${centerX}" y1="${roundSvgNumber(plusCenterY - half)}" x2="${centerX}" y2="${roundSvgNumber(plusCenterY + half)}" ${glowAttrs}/>
+  <line x1="${roundSvgNumber(centerX - half)}" y1="${plusCenterY}" x2="${roundSvgNumber(centerX + half)}" y2="${plusCenterY}" ${commonAttrs}/>
+  <line x1="${centerX}" y1="${roundSvgNumber(plusCenterY - half)}" x2="${centerX}" y2="${roundSvgNumber(plusCenterY + half)}" ${commonAttrs}/>
+</g>`;
+    }
+    case 'ring':
+      return `<g><circle cx="${centerX}" cy="${roundSvgNumber(centerY - 1.2)}" r="2.05" fill="none" stroke="${bioDecorationStroke}" stroke-width="1.35" opacity="0.9"/><circle cx="${centerX}" cy="${roundSvgNumber(centerY - 1.2)}" r="1.7" ${commonAttrs}/></g>`;
+    case 'sparkle': {
+      const sparkleCenterY = roundSvgNumber(centerY - 0.25);
+      const arm = 2.35;
+      const shortArm = 1.55;
+      return `<g>
+  <line x1="${roundSvgNumber(centerX - arm)}" y1="${sparkleCenterY}" x2="${roundSvgNumber(centerX + arm)}" y2="${sparkleCenterY}" ${glowAttrs}/>
+  <line x1="${centerX}" y1="${roundSvgNumber(sparkleCenterY - arm)}" x2="${centerX}" y2="${roundSvgNumber(sparkleCenterY + arm)}" ${glowAttrs}/>
+  <line x1="${roundSvgNumber(centerX - shortArm)}" y1="${roundSvgNumber(sparkleCenterY - shortArm)}" x2="${roundSvgNumber(centerX + shortArm)}" y2="${roundSvgNumber(sparkleCenterY + shortArm)}" ${glowAttrs}/>
+  <line x1="${roundSvgNumber(centerX - shortArm)}" y1="${roundSvgNumber(sparkleCenterY + shortArm)}" x2="${roundSvgNumber(centerX + shortArm)}" y2="${roundSvgNumber(sparkleCenterY - shortArm)}" ${glowAttrs}/>
+  <line x1="${roundSvgNumber(centerX - arm)}" y1="${sparkleCenterY}" x2="${roundSvgNumber(centerX + arm)}" y2="${sparkleCenterY}" ${commonAttrs}/>
+  <line x1="${centerX}" y1="${roundSvgNumber(sparkleCenterY - arm)}" x2="${centerX}" y2="${roundSvgNumber(sparkleCenterY + arm)}" ${commonAttrs}/>
+  <line x1="${roundSvgNumber(centerX - shortArm)}" y1="${roundSvgNumber(sparkleCenterY - shortArm)}" x2="${roundSvgNumber(centerX + shortArm)}" y2="${roundSvgNumber(sparkleCenterY + shortArm)}" ${commonAttrs}/>
+  <line x1="${roundSvgNumber(centerX - shortArm)}" y1="${roundSvgNumber(sparkleCenterY + shortArm)}" x2="${roundSvgNumber(centerX + shortArm)}" y2="${roundSvgNumber(sparkleCenterY - shortArm)}" ${commonAttrs}/>
+</g>`;
+    }
+    case 'snowflake': {
+      const snowCenterY = roundSvgNumber(centerY - 0.1);
+      const arm = 3.2;
+      const diag = 2.7;
+      return `<g>
+  <line x1="${centerX}" y1="${roundSvgNumber(snowCenterY - arm)}" x2="${centerX}" y2="${roundSvgNumber(snowCenterY + arm)}" ${glowAttrs}/>
+  <line x1="${roundSvgNumber(centerX - diag)}" y1="${roundSvgNumber(snowCenterY - 1.85)}" x2="${roundSvgNumber(centerX + diag)}" y2="${roundSvgNumber(snowCenterY + 1.85)}" ${glowAttrs}/>
+  <line x1="${roundSvgNumber(centerX - diag)}" y1="${roundSvgNumber(snowCenterY + 1.85)}" x2="${roundSvgNumber(centerX + diag)}" y2="${roundSvgNumber(snowCenterY - 1.85)}" ${glowAttrs}/>
+  <line x1="${centerX}" y1="${roundSvgNumber(snowCenterY - arm)}" x2="${centerX}" y2="${roundSvgNumber(snowCenterY + arm)}" ${commonAttrs}/>
+  <line x1="${roundSvgNumber(centerX - diag)}" y1="${roundSvgNumber(snowCenterY - 1.85)}" x2="${roundSvgNumber(centerX + diag)}" y2="${roundSvgNumber(snowCenterY + 1.85)}" ${commonAttrs}/>
+  <line x1="${roundSvgNumber(centerX - diag)}" y1="${roundSvgNumber(snowCenterY + 1.85)}" x2="${roundSvgNumber(centerX + diag)}" y2="${roundSvgNumber(snowCenterY - 1.85)}" ${commonAttrs}/>
+  <circle cx="${centerX}" cy="${snowCenterY}" r="0.7" fill="${bioDecorationFill}"/>
+</g>`;
+    }
+    default:
+      return '';
+  }
 }
 
 async function fetchBioEmojiAssets(lines) {
@@ -3652,6 +3843,7 @@ const paragraphMaxWidth = maxWidth + (
     const shouldUseMeasuredWrap = fontDataUri
       && paragraph.length <= measuredBioWrapMaxLength
       && !containsBioEmoji(paragraph)
+      && !containsBioDecorativeText(paragraph)
       && (!hasCjkText || hasBreakSpace);
     const wrappedLines = shouldUseMeasuredWrap
       ? await wrapBioParagraphMeasured(
@@ -3670,7 +3862,7 @@ const paragraphMaxWidth = maxWidth + (
 }
 
 function normalizeBioText(value) {
-  return String(value ?? '')
+  return normalizeBioRenderableText(String(value ?? ''))
     .replace(/\r\n?/g, '\n')
     .replace(/[\u2028\u2029]/gu, '\n')
     .replace(/[ \t\f\v\u00a0\u1680\u2000-\u200f\u202a-\u202f\u205f\u2060\u3000\u3164\ufeff]{3,}/gu, '\n')
@@ -3680,6 +3872,15 @@ function normalizeBioText(value) {
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+function normalizeBioRenderableText(value) {
+  return String(value ?? '')
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1');
+}
+
+function containsBioDecorativeText(text) {
+  return splitGraphemes(text).some((grapheme) => isBioDecorativeGrapheme(grapheme));
 }
 
 async function wrapBioParagraphMeasured(paragraph, maxWidth, fontSize, fontDataUri, measurementCache) {
@@ -3828,6 +4029,12 @@ function getBioEstimatedTextWidth(text, hangulWidth = null, options = {}) {
       continue;
     }
 
+    if (isBioDecorativeGrapheme(grapheme)) {
+      width += getBioDecorationWidth(grapheme);
+      prevWasDot = false;
+      continue;
+    }
+
     for (const char of Array.from(grapheme)) {
       const baseWidth = getBioCharWidth(char, hangulWidth);
 
@@ -3885,6 +4092,10 @@ function wrapBioParagraphEstimated(paragraph, maxWidth, hangulWidth = null) {
 function getBioGraphemeWidth(grapheme, hangulWidth = null, options = {}) {
   if (isBioEmojiGrapheme(grapheme)) {
     return bioEmojiSize;
+  }
+
+  if (isBioDecorativeGrapheme(grapheme)) {
+    return getBioDecorationWidth(grapheme);
   }
 
   let width = 0;
