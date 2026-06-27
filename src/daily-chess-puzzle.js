@@ -186,14 +186,21 @@ async function startDailyPuzzleForUser({
   startedAtMs = Date.now(),
 }) {
   const loadedState = await loadState();
+  const previousSession = await getActiveDailyPuzzleSession(user.id);
 
-  const announcementConfig = resolveAnnouncementConfig(loadedState, sourceGuildId, {
+  const announcementResolution = await resolveAnnouncementConfig(loadedState, {
+    client,
+    userId: user.id,
+    guildId: sourceGuildId,
+    previousSession,
     allowFallback: !sourceGuildId,
   });
 
-  if (!announcementConfig) {
-    return { ok: false, reason: 'NO_CHANNEL' };
+  if (!announcementResolution.ok) {
+    return { ok: false, reason: announcementResolution.reason };
   }
+
+  const { config: announcementConfig } = announcementResolution;
 
   const { dateKey } = getKstDateInfo();
   const previousSolve = loadedState.solved[dateKey]?.[user.id];
@@ -216,7 +223,6 @@ async function startDailyPuzzleForUser({
     return { ok: false, reason: 'FETCH_FAILED', error };
   }
 
-  const previousSession = await getActiveDailyPuzzleSession(user.id);
   const keepStartedAt =
     previousSession?.dateKey === dateKey &&
     previousSession?.puzzleId === puzzle.id
@@ -1073,27 +1079,138 @@ async function saveState() {
   return stateSaveQueue;
 }
 
-function resolveAnnouncementConfig(loadedState, guildId, { allowFallback = false } = {}) {
+async function resolveAnnouncementConfig(
+  loadedState,
+  {
+    client,
+    userId,
+    guildId,
+    previousSession = null,
+    allowFallback = false,
+  } = {}
+) {
   if (guildId && loadedState.settings.guilds[guildId]) {
     return {
-      guildId,
-      channelId: loadedState.settings.guilds[guildId].channelId,
+      ok: true,
+      config: {
+        guildId,
+        channelId: loadedState.settings.guilds[guildId].channelId,
+      },
+    };
+  }
+
+  if (guildId) {
+    return {
+      ok: false,
+      reason: 'NO_CHANNEL',
     };
   }
 
   if (!allowFallback) {
-    return null;
+    return {
+      ok: false,
+      reason: 'NO_CHANNEL',
+    };
   }
 
-  const first = Object.entries(loadedState.settings.guilds)[0];
+  let matchingGuildIds = [];
 
-  if (!first) {
-    return null;
+  if (client && userId) {
+    matchingGuildIds = await findConfiguredGuildIdsForUser(
+      client,
+      Object.keys(loadedState.settings.guilds ?? {}),
+      userId
+    );
+  }
+
+  return chooseDmAnnouncementConfig(loadedState.settings.guilds, {
+    previousSessionGuildId: previousSession?.sourceGuildId ?? null,
+    matchingGuildIds,
+  });
+}
+
+async function findConfiguredGuildIdsForUser(client, guildIds, userId) {
+  if (!client?.guilds || !Array.isArray(guildIds) || guildIds.length === 0 || !userId) {
+    return [];
+  }
+
+  const matches = await Promise.all(guildIds.map(async (configuredGuildId) => {
+    try {
+      const guild =
+        client.guilds.cache?.get(configuredGuildId)
+        ?? await client.guilds.fetch?.(configuredGuildId);
+
+      if (!guild) {
+        return null;
+      }
+
+      if (guild.members?.cache?.get(userId)) {
+        return configuredGuildId;
+      }
+
+      const member = await guild.members?.fetch?.(userId).catch(() => null);
+      return member ? configuredGuildId : null;
+    } catch {
+      return null;
+    }
+  }));
+
+  return matches.filter(Boolean);
+}
+
+export function chooseDmAnnouncementConfig(
+  guildSettings,
+  {
+    previousSessionGuildId = null,
+    matchingGuildIds = [],
+  } = {}
+) {
+  if (previousSessionGuildId && guildSettings?.[previousSessionGuildId]?.channelId) {
+    return {
+      ok: true,
+      config: {
+        guildId: previousSessionGuildId,
+        channelId: guildSettings[previousSessionGuildId].channelId,
+      },
+    };
+  }
+
+  const guildEntries = Object.entries(guildSettings ?? {});
+
+  if (guildEntries.length === 0) {
+    return {
+      ok: false,
+      reason: 'NO_CHANNEL',
+    };
+  }
+
+  if (guildEntries.length === 1) {
+    return {
+      ok: true,
+      config: {
+        guildId: guildEntries[0][0],
+        channelId: guildEntries[0][1].channelId,
+      },
+    };
+  }
+
+  const uniqueMatchingGuildIds = [...new Set(matchingGuildIds)].filter(
+    (matchingGuildId) => guildSettings?.[matchingGuildId]?.channelId
+  );
+
+  if (uniqueMatchingGuildIds.length === 1) {
+    return {
+      ok: true,
+      config: {
+        guildId: uniqueMatchingGuildIds[0],
+        channelId: guildSettings[uniqueMatchingGuildIds[0]].channelId,
+      },
+    };
   }
 
   return {
-    guildId: first[0],
-    channelId: first[1].channelId,
+    ok: false,
+    reason: 'DM_CONTEXT_REQUIRED',
   };
 }
 
@@ -1106,7 +1223,7 @@ async function replyDailyPuzzleStartResult(message, result) {
   });
 }
 
-function createDailyPuzzleStartResultText(result) {
+export function createDailyPuzzleStartResultText(result) {
   if (result.ok && result.alreadySolved) {
     return `오늘 일일퍼즐은 이미 풀었다냥. 기록은 ${formatElapsed(result.elapsedMs)}이다냥.`;
   }
@@ -1117,6 +1234,10 @@ function createDailyPuzzleStartResultText(result) {
 
   if (result.reason === 'NO_CHANNEL') {
     return '아직 일일퍼즐 채널이 지정되지 않았다냥. 관리자에게 `/일일퍼즐지정`을 먼저 해달라고 해달라냥.';
+  }
+
+  if (result.reason === 'DM_CONTEXT_REQUIRED') {
+    return '여러 서버에서 일일퍼즐 채널이 지정돼 있어서 어느 서버에 기록을 올릴지 알 수 없다냥. 원하는 서버 채널에서 `%일일퍼즐`을 입력해달라냥.';
   }
 
   if (result.reason === 'DM_FAILED') {
