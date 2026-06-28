@@ -357,11 +357,10 @@ try {
   const guildCommandBodies = new Map();
 
   if (guildId) {
-    guildCommandBodies.set(guildId, commands);
+    guildCommandBodies.set(guildId, []);
   }
 
   guildCommandBodies.set(dailyPuzzleAnnouncementGuildId, [
-    ...commands,
     dailyPuzzleAnnouncementCommand,
   ]);
 
