@@ -353,7 +353,14 @@ new SlashCommandBuilder()
 
 const dailyPuzzleAnnouncementCommand = new SlashCommandBuilder()
   .setName('일일퍼즐공지')
-  .setDescription('지정 서버의 일일퍼즐 공지를 즉시 강제로 발송합니다.')
+  .setDescription('일일퍼즐지정된 채널들에 수동 공지를 보냅니다.')
+  .addStringOption((option) =>
+    option
+      .setName('내용')
+      .setDescription('전송할 공지 내용')
+      .setRequired(true)
+      .setMaxLength(1800)
+  )
   .toJSON();
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);

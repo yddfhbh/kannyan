@@ -236,11 +236,21 @@ export async function handleDailyPuzzleAnnouncementInteraction(interaction) {
   }
 
   const loadedState = await loadState();
-  const config = loadedState.settings.guilds?.[interaction.guildId];
+  const announcementContent = interaction.options.getString('내용', true).trim();
+  const guildEntries = Object.entries(loadedState.settings.guilds ?? {})
+    .filter(([, config]) => typeof config?.channelId === 'string' && config.channelId);
 
-  if (!config?.channelId) {
+  if (!announcementContent) {
     await interaction.reply({
-      content: '먼저 해당 서버 채널에서 `/일일퍼즐지정`을 해달라냥.',
+      content: '공지 내용을 입력해달라냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (guildEntries.length === 0) {
+    await interaction.reply({
+      content: '아직 `/일일퍼즐지정`된 채널이 없다냥.',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -251,21 +261,28 @@ export async function handleDailyPuzzleAnnouncementInteraction(interaction) {
   });
 
   try {
-    const result = await postDailyPuzzleAnnouncementToGuild({
+    const result = await broadcastDailyPuzzleManualAnnouncement({
       client: interaction.client,
       loadedState,
-      guildId: interaction.guildId,
-      config,
-      force: true,
+      content: announcementContent,
     });
 
-    await interaction.editReply(
-      `<#${result.channelId}> 채널에 ${formatKoreanDateKey(result.dateKey)} 일일퍼즐 공지를 강제로 올렸다냥. 퍼즐 ID는 \`${result.puzzleId}\`이다냥.`
-    );
+    const successLine = result.successes.length > 0
+      ? `보낸 채널: ${result.successes.map((entry) => `<#${entry.channelId}>`).join(', ')}`
+      : '성공한 채널이 없다냥.';
+    const failureLine = result.failures.length > 0
+      ? `실패: ${result.failures.map((entry) => `<#${entry.channelId}> (${entry.reason})`).join(', ')}`
+      : '실패한 채널은 없다냥.';
+
+    await interaction.editReply([
+      `일일퍼즐 공지를 ${result.successes.length}개 채널에 보냈다냥.`,
+      successLine,
+      failureLine,
+    ].join('\n'));
   } catch (error) {
-    console.error('Failed to force daily puzzle announcement:');
+    console.error('Failed to broadcast manual daily puzzle announcement:');
     console.error(error);
-    await interaction.editReply(`일일퍼즐 공지를 강제로 올리지 못했다냥.\n원인: ${error.message}`);
+    await interaction.editReply(`일일퍼즐 수동 공지를 보내지 못했다냥.\n원인: ${error.message}`);
   }
 }
 
@@ -277,6 +294,14 @@ async function startDailyPuzzleForUser({
 }) {
   const loadedState = await loadState();
   const previousSession = await getActiveDailyPuzzleSession(user.id);
+  const { dateKey } = getKstDateInfo();
+
+  if (!sourceGuildId && hasDailyPuzzleAbandonedAttempt(loadedState, dateKey, user.id)) {
+    return {
+      ok: false,
+      reason: 'CHANNEL_RESTART_REQUIRED',
+    };
+  }
 
   const announcementResolution = await resolveAnnouncementConfig(loadedState, {
     client,
@@ -291,8 +316,6 @@ async function startDailyPuzzleForUser({
   }
 
   const { config: announcementConfig } = announcementResolution;
-
-  const { dateKey } = getKstDateInfo();
   const previousSolve = loadedState.solved[dateKey]?.[user.id];
   if (previousSolve) {
     return {
@@ -344,6 +367,9 @@ async function startDailyPuzzleForUser({
 
   activeSessions.set(user.id, session);
   await persistDailyPuzzleSession(session);
+  if (clearDailyPuzzleAbandonedAttempt(loadedState, dateKey, user.id)) {
+    await saveState();
+  }
 
   try {
     const image = await renderPuzzleImage({
@@ -426,15 +452,13 @@ async function handleDailyPuzzleAnswer(message, session, answerText = null) {
     !(isMateInOneSession(session) && userMateMove?.isCheckmate)
   ) {
     const ratingResult = await recordDailyPuzzleRatedAttempt(message.author, session, 0);
-    activeSessions.delete(message.author.id);
-    await deletePersistedDailyPuzzleSession(message.author.id);
     await message.reply(
       ratingResult.recorded
         ? [
-          '틀렸다냥. 다시 풀 수는 있지만 레이팅 판정은 실패로 기록됐다냥.',
+          '틀렸다냥. 이번 판정은 실패로 기록됐지만 DM에서 계속 이어서 풀 수 있다냥.',
           ...createDailyPuzzleRatingUpdateLines(ratingResult),
         ].join('\n')
-        : '틀렸다냥. 오늘 퍼즐 레이팅 반영은 이미 끝난 상태라 추가 반영은 없고, `%일일퍼즐`로 다시 도전할 수 있다냥.'
+        : '틀렸다냥. 오늘 퍼즐 레이팅 반영은 이미 끝난 상태라 추가 반영은 없고, DM에서 계속 이어서 풀 수 있다냥.'
     );
     return;
   }
@@ -569,6 +593,7 @@ async function announceDailyPuzzleSolved(client, user, session, elapsedMs) {
 
 async function abandonDailyPuzzleSession(client, user, session) {
   const ratingResult = await recordDailyPuzzleRatedAttempt(user, session, 0);
+  await markDailyPuzzleAbandonedAttempt(session);
   activeSessions.delete(session.userId);
   await deletePersistedDailyPuzzleSession(session.userId);
   await announceDailyPuzzleAbandoned(client, session);
@@ -599,6 +624,20 @@ async function announceDailyPuzzleAbandoned(client, session) {
   }
 }
 
+async function markDailyPuzzleAbandonedAttempt(session) {
+  const loadedState = await loadState();
+  loadedState.abandoned ??= {};
+  loadedState.abandoned[session.dateKey] ??= {};
+  loadedState.abandoned[session.dateKey][session.userId] = {
+    userId: session.userId,
+    guildId: session.sourceGuildId,
+    channelId: session.sourceChannelId,
+    puzzleId: session.puzzleId,
+    abandonedAt: new Date().toISOString(),
+  };
+  await saveState();
+}
+
 async function expireDailyPuzzleSessions(todayKey = getKstDateInfo().dateKey) {
   const loadedState = await loadState();
   let changed = false;
@@ -610,6 +649,15 @@ async function expireDailyPuzzleSessions(todayKey = getKstDateInfo().dateKey) {
 
     activeSessions.delete(userId);
     delete loadedState.sessions[userId];
+    changed = true;
+  }
+
+  for (const dateKey of Object.keys(loadedState.abandoned ?? {})) {
+    if (dateKey === todayKey) {
+      continue;
+    }
+
+    delete loadedState.abandoned[dateKey];
     changed = true;
   }
 
@@ -738,6 +786,62 @@ async function postDailyPuzzleAnnouncementToGuild({
     dateKey,
     puzzleId: puzzle.id,
     messageId: sent.id,
+  };
+}
+
+async function broadcastDailyPuzzleManualAnnouncement({
+  client,
+  loadedState,
+  content,
+}) {
+  const guildEntries = Object.entries(loadedState.settings.guilds ?? {})
+    .filter(([, config]) => typeof config?.channelId === 'string' && config.channelId);
+  const successes = [];
+  const failures = [];
+
+  for (const [guildId, config] of guildEntries) {
+    const channelId = config.channelId;
+    const channel = await client.channels.fetch(channelId).catch((error) => {
+      console.error(`Failed to fetch daily puzzle announcement channel ${channelId}:`);
+      console.error(error);
+      return null;
+    });
+
+    if (!channel?.isTextBased?.() || typeof channel.send !== 'function') {
+      failures.push({
+        guildId,
+        channelId,
+        reason: '채널 접근 불가',
+      });
+      continue;
+    }
+
+    try {
+      const sent = await channel.send({
+        content,
+        allowedMentions: {
+          parse: ['users'],
+        },
+      });
+      successes.push({
+        guildId,
+        channelId,
+        messageId: sent.id,
+      });
+    } catch (error) {
+      console.error(`Failed to send manual daily puzzle announcement to ${channelId}:`);
+      console.error(error);
+      failures.push({
+        guildId,
+        channelId,
+        reason: error?.message ?? '전송 실패',
+      });
+    }
+  }
+
+  return {
+    successes,
+    failures,
   };
 }
 
@@ -1187,15 +1291,9 @@ async function hydrateDailyPuzzleSessions() {
   for (const [userId, session] of Object.entries(loadedState.sessions ?? {})) {
     const isToday = session?.dateKey === todayKey;
     const alreadySolved = Boolean(loadedState.solved?.[session?.dateKey]?.[userId]);
-    const alreadyRated = hasDailyPuzzleRatedAttempt(
-      loadedState,
-      session?.dateKey,
-      userId,
-      session?.puzzleId
-    );
     const isValid = isValidPersistedDailyPuzzleSession(session);
 
-    if (!isToday || alreadySolved || alreadyRated || !isValid) {
+    if (!isToday || alreadySolved || !isValid) {
       delete loadedState.sessions[userId];
       changed = true;
       continue;
@@ -1229,17 +1327,10 @@ async function getActiveDailyPuzzleSession(userId) {
 
   const todayKey = getKstDateInfo().dateKey;
   const alreadySolved = Boolean(loadedState.solved?.[session.dateKey]?.[userId]);
-  const alreadyRated = hasDailyPuzzleRatedAttempt(
-    loadedState,
-    session.dateKey,
-    userId,
-    session.puzzleId
-  );
 
   if (
     session.dateKey !== todayKey
     || alreadySolved
-    || alreadyRated
     || !isValidPersistedDailyPuzzleSession(session)
   ) {
     delete loadedState.sessions[userId];
@@ -1304,6 +1395,7 @@ async function loadState() {
   state.settings ??= {};
   state.settings.guilds ??= {};
   state.posts ??= {};
+  state.abandoned ??= {};
   state.puzzleRatings ??= {};
   state.puzzleRatedAttempts ??= {};
   state.solved ??= {};
@@ -1487,6 +1579,10 @@ export function createDailyPuzzleStartResultText(result) {
     return '여러 서버에서 일일퍼즐 채널이 지정돼 있어서 어느 서버에 기록을 올릴지 알 수 없다냥. 원하는 서버 채널에서 `%일일퍼즐`을 입력해달라냥.';
   }
 
+  if (result.reason === 'CHANNEL_RESTART_REQUIRED') {
+    return '오늘 퍼즐을 포기한 뒤에는 DM에서 바로 다시 시작할 수 없다냥. 일일퍼즐 지정 채널에서 `%일일퍼즐`을 다시 입력해달라냥.';
+  }
+
   if (result.reason === 'DM_FAILED') {
     return 'DM을 보낼 수 없다냥. Discord 개인정보 설정에서 서버 멤버의 DM을 허용해달라냥.';
   }
@@ -1566,6 +1662,22 @@ function hasDailyPuzzleRatedAttempt(loadedState, dateKey, userId, puzzleId) {
   return Boolean(getDailyPuzzleRatedAttemptEntry(loadedState, dateKey, userId, puzzleId));
 }
 
+function hasDailyPuzzleAbandonedAttempt(loadedState, dateKey, userId) {
+  return Boolean(loadedState.abandoned?.[dateKey]?.[userId]);
+}
+
+function clearDailyPuzzleAbandonedAttempt(loadedState, dateKey, userId) {
+  if (!loadedState?.abandoned?.[dateKey]?.[userId]) {
+    return false;
+  }
+
+  delete loadedState.abandoned[dateKey][userId];
+  if (Object.keys(loadedState.abandoned[dateKey]).length === 0) {
+    delete loadedState.abandoned[dateKey];
+  }
+  return true;
+}
+
 function getDailyPuzzleOpponentRating(value) {
   const rating = Number(value);
   return Number.isFinite(rating) ? rating : dailyPuzzleInitialRawRating;
@@ -1580,11 +1692,11 @@ function calculateDailyPuzzleRawRating(rawRating, opponentRating, result) {
 function getDailyPuzzleDisplayRating(rawRating) {
   const safeRawRating = Number.isFinite(rawRating) ? rawRating : dailyPuzzleInitialRawRating;
   const display = 1000 / (1 + Math.exp(-(safeRawRating - 2550) / 60));
-  return Math.max(0, Math.min(1000, Math.round(display)));
+  return Math.max(0, Math.min(1000, display));
 }
 
 function formatDailyPuzzleDisplayRating(rawRating) {
-  return `${getDailyPuzzleDisplayRating(rawRating)}`;
+  return formatPuzzleDisplayRatingValue(getDailyPuzzleDisplayRating(rawRating));
 }
 
 function normalizeDailyPuzzleUserHandle(value) {
@@ -1607,7 +1719,7 @@ function createDailyPuzzleRatingUpdateLines(ratingResult) {
 
   return [
     `퍼즐 레이팅: ${formatIntegerValue(attempt.puzzleRating)}`,
-    `퍼즐 점수: ${displayBefore} -> ${displayAfter} (${formatSignedDelta(delta)})`,
+    `퍼즐 점수: ${formatPuzzleDisplayRatingValue(displayBefore)} -> ${formatPuzzleDisplayRatingValue(displayAfter)} (${formatSignedDelta(delta)})`,
     `전적: ${wins}승 ${losses}패`,
   ];
 }
@@ -1615,16 +1727,21 @@ function createDailyPuzzleRatingUpdateLines(ratingResult) {
 function formatSignedDelta(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) {
-    return '0';
+    return '0.00';
   }
 
-  const rounded = Math.round(number);
-  return rounded > 0 ? `+${rounded}` : `${rounded}`;
+  const text = number.toFixed(2);
+  return number > 0 ? `+${text}` : text;
 }
 
 function formatIntegerValue(value) {
   const number = Number(value);
   return Number.isFinite(number) ? `${Math.round(number)}` : '-';
+}
+
+function formatPuzzleDisplayRatingValue(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toFixed(2) : '-';
 }
 
 function ensureDailyPuzzleRatingProfile(loadedState, user, session) {

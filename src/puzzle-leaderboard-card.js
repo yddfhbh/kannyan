@@ -151,7 +151,7 @@ function truncatePlayerName(value) {
 
 function formatRating(value) {
   const rating = Number(value);
-  return Number.isFinite(rating) ? `${Math.round(rating)}` : '-';
+  return Number.isFinite(rating) ? rating.toFixed(2) : '-';
 }
 
 function formatGeneratedAt(value) {

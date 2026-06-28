@@ -18,7 +18,7 @@ export function renderPuzzleRatingCardSvg(view) {
   const height = Math.round(viewBoxHeight * puzzleRatingCardRenderScale);
   const displayName = String(view?.displayName ?? 'Puzzle Player').trim() || 'Puzzle Player';
   const handle = normalizeHandle(view?.handle);
-  const rating = formatInteger(view?.rating);
+  const rating = formatRating(view?.rating);
   const rank = formatRank(view?.rank);
   const solvedCount = formatInteger(view?.solvedCount);
   const ratedAttempts = formatInteger(view?.ratedAttempts);
@@ -124,10 +124,10 @@ function normalizeHandle(value) {
   return text ? `@${text}` : '@unknown';
 }
 
-function formatInteger(value) {
+function formatRating(value) {
   const number = Number(value);
   return Number.isFinite(number)
-    ? `${Math.round(number)}`
+    ? number.toFixed(2)
     : '-';
 }
 
