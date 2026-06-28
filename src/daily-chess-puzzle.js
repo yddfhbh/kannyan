@@ -1103,22 +1103,23 @@ async function createPuzzleRatingLeaderboardReply(client, { allowMentions } = {}
   const loadedState = await loadState();
   const profiles = Object.values(loadedState.puzzleRatings ?? {})
     .filter((profile) => Number(profile?.ratedAttempts) > 0)
-    .sort(compareDailyPuzzleRatingProfiles)
-    .slice(0, 10);
+    .sort(compareDailyPuzzleRatingProfiles);
+  const rankedProfiles = buildDailyPuzzleRankedProfiles(profiles);
+  const topProfiles = rankedProfiles.slice(0, 10);
 
-  if (profiles.length === 0) {
+  if (topProfiles.length === 0) {
     return {
       content: '**퍼즐 레이팅 리더보드**\n아직 레이팅 기록이 없다냥.',
       allowedMentions: allowMentions,
     };
   }
 
-  const rows = await Promise.all(profiles.map(async (profile, index) => {
+  const rows = await Promise.all(topProfiles.map(async ({ profile, rank, displayRating }) => {
     const displayName = await getDailyPuzzleRatingProfileDisplayName(client, profile);
     return {
-      rank: index + 1,
+      rank,
       name: displayName,
-      rating: getDailyPuzzleDisplayRating(profile.rawRating),
+      rating: displayRating,
       solvedCount: profile.solvedCount,
       ratedAttempts: profile.ratedAttempts,
     };
@@ -1146,16 +1147,17 @@ async function createPuzzleRatingProfileReply(client, userId, { allowedMentions 
   const profiles = Object.values(loadedState.puzzleRatings ?? {})
     .filter((profile) => Number(profile?.ratedAttempts) > 0)
     .sort(compareDailyPuzzleRatingProfiles);
-  const profileIndex = profiles.findIndex((profile) => profile?.userId === userId);
+  const rankedProfiles = buildDailyPuzzleRankedProfiles(profiles);
+  const rankedProfile = rankedProfiles.find(({ profile }) => profile?.userId === userId);
 
-  if (profileIndex < 0) {
+  if (!rankedProfile) {
     return {
       content: '아직 퍼즐 레이팅 기록이 없다냥.',
       allowedMentions: allowedMentions,
     };
   }
 
-  const profile = profiles[profileIndex];
+  const { profile, rank, displayRating } = rankedProfile;
   const user = await fetchDiscordUser(client, userId);
   const avatarDataUri = await fetchDiscordAvatarDataUri(user);
   const displayName = normalizeDailyPuzzleDisplayName(
@@ -1169,8 +1171,8 @@ async function createPuzzleRatingProfileReply(client, userId, { allowedMentions 
   const image = await renderPuzzleRatingCard({
     displayName,
     handle,
-    rating: getDailyPuzzleDisplayRating(profile.rawRating),
-    rank: profileIndex + 1,
+    rating: displayRating,
+    rank,
     solvedCount: profile.solvedCount,
     ratedAttempts: profile.ratedAttempts,
     avatarDataUri,
@@ -1742,6 +1744,32 @@ function formatIntegerValue(value) {
 function formatPuzzleDisplayRatingValue(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number.toFixed(2) : '-';
+}
+
+function getDailyPuzzleDisplayRatingForRanking(rawRating) {
+  const displayRating = getDailyPuzzleDisplayRating(rawRating);
+  return Number(displayRating.toFixed(2));
+}
+
+function buildDailyPuzzleRankedProfiles(profiles) {
+  let previousDisplayRating = null;
+  let previousRank = 0;
+
+  return profiles.map((profile, index) => {
+    const displayRating = getDailyPuzzleDisplayRatingForRanking(profile?.rawRating);
+    const rank = previousDisplayRating !== null && displayRating === previousDisplayRating
+      ? previousRank
+      : index + 1;
+
+    previousDisplayRating = displayRating;
+    previousRank = rank;
+
+    return {
+      profile,
+      rank,
+      displayRating,
+    };
+  });
 }
 
 function ensureDailyPuzzleRatingProfile(loadedState, user, session) {
