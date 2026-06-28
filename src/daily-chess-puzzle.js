@@ -12,6 +12,7 @@ import {
   PermissionFlagsBits,
 } from 'discord.js';
 import { Chess } from 'chess.js';
+import { getUserChessMoveTextCandidates } from './chess/chess-move-input.js';
 
 const statePath = fileURLToPath(new URL('../data/daily-chess-puzzle.json', import.meta.url));
 const puzzlePoolPath = fileURLToPath(new URL('../data/lichess-puzzle-pool.jsonl', import.meta.url));
@@ -995,18 +996,22 @@ export function tryApplyUserMove(fen, rawInput) {
   }
 
   if (!move) {
-  const sanInput = normalizeLooseSanInput(input);
+    for (const sanInput of getUserChessMoveTextCandidates(input)) {
+      try {
+        move = chess.move(sanInput, { sloppy: true });
+      } catch {
+        try {
+          move = chess.move(sanInput);
+        } catch {
+          move = null;
+        }
+      }
 
-  try {
-    move = chess.move(sanInput, { sloppy: true });
-  } catch {
-    try {
-      move = chess.move(sanInput);
-    } catch {
-      move = null;
+      if (move) {
+        break;
+      }
     }
   }
-}
 
   if (!move) {
     return null;
@@ -1021,11 +1026,13 @@ export function tryApplyUserMove(fen, rawInput) {
 }
 
 export function isMatchingExpectedMove(rawInput, expectedMove) {
-  const inputSan = normalizeSanForCompare(normalizeLooseSanInput(rawInput));
   const inputUci = normalizeUci(rawInput);
+  const expectedSan = normalizeSanForCompare(expectedMove.san);
+  const inputSans = getUserChessMoveTextCandidates(rawInput)
+    .map((candidate) => normalizeSanForCompare(candidate));
 
   return (
-    inputSan === normalizeSanForCompare(expectedMove.san) ||
+    inputSans.includes(expectedSan) ||
     inputUci === expectedMove.uci
   );
 }
