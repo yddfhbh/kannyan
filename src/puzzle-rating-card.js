@@ -131,6 +131,13 @@ function formatRating(value) {
     : '-';
 }
 
+function formatInteger(value) {
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? `${Math.trunc(number)}`
+    : '-';
+}
+
 function formatRank(value) {
   const number = Number(value);
   return Number.isFinite(number) && number > 0
