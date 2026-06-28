@@ -14,10 +14,12 @@ import {
 } from './daily-chess-puzzle.js';
 
 const statePath = fileURLToPath(new URL('../data/puzzle-rush-sessions.json', import.meta.url));
+const puzzleRushPoolPath = fileURLToPath(new URL('../data/lichess-puzzle-rush-pool.jsonl', import.meta.url));
+const dailyPuzzlePoolPath = fileURLToPath(new URL('../data/lichess-puzzle-pool.jsonl', import.meta.url));
 
 export const PUZZLE_RUSH_CONFIG = {
   START_LIVES: 3,
-  START_RATING: 900,
+  START_RATING: 800,
   MIN_RATING: 800,
   MAX_RATING: 3200,
   RATING_PER_SOLVE: 40,
@@ -41,6 +43,7 @@ const activePuzzleRushSessions = new Map();
 let state = null;
 let stateSaveQueue = Promise.resolve();
 let timer = null;
+let puzzleRushPool = null;
 
 export function initPuzzleRush(client) {
   if (timer) {
@@ -501,7 +504,7 @@ async function handlePuzzleRushWrongAnswer(message, session, expectedMove) {
 
 async function assignNextPuzzleToSession(session) {
   const targetRating = calculatePuzzleRushTargetRating(session.solvedCount);
-  const pool = await readPuzzlePool();
+  const pool = await readPuzzleRushPool();
   const candidates = rankPuzzleRushPoolItems(pool, {
     usedPuzzleIds: session.usedPuzzleIds,
     targetRating,
@@ -542,6 +545,32 @@ async function assignNextPuzzleToSession(session) {
   session.usedPuzzleIds = [...usedPuzzleIds];
 
   touchPuzzleRushSession(session);
+}
+
+async function readPuzzleRushPool() {
+  if (puzzleRushPool) {
+    return puzzleRushPool;
+  }
+
+  puzzleRushPool = await readJsonlPoolFile(puzzleRushPoolPath).catch(async (error) => {
+    if (error?.code !== 'ENOENT') {
+      throw error;
+    }
+
+    console.warn('Puzzle rush pool file not found. Falling back to the daily puzzle pool.');
+    return readJsonlPoolFile(dailyPuzzlePoolPath);
+  });
+
+  console.log(`Loaded ${puzzleRushPool.length} puzzle rush puzzle(s).`);
+  return puzzleRushPool;
+}
+
+async function readJsonlPoolFile(path) {
+  const raw = await fs.readFile(path, 'utf8');
+  return raw
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
 }
 
 async function sendPuzzleRushPuzzle(user, session, { prefix } = {}) {

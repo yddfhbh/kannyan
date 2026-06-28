@@ -254,7 +254,7 @@ sudo fc-cache -f -v >/dev/null || true
 echo "[10/12] Installing node dependencies..."
 npm ci --omit=dev
 
-echo "[11/12] Checking/building Lichess puzzle pool..."
+echo "[11/12] Checking/building Lichess puzzle pools..."
 if [ ! -f data/lichess-puzzle-pool.jsonl ]; then
   echo "lichess-puzzle-pool.jsonl 없음. 새로 생성합니다."
 
@@ -273,8 +273,29 @@ else
   echo "기존 lichess-puzzle-pool.jsonl 사용."
 fi
 
-echo "Puzzle pool line count:"
+if [ ! -f data/lichess-puzzle-rush-pool.jsonl ]; then
+  echo "lichess-puzzle-rush-pool.jsonl 없음. 새로 생성합니다."
+
+  if [ ! -f data/lichess_db_puzzle.csv.zst ]; then
+    echo "Lichess puzzle DB 다운로드 중..."
+    curl -L https://database.lichess.org/lichess_db_puzzle.csv.zst -o data/lichess_db_puzzle.csv.zst
+  fi
+
+  LICHESS_PUZZLE_OUTPUT_PATH=data/lichess-puzzle-rush-pool.jsonl \
+  LICHESS_PUZZLE_MIN_RATING=800 \
+  LICHESS_PUZZLE_MAX_RATING=3200 \
+  LICHESS_PUZZLE_MAX_RD=120 \
+  LICHESS_PUZZLE_MIN_POPULARITY=55 \
+  LICHESS_PUZZLE_MIN_PLAYS=20 \
+  LICHESS_PUZZLE_POOL_SIZE=30000 \
+  zstd -dc data/lichess_db_puzzle.csv.zst | node scripts/build-lichess-puzzle-pool.js
+else
+  echo "기존 lichess-puzzle-rush-pool.jsonl 사용."
+fi
+
+echo "Puzzle pool line counts:"
 wc -l data/lichess-puzzle-pool.jsonl || true
+wc -l data/lichess-puzzle-rush-pool.jsonl || true
 
 echo "[12/12] Registering commands and starting bot..."
 npm run register
