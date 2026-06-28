@@ -888,8 +888,31 @@ async function getDailyPuzzle(dateKey) {
   }
 
   const index = getDailyPuzzleIndex(dateKey, pool.length);
-  const item = pool[index];
+  return buildPlayablePuzzleFromPoolItem(pool[index]);
+}
 
+export async function readPuzzlePool() {
+  if (puzzlePool) {
+    return puzzlePool;
+  }
+
+  const raw = await fs.readFile(puzzlePoolPath, 'utf8').catch((error) => {
+    if (error?.code === 'ENOENT') {
+      throw new Error(`Puzzle pool file not found: ${puzzlePoolPath}`);
+    }
+    throw error;
+  });
+
+  puzzlePool = raw
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+
+  console.log(`Loaded ${puzzlePool.length} Lichess puzzle(s).`);
+  return puzzlePool;
+}
+
+export function buildPlayablePuzzleFromPoolItem(item) {
   const chess = new Chess(item.fen);
 
   const introMove = applyUciMove(chess, item.moves[0]);
@@ -918,33 +941,12 @@ async function getDailyPuzzle(dateKey) {
   };
 }
 
-async function readPuzzlePool() {
-  if (puzzlePool) {
-    return puzzlePool;
-  }
-
-  const raw = await fs.readFile(puzzlePoolPath, 'utf8').catch((error) => {
-    if (error?.code === 'ENOENT') {
-      throw new Error(`Puzzle pool file not found: ${puzzlePoolPath}`);
-    }
-    throw error;
-  });
-
-  puzzlePool = raw
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
-
-  console.log(`Loaded ${puzzlePool.length} Lichess puzzle(s).`);
-  return puzzlePool;
-}
-
 function getDailyPuzzleIndex(dateKey, poolLength) {
   const hash = crypto.createHash('sha256').update(`kannyan:${dateKey}`).digest();
   return hash.readUInt32BE(0) % poolLength;
 }
 
-function getMoveFromUci(fen, uci) {
+export function getMoveFromUci(fen, uci) {
   const chess = new Chess(fen);
   const move = applyUciMove(chess, uci);
 
@@ -977,7 +979,7 @@ function applyUciMove(chess, uci) {
   }
 }
 
-function tryApplyUserMove(fen, rawInput) {
+export function tryApplyUserMove(fen, rawInput) {
   const input = String(rawInput ?? '').trim();
 
   if (!input) {
@@ -1018,7 +1020,7 @@ function tryApplyUserMove(fen, rawInput) {
   };
 }
 
-function isMatchingExpectedMove(rawInput, expectedMove) {
+export function isMatchingExpectedMove(rawInput, expectedMove) {
   const inputSan = normalizeSanForCompare(normalizeLooseSanInput(rawInput));
   const inputUci = normalizeUci(rawInput);
 
@@ -1032,7 +1034,7 @@ function isMateInOneSession(session) {
   return session.solutionMoves.length === 1 && session.themes?.includes?.('mateIn1');
 }
 
-async function renderPuzzleImage({ fen, title, subtitle, flipped = false }) {
+export async function renderPuzzleImage({ fen, title, subtitle, flipped = false }) {
   const size = 560;
   const boardSize = 480;
   const margin = 40;
@@ -2014,7 +2016,7 @@ async function getDailyPuzzleLeaderboardDisplayName(client, record) {
   return normalizedFetchedName || record?.userTag || record?.userId || 'User';
 }
 
-async function resolveDailyPuzzleUserDisplayName(client, userId, guildId, fallback = '') {
+export async function resolveDailyPuzzleUserDisplayName(client, userId, guildId, fallback = '') {
   const fallbackName = normalizeDailyPuzzleDisplayName(fallback) || String(userId ?? 'User');
 
   if (!client || !userId || !guildId) {

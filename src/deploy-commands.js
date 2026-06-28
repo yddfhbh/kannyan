@@ -52,6 +52,10 @@ new SlashCommandBuilder()
   .setDescription('오늘의 일일 체스 퍼즐을 DM으로 받습니다.')
   .toJSON(),
 new SlashCommandBuilder()
+  .setName('퍼즐러쉬')
+  .setDescription('DM으로 이어서 푸는 퍼즐러쉬를 시작합니다.')
+  .toJSON(),
+new SlashCommandBuilder()
   .setName('퍼즐리더보드')
   .setDescription('일일퍼즐 참가자 퍼즐 레이팅 상위 10명을 보여줍니다.')
   .toJSON(),

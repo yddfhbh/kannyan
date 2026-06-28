@@ -53,6 +53,11 @@ import {
   initDailyChessPuzzle,
 } from './daily-chess-puzzle.js';
 import {
+  handlePuzzleRushInteraction,
+  handlePuzzleRushMessage,
+  initPuzzleRush,
+} from './puzzle-rush.js';
+import {
   handleChessAnalysisMessage,
   normalizeDirectFen,
   parseChessImageAnalysisPrompt,
@@ -1045,6 +1050,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   startVmStatusUpdater(readyClient);
   startChessPlayInactivityMonitor(readyClient);
   initDailyChessPuzzle(readyClient);
+  initPuzzleRush(readyClient);
 });
 
 client.on(Events.Error, (error) => {
@@ -1056,6 +1062,11 @@ client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) {
     return;
   }
+  const puzzleRushHandled = await handlePuzzleRushMessage(message);
+  if (puzzleRushHandled) {
+    return;
+  }
+
   const dailyPuzzleHandled = await handleDailyPuzzleMessage(message);
   if (dailyPuzzleHandled) {
     return;
@@ -5062,6 +5073,11 @@ if (interaction.commandName === '일일퍼즐') {
   return;
 }
 
+if (interaction.commandName === '퍼즐러쉬') {
+  await handlePuzzleRushInteraction(interaction);
+  return;
+}
+
 if (interaction.commandName === '퍼즐리더보드') {
   await handleDailyPuzzleLeaderboardInteraction(interaction);
   return;
@@ -8106,6 +8122,7 @@ function getHelpMessage() {
     '`/40라인 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%40L 닉네임 [기록 번호] [top|recent]` - 40 LINES top 또는 recent 기록의 시간 카드를 보여준다냥.',
     '`/블리츠 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%blitz 닉네임 [기록 번호] [top|recent]` - BLITZ top 또는 recent 기록의 점수 카드를 보여준다냥.',
     '`/일일퍼즐`, `%일일퍼즐`, `/일일퍼즐지정` - 퍼즐을 DM으로 풀며, 첫 오답이나 `포기`는 즉시 퍼즐 레이팅 패배로 반영되고 같은 날 다시 도전할 수 있다냥.',
+    '`/퍼즐러쉬`, `%퍼즐러쉬` - DM으로 이어푸는 퍼즐러쉬를 시작한다냥. 목숨은 3개고, `포기`, `그만`, `중단`, `gg`로 종료할 수 있다냥.',
     '`/퍼즐레이팅`, `%퍼즐레이팅` - 내 퍼즐 레이팅 카드와 현재 등수를 보여준다냥.',
     '`/퍼즐리더보드`, `%퍼즐리더보드` - 현재 퍼즐 레이팅 상위 10명의 닉네임과 레이팅을 보여준다냥.',
   ].join('\n');
