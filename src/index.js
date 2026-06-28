@@ -47,6 +47,7 @@ import {
   handleDailyPuzzleAnnouncementInteraction,
   handleDailyPuzzleLeaderboardInteraction,
   handleDailyPuzzleMessage,
+  handleDailyPuzzleRatingInteraction,
   handleDailyPuzzleRequestInteraction,
   handleDailyPuzzleSetInteraction,
   initDailyChessPuzzle,
@@ -5066,6 +5067,11 @@ if (interaction.commandName === '퍼즐리더보드') {
   return;
 }
 
+if (interaction.commandName === '퍼즐레이팅') {
+  await handleDailyPuzzleRatingInteraction(interaction);
+  return;
+}
+
 if (interaction.commandName === '일일퍼즐공지') {
   await handleDailyPuzzleAnnouncementInteraction(interaction);
   return;
@@ -8100,6 +8106,7 @@ function getHelpMessage() {
     '`/40라인 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%40L 닉네임 [기록 번호] [top|recent]` - 40 LINES top 또는 recent 기록의 시간 카드를 보여준다냥.',
     '`/블리츠 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%blitz 닉네임 [기록 번호] [top|recent]` - BLITZ top 또는 recent 기록의 점수 카드를 보여준다냥.',
     '`/일일퍼즐`, `%일일퍼즐`, `/일일퍼즐지정` - 퍼즐을 DM으로 풀며, 첫 오답이나 `포기`는 즉시 퍼즐 레이팅 패배로 반영되고 같은 날 다시 도전할 수 있다냥.',
+    '`/퍼즐레이팅`, `%퍼즐레이팅` - 내 퍼즐 레이팅 카드와 현재 등수를 보여준다냥.',
     '`/퍼즐리더보드`, `%퍼즐리더보드` - 현재 퍼즐 레이팅 상위 10명의 닉네임과 레이팅을 보여준다냥.',
   ].join('\n');
 }

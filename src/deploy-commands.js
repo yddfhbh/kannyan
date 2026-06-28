@@ -55,6 +55,16 @@ new SlashCommandBuilder()
   .setName('퍼즐리더보드')
   .setDescription('일일퍼즐 참가자 퍼즐 레이팅 상위 10명을 보여줍니다.')
   .toJSON(),
+new SlashCommandBuilder()
+  .setName('퍼즐레이팅')
+  .setDescription('퍼즐 레이팅 카드와 현재 등수를 보여줍니다.')
+  .addUserOption((option) =>
+    option
+      .setName('유저')
+      .setDescription('확인할 디스코드 유저, 생략하면 본인')
+      .setRequired(false)
+  )
+  .toJSON(),
   new SlashCommandBuilder()
     .setName('체닷')
     .setDescription('Chess.com 레이팅을 조회합니다.')

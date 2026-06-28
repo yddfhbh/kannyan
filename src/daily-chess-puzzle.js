@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { renderSvgToPng } from './svg-renderer.js';
 import { renderPuzzleLeaderboardCard } from './puzzle-leaderboard-card.js';
+import { renderPuzzleRatingCard } from './puzzle-rating-card.js';
 import {
   AttachmentBuilder,
   MessageFlags,
@@ -41,6 +42,7 @@ const dailyPuzzleAnnouncementGuildId = '1219197226572840990';
 const dailyPuzzleAnnouncementUserId = '635107514471415808';
 
 const activeSessions = new Map();
+const discordAvatarDataUriCache = new Map();
 
 let state = null;
 let stateSaveQueue = Promise.resolve();
@@ -81,6 +83,15 @@ export async function handleDailyPuzzleMessage(message) {
     return true;
   }
 
+  if (isDailyPuzzleRatingCommand(content)) {
+    await message.reply(await createPuzzleRatingProfileReply(message.client, message.author.id, {
+      allowedMentions: {
+        repliedUser: false,
+      },
+    }));
+    return true;
+  }
+
   if (!message.guild) {
     if (/^%일일퍼즐\s*$/i.test(content)) {
       const result = await startDailyPuzzleForUser({
@@ -103,7 +114,10 @@ export async function handleDailyPuzzleMessage(message) {
       const abandonResult = await abandonDailyPuzzleSession(message.client, message.author, session);
       await message.reply({
         content: abandonResult.recorded
-          ? '이번 일일퍼즐을 포기 처리했고, 이번 포기는 퍼즐 레이팅 패배로 반영했다냥. 오늘 다시 도전할 수 있다냥.'
+          ? [
+            '이번 일일퍼즐을 포기 처리했고, 이번 포기는 퍼즐 레이팅 패배로 반영했다냥. 오늘 다시 도전할 수 있다냥.',
+            ...createDailyPuzzleRatingUpdateLines(abandonResult),
+          ].join('\n')
           : '이번 일일퍼즐을 포기 처리했다냥. 오늘 레이팅 반영은 이미 끝났고, 다시 도전은 할 수 있다냥.',
         allowedMentions: {
           repliedUser: false,
@@ -197,6 +211,11 @@ export async function handleDailyPuzzleRequestInteraction(interaction) {
 
 export async function handleDailyPuzzleLeaderboardInteraction(interaction) {
   await interaction.reply(await createPuzzleRatingLeaderboardReply(interaction.client));
+}
+
+export async function handleDailyPuzzleRatingInteraction(interaction) {
+  const targetUser = interaction.options.getUser('유저') ?? interaction.user;
+  await interaction.reply(await createPuzzleRatingProfileReply(interaction.client, targetUser.id));
 }
 
 export async function handleDailyPuzzleAnnouncementInteraction(interaction) {
@@ -411,7 +430,10 @@ async function handleDailyPuzzleAnswer(message, session, answerText = null) {
     await deletePersistedDailyPuzzleSession(message.author.id);
     await message.reply(
       ratingResult.recorded
-        ? '틀렸다냥. 이번 시도는 패배로 퍼즐 레이팅에 바로 반영했다냥. `%일일퍼즐`로 오늘 다시 도전할 수 있다냥.'
+        ? [
+          '틀렸다냥. 다시 풀 수는 있지만 레이팅 판정은 실패로 기록됐다냥.',
+          ...createDailyPuzzleRatingUpdateLines(ratingResult),
+        ].join('\n')
         : '틀렸다냥. 오늘 퍼즐 레이팅 반영은 이미 끝난 상태라 추가 반영은 없고, `%일일퍼즐`로 다시 도전할 수 있다냥.'
     );
     return;
@@ -464,7 +486,7 @@ async function handleDailyPuzzleAnswer(message, session, answerText = null) {
 
 async function completeDailyPuzzle(message, session) {
   const elapsedMs = Math.max(0, Date.now() - session.startedAtMs);
-  await recordDailyPuzzleRatedAttempt(message.author, session, 1);
+  const ratingResult = await recordDailyPuzzleRatedAttempt(message.author, session, 1);
   const recordResult = await recordDailyPuzzleSolve(message.author, session, elapsedMs);
 
   activeSessions.delete(message.author.id);
@@ -477,7 +499,14 @@ async function completeDailyPuzzle(message, session) {
     return;
   }
 
-  await message.reply(`정답이다냥! ${formatElapsed(elapsedMs)} 만에 풀었다냥.`);
+  await message.reply(
+    ratingResult.recorded
+      ? [
+        `정답이다냥! ${formatElapsed(elapsedMs)} 만에 풀었다냥.`,
+        ...createDailyPuzzleRatingUpdateLines(ratingResult),
+      ].join('\n')
+      : `정답이다냥! ${formatElapsed(elapsedMs)} 만에 풀었다냥.\n오늘 퍼즐 레이팅 반영은 이미 끝난 상태라 추가 변동은 없다냥.`
+  );
   await announceDailyPuzzleSolved(message.client, message.author, session, elapsedMs);
 }
 
@@ -1008,6 +1037,51 @@ async function createPuzzleRatingLeaderboardReply(client, { allowMentions } = {}
   };
 }
 
+async function createPuzzleRatingProfileReply(client, userId, { allowedMentions } = {}) {
+  const loadedState = await loadState();
+  const profiles = Object.values(loadedState.puzzleRatings ?? {})
+    .filter((profile) => Number(profile?.ratedAttempts) > 0)
+    .sort(compareDailyPuzzleRatingProfiles);
+  const profileIndex = profiles.findIndex((profile) => profile?.userId === userId);
+
+  if (profileIndex < 0) {
+    return {
+      content: '아직 퍼즐 레이팅 기록이 없다냥.',
+      allowedMentions: allowedMentions,
+    };
+  }
+
+  const profile = profiles[profileIndex];
+  const user = await fetchDiscordUser(client, userId);
+  const avatarDataUri = await fetchDiscordAvatarDataUri(user);
+  const displayName = normalizeDailyPuzzleDisplayName(
+    user?.globalName
+      ?? profile?.lastGuildDisplayName
+      ?? user?.username
+      ?? profile?.userTag
+      ?? userId
+  ) || userId;
+  const handle = normalizeDailyPuzzleUserHandle(user?.username ?? profile?.userTag ?? userId);
+  const image = await renderPuzzleRatingCard({
+    displayName,
+    handle,
+    rating: getDailyPuzzleDisplayRating(profile.rawRating),
+    rank: profileIndex + 1,
+    solvedCount: profile.solvedCount,
+    ratedAttempts: profile.ratedAttempts,
+    avatarDataUri,
+  });
+
+  return {
+    files: [
+      new AttachmentBuilder(image, {
+        name: 'daily-puzzle-rating.png',
+      }),
+    ],
+    allowedMentions: allowedMentions,
+  };
+}
+
 function getPieceSymbol(piece) {
   const symbols = {
     w: {
@@ -1468,6 +1542,10 @@ function isDailyPuzzleRatingLeaderboardCommand(value) {
   return /^%(퍼즐리더보드|일일퍼즐리더보드)\s*$/i.test(String(value ?? '').trim());
 }
 
+function isDailyPuzzleRatingCommand(value) {
+  return /^%(퍼즐레이팅|일일퍼즐레이팅)\s*$/i.test(String(value ?? '').trim());
+}
+
 function isDailyPuzzleAnnouncementGuildAllowed(guildId) {
   return String(guildId ?? '') === dailyPuzzleAnnouncementGuildId;
 }
@@ -1507,6 +1585,46 @@ function getDailyPuzzleDisplayRating(rawRating) {
 
 function formatDailyPuzzleDisplayRating(rawRating) {
   return `${getDailyPuzzleDisplayRating(rawRating)}`;
+}
+
+function normalizeDailyPuzzleUserHandle(value) {
+  return String(value ?? '')
+    .trim()
+    .replace(/^@+/, '');
+}
+
+function createDailyPuzzleRatingUpdateLines(ratingResult) {
+  const attempt = ratingResult?.attempt;
+  if (!attempt) {
+    return [];
+  }
+
+  const displayBefore = getDailyPuzzleDisplayRating(attempt.rawBefore);
+  const displayAfter = attempt.displayRating ?? getDailyPuzzleDisplayRating(attempt.rawAfter);
+  const delta = displayAfter - displayBefore;
+  const wins = Number(ratingResult?.summary?.wins) || 0;
+  const losses = Number(ratingResult?.summary?.losses) || 0;
+
+  return [
+    `퍼즐 레이팅: ${formatIntegerValue(attempt.puzzleRating)}`,
+    `퍼즐 점수: ${displayBefore} -> ${displayAfter} (${formatSignedDelta(delta)})`,
+    `전적: ${wins}승 ${losses}패`,
+  ];
+}
+
+function formatSignedDelta(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return '0';
+  }
+
+  const rounded = Math.round(number);
+  return rounded > 0 ? `+${rounded}` : `${rounded}`;
+}
+
+function formatIntegerValue(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? `${Math.round(number)}` : '-';
 }
 
 function ensureDailyPuzzleRatingProfile(loadedState, user, session) {
@@ -1601,6 +1719,77 @@ async function getDailyPuzzleRatingProfileDisplayName(client, profile) {
   return normalizedFetchedName || profile?.userTag || profile?.userId || 'User';
 }
 
+function getDailyPuzzleRatingRecordSummary(loadedState, userId) {
+  let wins = 0;
+  let losses = 0;
+
+  for (const dateEntry of Object.values(loadedState.puzzleRatedAttempts ?? {})) {
+    const userAttempts = dateEntry?.[userId];
+    if (!userAttempts || typeof userAttempts !== 'object') {
+      continue;
+    }
+
+    for (const attempt of Object.values(userAttempts)) {
+      if (Number(attempt?.result) === 1) {
+        wins += 1;
+      } else if (Number(attempt?.result) === 0) {
+        losses += 1;
+      }
+    }
+  }
+
+  return {
+    wins,
+    losses,
+  };
+}
+
+async function fetchDiscordUser(client, userId) {
+  if (!client?.users || !userId) {
+    return null;
+  }
+
+  try {
+    return client.users.cache?.get(userId) ?? await client.users.fetch?.(userId);
+  } catch {
+    return null;
+  }
+}
+
+async function fetchDiscordAvatarDataUri(user) {
+  const avatarUrl = user?.displayAvatarURL?.({
+    extension: 'png',
+    forceStatic: true,
+    size: 256,
+  });
+
+  if (!avatarUrl) {
+    return null;
+  }
+
+  if (discordAvatarDataUriCache.has(avatarUrl)) {
+    return discordAvatarDataUriCache.get(avatarUrl);
+  }
+
+  try {
+    const response = await fetch(avatarUrl);
+    if (!response.ok) {
+      return null;
+    }
+
+    const contentType = response.headers.get('content-type') ?? 'image/png';
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const dataUri = `data:${contentType};base64,${buffer.toString('base64')}`;
+    if (discordAvatarDataUriCache.size >= 64) {
+      discordAvatarDataUriCache.delete(discordAvatarDataUriCache.keys().next().value);
+    }
+    discordAvatarDataUriCache.set(avatarUrl, dataUri);
+    return dataUri;
+  } catch {
+    return null;
+  }
+}
+
 async function recordDailyPuzzleRatedAttempt(user, session, result) {
   const loadedState = await loadState();
   const userId = user?.id ?? session?.userId;
@@ -1619,6 +1808,7 @@ async function recordDailyPuzzleRatedAttempt(user, session, result) {
       recorded: false,
       attempt: existing,
       profile,
+      summary: getDailyPuzzleRatingRecordSummary(loadedState, userId),
     };
   }
 
@@ -1650,6 +1840,7 @@ async function recordDailyPuzzleRatedAttempt(user, session, result) {
     recorded: true,
     attempt: loadedState.puzzleRatedAttempts[session.dateKey][userId][session.puzzleId],
     profile,
+    summary: getDailyPuzzleRatingRecordSummary(loadedState, userId),
   };
 }
 
