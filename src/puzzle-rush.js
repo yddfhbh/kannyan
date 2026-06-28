@@ -1,5 +1,6 @@
 import 'dotenv/config';
 
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { AttachmentBuilder, MessageFlags } from 'discord.js';
@@ -850,11 +851,19 @@ export function calculatePuzzleRushTargetRating(solvedCount, config = PUZZLE_RUS
   return clampInteger(rawTarget, config.MIN_RATING, config.MAX_RATING);
 }
 
-export function choosePuzzleRushPoolItem(pool, { usedPuzzleIds = [], targetRating } = {}) {
-  return rankPuzzleRushPoolItems(pool, { usedPuzzleIds, targetRating })[0] ?? null;
+export function choosePuzzleRushPoolItem(pool, {
+  usedPuzzleIds = [],
+  targetRating,
+  dateKey = getPuzzleRushKstDateKey(),
+} = {}) {
+  return rankPuzzleRushPoolItems(pool, { usedPuzzleIds, targetRating, dateKey })[0] ?? null;
 }
 
-function rankPuzzleRushPoolItems(pool, { usedPuzzleIds = [], targetRating } = {}) {
+function rankPuzzleRushPoolItems(pool, {
+  usedPuzzleIds = [],
+  targetRating,
+  dateKey = getPuzzleRushKstDateKey(),
+} = {}) {
   const safeTargetRating = Number.isFinite(targetRating)
     ? targetRating
     : PUZZLE_RUSH_CONFIG.START_RATING;
@@ -875,6 +884,7 @@ function rankPuzzleRushPoolItems(pool, { usedPuzzleIds = [], targetRating } = {}
       item,
       rating,
       distance: Math.abs(rating - safeTargetRating),
+      dailyHash: getPuzzleRushDailyHash(dateKey, item.id),
     });
   }
 
@@ -918,12 +928,28 @@ function sortPuzzleRushEntries(entries) {
       return a.distance - b.distance;
     }
 
+    if (a.dailyHash !== b.dailyHash) {
+      return a.dailyHash - b.dailyHash;
+    }
+
     if (a.rating !== b.rating) {
       return a.rating - b.rating;
     }
 
     return String(a.item?.id ?? '').localeCompare(String(b.item?.id ?? ''));
   });
+}
+
+function getPuzzleRushKstDateKey(date = new Date()) {
+  const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  return kst.toISOString().slice(0, 10);
+}
+
+function getPuzzleRushDailyHash(dateKey, puzzleId) {
+  const hash = crypto.createHash('sha256')
+    .update(`puzzle-rush:${dateKey}:${puzzleId}`)
+    .digest();
+  return hash.readUInt32BE(0);
 }
 
 export function isPuzzleRushGiveUpCommand(value) {

@@ -28,7 +28,8 @@
 - `data -> ~/discord-bot-data` 심볼릭 링크 재생성
 - 시스템 폰트/패키지 설치
 - `npm ci --omit=dev`
-- Lichess puzzle pool 확인 또는 생성
+- 일일퍼즐용 Lichess puzzle pool 확인 또는 생성
+- 퍼즐러쉬용 Lichess puzzle rush pool 새로 생성
 - `npm run register`
 - `pm2` 시작, 상태 확인, 헬스 체크 출력
 

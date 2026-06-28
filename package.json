@@ -6,6 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "build:opening-book": "node scripts/build-lichess-player-opening-manual-book.js",
+    "build:puzzle-rush-pool": "node scripts/build-lichess-puzzle-rush-pool.js",
     "match:stockfish": "powershell -ExecutionPolicy Bypass -File scripts/run-kannya-vs-stockfish.ps1",
     "register": "node src/deploy-commands.js",
     "start": "node src/index.js",
