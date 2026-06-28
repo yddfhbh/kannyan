@@ -7,7 +7,6 @@ import {
   buildPlayablePuzzleFromPoolItem,
   getMoveFromUci,
   isMatchingExpectedMove,
-  readPuzzlePool,
   renderPuzzleImage,
   resolveDailyPuzzleUserDisplayName,
   tryApplyUserMove,
@@ -15,7 +14,6 @@ import {
 
 const statePath = fileURLToPath(new URL('../data/puzzle-rush-sessions.json', import.meta.url));
 const puzzleRushPoolPath = fileURLToPath(new URL('../data/lichess-puzzle-rush-pool.jsonl', import.meta.url));
-const dailyPuzzlePoolPath = fileURLToPath(new URL('../data/lichess-puzzle-pool.jsonl', import.meta.url));
 
 export const PUZZLE_RUSH_CONFIG = {
   START_LIVES: 3,
@@ -530,6 +528,8 @@ async function assignNextPuzzleToSession(session) {
     throw new Error('No valid puzzle rush candidate could be prepared.');
   }
 
+  ensurePuzzleRushPuzzleFitsTarget(puzzle, targetRating);
+
   session.currentPuzzleId = puzzle.id;
   session.currentFen = puzzle.playFen;
   session.solutionMoves = puzzle.solutionMoves;
@@ -552,13 +552,14 @@ async function readPuzzleRushPool() {
     return puzzleRushPool;
   }
 
-  puzzleRushPool = await readJsonlPoolFile(puzzleRushPoolPath).catch(async (error) => {
-    if (error?.code !== 'ENOENT') {
-      throw error;
+  puzzleRushPool = await readJsonlPoolFile(puzzleRushPoolPath).catch((error) => {
+    if (error?.code === 'ENOENT') {
+      throw new Error(
+        `Puzzle rush pool file not found: ${puzzleRushPoolPath}. Deploy or build data/lichess-puzzle-rush-pool.jsonl first.`
+      );
     }
 
-    console.warn('Puzzle rush pool file not found. Falling back to the daily puzzle pool.');
-    return readJsonlPoolFile(dailyPuzzlePoolPath);
+    throw error;
   });
 
   console.log(`Loaded ${puzzleRushPool.length} puzzle rush puzzle(s).`);
@@ -891,6 +892,24 @@ function rankPuzzleRushPoolItems(pool, { usedPuzzleIds = [], targetRating } = {}
   }
 
   return sortPuzzleRushEntries(entries).map((entry) => entry.item);
+}
+
+function ensurePuzzleRushPuzzleFitsTarget(puzzle, targetRating) {
+  const puzzleRating = Number(puzzle?.rating);
+  if (!Number.isFinite(puzzleRating)) {
+    throw new Error(`Puzzle rush candidate ${puzzle?.id ?? 'unknown'} has no valid rating.`);
+  }
+
+  const maxReasonableRating =
+    Number(targetRating)
+    + PUZZLE_RUSH_CONFIG.SEARCH_WINDOW_THIRD
+    + 100;
+
+  if (puzzleRating > maxReasonableRating) {
+    throw new Error(
+      `Puzzle rush candidate ${puzzle.id} rating ${puzzleRating} is too far above target ${targetRating}.`
+    );
+  }
 }
 
 function sortPuzzleRushEntries(entries) {
