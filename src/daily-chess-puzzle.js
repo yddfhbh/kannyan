@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { renderSvgToPng } from './svg-renderer.js';
+import { renderPuzzleLeaderboardCard } from './puzzle-leaderboard-card.js';
 import {
   AttachmentBuilder,
   MessageFlags,
@@ -34,6 +35,10 @@ const dailyPuzzleCheckIntervalMs = Math.max(
   30_000,
   Number(process.env.DAILY_CHESS_PUZZLE_CHECK_INTERVAL_MS) || 60_000
 );
+const dailyPuzzleInitialRawRating = 2600;
+const dailyPuzzleEloK = 32;
+const dailyPuzzleAnnouncementGuildId = '1219197226572840990';
+const dailyPuzzleAnnouncementUserId = '635107514471415808';
 
 const activeSessions = new Map();
 
@@ -67,6 +72,15 @@ export function initDailyChessPuzzle(client) {
 export async function handleDailyPuzzleMessage(message) {
   const content = message.content?.trim() ?? '';
 
+  if (isDailyPuzzleRatingLeaderboardCommand(content)) {
+    await message.reply(await createPuzzleRatingLeaderboardReply(message.client, {
+      allowMentions: {
+        repliedUser: false,
+      },
+    }));
+    return true;
+  }
+
   if (!message.guild) {
     if (/^%일일퍼즐\s*$/i.test(content)) {
       const result = await startDailyPuzzleForUser({
@@ -86,9 +100,11 @@ export async function handleDailyPuzzleMessage(message) {
     }
 
     if (isDailyPuzzleAbandonCommand(content)) {
-      await abandonDailyPuzzleSession(message.client, session);
+      const abandonResult = await abandonDailyPuzzleSession(message.client, message.author, session);
       await message.reply({
-        content: '이번 일일퍼즐을 포기 처리했다냥. 오늘 다시 도전할 수 있다냥.',
+        content: abandonResult.recorded
+          ? '이번 일일퍼즐을 포기 처리했고, 이번 포기는 퍼즐 레이팅 패배로 반영했다냥. 오늘 다시 도전할 수 있다냥.'
+          : '이번 일일퍼즐을 포기 처리했다냥. 오늘 레이팅 반영은 이미 끝났고, 다시 도전은 할 수 있다냥.',
         allowedMentions: {
           repliedUser: false,
         },
@@ -177,6 +193,61 @@ export async function handleDailyPuzzleRequestInteraction(interaction) {
   });
 
   await interaction.editReply(createDailyPuzzleStartResultText(result));
+}
+
+export async function handleDailyPuzzleLeaderboardInteraction(interaction) {
+  await interaction.reply(await createPuzzleRatingLeaderboardReply(interaction.client));
+}
+
+export async function handleDailyPuzzleAnnouncementInteraction(interaction) {
+  if (!isDailyPuzzleAnnouncementGuildAllowed(interaction.guildId)) {
+    await interaction.reply({
+      content: '이 명령어는 허용된 서버에서만 쓸 수 있다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (!isDailyPuzzleAnnouncementUserAllowed(interaction.user.id)) {
+    await interaction.reply({
+      content: '이 명령어는 지정된 관리자만 쓸 수 있다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const loadedState = await loadState();
+  const config = loadedState.settings.guilds?.[interaction.guildId];
+
+  if (!config?.channelId) {
+    await interaction.reply({
+      content: '먼저 해당 서버 채널에서 `/일일퍼즐지정`을 해달라냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  await interaction.deferReply({
+    flags: MessageFlags.Ephemeral,
+  });
+
+  try {
+    const result = await postDailyPuzzleAnnouncementToGuild({
+      client: interaction.client,
+      loadedState,
+      guildId: interaction.guildId,
+      config,
+      force: true,
+    });
+
+    await interaction.editReply(
+      `<#${result.channelId}> 채널에 ${formatKoreanDateKey(result.dateKey)} 일일퍼즐 공지를 강제로 올렸다냥. 퍼즐 ID는 \`${result.puzzleId}\`이다냥.`
+    );
+  } catch (error) {
+    console.error('Failed to force daily puzzle announcement:');
+    console.error(error);
+    await interaction.editReply(`일일퍼즐 공지를 강제로 올리지 못했다냥.\n원인: ${error.message}`);
+  }
 }
 
 async function startDailyPuzzleForUser({
@@ -335,7 +406,14 @@ async function handleDailyPuzzleAnswer(message, session, answerText = null) {
     !isMatchingExpectedMove(rawInput, expectedMove) &&
     !(isMateInOneSession(session) && userMateMove?.isCheckmate)
   ) {
-    await message.reply('틀렸다냥. 다시 생각해보라냥.');
+    const ratingResult = await recordDailyPuzzleRatedAttempt(message.author, session, 0);
+    activeSessions.delete(message.author.id);
+    await deletePersistedDailyPuzzleSession(message.author.id);
+    await message.reply(
+      ratingResult.recorded
+        ? '틀렸다냥. 이번 시도는 패배로 퍼즐 레이팅에 바로 반영했다냥. `%일일퍼즐`로 오늘 다시 도전할 수 있다냥.'
+        : '틀렸다냥. 오늘 퍼즐 레이팅 반영은 이미 끝난 상태라 추가 반영은 없고, `%일일퍼즐`로 다시 도전할 수 있다냥.'
+    );
     return;
   }
 
@@ -386,6 +464,7 @@ async function handleDailyPuzzleAnswer(message, session, answerText = null) {
 
 async function completeDailyPuzzle(message, session) {
   const elapsedMs = Math.max(0, Date.now() - session.startedAtMs);
+  await recordDailyPuzzleRatedAttempt(message.author, session, 1);
   const recordResult = await recordDailyPuzzleSolve(message.author, session, elapsedMs);
 
   activeSessions.delete(message.author.id);
@@ -404,6 +483,7 @@ async function completeDailyPuzzle(message, session) {
 
 async function recordDailyPuzzleSolve(user, session, elapsedMs) {
   const loadedState = await loadState();
+  const profile = ensureDailyPuzzleRatingProfile(loadedState, user, session);
 
   loadedState.solved[session.dateKey] ??= {};
 
@@ -427,7 +507,12 @@ async function recordDailyPuzzleSolve(user, session, elapsedMs) {
     guildId: session.sourceGuildId,
     puzzleId: session.puzzleId,
     rating: session.rating,
+    puzzleRatingDisplay: formatDailyPuzzleDisplayRating(profile.rawRating),
   };
+
+  profile.solvedCount += 1;
+  syncDailyPuzzleRatingProfile(profile, user, session);
+  profile.updatedAt = new Date().toISOString();
 
   await saveState();
 
@@ -453,10 +538,12 @@ async function announceDailyPuzzleSolved(client, user, session, elapsedMs) {
   });
 }
 
-async function abandonDailyPuzzleSession(client, session) {
+async function abandonDailyPuzzleSession(client, user, session) {
+  const ratingResult = await recordDailyPuzzleRatedAttempt(user, session, 0);
   activeSessions.delete(session.userId);
   await deletePersistedDailyPuzzleSession(session.userId);
   await announceDailyPuzzleAbandoned(client, session);
+  return ratingResult;
 }
 
 async function announceDailyPuzzleAbandoned(client, session) {
@@ -527,59 +614,16 @@ async function checkDailyPuzzlePosts(client) {
     return;
   }
 
-  let puzzle;
-
-  try {
-    puzzle = await getDailyPuzzle(dateKey);
-  } catch (error) {
-    console.error('Failed to load daily puzzle for scheduled post:');
-    console.error(error);
-    return;
-  }
-
-  const image = await renderPuzzleImage({
-    fen: puzzle.playFen,
-    title: `${formatKoreanDateKey(dateKey)} 일일 체스 퍼즐`,
-    subtitle: `${puzzle.turnText} 차례 · 난이도 ${puzzle.rating}`,
-    flipped: getFenSideToMove(puzzle.playFen) === 'b',
-  });
-
-  const yesterdayKey = addDaysToDateKey(dateKey, -1);
-  const content = await createDailyPostContent(loadedState, client, puzzle, dateKey, yesterdayKey);
-
   for (const [guildId, config] of targets) {
-    const channel = await client.channels.fetch(config.channelId).catch((error) => {
-      console.error(`Failed to fetch daily puzzle channel ${config.channelId}:`);
-      console.error(error);
-      return null;
-    });
-
-    if (!channel?.isTextBased?.() || typeof channel.send !== 'function') {
-      continue;
-    }
-
     try {
-      const attachment = new AttachmentBuilder(Buffer.from(image), {
-        name: `lichess-daily-puzzle-${puzzle.id}.png`,
-      });
-
-      const sent = await channel.send({
-        content,
-        files: [attachment],
-        allowedMentions: {
-          parse: [],
-        },
-      });
-
-      loadedState.posts[createPostKey(guildId, dateKey)] = {
+      await postDailyPuzzleAnnouncementToGuild({
+        client,
+        loadedState,
         guildId,
-        channelId: config.channelId,
-        messageId: sent.id,
-        puzzleId: puzzle.id,
-        postedAt: new Date().toISOString(),
-      };
-
-      await saveState();
+        config,
+        dateKey,
+        force: false,
+      });
     } catch (error) {
       console.error(`Failed to post daily puzzle to channel ${config.channelId}:`);
       console.error(error);
@@ -595,6 +639,77 @@ async function createDailyPostContent(loadedState, client, puzzle, dateKey, yest
     '',
     await createLeaderboardText(loadedState, client, yesterdayKey),
   ].join('\n');
+}
+
+async function postDailyPuzzleAnnouncementToGuild({
+  client,
+  loadedState,
+  guildId,
+  config,
+  dateKey = getKstDateInfo().dateKey,
+  force = false,
+}) {
+  const postKey = createPostKey(guildId, dateKey);
+  if (!force && loadedState.posts?.[postKey]) {
+    return null;
+  }
+
+  let puzzle;
+
+  try {
+    puzzle = await getDailyPuzzle(dateKey);
+  } catch (error) {
+    throw new Error(`일일퍼즐 데이터를 불러오지 못했다냥: ${error.message}`);
+  }
+
+  const image = await renderPuzzleImage({
+    fen: puzzle.playFen,
+    title: `${formatKoreanDateKey(dateKey)} 일일 체스 퍼즐`,
+    subtitle: `${puzzle.turnText} 차례 · 난이도 ${puzzle.rating}`,
+    flipped: getFenSideToMove(puzzle.playFen) === 'b',
+  });
+
+  const yesterdayKey = addDaysToDateKey(dateKey, -1);
+  const content = await createDailyPostContent(loadedState, client, puzzle, dateKey, yesterdayKey);
+  const channel = await client.channels.fetch(config.channelId).catch((error) => {
+    console.error(`Failed to fetch daily puzzle channel ${config.channelId}:`);
+    console.error(error);
+    return null;
+  });
+
+  if (!channel?.isTextBased?.() || typeof channel.send !== 'function') {
+    throw new Error(`일일퍼즐 채널 ${config.channelId}에 메시지를 보낼 수 없다냥.`);
+  }
+
+  const attachment = new AttachmentBuilder(Buffer.from(image), {
+    name: `lichess-daily-puzzle-${puzzle.id}.png`,
+  });
+
+  const sent = await channel.send({
+    content,
+    files: [attachment],
+    allowedMentions: {
+      parse: [],
+    },
+  });
+
+  loadedState.posts[postKey] = {
+    guildId,
+    channelId: config.channelId,
+    messageId: sent.id,
+    puzzleId: puzzle.id,
+    postedAt: new Date().toISOString(),
+    forced: force,
+  };
+
+  await saveState();
+
+  return {
+    channelId: config.channelId,
+    dateKey,
+    puzzleId: puzzle.id,
+    messageId: sent.id,
+  };
 }
 
 function parseOptionalInteger(value, fallback) {
@@ -622,7 +737,8 @@ export async function createLeaderboardText(loadedState, client, dateKey) {
 
   const lines = await Promise.all(records.slice(0, 10).map(async (record, index) => {
     const displayName = await getDailyPuzzleLeaderboardDisplayName(client, record);
-    return `${index + 1}. ${displayName} - ${formatElapsed(record.elapsedMs)}`;
+    const puzzleRatingDisplay = getDailyPuzzleRecordRatingDisplay(loadedState, record);
+    return `${index + 1}. ${displayName} (${puzzleRatingDisplay}) - ${formatElapsed(record.elapsedMs)}`;
   }));
 
   return [
@@ -850,6 +966,48 @@ if (piece) {
   return renderSvgToPng(svg);
 }
 
+async function createPuzzleRatingLeaderboardReply(client, { allowMentions } = {}) {
+  const loadedState = await loadState();
+  const profiles = Object.values(loadedState.puzzleRatings ?? {})
+    .filter((profile) => Number(profile?.ratedAttempts) > 0)
+    .sort(compareDailyPuzzleRatingProfiles)
+    .slice(0, 10);
+
+  if (profiles.length === 0) {
+    return {
+      content: '**퍼즐 레이팅 리더보드**\n아직 레이팅 기록이 없다냥.',
+      allowedMentions: allowMentions,
+    };
+  }
+
+  const rows = await Promise.all(profiles.map(async (profile, index) => {
+    const displayName = await getDailyPuzzleRatingProfileDisplayName(client, profile);
+    return {
+      rank: index + 1,
+      name: displayName,
+      rating: getDailyPuzzleDisplayRating(profile.rawRating),
+      solvedCount: profile.solvedCount,
+      ratedAttempts: profile.ratedAttempts,
+    };
+  }));
+
+  const image = await renderPuzzleLeaderboardCard({
+    title: 'PUZZLE LEADERBOARD',
+    subtitle: `TOP ${rows.length} / DAILY CHESS PUZZLE`,
+    rows,
+    generatedAt: new Date().toISOString(),
+  });
+
+  return {
+    files: [
+      new AttachmentBuilder(image, {
+        name: 'daily-puzzle-leaderboard.png',
+      }),
+    ],
+    allowedMentions: allowMentions,
+  };
+}
+
 function getPieceSymbol(piece) {
   const symbols = {
     w: {
@@ -955,9 +1113,15 @@ async function hydrateDailyPuzzleSessions() {
   for (const [userId, session] of Object.entries(loadedState.sessions ?? {})) {
     const isToday = session?.dateKey === todayKey;
     const alreadySolved = Boolean(loadedState.solved?.[session?.dateKey]?.[userId]);
+    const alreadyRated = hasDailyPuzzleRatedAttempt(
+      loadedState,
+      session?.dateKey,
+      userId,
+      session?.puzzleId
+    );
     const isValid = isValidPersistedDailyPuzzleSession(session);
 
-    if (!isToday || alreadySolved || !isValid) {
+    if (!isToday || alreadySolved || alreadyRated || !isValid) {
       delete loadedState.sessions[userId];
       changed = true;
       continue;
@@ -991,10 +1155,17 @@ async function getActiveDailyPuzzleSession(userId) {
 
   const todayKey = getKstDateInfo().dateKey;
   const alreadySolved = Boolean(loadedState.solved?.[session.dateKey]?.[userId]);
+  const alreadyRated = hasDailyPuzzleRatedAttempt(
+    loadedState,
+    session.dateKey,
+    userId,
+    session.puzzleId
+  );
 
   if (
     session.dateKey !== todayKey
     || alreadySolved
+    || alreadyRated
     || !isValidPersistedDailyPuzzleSession(session)
   ) {
     delete loadedState.sessions[userId];
@@ -1059,6 +1230,8 @@ async function loadState() {
   state.settings ??= {};
   state.settings.guilds ??= {};
   state.posts ??= {};
+  state.puzzleRatings ??= {};
+  state.puzzleRatedAttempts ??= {};
   state.solved ??= {};
   state.sessions ??= {};
   delete state.failed;
@@ -1289,6 +1462,195 @@ function formatElapsed(ms) {
   return [hours, minutes, seconds]
     .map((value) => String(value).padStart(2, '0'))
     .join(':');
+}
+
+function isDailyPuzzleRatingLeaderboardCommand(value) {
+  return /^%(퍼즐리더보드|일일퍼즐리더보드)\s*$/i.test(String(value ?? '').trim());
+}
+
+function isDailyPuzzleAnnouncementGuildAllowed(guildId) {
+  return String(guildId ?? '') === dailyPuzzleAnnouncementGuildId;
+}
+
+function isDailyPuzzleAnnouncementUserAllowed(userId) {
+  return String(userId ?? '') === dailyPuzzleAnnouncementUserId;
+}
+
+function getDailyPuzzleRatedAttemptEntry(loadedState, dateKey, userId, puzzleId) {
+  if (!dateKey || !userId || !puzzleId) {
+    return null;
+  }
+
+  return loadedState.puzzleRatedAttempts?.[dateKey]?.[userId]?.[puzzleId] ?? null;
+}
+
+function hasDailyPuzzleRatedAttempt(loadedState, dateKey, userId, puzzleId) {
+  return Boolean(getDailyPuzzleRatedAttemptEntry(loadedState, dateKey, userId, puzzleId));
+}
+
+function getDailyPuzzleOpponentRating(value) {
+  const rating = Number(value);
+  return Number.isFinite(rating) ? rating : dailyPuzzleInitialRawRating;
+}
+
+function calculateDailyPuzzleRawRating(rawRating, opponentRating, result) {
+  const safeRawRating = Number.isFinite(rawRating) ? rawRating : dailyPuzzleInitialRawRating;
+  const expectedScore = 1 / (1 + 10 ** ((opponentRating - safeRawRating) / 400));
+  return safeRawRating + dailyPuzzleEloK * (result - expectedScore);
+}
+
+function getDailyPuzzleDisplayRating(rawRating) {
+  const safeRawRating = Number.isFinite(rawRating) ? rawRating : dailyPuzzleInitialRawRating;
+  const display = 1000 / (1 + Math.exp(-(safeRawRating - 2550) / 60));
+  return Math.max(0, Math.min(1000, Math.round(display)));
+}
+
+function formatDailyPuzzleDisplayRating(rawRating) {
+  return `${getDailyPuzzleDisplayRating(rawRating)}`;
+}
+
+function ensureDailyPuzzleRatingProfile(loadedState, user, session) {
+  loadedState.puzzleRatings ??= {};
+
+  const userId = user?.id ?? session?.userId;
+  if (!userId) {
+    throw new Error('Daily puzzle rating profile requires a user id.');
+  }
+
+  const existingProfile = loadedState.puzzleRatings[userId];
+  const profile = existingProfile && typeof existingProfile === 'object'
+    ? existingProfile
+    : {};
+
+  profile.userId = userId;
+  profile.rawRating = Number.isFinite(profile.rawRating)
+    ? profile.rawRating
+    : dailyPuzzleInitialRawRating;
+  profile.solvedCount = Number.isFinite(profile.solvedCount) ? Math.trunc(profile.solvedCount) : 0;
+  profile.ratedAttempts = Number.isFinite(profile.ratedAttempts) ? Math.trunc(profile.ratedAttempts) : 0;
+  syncDailyPuzzleRatingProfile(profile, user, session);
+
+  loadedState.puzzleRatings[userId] = profile;
+  return profile;
+}
+
+function syncDailyPuzzleRatingProfile(profile, user, session) {
+  const fallbackUserTag = normalizeDailyPuzzleDisplayName(session?.userTag);
+  profile.userTag = normalizeDailyPuzzleDisplayName(user?.tag)
+    || normalizeDailyPuzzleDisplayName(profile.userTag)
+    || fallbackUserTag
+    || `${profile.userId}`;
+
+  profile.lastGuildId = session?.sourceGuildId ?? profile.lastGuildId ?? null;
+  profile.lastGuildDisplayName = normalizeDailyPuzzleDisplayName(
+    session?.sourceGuildDisplayName
+      ?? user?.globalName
+      ?? user?.username
+      ?? profile.lastGuildDisplayName
+      ?? fallbackUserTag
+      ?? `${profile.userId}`
+  );
+}
+
+function compareDailyPuzzleRatingProfiles(a, b) {
+  const rawDiff = (Number(b?.rawRating) || 0) - (Number(a?.rawRating) || 0);
+  if (rawDiff !== 0) {
+    return rawDiff;
+  }
+
+  const ratedAttemptsDiff = (Number(b?.ratedAttempts) || 0) - (Number(a?.ratedAttempts) || 0);
+  if (ratedAttemptsDiff !== 0) {
+    return ratedAttemptsDiff;
+  }
+
+  const solvedCountDiff = (Number(b?.solvedCount) || 0) - (Number(a?.solvedCount) || 0);
+  if (solvedCountDiff !== 0) {
+    return solvedCountDiff;
+  }
+
+  return String(a?.userId ?? '').localeCompare(String(b?.userId ?? ''));
+}
+
+function getDailyPuzzleRecordRatingDisplay(loadedState, record) {
+  if (record?.puzzleRatingDisplay != null) {
+    return `${record.puzzleRatingDisplay}`;
+  }
+
+  const profile = loadedState.puzzleRatings?.[record?.userId];
+  return formatDailyPuzzleDisplayRating(profile?.rawRating);
+}
+
+async function getDailyPuzzleRatingProfileDisplayName(client, profile) {
+  const storedName = normalizeDailyPuzzleDisplayName(profile?.lastGuildDisplayName);
+  if (storedName) {
+    return storedName;
+  }
+
+  const fetchedName = await resolveDailyPuzzleUserDisplayName(
+    client,
+    profile?.userId,
+    profile?.lastGuildId,
+    profile?.userTag ?? profile?.userId ?? 'User'
+  );
+
+  const normalizedFetchedName = normalizeDailyPuzzleDisplayName(fetchedName);
+  if (normalizedFetchedName && profile && typeof profile === 'object') {
+    profile.lastGuildDisplayName = normalizedFetchedName;
+  }
+
+  return normalizedFetchedName || profile?.userTag || profile?.userId || 'User';
+}
+
+async function recordDailyPuzzleRatedAttempt(user, session, result) {
+  const loadedState = await loadState();
+  const userId = user?.id ?? session?.userId;
+  const profile = ensureDailyPuzzleRatingProfile(loadedState, user, session);
+
+  loadedState.puzzleRatedAttempts ??= {};
+  loadedState.puzzleRatedAttempts[session.dateKey] ??= {};
+  loadedState.puzzleRatedAttempts[session.dateKey][userId] ??= {};
+
+  const existing = loadedState.puzzleRatedAttempts[session.dateKey][userId][session.puzzleId];
+  if (existing) {
+    syncDailyPuzzleRatingProfile(profile, user, session);
+    profile.updatedAt = new Date().toISOString();
+    await saveState();
+    return {
+      recorded: false,
+      attempt: existing,
+      profile,
+    };
+  }
+
+  const rawBefore = Number(profile.rawRating);
+  const opponentRating = getDailyPuzzleOpponentRating(session.rating);
+  const rawAfter = calculateDailyPuzzleRawRating(rawBefore, opponentRating, result);
+  const ratedAt = new Date().toISOString();
+
+  profile.rawRating = rawAfter;
+  profile.ratedAttempts += 1;
+  syncDailyPuzzleRatingProfile(profile, user, session);
+  profile.updatedAt = ratedAt;
+
+  loadedState.puzzleRatedAttempts[session.dateKey][userId][session.puzzleId] = {
+    userId,
+    dateKey: session.dateKey,
+    puzzleId: session.puzzleId,
+    result,
+    puzzleRating: opponentRating,
+    rawBefore,
+    rawAfter,
+    displayRating: getDailyPuzzleDisplayRating(rawAfter),
+    ratedAt,
+  };
+
+  await saveState();
+
+  return {
+    recorded: true,
+    attempt: loadedState.puzzleRatedAttempts[session.dateKey][userId][session.puzzleId],
+    profile,
+  };
 }
 
 function normalizeDailyPuzzleDisplayName(value) {

@@ -44,6 +44,8 @@ import { createTetrioPlaystyleGraph } from './tetrio-playstyle-graph.js';
 import { createTetrioVersusGraph } from './tetrio-versus-graph.js';
 import { createMinomuncherAnalysis } from './minomuncher-analysis.js';
 import {
+  handleDailyPuzzleAnnouncementInteraction,
+  handleDailyPuzzleLeaderboardInteraction,
   handleDailyPuzzleMessage,
   handleDailyPuzzleRequestInteraction,
   handleDailyPuzzleSetInteraction,
@@ -5059,6 +5061,16 @@ if (interaction.commandName === '일일퍼즐') {
   return;
 }
 
+if (interaction.commandName === '퍼즐리더보드') {
+  await handleDailyPuzzleLeaderboardInteraction(interaction);
+  return;
+}
+
+if (interaction.commandName === '일일퍼즐공지') {
+  await handleDailyPuzzleAnnouncementInteraction(interaction);
+  return;
+}
+
     if (interaction.commandName === '가르치기') {
       await handlePermanentMemoryInteraction(interaction);
       return;
@@ -8087,7 +8099,8 @@ function getHelpMessage() {
     '`/익스퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%exqp 닉네임 [기록 번호]` - EXPERT QUICK PLAY 고도 카드를 보여준다냥.',
     '`/40라인 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%40L 닉네임 [기록 번호] [top|recent]` - 40 LINES top 또는 recent 기록의 시간 카드를 보여준다냥.',
     '`/블리츠 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%blitz 닉네임 [기록 번호] [top|recent]` - BLITZ top 또는 recent 기록의 점수 카드를 보여준다냥.',
-    '`/일일퍼즐`, `%일일퍼즐`, `/일일퍼즐지정` - 퍼즐을 DM으로 풀며, `포기`를 보내면 원래 퍼즐 채널에 공개 포기 처리되고 같은 날 다시 도전할 수 있다냥.',
+    '`/일일퍼즐`, `%일일퍼즐`, `/일일퍼즐지정` - 퍼즐을 DM으로 풀며, 첫 오답이나 `포기`는 즉시 퍼즐 레이팅 패배로 반영되고 같은 날 다시 도전할 수 있다냥.',
+    '`/퍼즐리더보드`, `%퍼즐리더보드` - 현재 퍼즐 레이팅 상위 10명의 닉네임과 레이팅을 보여준다냥.',
   ].join('\n');
 }
 

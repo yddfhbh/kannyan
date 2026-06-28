@@ -3,6 +3,7 @@ import { REST, Routes, SlashCommandBuilder } from 'discord.js';
 
 const { DISCORD_TOKEN, CLIENT_ID } = process.env;
 const guildId = process.env.GUILD_ID?.trim();
+const dailyPuzzleAnnouncementGuildId = '1219197226572840990';
 
 if (!DISCORD_TOKEN || !CLIENT_ID) {
   console.error('DISCORD_TOKEN and CLIENT_ID must be set in .env');
@@ -49,6 +50,10 @@ const commands = [
 new SlashCommandBuilder()
   .setName('일일퍼즐')
   .setDescription('오늘의 일일 체스 퍼즐을 DM으로 받습니다.')
+  .toJSON(),
+new SlashCommandBuilder()
+  .setName('퍼즐리더보드')
+  .setDescription('일일퍼즐 참가자 퍼즐 레이팅 상위 10명을 보여줍니다.')
   .toJSON(),
   new SlashCommandBuilder()
     .setName('체닷')
@@ -336,6 +341,11 @@ new SlashCommandBuilder()
     .toJSON(),
 ];
 
+const dailyPuzzleAnnouncementCommand = new SlashCommandBuilder()
+  .setName('일일퍼즐공지')
+  .setDescription('지정 서버의 일일퍼즐 공지를 즉시 강제로 발송합니다.')
+  .toJSON();
+
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
 
 try {
@@ -344,9 +354,20 @@ try {
   await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
   console.log('Global slash commands registered. They can take up to an hour to appear.');
 
+  const guildCommandBodies = new Map();
+
   if (guildId) {
-    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, guildId), { body: commands });
-    console.log('Guild slash commands registered for immediate updates.');
+    guildCommandBodies.set(guildId, commands);
+  }
+
+  guildCommandBodies.set(dailyPuzzleAnnouncementGuildId, [
+    ...commands,
+    dailyPuzzleAnnouncementCommand,
+  ]);
+
+  for (const [targetGuildId, body] of guildCommandBodies.entries()) {
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, targetGuildId), { body });
+    console.log(`Guild slash commands registered for ${targetGuildId}.`);
   }
 } catch (error) {
   console.error('Failed to register slash commands:');
