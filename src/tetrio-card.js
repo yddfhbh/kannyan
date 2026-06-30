@@ -740,20 +740,25 @@ const bannerRightEdgeCoverY = bannerEdgeCoverY ;
     fontDataUri: assets.hunFont,
     fontWeight: headerNameFontWeight,
   });
-  const headerNamePlacementWidth = headerNameAsset?.visibleRightEdgeFromTextOrigin ?? getHeaderNamePlacementWidth(
-    headerUsername,
-    headerNameFontSize,
-    await measureHeaderNameWidth(
-      headerUsername,
-      headerNameFontSize,
-      assets.hunFont,
-      headerNameFontWeight,
-    ),
-  );
-  const headerFlagGap = headerNameAsset?.flagGap ?? (getHeaderFlagGap(headerUsername, headerNameFontSize) + Math.round(headerNameFontSize * 0.26));
-const headerFlagX = Math.round(nameX + headerNamePlacementWidth + headerFlagGap);
-const headerFlagY = bannerY + 18;
-const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
+  const headerNamePlacementWidth = headerNameAsset
+    ? Math.max(
+        headerNameAsset.visibleRightEdgeFromTextOrigin ?? 0,
+        headerNameAsset.placementWidth ?? 0,
+      )
+    : getHeaderNamePlacementWidth(
+        headerUsername,
+        headerNameFontSize,
+        await measureHeaderNameWidth(
+          headerUsername,
+          headerNameFontSize,
+          assets.hunFont,
+          headerNameFontWeight,
+        ),
+      );
+  const headerFlagGap = headerNameAsset?.flagGap ?? getHeaderFlagPlacementGap(headerUsername, headerNameFontSize);
+  const headerFlagX = Math.round(nameX + headerNamePlacementWidth + headerFlagGap);
+  const headerFlagY = bannerY + 18;
+  const headerMetaY = bannerY + Math.min(77, bannerHeight - 23);
   
   const headerNameClass = assets.banner ? 'headerName' : 'headerName noBannerHeaderName';
   const headerNameMarkup = headerNameAsset
@@ -1843,7 +1848,7 @@ async function renderHeaderNameAsset({
     const asset = {
       baselineY,
       image: dataUri,
-      flagGap: Math.max(26, Math.round(fontSize * 0.38)),
+      flagGap: getHeaderFlagPlacementGap(normalizedText, fontSize),
       imageHeight: svgHeight,
       imageWidth: svgWidth,
       placementWidth: textWidth,
@@ -2119,6 +2124,10 @@ function getHeaderFlagGap(text, fontSize) {
     fontSize * 0.27
     + Math.min(fontSize * 0.18, narrowGlyphCount * fontSize * 0.06),
   ) + Math.round(getHeaderTrailingFlagGapBonus(normalizedText, fontSize) + longNameGapBonus);
+}
+
+function getHeaderFlagPlacementGap(text, fontSize) {
+  return getHeaderFlagGap(text, fontSize) + Math.round(fontSize * 0.26);
 }
 
 function getHeaderVisibleCharCount(text) {
