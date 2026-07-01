@@ -387,7 +387,7 @@ export function renderVArchiveTierCardOverlaySvg(view) {
   const topSongMarkup = renderTextLines({
     lines: topSongLines,
     x: outerPadding + leftHeaderWidth + gap + 28,
-    y: headerY + 240,
+    y: headerY + 258,
     className: 'summaryTopSong',
     lineHeight: 17,
   });
@@ -543,7 +543,7 @@ export function renderVArchiveTierCardOverlaySvg(view) {
   <text x="${outerPadding + leftHeaderWidth - 28}" y="${headerY + 242}" text-anchor="end" class="metaValueSmall">${escapeXml(formatFixed(view.displayAverage, 3))}</text>
   <text x="${outerPadding + leftHeaderWidth + gap + 28}" y="${headerY + 34}" class="summaryTitle">SUMMARY</text>
   ${summaryMarkup}
-  <text x="${outerPadding + leftHeaderWidth + gap + 28}" y="${headerY + 202}" class="summaryLabel">BEST SONG</text>
+  <text x="${outerPadding + leftHeaderWidth + gap + 28}" y="${headerY + 220}" class="summaryLabel">BEST SONG</text>
   ${topSongMarkup}
   ${!view.tierImageDataUrl ? `<text x="165" y="170" text-anchor="middle" class="placeholderText">NO TIER</text>` : ''}
   ${songCardOverlays}
@@ -602,7 +602,7 @@ export function renderVArchiveTierCardSvg(view) {
   const topSongMarkup = renderTextLines({
     lines: topSongLines,
     x: outerPadding + leftHeaderWidth + gap + 28,
-    y: headerY + 240,
+    y: headerY + 258,
     className: 'summaryTopSong',
     lineHeight: 17,
   });
@@ -789,7 +789,7 @@ export function renderVArchiveTierCardSvg(view) {
 
   <text x="${outerPadding + leftHeaderWidth + gap + 28}" y="${headerY + 34}" class="summaryTitle">SUMMARY</text>
   ${summaryMarkup}
-  <text x="${outerPadding + leftHeaderWidth + gap + 28}" y="${headerY + 202}" class="summaryLabel">BEST SONG</text>
+  <text x="${outerPadding + leftHeaderWidth + gap + 28}" y="${headerY + 220}" class="summaryLabel">BEST SONG</text>
   ${topSongMarkup}
 
   <line x1="${outerPadding + 6}" y1="${gridY - 16}" x2="${viewBoxWidth - outerPadding - 6}" y2="${gridY - 16}" class="divider" />
@@ -926,11 +926,13 @@ function renderSongCardOverlay({
     <rect x="${entry.cardX + 10}" y="${entry.cardY + 10}" width="28" height="28" rx="8" ry="8" class="rankBadge" />
     <text x="${entry.cardX + 24}" y="${entry.cardY + 30}" text-anchor="middle" class="rankText">${escapeXml(String(entry.rank))}</text>
 
-    <rect x="${entry.cardX + width - 82}" y="${entry.cardY + 14}" width="68" height="26" rx="13" ry="13" class="patternBadge" />
-    <text x="${entry.cardX + width - 48}" y="${entry.cardY + 32}" text-anchor="middle" class="patternText">${escapeXml(entry.patternText)}</text>
+    ${entry.maxCombo ? renderComboChip(entry.cardX + width - 60, entry.cardY + 12) : ''}
 
     <rect x="${entry.cardX + 12}" y="${entry.cardY + imageSize - 42}" width="96" height="28" rx="14" ry="14" class="songShade" />
     <text x="${entry.cardX + 60}" y="${entry.cardY + imageSize - 23}" text-anchor="middle" class="scoreText">${escapeXml(entry.scoreText)}</text>
+
+    <rect x="${entry.cardX + width - 88}" y="${entry.cardY + imageSize - 74}" width="76" height="26" rx="13" ry="13" class="patternBadge" />
+    <text x="${entry.cardX + width - 50}" y="${entry.cardY + imageSize - 56}" text-anchor="middle" class="patternText">${escapeXml(entry.patternText)}</text>
 
     <rect x="${entry.cardX + width - 88}" y="${entry.cardY + imageSize - 42}" width="76" height="28" rx="14" ry="14" class="floorBadge" />
     <text x="${entry.cardX + width - 50}" y="${entry.cardY + imageSize - 23}" text-anchor="middle" class="floorText">${escapeXml(entry.floorText)}</text>
@@ -945,8 +947,6 @@ function renderSongCardOverlay({
 
     <text x="${entry.cardX + 12}" y="${pointY}" class="songPoint">${escapeXml(`${entry.pointText} / ${entry.maxRatingText}`)}</text>
     <text x="${entry.cardX + width - 12}" y="${pointY}" text-anchor="end" class="songMeta">${escapeXml(entry.updatedText)}</text>
-    <text x="${entry.cardX + 12}" y="${updatedY}" class="songMeta">${escapeXml(`title ${entry.titleId}`)}</text>
-    ${entry.maxCombo ? renderComboChip(entry.cardX + width - 60, metaY + 12) : ''}
     ${!entry.jacketDataUrl
       ? `<text x="${entry.cardX + imageSize / 2}" y="${entry.cardY + imageSize / 2}" text-anchor="middle" class="placeholderText">NO JACKET</text>`
       : ''}
@@ -966,11 +966,13 @@ function renderSongCard({ entry, index, width, imageSize, cardHeight, palette })
     <rect x="${entry.cardX + 10}" y="${entry.cardY + 10}" width="28" height="28" rx="8" ry="8" class="rankBadge" />
     <text x="${entry.cardX + 24}" y="${entry.cardY + 30}" text-anchor="middle" class="rankText">${escapeXml(String(entry.rank))}</text>
 
-    <rect x="${entry.cardX + width - 82}" y="${entry.cardY + 14}" width="68" height="26" rx="13" ry="13" class="patternBadge" />
-    <text x="${entry.cardX + width - 48}" y="${entry.cardY + 32}" text-anchor="middle" class="patternText">${escapeXml(entry.patternText)}</text>
+    ${entry.maxCombo ? renderComboChip(entry.cardX + width - 60, entry.cardY + 12) : ''}
 
     <rect x="${entry.cardX + 12}" y="${entry.cardY + imageSize - 42}" width="96" height="28" rx="14" ry="14" class="songShade" />
     <text x="${entry.cardX + 60}" y="${entry.cardY + imageSize - 23}" text-anchor="middle" class="scoreText">${escapeXml(entry.scoreText)}</text>
+
+    <rect x="${entry.cardX + width - 88}" y="${entry.cardY + imageSize - 74}" width="76" height="26" rx="13" ry="13" class="patternBadge" />
+    <text x="${entry.cardX + width - 50}" y="${entry.cardY + imageSize - 56}" text-anchor="middle" class="patternText">${escapeXml(entry.patternText)}</text>
 
     <rect x="${entry.cardX + width - 88}" y="${entry.cardY + imageSize - 42}" width="76" height="28" rx="14" ry="14" class="floorBadge" />
     <text x="${entry.cardX + width - 50}" y="${entry.cardY + imageSize - 23}" text-anchor="middle" class="floorText">${escapeXml(entry.floorText)}</text>
@@ -985,8 +987,6 @@ function renderSongCard({ entry, index, width, imageSize, cardHeight, palette })
 
     <text x="${entry.cardX + 12}" y="${pointY}" class="songPoint">${escapeXml(`${entry.pointText} / ${entry.maxRatingText}`)}</text>
     <text x="${entry.cardX + width - 12}" y="${pointY}" text-anchor="end" class="songMeta">${escapeXml(entry.updatedText)}</text>
-    <text x="${entry.cardX + 12}" y="${updatedY}" class="songMeta">${escapeXml(`title ${entry.titleId}`)}</text>
-    ${entry.maxCombo ? renderComboChip(entry.cardX + width - 60, metaY + 12) : ''}
   </g>`;
 }
 
