@@ -80,6 +80,7 @@ import {
   refreshTetrioLeagueCache,
 } from './tetrio-league-leaderboard.js';
 import { renderLiveRatingCard } from './live-rating-card.js';
+import { createVArchiveTierCard } from './varchive-tier-card.js';
 import {
   createPermanentMemoryScope,
   extractPermanentMemoryUsage,
@@ -5125,6 +5126,11 @@ if (interaction.commandName === '일일퍼즐공지') {
 
     if (interaction.commandName === '라이브레이팅') {
       await showLiveRatings(interaction);
+      return;
+    }
+
+    if (interaction.commandName === 'b30') {
+      await showVArchiveTierCard(interaction);
       return;
     }
 
@@ -10475,6 +10481,31 @@ async function showLiveRatings(interaction) {
   }
 }
 
+async function showVArchiveTierCard(interaction) {
+  const nickname = interaction.options.getString('닉네임', true).trim();
+  const button = interaction.options.getInteger('버튼', true);
+
+  await interaction.deferReply();
+
+  try {
+    const card = await createVArchiveTierCard(nickname, button);
+    const attachment = new AttachmentBuilder(card.image, {
+      name: `varchive-tier-${formatAttachmentSafeName(card.nickname)}-${card.button}b.png`,
+    });
+
+    await interaction.editReply({
+      content: card.pageUrl,
+      files: [attachment],
+    });
+  } catch (error) {
+    console.error(`Failed to render V-ARCHIVE tier card for ${nickname} ${button}B:`);
+    console.error(error);
+
+    const knownErrorMessage = getVArchiveKnownErrorMessage(error, button);
+    await interaction.editReply(knownErrorMessage ?? 'V-ARCHIVE 티어 카드를 만들지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
+  }
+}
+
 function normalizeChessComUsername(input) {
   const trimmed = input.trim();
 
@@ -10744,6 +10775,32 @@ function formatAttachmentSafeName(value) {
     .replace(/[^a-z0-9_-]+/g, '-')
     .replace(/^-+|-+$/g, '')
     || 'preview';
+}
+
+function getVArchiveKnownErrorMessage(error, button) {
+  if (!error) {
+    return null;
+  }
+
+  if (error.code === 'INVALID_NICKNAME' || error.code === 'INVALID_BUTTON') {
+    return error.message;
+  }
+
+  if (error.code === 'NO_TIER_DATA') {
+    return `${button}버튼 티어 정보가 없다냥.`;
+  }
+
+  if (error.code === 'VARCHIVE_TIMEOUT') {
+    return 'V-ARCHIVE 응답이 너무 오래 걸린다냥. 잠시 뒤 다시 시도해달라냥.';
+  }
+
+  if (typeof error.message === 'string' && error.message.trim()) {
+    if (error.status === 404) {
+      return error.message.trim();
+    }
+  }
+
+  return null;
 }
 
 function formatAlarmMinutes(minutes) {

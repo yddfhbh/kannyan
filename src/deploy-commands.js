@@ -258,6 +258,29 @@ new SlashCommandBuilder()
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('b30')
+    .setDescription('V-ARCHIVE 티어 카드를 이미지로 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('V-ARCHIVE 닉네임')
+        .setRequired(true)
+        .setMaxLength(40)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('버튼')
+        .setDescription('조회할 버튼 수')
+        .setRequired(true)
+        .addChoices(
+          { name: '4버튼', value: 4 },
+          { name: '5버튼', value: 5 },
+          { name: '6버튼', value: 6 },
+          { name: '8버튼', value: 8 }
+        )
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('퀵플')
     .setDescription('TETR.IO 퀵플레이 top 또는 recent 기록의 고도를 이미지로 보여줍니다.')
     .addStringOption((option) =>
