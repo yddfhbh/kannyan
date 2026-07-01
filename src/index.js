@@ -10489,12 +10489,13 @@ async function showVArchiveTierCard(interaction) {
 
   try {
     const card = await createVArchiveTierCard(nickname, button);
+    const attachmentExtension = card.imageFormat === 'jpeg' ? 'jpg' : 'png';
     const attachment = new AttachmentBuilder(card.image, {
-      name: `varchive-tier-${formatAttachmentSafeName(card.nickname)}-${card.button}b.png`,
+      name: `varchive-tier-${formatAttachmentSafeName(card.nickname)}-${card.button}b.${attachmentExtension}`,
     });
 
     await interaction.editReply({
-      content: card.pageUrl,
+      content: `<${card.pageUrl}>`,
       files: [attachment],
     });
   } catch (error) {

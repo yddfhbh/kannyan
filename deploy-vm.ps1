@@ -3,6 +3,8 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $archiveName = "discord-bot-vm.tar.gz"
 $archivePath = Join-Path $projectRoot $archiveName
+$deployScriptName = "discord-bot-vm-deploy.sh"
+$deployScriptPath = Join-Path $projectRoot $deployScriptName
 
 $includePaths = @(
   "src",
@@ -22,8 +24,7 @@ $optionalIncludePaths = @(
   "data/lichess-player-opening-manual-book.json"
 )
 
-$deployScript = @'
-bash <<'DEPLOY_EOF'
+$deployScriptBody = @'
 cd ~
 set -euo pipefail
 
@@ -35,7 +36,7 @@ BACKUP_DIR="$HOME/discord-bot-backups"
 ENV_BACKUP="$HOME/.discord-bot.env"
 
 if [ ! -f "$ARCHIVE" ]; then
-  echo "discord-bot-vm.tar.gz 파일이 없습니다. 먼저 VM에 압축 파일을 업로드하세요."
+  echo "discord-bot-vm.tar.gz is missing. Upload the archive to the VM home directory first."
   exit 1
 fi
 
@@ -166,7 +167,7 @@ tar -xzf "$ARCHIVE" -C "$APP_DIR"
 rm -f "$ARCHIVE"
 
 if [ ! -f "$APP_DIR/package.json" ]; then
-  echo "압축이 올바르게 풀리지 않았습니다. $APP_DIR 안에 package.json이 없습니다."
+  echo "Archive extraction failed. package.json is missing under $APP_DIR."
   exit 1
 fi
 
@@ -187,12 +188,12 @@ echo "real data path:"
 readlink -f data
 
 if [ ! -f scripts/build-lichess-puzzle-pool.js ]; then
-  echo "scripts/build-lichess-puzzle-pool.js가 없습니다. tar 압축에 scripts 폴더가 포함됐는지 확인하세요."
+  echo "scripts/build-lichess-puzzle-pool.js is missing. Check whether the scripts directory was included in the tarball."
   exit 1
 fi
 
 if grep -R 'Replies with Pong\|commandName === '\''ping'\''\|commandName === "ping"' -n .; then
-  echo "예전 ping 코드가 남아 있어서 멈춥니다."
+  echo "Legacy ping code is still present. Aborting deploy."
   exit 1
 fi
 
@@ -202,9 +203,9 @@ if [ -r "$ENV_BACKUP" ]; then
 fi
 
 if [ ! -f .env ]; then
-  echo ".env가 없어서 지금 새로 만듭니다."
-  echo "입력해도 화면에는 보이지 않습니다. 붙여넣고 Enter를 누르세요."
-  read -r -s -p "DISCORD_TOKEN 입력: " DISCORD_TOKEN_VALUE </dev/tty
+  echo ".env is missing, so a new one will be created now."
+  echo "Input stays hidden. Paste the value and press Enter."
+  read -r -s -p "Enter DISCORD_TOKEN: " DISCORD_TOKEN_VALUE </dev/tty
   echo
   cat > .env <<ENV_EOF
 DISCORD_TOKEN=$DISCORD_TOKEN_VALUE
@@ -214,11 +215,11 @@ ENV_EOF
 fi
 
 if ! grep -E '^(GEMINI_API_KEYS|GEMMA_API_KEYS|GEMINI_API_KEY|GEMMA_API_KEY)=' .env | cut -d= -f2- | grep -q '[^[:space:]]'; then
-  echo "Gemma/Gemini API 키가 .env에 없어서 추가합니다."
-  echo "예비키까지 쓰려면 쉼표로 구분해서 입력하세요."
-  echo "예: 기본키,예비키1,예비키2"
-  echo "입력해도 화면에는 보이지 않습니다. 붙여넣고 Enter를 누르세요."
-  read -r -s -p "GEMINI_API_KEYS 입력: " GEMINI_API_KEYS_VALUE </dev/tty
+  echo "Gemma/Gemini API keys are missing from .env, so they will be added now."
+  echo "If you want fallback keys too, separate them with commas."
+  echo "Example: primary-key,fallback-key-1,fallback-key-2"
+  echo "Input stays hidden. Paste the value and press Enter."
+  read -r -s -p "Enter GEMINI_API_KEYS: " GEMINI_API_KEYS_VALUE </dev/tty
   echo
   printf '\nGEMINI_API_KEYS=%s\n' "$GEMINI_API_KEYS_VALUE" >> .env
 fi
@@ -256,10 +257,10 @@ npm ci --omit=dev
 
 echo "[11/12] Checking/building Lichess puzzle pools..."
 if [ ! -f data/lichess-puzzle-pool.jsonl ]; then
-  echo "lichess-puzzle-pool.jsonl 없음. 새로 생성합니다."
+  echo "lichess-puzzle-pool.jsonl is missing. Rebuilding it now."
 
   if [ ! -f data/lichess_db_puzzle.csv.zst ]; then
-    echo "Lichess puzzle DB 다운로드 중..."
+    echo "Downloading the Lichess puzzle DB..."
     curl -L https://database.lichess.org/lichess_db_puzzle.csv.zst -o data/lichess_db_puzzle.csv.zst
   fi
 
@@ -270,13 +271,13 @@ if [ ! -f data/lichess-puzzle-pool.jsonl ]; then
   LICHESS_PUZZLE_MIN_PLAYS=30 \
   zstd -dc data/lichess_db_puzzle.csv.zst | node scripts/build-lichess-puzzle-pool.js
 else
-  echo "기존 lichess-puzzle-pool.jsonl 사용."
+  echo "Using the existing lichess-puzzle-pool.jsonl."
 fi
 
-echo "lichess-puzzle-rush-pool.jsonl 새로 생성합니다."
+echo "Rebuilding lichess-puzzle-rush-pool.jsonl."
 
 if [ ! -f data/lichess_db_puzzle.csv.zst ]; then
-  echo "Lichess puzzle DB 다운로드 중..."
+  echo "Downloading the Lichess puzzle DB..."
   curl -L https://database.lichess.org/lichess_db_puzzle.csv.zst -o data/lichess_db_puzzle.csv.zst
 fi
 
@@ -318,7 +319,7 @@ try {
   console.log('sessions keys:', Object.keys(state.sessions ?? {}));
 } catch (error) {
   if (error.code === 'ENOENT') {
-    console.log('daily-chess-puzzle.json 없음. /일일퍼즐지정 실행하면 생성됩니다.');
+    console.log('daily-chess-puzzle.json is missing. It will be created after setting the daily puzzle channel.');
   } else {
     throw error;
   }
@@ -332,13 +333,22 @@ ls -lah "$DATA_DIR"
 
 echo
 pm2 logs discord-bot --lines 80 --nostream || true
-DEPLOY_EOF
 '@
+
+$deployScript = @"
+bash <<'DEPLOY_EOF'
+$deployScriptBody
+DEPLOY_EOF
+"@
 
 Push-Location $projectRoot
 try {
   if (Test-Path -LiteralPath $archivePath) {
     Remove-Item -LiteralPath $archivePath -Force
+  }
+
+  if (Test-Path -LiteralPath $deployScriptPath) {
+    Remove-Item -LiteralPath $deployScriptPath -Force
   }
 
   $missing = $includePaths | Where-Object { -not (Test-Path -LiteralPath (Join-Path $projectRoot $_)) }
@@ -354,15 +364,25 @@ try {
   tar -czf $archiveName @archivePaths
 
   $archive = Get-Item -LiteralPath $archivePath
+  $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+  [System.IO.File]::WriteAllText($deployScriptPath, $deployScriptBody, $utf8NoBom)
+  $deployScriptFile = Get-Item -LiteralPath $deployScriptPath
 
   Write-Host ""
   Write-Host "Created: $($archive.FullName)"
   Write-Host "Size: $($archive.Length) bytes"
+  Write-Host "Created: $($deployScriptFile.FullName)"
+  Write-Host "Size: $($deployScriptFile.Length) bytes"
   Write-Host ""
-  Write-Host "1. Upload this file in the Google Cloud browser SSH window:"
+  Write-Host "1. Upload these files in the Google Cloud browser SSH window:"
   Write-Host "   $archiveName"
+  Write-Host "   $deployScriptName"
   Write-Host ""
-  Write-Host "2. Paste this in the VM shell:"
+  Write-Host "2. Run this in the VM shell:"
+  Write-Host ""
+  Write-Host "   bash ~/$deployScriptName"
+  Write-Host ""
+  Write-Host "3. Fallback only if you cannot upload the .sh file: paste this heredoc in the VM shell:"
   Write-Host ""
   Write-Host $deployScript
   Write-Host ""
