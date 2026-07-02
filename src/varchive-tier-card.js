@@ -316,13 +316,13 @@ export function renderVArchiveTierCardBackgroundSvg(view) {
     gridY,
     footerY,
     palette,
-    slots,
+    entries,
     songCardWidth,
     songCardHeight,
   } = getVArchiveTierCardLayout(view);
 
-  const songCardBackgrounds = slots
-    .map((slot) => renderSongCardBackground(slot, songCardWidth, songCardHeight))
+  const songCardBackgrounds = entries
+    .map((entry) => renderSongCardBackground(entry, songCardWidth, songCardHeight))
     .join('');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -581,13 +581,7 @@ export function renderVArchiveTierCardSvg(view) {
     viewBoxHeight,
     palette,
     entries,
-    slots,
   } = getVArchiveTierCardLayout(view);
-
-  const emptySongCardBackgrounds = slots
-    .slice(entries.length)
-    .map((slot) => renderSongCardBackground(slot, songCardWidth, songCardHeight))
-    .join('');
 
   const songCards = entries
     .map((entry, index) => renderSongCard({
@@ -813,7 +807,6 @@ export function renderVArchiveTierCardSvg(view) {
 
   <line x1="${outerPadding + 6}" y1="${gridY - 16}" x2="${viewBoxWidth - outerPadding - 6}" y2="${gridY - 16}" class="divider" />
 
-  ${emptySongCardBackgrounds}
   ${songCards}
 
   <text x="${outerPadding + 4}" y="${footerY + 20}" class="footer">${escapeXml(`Generated ${view.generatedAtText}`)}</text>
