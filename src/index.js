@@ -9203,6 +9203,9 @@ function shouldFallbackToLinkedTetrioLeagueMatch(error, matchIndex) {
 
 async function createTetrioLeagueMatchReplyData(username, matchIndex) {
   const card = await createTetrioLeagueMatchCard(username, matchIndex);
+  console.log(
+    `[TETRA MATCH CARD] username=${card.username} matchIndex=${matchIndex} ts=${card.ts ?? '-'} replayId=${card.replayId ?? '-'} opponent=${card.opponent ?? '-'}`
+  );
   const attachment = new AttachmentBuilder(card.image, {
     name: getTetrioLeagueMatchAttachmentName(card.username, matchIndex),
   });
@@ -9240,6 +9243,10 @@ async function showTetrioLeagueRecentListMessage(message, username, recentCount,
   try {
     await message.channel.sendTyping();
     const card = await createTetrioLeagueRecentListCard(username, recentCount);
+    const newestRow = Array.isArray(card.rows) ? card.rows[0] : null;
+    console.log(
+      `[TETRA RECENT CARD] username=${card.username} recentCount=${card.recentCount} newestPlayedAt=${newestRow?.playedAtText ?? '-'} newestReplayId=${newestRow?.replayId ?? '-'} newestOpponent=${newestRow?.opponent ?? '-'}`
+    );
     const attachment = new AttachmentBuilder(card.image, {
       name: `tetrio-league-recent-${formatAttachmentSafeName(card.username)}-${card.recentCount}.png`,
     });
