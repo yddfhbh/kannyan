@@ -133,6 +133,11 @@ import {
   loadLichessPlayerOpeningBookCache,
   warmLichessPlayerOpeningBook,
 } from './opening-book.js';
+import {
+  handleStarforceComponentInteraction,
+  handleStarforcePercentCommandMessage,
+  initStarforceCommand,
+} from './starforce/starforce-command.js';
 
 
 const execFileAsync = promisify(execFile);
@@ -353,6 +358,7 @@ const webSearchSourceCount = 3;
 const percentCommandAliases = {
   help: ['help', '도움말'],
   webSearch: ['검색', 'search'],
+  starforce: ['스타포스'],
   chesscom: ['체닷'],
   lichess: ['리체스'],
   teto: ['teto'],
@@ -1056,6 +1062,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   startChessPlayInactivityMonitor(readyClient);
   initDailyChessPuzzle(readyClient);
   initPuzzleRush(readyClient);
+  initStarforceCommand();
 });
 
 client.on(Events.Error, (error) => {
@@ -4997,6 +5004,11 @@ async function handlePermanentMemoryInteraction(interaction) {
 
 client.on(Events.InteractionCreate, async (interaction) => {
   try {
+    const handledStarforceComponent = await handleStarforceComponentInteraction(interaction);
+    if (handledStarforceComponent) {
+      return;
+    }
+
     if (!interaction.isChatInputCommand()) {
       return;
     }
@@ -5741,6 +5753,10 @@ async function handlePercentMessageCommand(message) {
 
     await handleWebSearchMessage(message, input);
     return true;
+  }
+
+  if (command === 'starforce') {
+    return handleStarforcePercentCommandMessage(message, input);
   }
 
   if (command === 'chesscom') {
@@ -8072,6 +8088,7 @@ function getHelpMessage() {
     '`/퍼즐러쉬`, `%퍼즐러쉬` - DM으로 이어푸는 퍼즐러쉬를 시작한다냥. 목숨은 3개고, `포기`, `그만`, `중단`, `gg`로 종료할 수 있다냥.',
     '`/퍼즐레이팅`, `%퍼즐레이팅` - 내 퍼즐 레이팅 카드와 현재 등수를 보여준다냥.',
     '`/퍼즐리더보드`, `%퍼즐리더보드` - 현재 퍼즐 레이팅 상위 10명의 닉네임과 레이팅을 보여준다냥.',
+    '`%스타포스 <장비레벨>` - 버튼으로 직접 누르는 스타포스 시뮬레이터를 시작한다냥. 예: `%스타포스 160`',
   ].join('\n');
 }
 

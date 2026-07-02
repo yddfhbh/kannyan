@@ -1,4 +1,5 @@
 ﻿﻿import { readFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import {
@@ -33,7 +34,6 @@ const tetrioPalette = {
 };
 const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO profile card',
-  'X-Session-ID': 'discord-bot-tetrio-card',
 };
 const bioTextFontSize = 17;
 const bioSmallTextFontSize = bioTextFontSize - 1;
@@ -116,6 +116,7 @@ export async function createTetrioProfileCard(username) {
 
 export async function createTetrioProfileCardSvg(username) {
   const normalizedUsername = normalizeTetrioUsername(username);
+  const sessionId = createTetrioApiSessionId('profile-card');
 
   if (!normalizedUsername) {
     const error = new Error('TETR.IO username is required');
@@ -124,8 +125,8 @@ export async function createTetrioProfileCardSvg(username) {
   }
 
   const [userResponse, summariesResponse] = await Promise.all([
-    fetchTetrioJson(`/users/${encodeURIComponent(normalizedUsername)}`),
-    fetchTetrioJson(`/users/${encodeURIComponent(normalizedUsername)}/summaries`),
+    fetchTetrioJson(`/users/${encodeURIComponent(normalizedUsername)}`, { sessionId }),
+    fetchTetrioJson(`/users/${encodeURIComponent(normalizedUsername)}/summaries`, { sessionId }),
   ]);
 
   const user = userResponse.data;
@@ -141,12 +142,13 @@ export async function createTetrioProfileCardSvg(username) {
 
 export async function findTetrioUsername(input) {
   const normalizedUsername = normalizeTetrioUsername(String(input ?? ''));
+  const sessionId = createTetrioApiSessionId('username-lookup');
   if (!normalizedUsername) {
     return null;
   }
 
   try {
-    const response = await fetchTetrioJson(`/users/${encodeURIComponent(normalizedUsername)}`);
+    const response = await fetchTetrioJson(`/users/${encodeURIComponent(normalizedUsername)}`, { sessionId });
     return response.data?.username ?? normalizedUsername;
   } catch (error) {
     if (error.status === 404) {
@@ -159,13 +161,14 @@ export async function findTetrioUsername(input) {
 
 export async function findTetrioUsernameByDiscordId(discordUserId) {
   const normalizedDiscordUserId = String(discordUserId ?? '').trim();
+  const sessionId = createTetrioApiSessionId('discord-link-lookup');
 
   if (!/^\d{17,20}$/.test(normalizedDiscordUserId)) {
     return null;
   }
 
   const query = `discord:id:${normalizedDiscordUserId}`;
-  const response = await fetchTetrioJson(`/users/search/${encodeURIComponent(query)}`);
+  const response = await fetchTetrioJson(`/users/search/${encodeURIComponent(query)}`, { sessionId });
   const users = Array.isArray(response.data?.users)
     ? response.data.users
     : [];
@@ -193,7 +196,21 @@ function normalizeTetrioUsername(input) {
   return trimmed.replace(/^@+/, '').toLowerCase();
 }
 
-async function fetchTetrioJson(path) {
+function createTetrioApiSessionId(scope) {
+  return `discord-bot-${scope}-${randomUUID()}`;
+}
+
+function getTetrioHeaders(sessionId) {
+  return sessionId
+    ? {
+      ...tetrioHeaders,
+      'X-Session-ID': sessionId,
+    }
+    : tetrioHeaders;
+}
+
+async function fetchTetrioJson(path, options = {}) {
+  const { sessionId = null } = options;
   const bypassCache = shouldBypassTetrioJsonCache(path);
   const now = Date.now();
   const cached = bypassCache ? null : tetrioJsonCache.get(path);
@@ -217,7 +234,7 @@ async function fetchTetrioJson(path) {
   } else {
     console.log(`[TETR.IO CACHE MISS] ${path}`);
   }
-  const promise = fetchTetrioJsonUncached(path)
+  const promise = fetchTetrioJsonUncached(path, { sessionId })
     .finally(() => {
       tetrioJsonPendingPromises.delete(path);
     });
@@ -226,9 +243,10 @@ async function fetchTetrioJson(path) {
   return promise;
 }
 
-async function fetchTetrioJsonUncached(path) {
+async function fetchTetrioJsonUncached(path, options = {}) {
+  const { sessionId = null } = options;
   const response = await fetch(`${tetrioApiBaseUrl}${path}`, {
-    headers: tetrioHeaders,
+    headers: getTetrioHeaders(sessionId),
   });
   const body = await response.json().catch(() => null);
 

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
@@ -23,7 +24,6 @@ const localBoldFontUrl = pathToFileURL(localBoldFontPath).href;
 const localHunFontUrl = tetrioHunDinFontUrl;
 const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO league match card',
-  'X-Session-ID': 'discord-bot-tetrio-league-match',
 };
 const tetrioRecordPageSize = 100;
 const leagueFontFamily = `${tetrioFontFamily}, "C"`;
@@ -72,6 +72,7 @@ export async function createTetrioLeagueMatchCard(username, matchIndex = 1) {
 export async function createTetrioLeagueMatchCardSvg(username, matchIndex = 1) {
   const normalizedUsername = normalizeTetrioUsername(username);
   const normalizedMatchIndex = normalizeRecordIndex(matchIndex);
+  const sessionId = createTetrioApiSessionId('league-match');
 
   if (!normalizedUsername) {
     const error = new Error('TETR.IO username is required');
@@ -79,7 +80,7 @@ export async function createTetrioLeagueMatchCardSvg(username, matchIndex = 1) {
     throw error;
   }
 
-  const record = await fetchNthLeagueRecord(normalizedUsername, normalizedMatchIndex);
+  const record = await fetchNthLeagueRecord(normalizedUsername, normalizedMatchIndex, sessionId);
   if (!record) {
     const error = new Error('No TETRA LEAGUE match found for the requested position');
     error.code = 'NO_RECORD';
@@ -104,6 +105,7 @@ export async function createTetrioLeagueMatchCardSvg(username, matchIndex = 1) {
 export async function createTetrioLeagueRecentListCard(username, recentCount = 10) {
   const normalizedUsername = normalizeTetrioUsername(username);
   const normalizedRecentCount = normalizeRecentRecordCount(recentCount);
+  const sessionId = createTetrioApiSessionId('league-recent');
 
   if (!normalizedUsername) {
     const error = new Error('TETR.IO username is required');
@@ -111,7 +113,7 @@ export async function createTetrioLeagueRecentListCard(username, recentCount = 1
     throw error;
   }
 
-  const records = await fetchRecentLeagueRecords(normalizedUsername, normalizedRecentCount);
+  const records = await fetchRecentLeagueRecords(normalizedUsername, normalizedRecentCount, sessionId);
   if (records.length === 0) {
     const error = new Error('No TETRA LEAGUE matches found for the requested user');
     error.code = 'NO_RECORD';
@@ -150,7 +152,7 @@ export async function createTetrioLeagueRecentListCard(username, recentCount = 1
   };
 }
 
-async function fetchNthLeagueRecord(username, recordIndex) {
+async function fetchNthLeagueRecord(username, recordIndex, sessionId) {
   let remaining = recordIndex;
   let after = null;
 
@@ -162,7 +164,8 @@ async function fetchNthLeagueRecord(username, recordIndex) {
     }
 
     const response = await fetchTetrioJson(
-      `/users/${encodeURIComponent(username)}/records/league/recent?${searchParams.toString()}`
+      `/users/${encodeURIComponent(username)}/records/league/recent?${searchParams.toString()}`,
+      { sessionId }
     );
     const entries = Array.isArray(response.data?.entries)
       ? response.data.entries
@@ -190,11 +193,12 @@ async function fetchNthLeagueRecord(username, recordIndex) {
   return null;
 }
 
-async function fetchRecentLeagueRecords(username, recentCount) {
+async function fetchRecentLeagueRecords(username, recentCount, sessionId) {
   const limit = normalizeRecentRecordCount(recentCount);
   const searchParams = new URLSearchParams({ limit: String(limit) });
   const response = await fetchTetrioJson(
-    `/users/${encodeURIComponent(username)}/records/league/recent?${searchParams.toString()}`
+    `/users/${encodeURIComponent(username)}/records/league/recent?${searchParams.toString()}`,
+    { sessionId }
   );
 
   return Array.isArray(response.data?.entries)
@@ -1340,11 +1344,25 @@ function normalizeTetrioUsername(input) {
   return trimmed.replace(/^@+/, '').toLowerCase();
 }
 
-async function fetchTetrioJson(path) {
+function createTetrioApiSessionId(scope) {
+  return `discord-bot-${scope}-${randomUUID()}`;
+}
+
+function getTetrioHeaders(sessionId) {
+  return sessionId
+    ? {
+      ...tetrioHeaders,
+      'X-Session-ID': sessionId,
+    }
+    : tetrioHeaders;
+}
+
+async function fetchTetrioJson(path, options = {}) {
+  const { sessionId = null } = options;
   console.log(`[TETRA MATCH FETCH] ${path}`);
 
   const response = await fetch(`${tetrioApiBaseUrl}${path}`, {
-    headers: tetrioHeaders,
+    headers: getTetrioHeaders(sessionId),
   });
 
   const body = await response.json().catch(() => null);
