@@ -40,6 +40,10 @@ const STAT_CONFIG = {
   statrank: { label: 'Stat Rank', key: 'statRank', digits: 2 },
   srarea: { label: 'Style Area', key: 'styleArea', digits: 2 },
   sr: { label: 'Style Stat Rank', key: 'styleStatRank', digits: 2 },
+  opener: { label: 'Opener', key: 'opener', digits: 4 },
+  plonk: { label: 'Plonk', key: 'plonk', digits: 4 },
+  stride: { label: 'Stride', key: 'stride', digits: 4 },
+  infds: { label: 'Inf DS', key: 'infiniteDs', digits: 4 },
 };
 
 function sleep(ms) {
@@ -54,6 +58,20 @@ function toFiniteNumber(value) {
 
 function hasNumber(value) {
   return Number.isFinite(value);
+}
+
+function getLeaderboardStatValue(user, key) {
+  const directValue = user?.[key];
+  if (Number.isFinite(directValue)) {
+    return directValue;
+  }
+
+  if (key === 'opener' || key === 'plonk' || key === 'stride' || key === 'infiniteDs') {
+    const playstyleValue = user?.playstyle?.[key];
+    return Number.isFinite(playstyleValue) ? playstyleValue : null;
+  }
+
+  return null;
 }
 
 function clampInt(value, min, max, fallback) {
@@ -174,6 +192,10 @@ function convertEntry(entry, tlRank) {
     statRank: derived.statRank,
     styleArea: derived.styleArea,
     styleStatRank: derived.styleStatRank,
+    opener: derived.playstyle?.opener ?? null,
+    plonk: derived.playstyle?.plonk ?? null,
+    stride: derived.playstyle?.stride ?? null,
+    infiniteDs: derived.playstyle?.infiniteDs ?? null,
     playstyle: derived.playstyle,
   };
 }
@@ -416,11 +438,11 @@ function getTetrioLeaderboardView(parsed = {}) {
   const normalizedRank = normalizeRank(rank);
 
   const rows = activeData.users
-    .filter(user => hasNumber(user[cfg.key]))
+    .filter(user => hasNumber(getLeaderboardStatValue(user, cfg.key)))
     .filter(user => !normalizedRank || user.rank === normalizedRank)
     .sort((a, b) => {
-      const av = a[cfg.key];
-      const bv = b[cfg.key];
+      const av = getLeaderboardStatValue(a, cfg.key);
+      const bv = getLeaderboardStatValue(b, cfg.key);
 
       // %lb  = 큰 값부터
       // %rlb = 작은 값부터
@@ -445,7 +467,7 @@ function getTetrioLeaderboardView(parsed = {}) {
     rows: sliced.map((user, index) => ({
       ...user,
       place: start + index + 1,
-      value: user[cfg.key],
+      value: getLeaderboardStatValue(user, cfg.key),
     })),
     generatedAt: activeData.generatedAt,
     userCount: activeData.users.length,
