@@ -219,6 +219,7 @@ function getVArchiveTierCardLayout(view) {
   const outerPadding = 42;
   const gap = 20;
   const columns = 5;
+  const totalSlots = maxDisplayedSongs;
   const songCardWidth = 244;
   const songMetaHeight = 94;
   const songCardHeight = songImageSize + songMetaHeight;
@@ -226,7 +227,7 @@ function getVArchiveTierCardLayout(view) {
   const footerHeight = 52;
   const contentWidth = songCardWidth * columns + gap * (columns - 1);
   const viewBoxWidth = contentWidth + outerPadding * 2;
-  const rows = Math.max(1, Math.ceil((view.entries?.length ?? 0) / columns));
+  const rows = Math.max(1, Math.ceil(totalSlots / columns));
   const gridHeight = rows * songCardHeight + Math.max(0, rows - 1) * gap;
   const viewBoxHeight = outerPadding * 2 + headerHeight + 30 + gridHeight + footerHeight;
   const leftHeaderWidth = 900;
@@ -236,11 +237,22 @@ function getVArchiveTierCardLayout(view) {
   const footerY = gridY + gridHeight + 14;
   const palette = getTierPalette(view.tierCode);
   const entries = Array.isArray(view.entries) ? view.entries : [];
+  const slots = Array.from({ length: totalSlots }, (_, index) => {
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+
+    return {
+      rank: index + 1,
+      cardX: outerPadding + column * (songCardWidth + gap),
+      cardY: gridY + row * (songCardHeight + gap),
+    };
+  });
 
   return {
     outerPadding,
     gap,
     columns,
+    totalSlots,
     songCardWidth,
     songMetaHeight,
     songCardHeight,
@@ -258,6 +270,7 @@ function getVArchiveTierCardLayout(view) {
     footerY,
     palette,
     entries,
+    slots,
   };
 }
 
@@ -303,13 +316,13 @@ export function renderVArchiveTierCardBackgroundSvg(view) {
     gridY,
     footerY,
     palette,
-    entries,
+    slots,
     songCardWidth,
     songCardHeight,
   } = getVArchiveTierCardLayout(view);
 
-  const songCardBackgrounds = entries
-    .map((entry) => renderSongCardBackground(entry, songCardWidth, songCardHeight))
+  const songCardBackgrounds = slots
+    .map((slot) => renderSongCardBackground(slot, songCardWidth, songCardHeight))
     .join('');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -387,7 +400,7 @@ export function renderVArchiveTierCardOverlaySvg(view) {
   const topSongMarkup = renderTextLines({
     lines: topSongLines,
     x: outerPadding + leftHeaderWidth + gap + 28,
-    y: headerY + 258,
+    y: headerY + 246,
     className: 'summaryTopSong',
     lineHeight: 17,
   });
@@ -568,7 +581,13 @@ export function renderVArchiveTierCardSvg(view) {
     viewBoxHeight,
     palette,
     entries,
+    slots,
   } = getVArchiveTierCardLayout(view);
+
+  const emptySongCardBackgrounds = slots
+    .slice(entries.length)
+    .map((slot) => renderSongCardBackground(slot, songCardWidth, songCardHeight))
+    .join('');
 
   const songCards = entries
     .map((entry, index) => renderSongCard({
@@ -602,7 +621,7 @@ export function renderVArchiveTierCardSvg(view) {
   const topSongMarkup = renderTextLines({
     lines: topSongLines,
     x: outerPadding + leftHeaderWidth + gap + 28,
-    y: headerY + 258,
+    y: headerY + 246,
     className: 'summaryTopSong',
     lineHeight: 17,
   });
@@ -794,6 +813,7 @@ export function renderVArchiveTierCardSvg(view) {
 
   <line x1="${outerPadding + 6}" y1="${gridY - 16}" x2="${viewBoxWidth - outerPadding - 6}" y2="${gridY - 16}" class="divider" />
 
+  ${emptySongCardBackgrounds}
   ${songCards}
 
   <text x="${outerPadding + 4}" y="${footerY + 20}" class="footer">${escapeXml(`Generated ${view.generatedAtText}`)}</text>

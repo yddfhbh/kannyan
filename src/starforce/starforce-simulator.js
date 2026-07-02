@@ -1,9 +1,6 @@
 import { calculateStarforceCost } from './starforce-cost.js';
-import { getCurrentStarforceEvent } from './starforce-event.js';
-import {
-  buildStarforceRates,
-  STARFORCE_MAX_STAR,
-} from './starforce-rates.js';
+import { STARFORCE_DEFAULT_ITEM_ICON_PATH } from './starforce-card.js';
+import { buildStarforceRates } from './starforce-rates.js';
 
 export const STARFORCE_SUPPORTED_LEVELS = Object.freeze([
   80,
@@ -19,6 +16,7 @@ export const STARFORCE_SUPPORTED_LEVELS = Object.freeze([
   250,
 ]);
 
+export const STARFORCE_MAX_STAR = 30;
 export const STARFORCE_RECENT_LOG_LIMIT = 8;
 
 export function isSupportedStarforceLevel(level) {
@@ -88,46 +86,57 @@ export function createStarforceSessionState({
   level,
   now = Date.now(),
 }) {
-  const event = getCurrentStarforceEvent(new Date(now));
-
   return {
     sessionId,
     ownerUserId,
     level,
+    equipLevel: level,
     maxStar: getStarforceMaxStarForLevel(level),
     currentStar: 0,
     totalMesos: 0,
+    mesoUsed: 0,
     attemptCount: 0,
+    attempts: 0,
     destroyCount: 0,
+    destroyed: 0,
     recentLogs: [],
+    event: {
+      name: '없음',
+      discount30: false,
+      fiveTenFifteen: false,
+      destroyReduction: false,
+      safeguard: false,
+      starCatch: false,
+    },
+    itemIconPath: STARFORCE_DEFAULT_ITEM_ICON_PATH,
     status: 'active',
-    event,
     startedAtMs: now,
     updatedAtMs: now,
     expiresAtMs: now,
     channelId: '',
     messageId: '',
+    statusText: '',
   };
 }
 
 export function resetStarforceSessionState(session, now = Date.now()) {
   session.currentStar = 0;
   session.totalMesos = 0;
+  session.mesoUsed = 0;
   session.attemptCount = 0;
+  session.attempts = 0;
   session.destroyCount = 0;
+  session.destroyed = 0;
   session.recentLogs = [];
   session.status = 'active';
-  session.event = getCurrentStarforceEvent(new Date(now));
   session.updatedAtMs = now;
-
+  session.statusText = '';
   return session;
 }
 
 export function performStarforceAttempt(session, options = {}) {
   const now = Number.isFinite(options.now) ? options.now : Date.now();
   const randomValue = normalizeRandomValue(options.randomValue);
-
-  session.event = getCurrentStarforceEvent(new Date(now));
   session.updatedAtMs = now;
 
   if (session.currentStar >= session.maxStar) {
@@ -140,21 +149,22 @@ export function performStarforceAttempt(session, options = {}) {
 
   const beforeStar = session.currentStar;
   const targetStar = beforeStar + 1;
-  const cost = calculateStarforceCost({
-    level: session.level,
-    star: beforeStar,
-    event: session.event,
-  });
   const rates = buildStarforceRates({
     star: beforeStar,
     event: session.event,
     chanceTime: false,
   });
+  const cost = calculateStarforceCost({
+    level: session.equipLevel ?? session.level,
+    star: beforeStar,
+    event: session.event,
+  });
 
   session.totalMesos += cost;
+  session.mesoUsed = session.totalMesos;
   session.attemptCount += 1;
+  session.attempts = session.attemptCount;
 
-  const destroyThreshold = rates.success + rates.fail;
   let resultType = 'fail';
   let log = `${beforeStar} → ${targetStar} 실패`;
 
@@ -162,9 +172,10 @@ export function performStarforceAttempt(session, options = {}) {
     session.currentStar = targetStar;
     resultType = 'success';
     log = `${beforeStar} → ${targetStar} 성공`;
-  } else if (randomValue >= destroyThreshold) {
+  } else if (randomValue >= rates.success + rates.fail) {
     session.currentStar = 12;
     session.destroyCount += 1;
+    session.destroyed = session.destroyCount;
     resultType = 'destroy';
     log = `${beforeStar} → ${targetStar} 파괴! 흔적 복구로 12성 복구`;
   }
@@ -175,11 +186,10 @@ export function performStarforceAttempt(session, options = {}) {
     type: resultType,
     session,
     log,
-    chanceTime: false,
-    cost,
-    rates,
     beforeStar,
     targetStar,
+    cost,
+    rates,
   };
 }
 

@@ -1,11 +1,12 @@
 import crypto from 'node:crypto';
 import {
   ActionRowBuilder,
+  AttachmentBuilder,
   ButtonBuilder,
   ButtonStyle,
   MessageFlags,
 } from 'discord.js';
-import { getCurrentStarforceEvent } from './starforce-event.js';
+import { renderStarforceCard } from './starforce-card.js';
 import {
   createStarforceSessionState,
   parseStarforceLevelInput,
@@ -42,37 +43,33 @@ export async function handleStarforcePercentCommandMessage(message, input) {
   const parsed = parseStarforceLevelInput(input);
 
   if (!parsed.ok) {
-    const content = parsed.error === 'unsupported_level'
-      ? STARFORCE_UNSUPPORTED_LEVEL_MESSAGE
-      : STARFORCE_USAGE_MESSAGE;
-
     await message.reply({
-      content,
+      content: parsed.error === 'unsupported_level'
+        ? STARFORCE_UNSUPPORTED_LEVEL_MESSAGE
+        : STARFORCE_USAGE_MESSAGE,
       allowedMentions: { repliedUser: false },
     });
     return true;
   }
 
   const now = Date.now();
-  const sessionId = crypto.randomUUID();
   const session = createStarforceSessionState({
-    sessionId,
+    sessionId: crypto.randomUUID(),
     ownerUserId: message.author.id,
     level: parsed.level,
     now,
   });
 
   touchStarforceSession(session, now);
+  starforceSessions.set(session.sessionId, session);
 
   const sentMessage = await message.reply({
-    ...buildStarforceMessagePayload(session),
+    ...(await buildStarforceMessagePayload(session)),
     allowedMentions: { repliedUser: false, parse: [] },
   });
 
   session.channelId = sentMessage.channelId;
   session.messageId = sentMessage.id;
-  starforceSessions.set(sessionId, session);
-
   return true;
 }
 
@@ -100,7 +97,7 @@ export async function handleStarforceComponentInteraction(interaction) {
       flags: MessageFlags.Ephemeral,
     });
 
-    await disableStarforceMessageFromInteraction(interaction, parsed.sessionId, '세션 상태: 만료됨');
+    await disableStarforceMessageFromInteraction(interaction, parsed.sessionId);
     if (session) {
       starforceSessions.delete(parsed.sessionId);
     }
@@ -128,24 +125,23 @@ export async function handleStarforceComponentInteraction(interaction) {
       return true;
     }
 
-    await interaction.update(buildStarforceMessagePayload(session));
+    await interaction.update(await buildStarforceMessagePayload(session));
     return true;
   }
 
   if (parsed.action === 'reset') {
     resetStarforceSessionState(session, now);
     touchStarforceSession(session, now);
-    await interaction.update(buildStarforceMessagePayload(session));
+    await interaction.update(await buildStarforceMessagePayload(session));
     return true;
   }
 
   if (parsed.action === 'end') {
     session.status = 'ended';
     session.updatedAtMs = now;
-
-    await interaction.update(buildStarforceMessagePayload(session, {
+    await interaction.update(await buildStarforceMessagePayload(session, {
       disabled: true,
-      footerStatus: '세션 상태: 종료됨',
+      statusText: '세션 상태: 종료됨',
     }));
     return true;
   }
@@ -157,38 +153,26 @@ export async function handleStarforceComponentInteraction(interaction) {
   return true;
 }
 
-export function buildStarforceMessagePayload(session, options = {}) {
-  const disabled = Boolean(options.disabled) || session.status !== 'active';
-  session.event = getCurrentStarforceEvent(new Date());
+async function buildStarforceMessagePayload(session, options = {}) {
+  const image = await renderStarforceCard({
+    ...session,
+    statusText: options.statusText || '',
+  });
 
   return {
-    content: buildStarforceMessageContent(session, options.footerStatus ?? ''),
+    content: options.statusText || null,
+    files: [
+      new AttachmentBuilder(image, {
+        name: `starforce-${session.sessionId}.png`,
+      }),
+    ],
+    attachments: [],
     components: [
-      buildStarforceButtonRow(session.sessionId, { disabled }),
+      buildStarforceButtonRow(session.sessionId, {
+        disabled: Boolean(options.disabled) || session.status !== 'active',
+      }),
     ],
   };
-}
-
-export function buildStarforceMessageContent(session, footerStatus = '') {
-  const recentLogLines = session.recentLogs.length > 0
-    ? session.recentLogs.join('\n')
-    : '아직 강화하지 않았습니다.';
-
-  return [
-    '⭐ 스타포스 강화',
-    '',
-    `장비 레벨: ${session.level}제`,
-    `현재 성: ★ ${session.currentStar}`,
-    `이벤트: ${session.event?.name || '없음'}`,
-    '',
-    `사용 메소: ${formatStarforceNumber(session.totalMesos)}`,
-    `시도: ${formatStarforceNumber(session.attemptCount)}회`,
-    `파괴: ${formatStarforceNumber(session.destroyCount)}회`,
-    '',
-    '최근 결과:',
-    recentLogLines,
-    footerStatus ? `\n${footerStatus}` : '',
-  ].filter(Boolean).join('\n');
 }
 
 function buildStarforceButtonRow(sessionId, options = {}) {
@@ -256,39 +240,16 @@ function pruneStarforceSessions(now = Date.now()) {
   }
 }
 
-async function disableStarforceMessageFromInteraction(interaction, sessionId, footerStatus) {
-  const disabledComponents = [
-    buildStarforceButtonRow(sessionId, { disabled: true }),
-  ];
-  const nextContent = addTerminalStatusToContent(interaction.message?.content ?? '', footerStatus);
-
+async function disableStarforceMessageFromInteraction(interaction, sessionId) {
   try {
     await interaction.message.edit({
-      content: nextContent,
-      components: disabledComponents,
+      content: '세션 상태: 만료됨',
+      components: [
+        buildStarforceButtonRow(sessionId, { disabled: true }),
+      ],
     });
   } catch (error) {
     console.error('[STARFORCE] failed to disable expired session message:');
     console.error(error);
   }
-}
-
-function addTerminalStatusToContent(content, footerStatus) {
-  const normalizedContent = String(content ?? '').trimEnd();
-  const trimmedStatus = String(footerStatus ?? '').trim();
-
-  if (!trimmedStatus) {
-    return normalizedContent;
-  }
-
-  const statusPattern = /\n세션 상태:\s*(?:종료됨|만료됨)\s*$/;
-  if (statusPattern.test(normalizedContent)) {
-    return normalizedContent.replace(statusPattern, `\n${trimmedStatus}`);
-  }
-
-  return `${normalizedContent}\n\n${trimmedStatus}`;
-}
-
-function formatStarforceNumber(value) {
-  return Number(value || 0).toLocaleString('ko-KR');
 }
