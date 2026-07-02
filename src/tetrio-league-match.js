@@ -158,18 +158,7 @@ async function fetchNthLeagueRecord(username, recordIndex, sessionId) {
 
   while (remaining > 0) {
     const limit = Math.min(tetrioRecordPageSize, remaining);
-    const searchParams = new URLSearchParams({ limit: String(limit) });
-    if (after) {
-      searchParams.set('after', after);
-    }
-
-    const response = await fetchTetrioJson(
-      `/users/${encodeURIComponent(username)}/records/league/recent?${searchParams.toString()}`,
-      { sessionId }
-    );
-    const entries = Array.isArray(response.data?.entries)
-      ? response.data.entries
-      : [];
+    const entries = await fetchLeagueRecentEntriesPage(username, limit, after, sessionId);
 
     if (entries.length === 0) {
       return null;
@@ -195,15 +184,91 @@ async function fetchNthLeagueRecord(username, recordIndex, sessionId) {
 
 async function fetchRecentLeagueRecords(username, recentCount, sessionId) {
   const limit = normalizeRecentRecordCount(recentCount);
+  const entries = await fetchLeagueRecentEntriesPage(username, limit, null, sessionId);
+  return entries.slice(0, limit);
+}
+
+async function fetchLeagueRecentEntriesPage(username, limit, after, sessionId) {
+  if (!after) {
+    return fetchMergedLeagueRecentEntries(username, limit, sessionId);
+  }
+
+  return fetchLeagueRecentEntriesSnapshot(username, limit, after, sessionId);
+}
+
+async function fetchMergedLeagueRecentEntries(username, limit, sessionId) {
+  const fallbackSessionId = createTetrioApiSessionId('league-recent-fallback');
+  const [primaryEntries, fallbackEntries] = await Promise.all([
+    fetchLeagueRecentEntriesSnapshot(username, limit, null, sessionId),
+    fetchLeagueRecentEntriesSnapshot(username, limit, null, fallbackSessionId),
+  ]);
+
+  const primaryReplayId = primaryEntries[0]?.replayid ?? '-';
+  const fallbackReplayId = fallbackEntries[0]?.replayid ?? '-';
+  if (primaryReplayId !== fallbackReplayId) {
+    console.log(
+      `[TETRA MATCH DIVERGENCE] username=${username} limit=${limit} primary=${primaryReplayId} fallback=${fallbackReplayId}`
+    );
+  }
+
+  return mergeLeagueRecentEntries([primaryEntries, fallbackEntries], limit);
+}
+
+async function fetchLeagueRecentEntriesSnapshot(username, limit, after, sessionId) {
   const searchParams = new URLSearchParams({ limit: String(limit) });
+  if (after) {
+    searchParams.set('after', after);
+  }
+
   const response = await fetchTetrioJson(
     `/users/${encodeURIComponent(username)}/records/league/recent?${searchParams.toString()}`,
     { sessionId }
   );
-
   return Array.isArray(response.data?.entries)
-    ? response.data.entries.slice(0, limit)
+    ? response.data.entries
     : [];
+}
+
+function mergeLeagueRecentEntries(entryGroups, limit) {
+  const merged = [];
+  const seen = new Set();
+
+  for (const entries of entryGroups) {
+    for (const entry of entries) {
+      const key = getLeagueRecentEntryKey(entry);
+      if (seen.has(key)) {
+        continue;
+      }
+
+      seen.add(key);
+      merged.push(entry);
+    }
+  }
+
+  merged.sort((left, right) => compareLeagueRecentEntries(right, left));
+  return merged.slice(0, limit);
+}
+
+function getLeagueRecentEntryKey(entry) {
+  if (entry?.replayid) {
+    return `replay:${entry.replayid}`;
+  }
+
+  const timestamp = String(entry?.ts ?? '');
+  const users = (Array.isArray(entry?.results?.leaderboard) ? entry.results.leaderboard : [])
+    .map((player) => String(player?.username ?? '').toLowerCase())
+    .join(',');
+  return `fallback:${timestamp}:${users}`;
+}
+
+function compareLeagueRecentEntries(left, right) {
+  const leftTime = Date.parse(left?.ts ?? '') || 0;
+  const rightTime = Date.parse(right?.ts ?? '') || 0;
+  if (leftTime !== rightTime) {
+    return leftTime - rightTime;
+  }
+
+  return String(left?.replayid ?? '').localeCompare(String(right?.replayid ?? ''));
 }
 
 function buildLeagueMatchView(record, requestedUsername, matchIndex) {
