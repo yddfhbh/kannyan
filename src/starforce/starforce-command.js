@@ -139,9 +139,10 @@ export async function handleStarforceComponentInteraction(interaction) {
   if (parsed.action === 'end') {
     session.status = 'ended';
     session.updatedAtMs = now;
+    session.statusText = '세션 상태: 종료됨';
+
     await interaction.update(await buildStarforceMessagePayload(session, {
       disabled: true,
-      statusText: '세션 상태: 종료됨',
     }));
     return true;
   }
@@ -154,13 +155,8 @@ export async function handleStarforceComponentInteraction(interaction) {
 }
 
 async function buildStarforceMessagePayload(session, options = {}) {
-  const image = await renderStarforceCard({
-    ...session,
-    statusText: options.statusText || '',
-  });
-
-  return {
-    content: options.statusText || null,
+  const image = await renderStarforceCard(session);
+  const payload = {
     files: [
       new AttachmentBuilder(image, {
         name: `starforce-${session.sessionId}.png`,
@@ -173,6 +169,8 @@ async function buildStarforceMessagePayload(session, options = {}) {
       }),
     ],
   };
+
+  return payload;
 }
 
 function buildStarforceButtonRow(sessionId, options = {}) {
@@ -232,6 +230,7 @@ function pruneStarforceSessions(now = Date.now()) {
     if (session.status === 'active' && isSessionExpired(session, now)) {
       session.status = 'expired';
       session.updatedAtMs = now;
+      session.statusText = '세션 상태: 만료됨';
     }
 
     if (session.status !== 'active' && now - Number(session.updatedAtMs || 0) > STARFORCE_SESSION_GRACE_MS) {

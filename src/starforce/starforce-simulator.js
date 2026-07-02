@@ -131,12 +131,14 @@ export function resetStarforceSessionState(session, now = Date.now()) {
   session.status = 'active';
   session.updatedAtMs = now;
   session.statusText = '';
+
   return session;
 }
 
 export function performStarforceAttempt(session, options = {}) {
   const now = Number.isFinite(options.now) ? options.now : Date.now();
   const randomValue = normalizeRandomValue(options.randomValue);
+
   session.updatedAtMs = now;
 
   if (session.currentStar >= session.maxStar) {

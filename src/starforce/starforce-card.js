@@ -11,6 +11,8 @@ import { buildStarforceRates } from './starforce-rates.js';
 export const STARFORCE_DEFAULT_ITEM_ICON_PATH =
   fileURLToPath(new URL('../../assets/starforce/default-item-icon.svg', import.meta.url));
 
+const cardWidth = 560;
+const cardHeight = 340;
 const cardScale = 2;
 const cardFontFamily = bundledSvgFontFamily;
 
@@ -19,224 +21,184 @@ export async function renderStarforceCard(session) {
   const itemIconDataUri = await loadItemIconDataUri(
     session?.itemIconPath || STARFORCE_DEFAULT_ITEM_ICON_PATH
   );
-  const nextCost = session.currentStar >= session.maxStar
+  const equipLevel = Number(session?.equipLevel ?? session?.level ?? 0);
+  const currentStar = Number(session?.currentStar ?? 0);
+  const maxStar = Number(session?.maxStar ?? 30);
+  const nextCost = currentStar >= maxStar
     ? 0
     : calculateStarforceCost({
-      level: session.equipLevel ?? session.level,
-      star: session.currentStar,
+      level: equipLevel,
+      star: currentStar,
       event,
     });
-  const rates = session.currentStar >= session.maxStar
+  const rates = currentStar >= maxStar
     ? { success: 0, fail: 0, destroy: 0 }
     : buildStarforceRates({
-      star: session.currentStar,
+      star: currentStar,
       event,
       chanceTime: false,
     });
 
   const view = {
-    equipLevel: session.equipLevel ?? session.level,
-    currentStar: session.currentStar,
-    nextStar: session.currentStar >= session.maxStar ? 'MAX' : session.currentStar + 1,
-    mesoUsed: session.mesoUsed ?? session.totalMesos ?? 0,
-    attempts: session.attempts ?? session.attemptCount ?? 0,
-    destroyed: session.destroyed ?? session.destroyCount ?? 0,
+    equipLevel,
+    currentStar,
+    nextStar: currentStar >= maxStar ? 'MAX' : currentStar + 1,
+    mesoUsed: Number(session?.mesoUsed ?? session?.totalMesos ?? 0),
+    attempts: Number(session?.attempts ?? session?.attemptCount ?? 0),
+    destroyed: Number(session?.destroyed ?? session?.destroyCount ?? 0),
     eventName: event.name,
     nextCost,
     successRate: rates.success,
     failRate: rates.fail,
     destroyRate: rates.destroy,
     itemIconDataUri,
-    statusText: session.statusText || '',
+    statusText: String(session?.statusText ?? '').trim(),
   };
 
-  const svg = buildStarforceCardSvg(view);
-  return renderSvgToPng(svg, {
+  return renderSvgToPng(buildStarforceCardSvg(view), {
     background: 'transparent',
+    scale: cardScale,
   });
 }
 
 function buildStarforceCardSvg(view) {
-  const width = 340;
-  const height = 292;
-  const currentStarText = `${formatInteger(view.currentStar)}성`;
   const nextStarText = typeof view.nextStar === 'number'
     ? `${formatInteger(view.nextStar)}성`
     : String(view.nextStar);
-  const failText = formatPercent(view.failRate);
-  const destroyText = formatPercent(view.destroyRate);
-  const detailLines = [
-    `성공확률: ${formatPercent(view.successRate)}`,
-    `실패(유지): ${failText}`,
-  ];
-
-  if (view.destroyRate > 0) {
-    detailLines.push(`파괴확률: ${destroyText}`);
-  }
-
-  const detailMarkup = detailLines
-    .map((line, index) => (
-      `<text x="144" y="${129 + index * 18}" class="statLine">${escapeXml(line)}</text>`
-    ))
-    .join('');
-
-  const footerLine = view.statusText
-    ? escapeXml(view.statusText)
-    : escapeXml(`이벤트: ${view.eventName}  |  누적 메소: ${formatInteger(view.mesoUsed)}  |  시도: ${formatInteger(view.attempts)}회  |  파괴: ${formatInteger(view.destroyed)}회`);
+  const statusChip = view.statusText
+    ? `<g transform="translate(392 28)">
+        <rect x="0" y="0" width="136" height="28" rx="14" fill="#241739" stroke="#5c3ea8" stroke-width="1"/>
+        <text x="68" y="19" text-anchor="middle" class="statusText">${escapeXml(view.statusText)}</text>
+      </g>`
+    : '';
+  const destroyLine = view.destroyRate > 0
+    ? `<text x="238" y="176" class="bodyValue">파괴 ${formatPercent(view.destroyRate)}</text>`
+    : '';
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${width * cardScale}" height="${height * cardScale}" viewBox="0 0 ${width} ${height}">
+<svg xmlns="http://www.w3.org/2000/svg" width="${cardWidth}" height="${cardHeight}" viewBox="0 0 ${cardWidth} ${cardHeight}">
   <defs>
     <style>
       text {
         font-family: ${cardFontFamily};
         letter-spacing: 0;
       }
-      .frame {
-        fill: #514033;
-        stroke: #dce7f0;
-        stroke-width: 2;
-      }
-      .frameInner {
-        fill: #6a5647;
-        stroke: #231912;
-        stroke-width: 1.5;
-      }
-      .header {
-        fill: #ffd35f;
-        font-size: 11px;
-        font-weight: 900;
-      }
-      .tabLabel {
-        fill: #f4f0eb;
-        font-size: 10px;
-        font-weight: 900;
-      }
-      .warning {
-        fill: #ffe15d;
-        font-size: 10px;
-        font-weight: 900;
-      }
       .title {
-        fill: #ffffff;
+        fill: #f6f8ff;
+        font-size: 30px;
+        font-weight: 900;
+      }
+      .subtitle {
+        fill: #cad2f3;
+        font-size: 17px;
+        font-weight: 760;
+      }
+      .label {
+        fill: #94a0d8;
         font-size: 13px;
-        font-weight: 900;
+        font-weight: 780;
+        text-transform: uppercase;
       }
-      .statLine {
-        fill: #f5f5f5;
-        font-size: 10px;
-        font-weight: 800;
+      .sectionTitle {
+        fill: #f2f5ff;
+        font-size: 14px;
+        font-weight: 860;
       }
-      .optionLabel {
-        fill: #f2efeb;
-        font-size: 9px;
-        font-weight: 800;
-      }
-      .mesoText {
-        fill: #fff0c9;
-        font-size: 10px;
-        font-weight: 900;
-      }
-      .buttonText {
+      .heroValue {
         fill: #ffffff;
+        font-size: 28px;
+        font-weight: 920;
+      }
+      .bodyValue {
+        fill: #e9edff;
+        font-size: 20px;
+        font-weight: 840;
+      }
+      .statLabel {
+        fill: #8f9ac8;
         font-size: 12px;
-        font-weight: 900;
+        font-weight: 760;
+      }
+      .statValue {
+        fill: #f8faff;
+        font-size: 23px;
+        font-weight: 920;
+      }
+      .statusText {
+        fill: #efe9ff;
+        font-size: 12px;
+        font-weight: 820;
+      }
+      .hint {
+        fill: #8ea3ff;
+        font-size: 12px;
+        font-weight: 780;
       }
       .footer {
-        fill: #efe1cf;
-        font-size: 8px;
-        font-weight: 800;
-      }
-      .badgeText {
-        fill: #fffdf7;
-        font-size: 10px;
-        font-weight: 900;
+        fill: #8b95c3;
+        font-size: 11px;
+        font-weight: 720;
       }
     </style>
-    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="26%" stop-color="#ffffff" stop-opacity="0.28"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1020"/>
+      <stop offset="55%" stop-color="#10172d"/>
+      <stop offset="100%" stop-color="#0a0f1d"/>
     </linearGradient>
-    <linearGradient id="tabOff" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#5b483f"/>
-      <stop offset="100%" stop-color="#372821"/>
+    <linearGradient id="glowGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#233a8b" stop-opacity="0.38"/>
+      <stop offset="100%" stop-color="#6c2bd9" stop-opacity="0.10"/>
     </linearGradient>
-    <linearGradient id="tabOn" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#70cdff"/>
-      <stop offset="100%" stop-color="#296db8"/>
+    <linearGradient id="iconGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#122246"/>
+      <stop offset="100%" stop-color="#17315d"/>
     </linearGradient>
-    <linearGradient id="iconPanel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#2c98d2"/>
-      <stop offset="100%" stop-color="#155e92"/>
+    <linearGradient id="iconGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#63b4ff" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#63b4ff" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="greenButton" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#c1fb61"/>
-      <stop offset="100%" stop-color="#74b11f"/>
-    </linearGradient>
-    <linearGradient id="grayButton" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#e7e8eb"/>
-      <stop offset="100%" stop-color="#94979e"/>
-    </linearGradient>
-    <clipPath id="iconClip">
-      <rect x="30" y="101" width="82" height="72" rx="4"/>
+    <clipPath id="itemClip">
+      <rect x="52" y="106" width="128" height="128" rx="22"/>
     </clipPath>
   </defs>
 
-  <rect x="3" y="3" width="334" height="286" rx="12" class="frame"/>
-  <rect x="6" y="6" width="328" height="280" rx="10" class="frameInner"/>
-  <rect x="6" y="6" width="328" height="50" rx="10" fill="url(#gloss)"/>
+  <rect x="0" y="0" width="${cardWidth}" height="${cardHeight}" rx="26" fill="url(#bgGradient)"/>
+  <rect x="1.5" y="1.5" width="${cardWidth - 3}" height="${cardHeight - 3}" rx="24.5" fill="none" stroke="#283252" stroke-width="3"/>
+  <rect x="14" y="14" width="${cardWidth - 28}" height="${cardHeight - 28}" rx="20" fill="none" stroke="#12192e" stroke-width="1"/>
+  <circle cx="90" cy="46" r="110" fill="url(#glowGradient)"/>
+  <circle cx="490" cy="38" r="92" fill="#20346c" opacity="0.18"/>
 
-  <text x="170" y="17" text-anchor="middle" class="header">EQUIPMENT ENCHANT</text>
+  <text x="34" y="52" class="title">STARFORCE</text>
+  <text x="34" y="79" class="subtitle">${escapeXml(`${formatInteger(view.equipLevel)}제 장비 강화`)}</text>
+  <text x="34" y="102" class="hint">${escapeXml(`이벤트: ${view.eventName}`)}</text>
+  ${statusChip}
 
-  <rect x="18" y="25" width="96" height="31" rx="5" fill="url(#tabOff)" stroke="#1d1510" stroke-width="1.5"/>
-  <rect x="122" y="23" width="96" height="34" rx="5" fill="url(#tabOn)" stroke="#d4eef8" stroke-width="1.5"/>
-  <rect x="226" y="25" width="96" height="31" rx="5" fill="url(#tabOff)" stroke="#1d1510" stroke-width="1.5"/>
-  <text x="66" y="44" text-anchor="middle" class="tabLabel">주문서</text>
-  <text x="170" y="44" text-anchor="middle" class="tabLabel">스타포스 강화</text>
-  <text x="274" y="44" text-anchor="middle" class="tabLabel">장비전승</text>
+  <rect x="34" y="122" width="164" height="138" rx="24" fill="url(#iconGradient)" stroke="#2b4478" stroke-width="1.5"/>
+  <rect x="44" y="132" width="144" height="118" rx="20" fill="none" stroke="#5f8dff" stroke-opacity="0.28" stroke-width="1"/>
+  <rect x="52" y="106" width="96" height="36" rx="18" fill="#4b2bd8" stroke="#7b64f0" stroke-width="1.2"/>
+  <text x="100" y="129" text-anchor="middle" class="sectionTitle">${escapeXml(`${formatInteger(view.currentStar)}성`)}</text>
+  <image href="${view.itemIconDataUri}" x="62" y="116" width="108" height="108" preserveAspectRatio="xMidYMid meet" clip-path="url(#itemClip)"/>
+  <rect x="52" y="106" width="128" height="128" rx="22" fill="url(#iconGlow)"/>
 
-  <rect x="18" y="63" width="304" height="22" rx="4" fill="#694f40" stroke="#8e725e" stroke-width="1"/>
-  <polygon points="79,68 85,80 73,80" fill="#ffd74a" stroke="#9a6c00" stroke-width="1"/>
-  <rect x="78.2" y="71" width="1.6" height="4.8" fill="#624400"/>
-  <circle cx="79" cy="78" r="1" fill="#624400"/>
-  <text x="92" y="78" class="warning">실패 시 강화 단계가 유지됩니다.</text>
+  <rect x="220" y="122" width="306" height="86" rx="22" fill="#11182d" stroke="#273457" stroke-width="1.5"/>
+  <text x="238" y="146" class="label">NEXT ATTEMPT</text>
+  <text x="238" y="178" class="heroValue">${escapeXml(`${formatInteger(view.currentStar)}성 → ${nextStarText}`)}</text>
+  <text x="238" y="206" class="bodyValue">성공 ${formatPercent(view.successRate)}</text>
+  <text x="378" y="206" class="bodyValue">실패 ${formatPercent(view.failRate)}</text>
+  ${destroyLine}
 
-  <rect x="18" y="88" width="108" height="108" rx="8" fill="url(#iconPanel)" stroke="#daf1fa" stroke-width="2"/>
-  <rect x="25" y="95" width="94" height="94" rx="5" fill="#0f6fa5" opacity="0.35"/>
-  <rect x="30" y="100" width="82" height="74" rx="4" fill="none" stroke="#f1fbff" stroke-width="2" stroke-dasharray="6 4"/>
-  <path d="M25 90 H70 L59 108 H25 Z" fill="#ff8300" stroke="#cc4d00" stroke-width="1"/>
-  <path d="M73 90 H109 L101 102 H65 Z" fill="#329dff" stroke="#114b83" stroke-width="1"/>
-  <text x="34" y="103" class="badgeText">${escapeXml(currentStarText)}</text>
-  <text x="88" y="101" text-anchor="middle" class="badgeText">${escapeXml(`${formatInteger(view.equipLevel)}제`)}</text>
-  <image href="${view.itemIconDataUri}" x="36" y="108" width="70" height="58" preserveAspectRatio="xMidYMid meet" clip-path="url(#iconClip)"/>
+  <rect x="220" y="222" width="148" height="86" rx="20" fill="#0f1529" stroke="#273457" stroke-width="1.5"/>
+  <text x="238" y="246" class="statLabel">다음 강화 메소</text>
+  <text x="238" y="282" class="statValue">${escapeXml(formatInteger(view.nextCost))}</text>
 
-  <rect x="132" y="88" width="190" height="108" rx="6" fill="#705a4b" stroke="#927766" stroke-width="1"/>
-  <text x="144" y="113" class="title">${escapeXml(`${currentStarText}  >  ${nextStarText}`)}</text>
-  ${detailMarkup}
+  <rect x="378" y="222" width="148" height="86" rx="20" fill="#0f1529" stroke="#273457" stroke-width="1.5"/>
+  <text x="396" y="246" class="statLabel">누적 사용 메소</text>
+  <text x="396" y="282" class="statValue">${escapeXml(formatInteger(view.mesoUsed))}</text>
 
-  <rect x="18" y="202" width="148" height="26" rx="5" fill="#604b3f" stroke="#7f6858" stroke-width="1"/>
-  <rect x="174" y="202" width="148" height="26" rx="5" fill="#604b3f" stroke="#7f6858" stroke-width="1"/>
-  <text x="30" y="219" class="optionLabel">스타캐치 해제</text>
-  <text x="186" y="219" class="optionLabel">파괴방지</text>
-  <rect x="146" y="209" width="12" height="12" rx="1.5" fill="#d9dce2" stroke="#65676e" stroke-width="1"/>
-  <rect x="302" y="209" width="12" height="12" rx="1.5" fill="#d9dce2" stroke="#65676e" stroke-width="1"/>
+  <rect x="34" y="274" width="164" height="34" rx="17" fill="#11182d" stroke="#273457" stroke-width="1.5"/>
+  <text x="54" y="296" class="footer">${escapeXml(`시도 ${formatInteger(view.attempts)}회  |  파괴 ${formatInteger(view.destroyed)}회`)}</text>
 
-  <rect x="18" y="234" width="304" height="22" rx="5" fill="#5b473a" stroke="#7d6656" stroke-width="1"/>
-  <circle cx="32" cy="245" r="5" fill="#ffca38" stroke="#916300" stroke-width="1"/>
-  <text x="45" y="249" class="mesoText">필요한 메소 : ${escapeXml(formatInteger(view.nextCost))}</text>
-
-  <rect x="84" y="261" width="90" height="28" rx="6" fill="url(#greenButton)" stroke="#335712" stroke-width="1.5"/>
-  <circle cx="109" cy="275" r="8" fill="#f6f7de" stroke="#6f9129" stroke-width="1"/>
-  <text x="109" y="278" text-anchor="middle" fill="#68ab20" font-size="14" font-weight="900">+</text>
-  <text x="141" y="279" text-anchor="middle" class="buttonText">강화</text>
-
-  <rect x="182" y="261" width="86" height="28" rx="6" fill="url(#grayButton)" stroke="#5f6268" stroke-width="1.5"/>
-  <circle cx="199" cy="275" r="7" fill="#f1f1f3" stroke="#80838a" stroke-width="1"/>
-  <path d="M202 271 A5 5 0 1 0 202 279" fill="none" stroke="#a4a7ad" stroke-width="2"/>
-  <text x="231" y="279" text-anchor="middle" class="buttonText">취소</text>
-
-  <text x="170" y="290" text-anchor="middle" class="footer">${footerLine}</text>
+  <text x="34" y="326" class="footer">실패는 별 유지, 실제 조작은 아래 Discord 버튼으로 진행됩니다.</text>
 </svg>`;
 }
 
