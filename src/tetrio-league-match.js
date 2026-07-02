@@ -998,7 +998,7 @@ function renderLeagueRoundNumberMarkup(value) {
   return markup;
 }
 
-function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
+export function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
   const leaderboard = Array.isArray(record?.results?.leaderboard)
     ? record.results.leaderboard
     : [];
@@ -1031,6 +1031,7 @@ function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
   const targetWins = Number(targetSide.wins);
   const opponentWins = Number(opponentSide.wins);
   const hasWins = Number.isFinite(targetWins) && Number.isFinite(opponentWins);
+  const isNoContest = resultType.includes('nocontest') || resultType.includes('no contest');
   const isWin = hasWins
     ? targetWins > opponentWins
     : resultType.includes('victory');
@@ -1038,24 +1039,35 @@ function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
   const opponentMeta = otherUsers.find((user) => user?.id === opponentSide.id)
     ?? otherUsers.find((user) => String(user?.username ?? '').toLowerCase() === opponentSide.username.toLowerCase())
     ?? null;
-  const resultLabel = isDq
-    ? `${isWin ? 'VICTORY' : 'DEFEAT'} BY DQ`
-    : `${isWin ? 'VICTORY' : 'DEFEAT'} ${formatRecentMatchScore(targetWins, opponentWins)}`;
+  const resultTone = isNoContest
+    ? 'neutral'
+    : isWin ? 'win' : 'loss';
+  const resultLabel = isNoContest
+    ? 'NO CONTEST'
+    : isDq
+      ? `${isWin ? 'VICTORY' : 'DEFEAT'} BY DQ`
+      : `${isWin ? 'VICTORY' : 'DEFEAT'} ${formatRecentMatchScore(targetWins, opponentWins)}`;
+  const trDelta = extractLeagueTrDelta(record, targetSide.id);
+  const formattedTrDelta = formatSignedDecimal(trDelta, 2);
+  const isNeutralZeroDelta = isNoContest && Number(trDelta) === 0;
 
   return {
-    apm: formatDecimal(targetSide.stats?.apm, 2),
-    app: formatDecimal(calculateApp(targetSide.stats?.apm, targetSide.stats?.pps), 2),
+    apm: isNoContest ? '-' : formatDecimal(targetSide.stats?.apm, 2),
+    app: isNoContest ? '-' : formatDecimal(calculateApp(targetSide.stats?.apm, targetSide.stats?.pps), 2),
     index: rowIndex,
     isDq,
+    isNoContest,
     isWin,
     opponent: opponentSide.username,
     playedAtText: formatPlayedAtKorea(record?.ts),
-    pps: formatDecimal(targetSide.stats?.pps, 2),
+    pps: isNoContest ? '-' : formatDecimal(targetSide.stats?.pps, 2),
     replayId: record?.replayid ?? null,
     resultLabel,
+    resultTone,
     targetUsername: targetSide.username,
-    trDelta: formatSignedDecimal(extractLeagueTrDelta(record, targetSide.id), 2),
-    vs: formatDecimal(targetSide.stats?.vsscore, 2),
+    trDelta: isNeutralZeroDelta ? '0.00' : formattedTrDelta,
+    trDeltaDisplay: isNeutralZeroDelta ? '±0.00' : formattedTrDelta,
+    vs: isNoContest ? '-' : formatDecimal(targetSide.stats?.vsscore, 2),
   };
 }
 
@@ -1176,6 +1188,9 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       .resultLoss {
         fill: #867dff;
       }
+      .resultNeutral {
+        fill: #446f36;
+      }
       .resultText {
         fill: #0d1208;
         font-size: 20px;
@@ -1187,6 +1202,12 @@ function renderRecentLeagueListSvg(card, fontDataUris = {}) {
       .resultTextLoss {
         fill: #0a0b15;
         stroke: rgba(10,11,21,0.54);
+        stroke-width: 0.8px;
+        paint-order: stroke fill;
+      }
+      .resultTextNeutral {
+        fill: #d6efad;
+        stroke: rgba(19,33,12,0.38);
         stroke-width: 0.8px;
         paint-order: stroke fill;
       }
@@ -1284,9 +1305,16 @@ function renderRecentLeagueRow(row, x, y, width, height) {
   } = layout;
   const resultCenterY = y + (height / 2);
   const contentCenterY = y + (height / 2) + 1;
-  const panelClass = row.isWin ? 'resultWin' : 'resultLoss';
-  const resultTextClass = row.isWin ? 'resultText' : 'resultText resultTextLoss';
-  const deltaClass = getRecentLeagueDeltaClass(row.trDelta, 'deltaValue');
+  const panelClass = row.resultTone === 'neutral'
+    ? 'resultNeutral'
+    : row.isWin ? 'resultWin' : 'resultLoss';
+  const resultTextClass = row.resultTone === 'neutral'
+    ? 'resultText resultTextNeutral'
+    : row.isWin ? 'resultText' : 'resultText resultTextLoss';
+  const deltaClass = getRecentLeagueDeltaClass(
+    row.resultTone === 'neutral' ? 'neutral' : row.trDelta,
+    'deltaValue'
+  );
   const dividerInset = 6;
 
   return `
@@ -1302,7 +1330,7 @@ function renderRecentLeagueRow(row, x, y, width, height) {
     <text x="${vsValueX}" y="${contentCenterY}" text-anchor="middle" dominant-baseline="middle" class="statValue">${renderLeagueNumberMarkup(row.vs)}</text>
     <text x="${appX}" y="${contentCenterY}" text-anchor="middle" dominant-baseline="middle" class="statValue">${renderLeagueNumberMarkup(row.app)}</text>
     <text x="${dateX}" y="${contentCenterY}" text-anchor="end" dominant-baseline="middle" class="statDate">${escapeXml(row.playedAtText)}</text>
-    <text x="${deltaX}" y="${contentCenterY}" text-anchor="end" dominant-baseline="middle" class="${deltaClass}">${renderLeagueNumberMarkup(row.trDelta === '-' ? '-' : `${row.trDelta} TR`)}</text>
+    <text x="${deltaX}" y="${contentCenterY}" text-anchor="end" dominant-baseline="middle" class="${deltaClass}">${renderLeagueNumberMarkup(row.trDeltaDisplay === '-' ? '-' : `${row.trDeltaDisplay} TR`)}</text>
   </g>`;
 }
 
@@ -1373,7 +1401,7 @@ function formatSignedDecimal(value, digits = 2) {
 
 function getRecentLeagueDeltaClass(formattedValue, baseClass) {
   const normalizedBaseClass = String(baseClass ?? '').trim();
-  const classSuffix = formattedValue === '-'
+  const classSuffix = formattedValue === '-' || formattedValue === 'neutral'
     ? 'deltaNeutral'
     : String(formattedValue).startsWith('-')
       ? 'deltaNegative'
