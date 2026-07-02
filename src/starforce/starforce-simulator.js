@@ -1,5 +1,5 @@
 import { calculateStarforceCost } from './starforce-cost.js';
-import { STARFORCE_DEFAULT_ITEM_ICON_PATH } from './starforce-card.js';
+import { STARFORCE_DEFAULT_IMAGE_PATH } from './starforce-assets.js';
 import { buildStarforceRates } from './starforce-rates.js';
 
 export const STARFORCE_SUPPORTED_LEVELS = Object.freeze([
@@ -108,7 +108,7 @@ export function createStarforceSessionState({
       safeguard: false,
       starCatch: false,
     },
-    itemIconPath: STARFORCE_DEFAULT_ITEM_ICON_PATH,
+    imageAssetPath: STARFORCE_DEFAULT_IMAGE_PATH,
     status: 'active',
     startedAtMs: now,
     updatedAtMs: now,

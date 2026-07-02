@@ -376,6 +376,29 @@ new SlashCommandBuilder()
         .addChoices(...quickPlayRecordChoices)
     )
     .toJSON(),
+  new SlashCommandBuilder()
+    .setName('스타포스')
+    .setDescription('버튼으로 직접 누르는 스타포스 시뮬레이터를 시작합니다.')
+    .addIntegerOption((option) =>
+      option
+        .setName('장비레벨')
+        .setDescription('지원 레벨: 80, 90, 100, 110, 120, 130, 140, 150, 160, 200, 250')
+        .setRequired(true)
+        .addChoices(
+          { name: '80', value: 80 },
+          { name: '90', value: 90 },
+          { name: '100', value: 100 },
+          { name: '110', value: 110 },
+          { name: '120', value: 120 },
+          { name: '130', value: 130 },
+          { name: '140', value: 140 },
+          { name: '150', value: 150 },
+          { name: '160', value: 160 },
+          { name: '200', value: 200 },
+          { name: '250', value: 250 }
+        )
+    )
+    .toJSON(),
 ];
 
 const dailyPuzzleAnnouncementCommand = new SlashCommandBuilder()
