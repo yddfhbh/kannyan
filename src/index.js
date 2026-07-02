@@ -10821,7 +10821,7 @@ function getVArchiveKnownErrorMessage(error, button) {
 
   if (typeof error.message === 'string' && error.message.trim()) {
     if (error.status === 404) {
-      return error.message.trim();
+      return `V-ARCHIVE에서 ${button}버튼 티어 정보를 찾지 못했다냥.`;
     }
   }
 

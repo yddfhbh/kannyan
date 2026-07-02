@@ -835,7 +835,11 @@ export async function fetchVArchiveTierBoard(nickname, button, options = {}) {
     const payload = await parseJsonResponse(response);
 
     if (!response.ok || payload?.success === false) {
-      const error = new Error(payload?.message || `${normalizedNickname} 티어 정보를 찾지 못했다냥.`);
+      const error = new Error(
+        response.status === 404
+          ? `\`${normalizedNickname}\`의 ${normalizedButton}버튼 티어 정보를 찾지 못했다냥.`
+          : payload?.message || `\`${normalizedNickname}\`의 ${normalizedButton}버튼 티어 정보를 불러오지 못했다냥.`
+      );
       error.status = response.status;
       error.code = payload?.errorCode ?? 'VARCHIVE_FETCH_FAILED';
       error.payload = payload;
