@@ -1,3 +1,5 @@
+import { canApplyStarforceSafeguard } from './starforce-rates.js';
+
 // Cost divisors follow the current 2025-03-20 30-star table used by meaegi's simulator.
 const STARFORCE_COST_RULES = Object.freeze([
   {
@@ -91,9 +93,11 @@ export function calculateStarforceCost({
     star,
     event,
   });
-  const safeguardExtraCost = shouldApplySafeguard(event, star) ? baseCost * 2 : 0;
+  const finalCost = shouldApplySafeguard(event, star)
+    ? discountedBaseCost * 2
+    : discountedBaseCost;
 
-  return roundToNearestHundred(discountedBaseCost + safeguardExtraCost);
+  return roundToNearestHundred(finalCost);
 }
 
 export function getStarforceCostRule(star) {
@@ -109,7 +113,7 @@ export function getStarforceCostRule(star) {
 }
 
 function shouldApplySafeguard(event, star) {
-  return Boolean(event.safeguard) && star >= 15 && star <= 17;
+  return Boolean(event.safeguard) && canApplyStarforceSafeguard(star);
 }
 
 function applyStarforceDiscounts(baseCost, { star, event }) {

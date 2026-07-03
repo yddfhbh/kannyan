@@ -14,6 +14,7 @@ import {
 import { renderStarforceRankingCard } from './starforce-ranking-card.js';
 import {
   createStarforceSessionState,
+  normalizeStarforceSessionState,
   parseStarforceLevelInput,
   performStarforceAttempt,
   recoverStarforceSessionState,
@@ -29,6 +30,11 @@ import {
   getStarforceLeaderboard,
 } from './starforce-ranking-store.js';
 import {
+  ensureStarforceSaveSlotsLoaded,
+  getStarforceSaveSlot,
+  setStarforceSaveSlot,
+} from './starforce-save-store.js';
+import {
   ensureStarforceStatisticsLoaded,
   evaluateStarforceLuck,
 } from './starforce-statistics.js';
@@ -40,7 +46,9 @@ const STARFORCE_SESSION_GRACE_MS = 60 * 60 * 1000;
 const STARFORCE_EFFECT_DURATION_MS = 500;
 const STARFORCE_USAGE_MESSAGE = [
   '사용법: %스타포스 <장비레벨>',
-  '사용법: /스타포스 장비레벨:<장비레벨>',
+  '사용법: %스타포스 불러오기',
+  '사용법: /스타포스 시작 장비레벨:<장비레벨>',
+  '사용법: /스타포스 불러오기',
   '예시: %스타포스 160',
 ].join('\n');
 const STARFORCE_UNSUPPORTED_LEVEL_MESSAGE =
@@ -72,6 +80,11 @@ export function initStarforceCommand() {
     console.error(error);
   });
 
+  void ensureStarforceSaveSlotsLoaded().catch((error) => {
+    console.error('[STARFORCE] failed to load persisted save slots:');
+    console.error(error);
+  });
+
   void ensureStarforceStatisticsLoaded().catch((error) => {
     console.error('[STARFORCE] failed to load precomputed statistics:');
     console.error(error);
@@ -86,8 +99,14 @@ export function initStarforceCommand() {
 
 export async function handleStarforcePercentCommandMessage(message, input) {
   await ensureStarforceSessionsLoaded(starforceSessions);
+  await ensureStarforceSaveSlotsLoaded();
 
-  const parsed = parseStarforceLevelInput(input);
+  const normalizedInput = String(input ?? '').trim();
+  if (normalizedInput === '불러오기') {
+    return handleStarforcePercentLoadMessage(message);
+  }
+
+  const parsed = parseStarforceLevelInput(normalizedInput);
 
   if (!parsed.ok) {
     await message.reply({
@@ -124,9 +143,15 @@ export async function handleStarforcePercentCommandMessage(message, input) {
 
 export async function handleStarforceSlashCommand(interaction) {
   await ensureStarforceSessionsLoaded(starforceSessions);
+  await ensureStarforceSaveSlotsLoaded();
 
   if (!interaction.isChatInputCommand() || interaction.commandName !== '스타포스') {
     return false;
+  }
+
+  const subcommand = getSafeStarforceSubcommand(interaction);
+  if (subcommand === '불러오기') {
+    return handleStarforceSlashLoadCommand(interaction);
   }
 
   const level = interaction.options.getInteger('장비레벨', true);
@@ -148,6 +173,72 @@ export async function handleStarforceSlashCommand(interaction) {
     sessionId: crypto.randomUUID(),
     ownerUserId: interaction.user.id,
     level: parsed.level,
+    now,
+  });
+
+  touchStarforceSession(session, now);
+  starforceSessions.set(session.sessionId, session);
+
+  await interaction.reply({
+    ...(await buildStarforceMessagePayload(session)),
+    allowedMentions: { parse: [] },
+  });
+
+  const sentMessage = await interaction.fetchReply();
+  session.channelId = interaction.channelId;
+  session.messageId = sentMessage.id;
+  scheduleStarforceCardPrime(session);
+  await persistStarforceSessions(starforceSessions);
+  return true;
+}
+
+async function handleStarforcePercentLoadMessage(message) {
+  const savedSlot = await getStarforceSaveSlot(message.author.id);
+  if (!savedSlot) {
+    await message.reply({
+      content: '저장된 스타포스가 없다냥.',
+      allowedMentions: { repliedUser: false },
+    });
+    return true;
+  }
+
+  const now = Date.now();
+  const session = createLoadedStarforceSessionState({
+    ownerUserId: message.author.id,
+    savedSlot,
+    now,
+  });
+
+  touchStarforceSession(session, now);
+  starforceSessions.set(session.sessionId, session);
+
+  const sentMessage = await message.reply({
+    ...(await buildStarforceMessagePayload(session)),
+    allowedMentions: { repliedUser: false, parse: [] },
+  });
+
+  session.channelId = sentMessage.channelId;
+  session.messageId = sentMessage.id;
+  scheduleStarforceCardPrime(session);
+  await persistStarforceSessions(starforceSessions);
+  return true;
+}
+
+async function handleStarforceSlashLoadCommand(interaction) {
+  const savedSlot = await getStarforceSaveSlot(interaction.user.id);
+  if (!savedSlot) {
+    await interaction.reply({
+      content: '저장된 스타포스가 없다냥.',
+      allowedMentions: { parse: [] },
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
+  const now = Date.now();
+  const session = createLoadedStarforceSessionState({
+    ownerUserId: interaction.user.id,
+    savedSlot,
     now,
   });
 
@@ -221,6 +312,7 @@ export async function handleStarforceRankingSlashCommand(interaction) {
 
 export async function handleStarforceComponentInteraction(interaction) {
   await ensureStarforceSessionsLoaded(starforceSessions);
+  await ensureStarforceSaveSlotsLoaded();
 
   if (!interaction.isButton()) {
     return false;
@@ -290,6 +382,27 @@ export async function handleStarforceComponentInteraction(interaction) {
     return true;
   }
 
+  if (parsed.action === 'safeguard') {
+    if (!canToggleStarforceSafeguard(session)) {
+      await interaction.reply({
+        content: '지금 구간에서는 파괴방지를 켤 수 없다냥.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return true;
+    }
+
+    session.event = session.event && typeof session.event === 'object'
+      ? session.event
+      : {};
+    session.event.safeguard = !Boolean(session.event.safeguard);
+    touchStarforceSession(session, now);
+
+    await updateStarforceInteractionMessage(interaction, session);
+    scheduleStarforceCardPrime(session);
+    await persistStarforceSessions(starforceSessions);
+    return true;
+  }
+
   if (parsed.action === 'recover') {
     if (!session.pendingRecovery) {
       await interaction.reply({
@@ -304,6 +417,17 @@ export async function handleStarforceComponentInteraction(interaction) {
     await updateStarforceInteractionMessage(interaction, session);
     scheduleStarforceCardPrime(session);
     await persistStarforceSessions(starforceSessions);
+    return true;
+  }
+
+  if (parsed.action === 'save') {
+    await setStarforceSaveSlot(buildStarforceSaveSlot(session));
+    touchStarforceSession(session, now);
+    await persistStarforceSessions(starforceSessions);
+    await interaction.reply({
+      content: '현재 스타포스를 저장했다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
     return true;
   }
 
@@ -338,6 +462,7 @@ export async function handleStarforceComponentInteraction(interaction) {
 }
 
 async function buildStarforceMessagePayload(session, options = {}) {
+  normalizeStarforceSessionState(session);
   const image = await renderStarforceCard(session, {
     effectType: options.effectType,
   });
@@ -447,6 +572,74 @@ async function buildStarforceLuckEvaluation(session) {
   }
 }
 
+function createLoadedStarforceSessionState({ ownerUserId, savedSlot, now = Date.now() }) {
+  const session = createStarforceSessionState({
+    sessionId: crypto.randomUUID(),
+    ownerUserId,
+    level: savedSlot.equipLevel ?? savedSlot.level,
+    now,
+  });
+
+  session.currentStar = Number(savedSlot.currentStar ?? 0);
+  session.totalMesos = Number(savedSlot.totalMesos ?? savedSlot.mesoUsed ?? 0);
+  session.mesoUsed = Number(savedSlot.mesoUsed ?? savedSlot.totalMesos ?? 0);
+  session.attemptCount = Number(savedSlot.attemptCount ?? savedSlot.attempts ?? 0);
+  session.attempts = Number(savedSlot.attempts ?? savedSlot.attemptCount ?? 0);
+  session.destroyCount = Number(savedSlot.destroyCount ?? savedSlot.destroyed ?? 0);
+  session.destroyed = Number(savedSlot.destroyed ?? savedSlot.destroyCount ?? 0);
+  session.recoveryStar = Number(savedSlot.recoveryStar ?? session.recoveryStar);
+  session.consecutiveDropCount = Number(savedSlot.consecutiveDropCount ?? 0);
+  session.chanceTimePending = Boolean(savedSlot.chanceTimePending);
+  session.pendingRecovery = false;
+  session.status = 'active';
+  session.statusText = '';
+  session.imageAssetPath = savedSlot.imageAssetPath || session.imageAssetPath;
+  session.event = savedSlot.event && typeof savedSlot.event === 'object'
+    ? {
+      ...session.event,
+      ...savedSlot.event,
+    }
+    : session.event;
+
+  normalizeStarforceSessionState(session);
+  return session;
+}
+
+function buildStarforceSaveSlot(session) {
+  return {
+    ownerUserId: session.ownerUserId,
+    level: session.level,
+    equipLevel: session.equipLevel ?? session.level,
+    maxStar: session.maxStar,
+    currentStar: session.currentStar,
+    totalMesos: session.totalMesos ?? session.mesoUsed ?? 0,
+    mesoUsed: session.mesoUsed ?? session.totalMesos ?? 0,
+    attemptCount: session.attemptCount ?? session.attempts ?? 0,
+    attempts: session.attempts ?? session.attemptCount ?? 0,
+    destroyCount: session.destroyCount ?? session.destroyed ?? 0,
+    destroyed: session.destroyed ?? session.destroyCount ?? 0,
+    recoveryStar: session.recoveryStar,
+    consecutiveDropCount: session.consecutiveDropCount ?? 0,
+    chanceTimePending: Boolean(session.chanceTimePending),
+    imageAssetPath: session.imageAssetPath ?? '',
+    event: session.event ?? {},
+    savedAtMs: Date.now(),
+  };
+}
+
+function canToggleStarforceSafeguard(session) {
+  const star = Number(session?.currentStar);
+  return Number.isInteger(star) && star >= 12 && star <= 16;
+}
+
+function getSafeStarforceSubcommand(interaction) {
+  try {
+    return interaction.options.getSubcommand(false);
+  } catch {
+    return null;
+  }
+}
+
 function parseStarforceRankingInput(input) {
   const normalized = String(input ?? '').trim();
   const tokens = normalized.split(/\s+/).filter(Boolean);
@@ -518,8 +711,11 @@ function buildStarforceButtonRow(session, options = {}) {
   const allDisabled = Boolean(options.disabled);
   const temporarilyLocked = Boolean(options.temporarilyLocked);
   const canEnhance = !allDisabled && !temporarilyLocked && session?.status === 'active';
+  const canSafeguard = !allDisabled && !temporarilyLocked && session?.status === 'active' && canToggleStarforceSafeguard(session);
   const canRecover = !allDisabled && !temporarilyLocked && session?.status === 'destroyed' && Boolean(session?.pendingRecovery);
+  const canSave = !allDisabled && !temporarilyLocked && (session?.status === 'active' || session?.status === 'destroyed');
   const canEnd = !allDisabled && !temporarilyLocked && (session?.status === 'active' || session?.status === 'destroyed');
+  const safeguardEnabled = Boolean(session?.event?.safeguard);
 
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -528,10 +724,20 @@ function buildStarforceButtonRow(session, options = {}) {
       .setStyle(ButtonStyle.Primary)
       .setDisabled(!canEnhance),
     new ButtonBuilder()
+      .setCustomId(createStarforceCustomId('safeguard', session.sessionId))
+      .setLabel(safeguardEnabled ? '파괴방지 ON' : '파괴방지')
+      .setStyle(safeguardEnabled ? ButtonStyle.Success : ButtonStyle.Secondary)
+      .setDisabled(!canSafeguard),
+    new ButtonBuilder()
       .setCustomId(createStarforceCustomId('recover', session.sessionId))
       .setLabel('복구')
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(!canRecover),
+    new ButtonBuilder()
+      .setCustomId(createStarforceCustomId('save', session.sessionId))
+      .setLabel('저장')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(!canSave),
     new ButtonBuilder()
       .setCustomId(createStarforceCustomId('end', session.sessionId))
       .setLabel('❌ 종료')
@@ -581,7 +787,7 @@ function createStarforceCustomId(action, sessionId) {
 }
 
 function parseStarforceCustomId(customId) {
-  const match = String(customId ?? '').match(/^starforce:(enhance|recover|end):([a-f0-9-]+)$/i);
+  const match = String(customId ?? '').match(/^starforce:(enhance|safeguard|recover|save|end):([a-f0-9-]+)$/i);
   if (!match) {
     return null;
   }

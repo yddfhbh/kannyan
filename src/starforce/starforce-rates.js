@@ -59,6 +59,10 @@ export function shouldStarforceDropOnFailure(star) {
   return Number.isInteger(star) && star >= 6 && !isStarforceFailureFloor(star);
 }
 
+export function canApplyStarforceSafeguard(star) {
+  return Number.isInteger(star) && star >= 12 && star <= 16;
+}
+
 export function buildStarforceRates({
   star,
   event = {},
@@ -88,7 +92,7 @@ export function buildStarforceRates({
     destroy = reducedDestroy;
   }
 
-  if (event.safeguard && star >= 15 && star <= 17 && destroy > 0) {
+  if (event.safeguard && canApplyStarforceSafeguard(star) && destroy > 0) {
     fail += destroy;
     destroy = 0;
   }

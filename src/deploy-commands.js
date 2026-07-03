@@ -378,18 +378,28 @@ new SlashCommandBuilder()
     .toJSON(),
   new SlashCommandBuilder()
     .setName('스타포스')
-    .setDescription('버튼으로 직접 누르는 스타포스 시뮬레이터를 시작합니다.')
-    .addIntegerOption((option) =>
-      option
-        .setName('장비레벨')
-        .setDescription('지원 레벨: 140, 160, 200, 250')
-        .setRequired(true)
-        .addChoices(
-          { name: '140', value: 140 },
-          { name: '160', value: 160 },
-          { name: '200', value: 200 },
-          { name: '250', value: 250 }
+    .setDescription('스타포스 시뮬레이터를 시작하거나 저장된 진행도를 불러옵니다.')
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('시작')
+        .setDescription('버튼으로 직접 누르는 스타포스 시뮬레이터를 시작합니다.')
+        .addIntegerOption((option) =>
+          option
+            .setName('장비레벨')
+            .setDescription('지원 레벨: 140, 160, 200, 250')
+            .setRequired(true)
+            .addChoices(
+              { name: '140', value: 140 },
+              { name: '160', value: 160 },
+              { name: '200', value: 200 },
+              { name: '250', value: 250 }
+            )
         )
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('불러오기')
+        .setDescription('저장해 둔 스타포스 진행도를 불러옵니다.')
     )
     .toJSON(),
   new SlashCommandBuilder()

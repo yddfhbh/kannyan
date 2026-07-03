@@ -2,6 +2,7 @@ import { calculateStarforceCost } from './starforce-cost.js';
 import { STARFORCE_DEFAULT_IMAGE_PATH } from './starforce-assets.js';
 import {
   buildStarforceRates,
+  canApplyStarforceSafeguard,
   shouldStarforceDropOnFailure,
 } from './starforce-rates.js';
 
@@ -135,6 +136,9 @@ export function resetStarforceSessionState(session, now = Date.now()) {
   session.status = 'active';
   session.updatedAtMs = now;
   session.statusText = '';
+  if (session.event && typeof session.event === 'object') {
+    session.event.safeguard = false;
+  }
 
   return session;
 }
@@ -147,6 +151,28 @@ export function recoverStarforceSessionState(session, now = Date.now()) {
   session.status = 'active';
   session.updatedAtMs = now;
   session.statusText = '';
+  if (session.event && typeof session.event === 'object') {
+    session.event.safeguard = false;
+  }
+
+  return session;
+}
+
+export function normalizeStarforceSessionState(session) {
+  if (!session || typeof session !== 'object') {
+    return session;
+  }
+
+  if (!session.event || typeof session.event !== 'object') {
+    session.event = {};
+  }
+
+  const currentStar = Number(session.currentStar);
+  if (!Number.isFinite(currentStar) || currentStar >= 17) {
+    session.event.safeguard = false;
+  } else if (currentStar >= 0) {
+    session.event.safeguard = Boolean(session.event.safeguard);
+  }
 
   return session;
 }
@@ -155,6 +181,8 @@ export function performStarforceAttempt(session, options = {}) {
   const now = Number.isFinite(options.now) ? options.now : Date.now();
   const randomValue = normalizeRandomValue(options.randomValue);
   const chanceTime = Boolean(session.chanceTimePending);
+
+  normalizeStarforceSessionState(session);
 
   session.updatedAtMs = now;
 
@@ -219,6 +247,7 @@ export function performStarforceAttempt(session, options = {}) {
   }
 
   appendStarforceRecentLog(session, log);
+  normalizeStarforceSessionState(session);
 
   return {
     type: resultType,
