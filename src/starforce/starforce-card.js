@@ -6,6 +6,11 @@ import { buildStarforceRates } from './starforce-rates.js';
 
 const FRAME_WIDTH = 1439;
 const FRAME_HEIGHT = 1093;
+const STARFORCE_TAB_TEXT_LAYOUT = Object.freeze({
+  scroll: { x: 266, y: 171, label: '주문서' },
+  starforce: { x: 726, y: 171, label: '스타포스 강화' },
+  transfer: { x: 1174, y: 171, label: '장비전승' },
+});
 
 export async function renderStarforceCard(session) {
   const event = normalizeEvent(session?.event);
@@ -73,8 +78,8 @@ function buildOverlaySvg(view) {
     .tabText {
       fill: #fff7ef;
       stroke: #5a3712;
-      stroke-width: 3px;
-      font-size: 31px;
+      stroke-width: 5px;
+      font-size: 40px;
       font-weight: 900;
     }
     .bannerBase {
@@ -149,9 +154,30 @@ function buildOverlaySvg(view) {
     }
   </style>
 
-  ${renderText(262, 151, '주문서', 'tabText', 'middle', 'middle')}
-  ${renderText(722, 151, '스타포스 강화', 'tabText', 'middle', 'middle')}
-  ${renderText(1184, 151, '장비전송', 'tabText', 'middle', 'middle')}
+  ${renderText(
+    STARFORCE_TAB_TEXT_LAYOUT.scroll.x,
+    STARFORCE_TAB_TEXT_LAYOUT.scroll.y,
+    STARFORCE_TAB_TEXT_LAYOUT.scroll.label,
+    'tabText',
+    'middle',
+    'middle'
+  )}
+  ${renderText(
+    STARFORCE_TAB_TEXT_LAYOUT.starforce.x,
+    STARFORCE_TAB_TEXT_LAYOUT.starforce.y,
+    STARFORCE_TAB_TEXT_LAYOUT.starforce.label,
+    'tabText',
+    'middle',
+    'middle'
+  )}
+  ${renderText(
+    STARFORCE_TAB_TEXT_LAYOUT.transfer.x,
+    STARFORCE_TAB_TEXT_LAYOUT.transfer.y,
+    STARFORCE_TAB_TEXT_LAYOUT.transfer.label,
+    'tabText',
+    'middle',
+    'middle'
+  )}
 
   ${showWarningIcon ? renderWarningIcon(602, 276) : ''}
   ${renderBanner(view.statusText, bannerText)}
