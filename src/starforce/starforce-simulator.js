@@ -105,6 +105,8 @@ export function createStarforceSessionState({
     destroyed: 0,
     pendingRecovery: false,
     recoveryStar: STARFORCE_RECOVERY_STAR,
+    consecutiveDropCount: 0,
+    chanceTimePending: false,
     recentLogs: [],
     event: {
       name: '없음',
@@ -134,6 +136,8 @@ export function resetStarforceSessionState(session, now = Date.now()) {
   session.destroyCount = 0;
   session.destroyed = 0;
   session.pendingRecovery = false;
+  session.consecutiveDropCount = 0;
+  session.chanceTimePending = false;
   session.recentLogs = [];
   session.status = 'active';
   session.updatedAtMs = now;
@@ -145,6 +149,8 @@ export function resetStarforceSessionState(session, now = Date.now()) {
 export function recoverStarforceSessionState(session, now = Date.now()) {
   session.currentStar = Math.min(session.recoveryStar ?? STARFORCE_RECOVERY_STAR, session.maxStar);
   session.pendingRecovery = false;
+  session.consecutiveDropCount = 0;
+  session.chanceTimePending = false;
   session.status = 'active';
   session.updatedAtMs = now;
   session.statusText = '';
@@ -155,6 +161,7 @@ export function recoverStarforceSessionState(session, now = Date.now()) {
 export function performStarforceAttempt(session, options = {}) {
   const now = Number.isFinite(options.now) ? options.now : Date.now();
   const randomValue = normalizeRandomValue(options.randomValue);
+  const chanceTime = Boolean(session.chanceTimePending);
 
   session.updatedAtMs = now;
 
@@ -171,7 +178,7 @@ export function performStarforceAttempt(session, options = {}) {
   const rates = buildStarforceRates({
     star: beforeStar,
     event: session.event,
-    chanceTime: false,
+    chanceTime,
   });
   const cost = calculateStarforceCost({
     level: session.equipLevel ?? session.level,
@@ -187,22 +194,35 @@ export function performStarforceAttempt(session, options = {}) {
   let resultType = 'fail';
   let log = `${beforeStar} -> ${targetStar} 실패`;
 
+  session.chanceTimePending = false;
+
   if (randomValue < rates.success) {
     session.currentStar = targetStar;
+    session.consecutiveDropCount = 0;
     resultType = 'success';
-    log = `${beforeStar} -> ${targetStar} 성공`;
+    log = chanceTime
+      ? `${beforeStar} -> ${targetStar} 성공 (찬스 타임)`
+      : `${beforeStar} -> ${targetStar} 성공`;
   } else if (randomValue >= rates.success + rates.fail) {
     session.currentStar = Math.min(session.recoveryStar ?? STARFORCE_RECOVERY_STAR, session.maxStar);
     session.destroyCount += 1;
     session.destroyed = session.destroyCount;
     session.pendingRecovery = true;
+    session.consecutiveDropCount = 0;
     session.status = 'destroyed';
     session.statusText = '파괴됨';
     resultType = 'destroy';
     log = `${beforeStar} -> ${targetStar} 파괴! 복구 버튼으로 ${session.currentStar}성 복구`;
   } else if (shouldStarforceDropOnFailure(beforeStar)) {
     session.currentStar = beforeStar - 1;
+    session.consecutiveDropCount += 1;
+    if (session.consecutiveDropCount >= 2) {
+      session.chanceTimePending = true;
+      session.consecutiveDropCount = 0;
+    }
     log = `${beforeStar} -> ${targetStar} 실패 (${session.currentStar}성으로 하락)`;
+  } else {
+    session.consecutiveDropCount = 0;
   }
 
   appendStarforceRecentLog(session, log);
@@ -215,6 +235,7 @@ export function performStarforceAttempt(session, options = {}) {
     targetStar,
     cost,
     rates,
+    chanceTimeUsed: chanceTime,
   };
 }
 

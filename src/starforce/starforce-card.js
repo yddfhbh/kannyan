@@ -13,25 +13,31 @@ import {
 
 const FRAME_WIDTH = 1439;
 const FRAME_HEIGHT = 1093;
-const STARFORCE_BASE_CARD_CACHE_KEY = '__starforceBaseCardCacheKey';
-const STARFORCE_BASE_CARD_CACHE_BUFFER = '__starforceBaseCardCacheBuffer';
-const EQUIPMENT_ICON_LAYOUT = Object.freeze({
-  left: 226,
-  top: 490,
-  width: 230,
-  height: 230,
-});
 const RESULT_EFFECT_LAYOUT = Object.freeze({
   left: 150,
   top: 620,
   width: 410,
   height: 110,
 });
+const EQUIPMENT_ICON_LAYOUT = Object.freeze({
+  left: 226,
+  top: 490,
+  width: 230,
+  height: 230,
+});
 const STARFORCE_TAB_TEXT_LAYOUT = Object.freeze({
   scroll: { x: 266, y: 171, label: '주문서' },
   starforce: { x: 726, y: 171, label: '스타포스 강화' },
   transfer: { x: 1174, y: 171, label: '장비전송' },
 });
+const PNG_OUTPUT_OPTIONS = Object.freeze({
+  compressionLevel: 1,
+  effort: 1,
+});
+const BASE_CARD_CACHE = new Map();
+const OVERLAY_CACHE = new Map();
+const ICON_CACHE = new Map();
+const OVERLAY_CACHE_LIMIT = 128;
 
 export async function renderStarforceCard(session, options = {}) {
   const event = normalizeEvent(session?.event);
@@ -40,6 +46,8 @@ export async function renderStarforceCard(session, options = {}) {
   const level = Number(session?.equipLevel ?? session?.level ?? 0);
   const isMaxed = currentStar >= maxStar;
   const isDestroyed = Boolean(session?.pendingRecovery);
+  const chanceTime = Boolean(session?.chanceTimePending);
+  const effectType = normalizeEffectType(options.effectType);
 
   const nextCost = isMaxed
     ? 0
@@ -54,62 +62,129 @@ export async function renderStarforceCard(session, options = {}) {
     : buildStarforceRates({
       star: currentStar,
       event,
-      chanceTime: false,
+      chanceTime,
     });
 
-  const overlayBuffer = renderSvgToPng(
-    buildOverlaySvg({
-      currentStar,
-      nextStarText: isMaxed ? 'MAX' : formatStarLabel(currentStar + 1),
-      nextCost,
-      successRate: rates.success,
-      failRate: rates.fail,
-      destroyRate: rates.destroy,
-      statusText: String(session?.statusText ?? '').trim(),
-      effectType: normalizeEffectType(options.effectType),
-      isMaxed,
-    }),
-    { background: 'transparent' }
+  const baseCardBuffer = await getBaseCardBuffer(
+    session?.imageAssetPath || STARFORCE_DEFAULT_IMAGE_PATH,
+    isDestroyed
   );
-
-  const baseCardBuffer = await getCachedBaseCardBuffer(session, isDestroyed);
+  const overlayBuffer = getOverlayBuffer({
+    currentStar,
+    nextStarText: isMaxed ? 'MAX' : formatStarLabel(currentStar + 1),
+    nextCost,
+    successRate: rates.success,
+    failRate: rates.fail,
+    destroyRate: rates.destroy,
+    statusText: String(session?.statusText ?? '').trim(),
+    effectType,
+    chanceTime,
+    isMaxed,
+  });
 
   return sharp(baseCardBuffer)
-    .composite([
-      {
-        input: overlayBuffer,
-        left: 0,
-        top: 0,
-      },
-    ])
-    .png()
+    .composite([{ input: overlayBuffer, left: 0, top: 0 }])
+    .png(PNG_OUTPUT_OPTIONS)
     .toBuffer();
 }
 
-async function getCachedBaseCardBuffer(session, isDestroyed) {
-  const framePath = session?.imageAssetPath || STARFORCE_DEFAULT_IMAGE_PATH;
+export async function primeStarforceCardCache(session) {
+  const event = normalizeEvent(session?.event);
+  const currentStar = Number(session?.currentStar ?? 0);
+  const maxStar = Number(session?.maxStar ?? 25);
+  const level = Number(session?.equipLevel ?? session?.level ?? 0);
+  const isMaxed = currentStar >= maxStar;
+  const chanceTime = Boolean(session?.chanceTimePending);
+  const recoveryStar = Math.min(Number(session?.recoveryStar ?? 12), maxStar);
+
+  await Promise.all([
+    getBaseCardBuffer(session?.imageAssetPath || STARFORCE_DEFAULT_IMAGE_PATH, false),
+    getBaseCardBuffer(session?.imageAssetPath || STARFORCE_DEFAULT_IMAGE_PATH, true),
+  ]);
+
+  const currentRates = isMaxed
+    ? { success: 0, fail: 0, destroy: 0 }
+    : buildStarforceRates({
+      star: currentStar,
+      event,
+      chanceTime,
+    });
+
+  const currentNextCost = isMaxed
+    ? 0
+    : calculateStarforceCost({
+      level,
+      star: currentStar,
+      event,
+    });
+
+  getOverlayBuffer({
+    currentStar,
+    nextStarText: isMaxed ? 'MAX' : formatStarLabel(currentStar + 1),
+    nextCost: currentNextCost,
+    successRate: currentRates.success,
+    failRate: currentRates.fail,
+    destroyRate: currentRates.destroy,
+    statusText: String(session?.statusText ?? '').trim(),
+    effectType: '',
+    chanceTime,
+    isMaxed,
+  });
+
+  const candidateStates = [
+    { star: Math.min(currentStar + 1, maxStar), statusText: '', effectType: 'success', chanceTime },
+    { star: getFailurePreviewStar(currentStar), statusText: '', effectType: 'fail', chanceTime: false },
+    { star: recoveryStar, statusText: '파괴됨', effectType: 'destroy', chanceTime: false },
+    { star: recoveryStar, statusText: '파괴됨', effectType: '', chanceTime: false },
+  ];
+
+  for (const candidate of candidateStates) {
+    const candidateStar = Number(candidate.star);
+    const candidateIsMaxed = candidateStar >= maxStar;
+    const candidateRates = candidateIsMaxed
+      ? { success: 0, fail: 0, destroy: 0 }
+      : buildStarforceRates({
+        star: candidateStar,
+        event,
+        chanceTime: Boolean(candidate.chanceTime),
+      });
+    const candidateNextCost = candidateIsMaxed
+      ? 0
+      : calculateStarforceCost({
+        level,
+        star: candidateStar,
+        event,
+      });
+
+    getOverlayBuffer({
+      currentStar: candidateStar,
+      nextStarText: candidateIsMaxed ? 'MAX' : formatStarLabel(candidateStar + 1),
+      nextCost: candidateNextCost,
+      successRate: candidateRates.success,
+      failRate: candidateRates.fail,
+      destroyRate: candidateRates.destroy,
+      statusText: candidate.statusText,
+      effectType: candidate.effectType,
+      chanceTime: Boolean(candidate.chanceTime),
+      isMaxed: candidateIsMaxed,
+    });
+  }
+}
+
+async function getBaseCardBuffer(framePath, isDestroyed) {
   const cacheKey = `${framePath}:${isDestroyed ? 'destroyed' : 'normal'}`;
+  let cachedPromise = BASE_CARD_CACHE.get(cacheKey);
 
-  if (
-    session
-    && session[STARFORCE_BASE_CARD_CACHE_KEY] === cacheKey
-    && Buffer.isBuffer(session[STARFORCE_BASE_CARD_CACHE_BUFFER])
-  ) {
-    return session[STARFORCE_BASE_CARD_CACHE_BUFFER];
+  if (!cachedPromise) {
+    cachedPromise = buildBaseCardBuffer(framePath, isDestroyed);
+    BASE_CARD_CACHE.set(cacheKey, cachedPromise);
   }
 
-  const baseCardBuffer = await buildBaseCardBuffer(framePath, isDestroyed);
-
-  if (session && typeof session === 'object') {
-    session[STARFORCE_BASE_CARD_CACHE_KEY] = cacheKey;
-    session[STARFORCE_BASE_CARD_CACHE_BUFFER] = baseCardBuffer;
-  }
-
-  return baseCardBuffer;
+  return cachedPromise;
 }
 
 async function buildBaseCardBuffer(framePath, isDestroyed) {
-  const equipmentIconBuffer = await renderEquipmentIcon(isDestroyed);
+  const equipmentIconBuffer = await getEquipmentIconBuffer(isDestroyed);
 
   return sharp(framePath)
     .composite([
@@ -119,44 +194,83 @@ async function buildBaseCardBuffer(framePath, isDestroyed) {
         top: EQUIPMENT_ICON_LAYOUT.top,
       },
     ])
-    .png()
+    .png(PNG_OUTPUT_OPTIONS)
     .toBuffer();
 }
 
-async function renderEquipmentIcon(isDestroyed) {
-  const sourcePath = isDestroyed
-    ? STARFORCE_EQUIPMENT_ICON_DESTROYED_PATH
-    : STARFORCE_EQUIPMENT_ICON_NORMAL_PATH;
+async function getEquipmentIconBuffer(isDestroyed) {
+  const cacheKey = isDestroyed ? 'destroyed' : 'normal';
+  let cachedPromise = ICON_CACHE.get(cacheKey);
 
-  return sharp(sourcePath)
-    .resize(EQUIPMENT_ICON_LAYOUT.width, EQUIPMENT_ICON_LAYOUT.height, {
-      fit: 'contain',
-      kernel: sharp.kernel.nearest,
-      background: {
-        r: 0,
-        g: 0,
-        b: 0,
-        alpha: 0,
-      },
-    })
-    .png()
-    .toBuffer();
+  if (!cachedPromise) {
+    const sourcePath = isDestroyed
+      ? STARFORCE_EQUIPMENT_ICON_DESTROYED_PATH
+      : STARFORCE_EQUIPMENT_ICON_NORMAL_PATH;
+
+    cachedPromise = sharp(sourcePath)
+      .resize(EQUIPMENT_ICON_LAYOUT.width, EQUIPMENT_ICON_LAYOUT.height, {
+        fit: 'contain',
+        kernel: sharp.kernel.nearest,
+        background: {
+          r: 0,
+          g: 0,
+          b: 0,
+          alpha: 0,
+        },
+      })
+      .png(PNG_OUTPUT_OPTIONS)
+      .toBuffer();
+
+    ICON_CACHE.set(cacheKey, cachedPromise);
+  }
+
+  return cachedPromise;
+}
+
+function getOverlayBuffer(view) {
+  const cacheKey = JSON.stringify(view);
+  const cached = OVERLAY_CACHE.get(cacheKey);
+  if (cached) {
+    OVERLAY_CACHE.delete(cacheKey);
+    OVERLAY_CACHE.set(cacheKey, cached);
+    return cached;
+  }
+
+  const overlayBuffer = renderSvgToPng(buildOverlaySvg(view), {
+    background: 'transparent',
+  });
+
+  OVERLAY_CACHE.set(cacheKey, overlayBuffer);
+  trimOverlayCache();
+  return overlayBuffer;
+}
+
+function trimOverlayCache() {
+  while (OVERLAY_CACHE.size > OVERLAY_CACHE_LIMIT) {
+    const oldestKey = OVERLAY_CACHE.keys().next().value;
+    if (!oldestKey) {
+      return;
+    }
+    OVERLAY_CACHE.delete(oldestKey);
+  }
 }
 
 function buildOverlaySvg(view) {
   const canDestroy = Number(view.destroyRate) > 0;
   const failureDrops = shouldStarforceDropOnFailure(view.currentStar);
-  const bannerText = view.statusText
-    ? view.statusText
-    : view.isMaxed
-      ? '최대 스타포스에 도달했습니다.'
-      : canDestroy
-        ? '실패 시 파괴될 수 있습니다.'
-        : failureDrops
-          ? '실패 시 별이 하락합니다.'
-          : '실패 시 별이 유지됩니다.';
+  const bannerText = view.chanceTime
+    ? '찬스 타임'
+    : view.statusText
+      ? view.statusText
+      : view.isMaxed
+        ? '최대 스타포스에 도달했습니다.'
+        : canDestroy
+          ? '실패 시 파괴될 수 있습니다.'
+          : failureDrops
+            ? '실패 시 별이 하락합니다.'
+            : '실패 시 별이 유지됩니다.';
   const badgeText = formatStarLabel(view.currentStar);
-  const showWarningIcon = !view.statusText && !view.isMaxed;
+  const showWarningIcon = !view.statusText && !view.isMaxed && !view.chanceTime;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${FRAME_WIDTH}" height="${FRAME_HEIGHT}" viewBox="0 0 ${FRAME_WIDTH} ${FRAME_HEIGHT}">
@@ -183,6 +297,13 @@ function buildOverlaySvg(view) {
     }
     .bannerAccent {
       fill: #ffdf1f;
+      stroke: #6b480b;
+      stroke-width: 6px;
+      font-size: 40px;
+      font-weight: 900;
+    }
+    .chanceTimeText {
+      fill: #ffe55c;
       stroke: #6b480b;
       stroke-width: 6px;
       font-size: 40px;
@@ -266,36 +387,14 @@ function buildOverlaySvg(view) {
     }
   </style>
 
-  ${renderText(
-    STARFORCE_TAB_TEXT_LAYOUT.scroll.x,
-    STARFORCE_TAB_TEXT_LAYOUT.scroll.y,
-    STARFORCE_TAB_TEXT_LAYOUT.scroll.label,
-    'tabText',
-    'middle',
-    'middle'
-  )}
-  ${renderText(
-    STARFORCE_TAB_TEXT_LAYOUT.starforce.x,
-    STARFORCE_TAB_TEXT_LAYOUT.starforce.y,
-    STARFORCE_TAB_TEXT_LAYOUT.starforce.label,
-    'tabText',
-    'middle',
-    'middle'
-  )}
-  ${renderText(
-    STARFORCE_TAB_TEXT_LAYOUT.transfer.x,
-    STARFORCE_TAB_TEXT_LAYOUT.transfer.y,
-    STARFORCE_TAB_TEXT_LAYOUT.transfer.label,
-    'tabText',
-    'middle',
-    'middle'
-  )}
+  ${renderText(STARFORCE_TAB_TEXT_LAYOUT.scroll.x, STARFORCE_TAB_TEXT_LAYOUT.scroll.y, STARFORCE_TAB_TEXT_LAYOUT.scroll.label, 'tabText', 'middle', 'middle')}
+  ${renderText(STARFORCE_TAB_TEXT_LAYOUT.starforce.x, STARFORCE_TAB_TEXT_LAYOUT.starforce.y, STARFORCE_TAB_TEXT_LAYOUT.starforce.label, 'tabText', 'middle', 'middle')}
+  ${renderText(STARFORCE_TAB_TEXT_LAYOUT.transfer.x, STARFORCE_TAB_TEXT_LAYOUT.transfer.y, STARFORCE_TAB_TEXT_LAYOUT.transfer.label, 'tabText', 'middle', 'middle')}
 
   ${showWarningIcon ? renderWarningIcon(546, 255) : ''}
-  ${renderBanner(view.statusText, bannerText)}
+  ${renderBanner(view.statusText, bannerText, view.chanceTime)}
 
   ${renderText(204, 410, badgeText, 'badgeText', 'middle')}
-
   ${renderText(811, 463, formatStarLabel(view.currentStar), 'starText', 'middle')}
   ${renderText(973, 463, '›', 'arrowText', 'middle')}
   ${renderText(1140, 463, view.nextStarText, 'starText', 'middle')}
@@ -314,7 +413,11 @@ function buildOverlaySvg(view) {
 </svg>`;
 }
 
-function renderBanner(statusText, bannerText) {
+function renderBanner(statusText, bannerText, chanceTime) {
+  if (chanceTime) {
+    return renderText(720, 296, bannerText, 'chanceTimeText', 'middle');
+  }
+
   if (statusText) {
     return renderText(672, 296, bannerText, 'bannerBase', 'middle');
   }
@@ -428,6 +531,12 @@ function normalizeEffectType(effectType) {
   }
 
   return '';
+}
+
+function getFailurePreviewStar(currentStar) {
+  return shouldStarforceDropOnFailure(currentStar)
+    ? Math.max(0, currentStar - 1)
+    : currentStar;
 }
 
 function formatStarLabel(star) {

@@ -7,7 +7,10 @@ import {
   ButtonStyle,
   MessageFlags,
 } from 'discord.js';
-import { renderStarforceCard } from './starforce-card.js';
+import {
+  primeStarforceCardCache,
+  renderStarforceCard,
+} from './starforce-card.js';
 import {
   createStarforceSessionState,
   parseStarforceLevelInput,
@@ -76,6 +79,7 @@ export async function handleStarforcePercentCommandMessage(message, input) {
 
   session.channelId = sentMessage.channelId;
   session.messageId = sentMessage.id;
+  scheduleStarforceCardPrime(session);
   return true;
 }
 
@@ -117,6 +121,7 @@ export async function handleStarforceSlashCommand(interaction) {
   const sentMessage = await interaction.fetchReply();
   session.channelId = interaction.channelId;
   session.messageId = sentMessage.id;
+  scheduleStarforceCardPrime(session);
   return true;
 }
 
@@ -182,6 +187,7 @@ export async function handleStarforceComponentInteraction(interaction) {
     }
 
     await playStarforceResultEffect(interaction, session, attemptResult.type);
+    scheduleStarforceCardPrime(session);
     return true;
   }
 
@@ -197,6 +203,7 @@ export async function handleStarforceComponentInteraction(interaction) {
     recoverStarforceSessionState(session, now);
     touchStarforceSession(session, now);
     await updateStarforceInteractionMessage(interaction, session);
+    scheduleStarforceCardPrime(session);
     return true;
   }
 
@@ -396,4 +403,22 @@ async function disableStarforceMessageFromInteraction(interaction, sessionId, se
     console.error('[STARFORCE] failed to disable expired session message:');
     console.error(error);
   }
+}
+
+function scheduleStarforceCardPrime(session) {
+  if (!session || session.isPrimingCardCache) {
+    return;
+  }
+
+  session.isPrimingCardCache = true;
+
+  queueMicrotask(() => {
+    primeStarforceCardCache(session)
+      .catch(() => {
+        // Ignore cache priming failures so interaction flow keeps working.
+      })
+      .finally(() => {
+        session.isPrimingCardCache = false;
+      });
+  });
 }
