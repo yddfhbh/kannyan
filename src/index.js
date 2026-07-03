@@ -136,6 +136,8 @@ import {
 import {
   handleStarforceComponentInteraction,
   handleStarforcePercentCommandMessage,
+  handleStarforceRankingPercentCommandMessage,
+  handleStarforceRankingSlashCommand,
   handleStarforceSlashCommand,
   initStarforceCommand,
 } from './starforce/starforce-command.js';
@@ -360,6 +362,7 @@ const percentCommandAliases = {
   help: ['help', '도움말'],
   webSearch: ['검색', 'search'],
   starforce: ['스타포스'],
+  starforceRanking: ['강화랭킹'],
   chesscom: ['체닷'],
   lichess: ['리체스'],
   teto: ['teto'],
@@ -5015,6 +5018,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
+    const handledStarforceRankingSlash = await handleStarforceRankingSlashCommand(interaction);
+    if (handledStarforceRankingSlash) {
+      return;
+    }
+
     if (!interaction.isChatInputCommand()) {
       return;
     }
@@ -5763,6 +5771,10 @@ async function handlePercentMessageCommand(message) {
 
   if (command === 'starforce') {
     return handleStarforcePercentCommandMessage(message, input);
+  }
+
+  if (command === 'starforceRanking') {
+    return handleStarforceRankingPercentCommandMessage(message, input);
   }
 
   if (command === 'chesscom') {
@@ -8094,7 +8106,8 @@ function getHelpMessage() {
     '`/퍼즐러쉬`, `%퍼즐러쉬` - DM으로 이어푸는 퍼즐러쉬를 시작한다냥. 목숨은 3개고, `포기`, `그만`, `중단`, `gg`로 종료할 수 있다냥.',
     '`/퍼즐레이팅`, `%퍼즐레이팅` - 내 퍼즐 레이팅 카드와 현재 등수를 보여준다냥.',
     '`/퍼즐리더보드`, `%퍼즐리더보드` - 현재 퍼즐 레이팅 상위 10명의 닉네임과 레이팅을 보여준다냥.',
-    '`/스타포스 장비레벨:[80|90|100|110|120|130|140|150|160|200|250]` 또는 `%스타포스 <장비레벨>` - 버튼으로 직접 누르는 스타포스 시뮬레이터를 시작한다냥. 예: `/스타포스 장비레벨:160`, `%스타포스 160`',
+    '`/스타포스 장비레벨:[140|160|200|250]` 또는 `%스타포스 <장비레벨>` - 버튼으로 직접 누르는 스타포스 시뮬레이터를 시작한다냥. 예: `/스타포스 장비레벨:160`, `%스타포스 160`',
+    '`/강화랭킹 장비레벨:[140|160|200|250]` 또는 `%강화랭킹 <장비레벨>` - 해당 레벨의 스타포스 종료 기록 상위 50명을 보여준다냥.',
   ].join('\n');
 }
 

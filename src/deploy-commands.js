@@ -382,17 +382,26 @@ new SlashCommandBuilder()
     .addIntegerOption((option) =>
       option
         .setName('장비레벨')
-        .setDescription('지원 레벨: 80, 90, 100, 110, 120, 130, 140, 150, 160, 200, 250')
+        .setDescription('지원 레벨: 140, 160, 200, 250')
         .setRequired(true)
         .addChoices(
-          { name: '80', value: 80 },
-          { name: '90', value: 90 },
-          { name: '100', value: 100 },
-          { name: '110', value: 110 },
-          { name: '120', value: 120 },
-          { name: '130', value: 130 },
           { name: '140', value: 140 },
-          { name: '150', value: 150 },
+          { name: '160', value: 160 },
+          { name: '200', value: 200 },
+          { name: '250', value: 250 }
+        )
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('강화랭킹')
+    .setDescription('해당 레벨의 스타포스 종료 기록 상위 50명을 보여줍니다.')
+    .addIntegerOption((option) =>
+      option
+        .setName('장비레벨')
+        .setDescription('지원 레벨: 140, 160, 200, 250')
+        .setRequired(true)
+        .addChoices(
+          { name: '140', value: 140 },
           { name: '160', value: 160 },
           { name: '200', value: 200 },
           { name: '250', value: 250 }

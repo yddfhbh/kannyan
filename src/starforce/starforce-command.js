@@ -18,6 +18,15 @@ import {
   recoverStarforceSessionState,
   STARFORCE_SUPPORTED_LEVELS,
 } from './starforce-simulator.js';
+import {
+  ensureStarforceSessionsLoaded,
+  persistStarforceSessions,
+} from './starforce-session-store.js';
+import {
+  addStarforceRankingEntry,
+  ensureStarforceRankingsLoaded,
+  getStarforceLeaderboard,
+} from './starforce-ranking-store.js';
 
 const STARFORCE_CUSTOM_ID_PREFIX = 'starforce';
 const STARFORCE_SESSION_TTL_MS = 20 * 60 * 1000;
@@ -32,6 +41,7 @@ const STARFORCE_USAGE_MESSAGE = [
 const STARFORCE_UNSUPPORTED_LEVEL_MESSAGE =
   `지원하는 장비 레벨: ${STARFORCE_SUPPORTED_LEVELS.join(', ')}`;
 
+const STARFORCE_RANKING_LIMIT = 50;
 const starforceSessions = new Map();
 
 let cleanupTimer = null;
@@ -41,6 +51,20 @@ export function initStarforceCommand() {
     return;
   }
 
+  void ensureStarforceSessionsLoaded(starforceSessions)
+    .then(() => {
+      pruneStarforceSessions();
+    })
+    .catch((error) => {
+      console.error('[STARFORCE] failed to load persisted sessions:');
+      console.error(error);
+    });
+
+  void ensureStarforceRankingsLoaded().catch((error) => {
+    console.error('[STARFORCE] failed to load persisted rankings:');
+    console.error(error);
+  });
+
   cleanupTimer = setInterval(() => {
     pruneStarforceSessions();
   }, STARFORCE_SESSION_CLEANUP_INTERVAL_MS);
@@ -49,6 +73,8 @@ export function initStarforceCommand() {
 }
 
 export async function handleStarforcePercentCommandMessage(message, input) {
+  await ensureStarforceSessionsLoaded(starforceSessions);
+
   const parsed = parseStarforceLevelInput(input);
 
   if (!parsed.ok) {
@@ -80,10 +106,13 @@ export async function handleStarforcePercentCommandMessage(message, input) {
   session.channelId = sentMessage.channelId;
   session.messageId = sentMessage.id;
   scheduleStarforceCardPrime(session);
+  await persistStarforceSessions(starforceSessions);
   return true;
 }
 
 export async function handleStarforceSlashCommand(interaction) {
+  await ensureStarforceSessionsLoaded(starforceSessions);
+
   if (!interaction.isChatInputCommand() || interaction.commandName !== '스타포스') {
     return false;
   }
@@ -122,10 +151,64 @@ export async function handleStarforceSlashCommand(interaction) {
   session.channelId = interaction.channelId;
   session.messageId = sentMessage.id;
   scheduleStarforceCardPrime(session);
+  await persistStarforceSessions(starforceSessions);
+  return true;
+}
+
+export async function handleStarforceRankingPercentCommandMessage(message, input) {
+  await ensureStarforceRankingsLoaded();
+
+  const parsed = parseStarforceLevelInput(input);
+  if (!parsed.ok) {
+    await message.reply({
+      content: parsed.error === 'unsupported_level'
+        ? STARFORCE_UNSUPPORTED_LEVEL_MESSAGE
+        : '사용법: %강화랭킹 <장비레벨>\n예시: %강화랭킹 160',
+      allowedMentions: { repliedUser: false },
+    });
+    return true;
+  }
+
+  const leaderboard = await getStarforceLeaderboard(parsed.level, STARFORCE_RANKING_LIMIT);
+  await message.reply({
+    content: buildStarforceLeaderboardMessage(parsed.level, leaderboard),
+    allowedMentions: { repliedUser: false, parse: [] },
+  });
+  return true;
+}
+
+export async function handleStarforceRankingSlashCommand(interaction) {
+  await ensureStarforceRankingsLoaded();
+
+  if (!interaction.isChatInputCommand() || interaction.commandName !== '강화랭킹') {
+    return false;
+  }
+
+  const level = interaction.options.getInteger('장비레벨', true);
+  const parsed = parseStarforceLevelInput(String(level));
+
+  if (!parsed.ok) {
+    await interaction.reply({
+      content: parsed.error === 'unsupported_level'
+        ? STARFORCE_UNSUPPORTED_LEVEL_MESSAGE
+        : '사용법: /강화랭킹 장비레벨:<장비레벨>',
+      allowedMentions: { parse: [] },
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
+  const leaderboard = await getStarforceLeaderboard(parsed.level, STARFORCE_RANKING_LIMIT);
+  await interaction.reply({
+    content: buildStarforceLeaderboardMessage(parsed.level, leaderboard),
+    allowedMentions: { parse: [] },
+  });
   return true;
 }
 
 export async function handleStarforceComponentInteraction(interaction) {
+  await ensureStarforceSessionsLoaded(starforceSessions);
+
   if (!interaction.isButton()) {
     return false;
   }
@@ -154,6 +237,7 @@ export async function handleStarforceComponentInteraction(interaction) {
     if (session) {
       starforceSessions.delete(parsed.sessionId);
     }
+    await persistStarforceSessions(starforceSessions);
     return true;
   }
 
@@ -183,11 +267,13 @@ export async function handleStarforceComponentInteraction(interaction) {
         content: attemptResult.log,
         flags: MessageFlags.Ephemeral,
       });
+      await persistStarforceSessions(starforceSessions);
       return true;
     }
 
     await playStarforceResultEffect(interaction, session, attemptResult.type);
     scheduleStarforceCardPrime(session);
+    await persistStarforceSessions(starforceSessions);
     return true;
   }
 
@@ -204,6 +290,7 @@ export async function handleStarforceComponentInteraction(interaction) {
     touchStarforceSession(session, now);
     await updateStarforceInteractionMessage(interaction, session);
     scheduleStarforceCardPrime(session);
+    await persistStarforceSessions(starforceSessions);
     return true;
   }
 
@@ -212,9 +299,20 @@ export async function handleStarforceComponentInteraction(interaction) {
     session.updatedAtMs = now;
     session.statusText = '세션 종료됨';
 
+    await addStarforceRankingEntry({
+      ownerUserId: session.ownerUserId,
+      nickname: getInteractionDisplayName(interaction, session),
+      level: session.equipLevel ?? session.level,
+      star: session.currentStar,
+      mesosUsed: session.mesoUsed ?? session.totalMesos ?? 0,
+      attempts: session.attempts ?? session.attemptCount ?? 0,
+      finishedAtMs: now,
+    });
+
     await updateStarforceInteractionMessage(interaction, session, {
       disabled: true,
     });
+    await persistStarforceSessions(starforceSessions);
     return true;
   }
 
@@ -268,6 +366,31 @@ function formatStarforceMesos(value) {
   }
 
   return Math.trunc(number).toLocaleString('ko-KR');
+}
+
+function buildStarforceLeaderboardMessage(level, leaderboard) {
+  const lines = [`⭐ ${level}제 강화 랭킹`];
+
+  if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
+    lines.push('아직 기록이 없다냥.');
+    return lines.join('\n');
+  }
+
+  for (const [index, entry] of leaderboard.entries()) {
+    lines.push(
+      `${index + 1}. ${entry.nickname} - ${entry.star}성 - ${formatStarforceMesos(entry.mesosUsed)} 메소`
+    );
+  }
+
+  return lines.join('\n');
+}
+
+function getInteractionDisplayName(interaction, session) {
+  return interaction.member?.displayName
+    ?? interaction.user?.globalName
+    ?? interaction.user?.username
+    ?? session?.ownerUserId
+    ?? '알 수 없음';
 }
 
 function buildStarforceButtonRow(session, options = {}) {
@@ -358,9 +481,12 @@ function isSessionExpired(session, now = Date.now()) {
 }
 
 function pruneStarforceSessions(now = Date.now()) {
+  let changed = false;
+
   for (const [sessionId, session] of starforceSessions.entries()) {
     if (!session || typeof session !== 'object') {
       starforceSessions.delete(sessionId);
+      changed = true;
       continue;
     }
 
@@ -376,7 +502,12 @@ function pruneStarforceSessions(now = Date.now()) {
       && now - Number(session.updatedAtMs || 0) > STARFORCE_SESSION_GRACE_MS
     ) {
       starforceSessions.delete(sessionId);
+      changed = true;
     }
+  }
+
+  if (changed) {
+    void persistStarforceSessions(starforceSessions);
   }
 }
 

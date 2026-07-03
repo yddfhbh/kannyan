@@ -6,14 +6,7 @@ import {
 } from './starforce-rates.js';
 
 export const STARFORCE_SUPPORTED_LEVELS = Object.freeze([
-  80,
-  90,
-  100,
-  110,
-  120,
-  130,
   140,
-  150,
   160,
   200,
   250,
