@@ -1,15 +1,28 @@
 import sharp from 'sharp';
 import { bundledSvgFontFamily, renderSvgToPng } from '../svg-renderer.js';
-import { STARFORCE_DEFAULT_IMAGE_PATH } from './starforce-assets.js';
+import {
+  STARFORCE_DEFAULT_IMAGE_PATH,
+  STARFORCE_EQUIPMENT_ICON_DESTROYED_PATH,
+  STARFORCE_EQUIPMENT_ICON_NORMAL_PATH,
+} from './starforce-assets.js';
 import { calculateStarforceCost } from './starforce-cost.js';
-import { buildStarforceRates } from './starforce-rates.js';
+import {
+  buildStarforceRates,
+  shouldStarforceDropOnFailure,
+} from './starforce-rates.js';
 
 const FRAME_WIDTH = 1439;
 const FRAME_HEIGHT = 1093;
+const EQUIPMENT_ICON_LAYOUT = Object.freeze({
+  left: 226,
+  top: 490,
+  width: 230,
+  height: 230,
+});
 const STARFORCE_TAB_TEXT_LAYOUT = Object.freeze({
   scroll: { x: 266, y: 171, label: '주문서' },
   starforce: { x: 726, y: 171, label: '스타포스 강화' },
-  transfer: { x: 1174, y: 171, label: '장비전승' },
+  transfer: { x: 1174, y: 171, label: '장비전송' },
 });
 
 export async function renderStarforceCard(session) {
@@ -18,6 +31,7 @@ export async function renderStarforceCard(session) {
   const maxStar = Number(session?.maxStar ?? 25);
   const level = Number(session?.equipLevel ?? session?.level ?? 0);
   const isMaxed = currentStar >= maxStar;
+  const isDestroyed = Boolean(session?.pendingRecovery);
 
   const nextCost = isMaxed
     ? 0
@@ -38,7 +52,7 @@ export async function renderStarforceCard(session) {
   const overlayBuffer = renderSvgToPng(
     buildOverlaySvg({
       currentStar,
-      nextStarText: isMaxed ? 'MAX' : `${formatInteger(currentStar + 1)}성`,
+      nextStarText: isMaxed ? 'MAX' : formatStarLabel(currentStar + 1),
       nextCost,
       successRate: rates.success,
       failRate: rates.fail,
@@ -49,24 +63,58 @@ export async function renderStarforceCard(session) {
     { background: 'transparent' }
   );
 
+  const equipmentIconBuffer = await renderEquipmentIcon(isDestroyed);
+
   return sharp(session?.imageAssetPath || STARFORCE_DEFAULT_IMAGE_PATH)
-    .composite([{ input: overlayBuffer, top: 0, left: 0 }])
+    .composite([
+      {
+        input: equipmentIconBuffer,
+        left: EQUIPMENT_ICON_LAYOUT.left,
+        top: EQUIPMENT_ICON_LAYOUT.top,
+      },
+      {
+        input: overlayBuffer,
+        left: 0,
+        top: 0,
+      },
+    ])
+    .png()
+    .toBuffer();
+}
+
+async function renderEquipmentIcon(isDestroyed) {
+  const sourcePath = isDestroyed
+    ? STARFORCE_EQUIPMENT_ICON_DESTROYED_PATH
+    : STARFORCE_EQUIPMENT_ICON_NORMAL_PATH;
+
+  return sharp(sourcePath)
+    .resize(EQUIPMENT_ICON_LAYOUT.width, EQUIPMENT_ICON_LAYOUT.height, {
+      fit: 'contain',
+      kernel: sharp.kernel.nearest,
+      background: {
+        r: 0,
+        g: 0,
+        b: 0,
+        alpha: 0,
+      },
+    })
     .png()
     .toBuffer();
 }
 
 function buildOverlaySvg(view) {
   const canDestroy = Number(view.destroyRate) > 0;
+  const failureDrops = shouldStarforceDropOnFailure(view.currentStar);
   const bannerText = view.statusText
     ? view.statusText
     : view.isMaxed
       ? '최대 스타포스에 도달했습니다.'
       : canDestroy
         ? '실패 시 파괴될 수 있습니다.'
-        : '실패 시 별이 유지됩니다.';
-  const badgeText = view.currentStar >= 10
-    ? `${formatInteger(view.currentStar)}성+`
-    : `${formatInteger(view.currentStar)}성`;
+        : failureDrops
+          ? '실패 시 별이 하락합니다.'
+          : '실패 시 별이 유지됩니다.';
+  const badgeText = formatStarLabel(view.currentStar);
   const showWarningIcon = !view.statusText && !view.isMaxed;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -182,12 +230,12 @@ function buildOverlaySvg(view) {
     'middle'
   )}
 
-  ${showWarningIcon ? renderWarningIcon(594, 255) : ''}
+  ${showWarningIcon ? renderWarningIcon(546, 255) : ''}
   ${renderBanner(view.statusText, bannerText)}
 
   ${renderText(204, 410, badgeText, 'badgeText', 'middle')}
 
-  ${renderText(811, 463, `${formatInteger(view.currentStar)}성`, 'starText', 'middle')}
+  ${renderText(811, 463, formatStarLabel(view.currentStar), 'starText', 'middle')}
   ${renderText(973, 463, '›', 'arrowText', 'middle')}
   ${renderText(1140, 463, view.nextStarText, 'starText', 'middle')}
 
@@ -205,19 +253,26 @@ function buildOverlaySvg(view) {
 
 function renderBanner(statusText, bannerText) {
   if (statusText) {
-    return renderText(720, 296, bannerText, 'bannerBase', 'middle');
+    return renderText(672, 296, bannerText, 'bannerBase', 'middle');
   }
 
   if (bannerText === '실패 시 파괴될 수 있습니다.') {
     return `
-      <text x="748" y="296" text-anchor="end" class="bannerBase">실패 시 </text>
-      <text x="768" y="296" text-anchor="start" class="bannerAccent">파괴될 수 있습니다.</text>
+      <text x="700" y="296" text-anchor="end" class="bannerBase">실패 시 </text>
+      <text x="720" y="296" text-anchor="start" class="bannerAccent">파괴될 수 있습니다.</text>
+    `;
+  }
+
+  if (bannerText === '실패 시 별이 하락합니다.') {
+    return `
+      <text x="700" y="296" text-anchor="end" class="bannerBase">실패 시 </text>
+      <text x="720" y="296" text-anchor="start" class="bannerAccent">별이 하락합니다.</text>
     `;
   }
 
   return `
-    <text x="748" y="296" text-anchor="end" class="bannerBase">실패 시 </text>
-    <text x="768" y="296" text-anchor="start" class="bannerAccent">별이 유지됩니다.</text>
+    <text x="700" y="296" text-anchor="end" class="bannerBase">실패 시 </text>
+    <text x="720" y="296" text-anchor="start" class="bannerAccent">별이 유지됩니다.</text>
   `;
 }
 
@@ -244,6 +299,10 @@ function normalizeEvent(event) {
     safeguard: Boolean(event?.safeguard),
     starCatch: Boolean(event?.starCatch),
   };
+}
+
+function formatStarLabel(star) {
+  return `${formatInteger(star)}성`;
 }
 
 function formatInteger(value) {

@@ -1,6 +1,9 @@
 import { calculateStarforceCost } from './starforce-cost.js';
 import { STARFORCE_DEFAULT_IMAGE_PATH } from './starforce-assets.js';
-import { buildStarforceRates } from './starforce-rates.js';
+import {
+  buildStarforceRates,
+  shouldStarforceDropOnFailure,
+} from './starforce-rates.js';
 
 export const STARFORCE_SUPPORTED_LEVELS = Object.freeze([
   80,
@@ -18,6 +21,7 @@ export const STARFORCE_SUPPORTED_LEVELS = Object.freeze([
 
 export const STARFORCE_MAX_STAR = 25;
 export const STARFORCE_RECENT_LOG_LIMIT = 8;
+export const STARFORCE_RECOVERY_STAR = 12;
 
 export function isSupportedStarforceLevel(level) {
   return STARFORCE_SUPPORTED_LEVELS.includes(level);
@@ -99,6 +103,8 @@ export function createStarforceSessionState({
     attempts: 0,
     destroyCount: 0,
     destroyed: 0,
+    pendingRecovery: false,
+    recoveryStar: STARFORCE_RECOVERY_STAR,
     recentLogs: [],
     event: {
       name: '없음',
@@ -127,7 +133,18 @@ export function resetStarforceSessionState(session, now = Date.now()) {
   session.attempts = 0;
   session.destroyCount = 0;
   session.destroyed = 0;
+  session.pendingRecovery = false;
   session.recentLogs = [];
+  session.status = 'active';
+  session.updatedAtMs = now;
+  session.statusText = '';
+
+  return session;
+}
+
+export function recoverStarforceSessionState(session, now = Date.now()) {
+  session.currentStar = Math.min(session.recoveryStar ?? STARFORCE_RECOVERY_STAR, session.maxStar);
+  session.pendingRecovery = false;
   session.status = 'active';
   session.updatedAtMs = now;
   session.statusText = '';
@@ -168,18 +185,24 @@ export function performStarforceAttempt(session, options = {}) {
   session.attempts = session.attemptCount;
 
   let resultType = 'fail';
-  let log = `${beforeStar} → ${targetStar} 실패`;
+  let log = `${beforeStar} -> ${targetStar} 실패`;
 
   if (randomValue < rates.success) {
     session.currentStar = targetStar;
     resultType = 'success';
-    log = `${beforeStar} → ${targetStar} 성공`;
+    log = `${beforeStar} -> ${targetStar} 성공`;
   } else if (randomValue >= rates.success + rates.fail) {
-    session.currentStar = 12;
+    session.currentStar = Math.min(session.recoveryStar ?? STARFORCE_RECOVERY_STAR, session.maxStar);
     session.destroyCount += 1;
     session.destroyed = session.destroyCount;
+    session.pendingRecovery = true;
+    session.status = 'destroyed';
+    session.statusText = '파괴됨';
     resultType = 'destroy';
-    log = `${beforeStar} → ${targetStar} 파괴! 흔적 복구로 12성 복구`;
+    log = `${beforeStar} -> ${targetStar} 파괴! 복구 버튼으로 ${session.currentStar}성 복구`;
+  } else if (shouldStarforceDropOnFailure(beforeStar)) {
+    session.currentStar = beforeStar - 1;
+    log = `${beforeStar} -> ${targetStar} 실패 (${session.currentStar}성으로 하락)`;
   }
 
   appendStarforceRecentLog(session, log);

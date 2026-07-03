@@ -11,7 +11,7 @@ import {
   createStarforceSessionState,
   parseStarforceLevelInput,
   performStarforceAttempt,
-  resetStarforceSessionState,
+  recoverStarforceSessionState,
   STARFORCE_SUPPORTED_LEVELS,
 } from './starforce-simulator.js';
 
@@ -176,8 +176,16 @@ export async function handleStarforceComponentInteraction(interaction) {
     return true;
   }
 
-  if (parsed.action === 'reset') {
-    resetStarforceSessionState(session, now);
+  if (parsed.action === 'recover') {
+    if (!session.pendingRecovery) {
+      await interaction.reply({
+        content: '지금은 복구할 장비가 없다냥.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return true;
+    }
+
+    recoverStarforceSessionState(session, now);
     touchStarforceSession(session, now);
     await interaction.update(await buildStarforceMessagePayload(session));
     return true;
@@ -213,8 +221,8 @@ async function buildStarforceMessagePayload(session, options = {}) {
     ],
     attachments: [],
     components: [
-      buildStarforceButtonRow(session.sessionId, {
-        disabled: Boolean(options.disabled) || session.status !== 'active',
+      buildStarforceButtonRow(session, {
+        disabled: Boolean(options.disabled) || session.status === 'ended' || session.status === 'expired',
       }),
     ],
   };
@@ -227,28 +235,44 @@ function buildStarforceMessageContent(session) {
     lines.push(`상태: ${session.statusText}`);
   }
 
+  if (session?.status === 'ended') {
+    lines.push(`총 사용 메소: ${formatStarforceMesos(session?.mesoUsed ?? session?.totalMesos ?? 0)}`);
+  }
+
   return lines.join('\n');
 }
 
-function buildStarforceButtonRow(sessionId, options = {}) {
-  const disabled = Boolean(options.disabled);
+function formatStarforceMesos(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return '0';
+  }
+
+  return Math.trunc(number).toLocaleString('ko-KR');
+}
+
+function buildStarforceButtonRow(session, options = {}) {
+  const allDisabled = Boolean(options.disabled);
+  const canEnhance = !allDisabled && session?.status === 'active';
+  const canRecover = !allDisabled && session?.status === 'destroyed' && Boolean(session?.pendingRecovery);
+  const canEnd = !allDisabled && (session?.status === 'active' || session?.status === 'destroyed');
 
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId(createStarforceCustomId('enhance', sessionId))
+      .setCustomId(createStarforceCustomId('enhance', session.sessionId))
       .setLabel('⭐ 강화')
       .setStyle(ButtonStyle.Primary)
-      .setDisabled(disabled),
+      .setDisabled(!canEnhance),
     new ButtonBuilder()
-      .setCustomId(createStarforceCustomId('reset', sessionId))
-      .setLabel('🔄 초기화')
+      .setCustomId(createStarforceCustomId('recover', session.sessionId))
+      .setLabel('복구')
       .setStyle(ButtonStyle.Secondary)
-      .setDisabled(disabled),
+      .setDisabled(!canRecover),
     new ButtonBuilder()
-      .setCustomId(createStarforceCustomId('end', sessionId))
+      .setCustomId(createStarforceCustomId('end', session.sessionId))
       .setLabel('❌ 종료')
       .setStyle(ButtonStyle.Danger)
-      .setDisabled(disabled),
+      .setDisabled(!canEnd),
   );
 }
 
@@ -257,7 +281,7 @@ function createStarforceCustomId(action, sessionId) {
 }
 
 function parseStarforceCustomId(customId) {
-  const match = String(customId ?? '').match(/^starforce:(enhance|reset|end):([a-f0-9-]+)$/i);
+  const match = String(customId ?? '').match(/^starforce:(enhance|recover|end):([a-f0-9-]+)$/i);
   if (!match) {
     return null;
   }
@@ -284,13 +308,14 @@ function pruneStarforceSessions(now = Date.now()) {
       continue;
     }
 
-    if (session.status === 'active' && isSessionExpired(session, now)) {
+    if ((session.status === 'active' || session.status === 'destroyed') && isSessionExpired(session, now)) {
       session.status = 'expired';
       session.updatedAtMs = now;
       session.statusText = '세션 만료됨';
     }
 
-    if (session.status !== 'active' && now - Number(session.updatedAtMs || 0) > STARFORCE_SESSION_GRACE_MS) {
+    if (session.status !== 'active' && session.status !== 'destroyed'
+      && now - Number(session.updatedAtMs || 0) > STARFORCE_SESSION_GRACE_MS) {
       starforceSessions.delete(sessionId);
     }
   }
@@ -308,7 +333,11 @@ async function disableStarforceMessageFromInteraction(interaction, sessionId, se
     await interaction.message.edit({
       content: '이미 만료된 스타포스다냥.',
       components: [
-        buildStarforceButtonRow(sessionId, { disabled: true }),
+        buildStarforceButtonRow({
+          sessionId,
+          status: 'expired',
+          pendingRecovery: false,
+        }, { disabled: true }),
       ],
     });
   } catch (error) {

@@ -6,8 +6,10 @@ export const STARFORCE_FLOOR_STARS = new Set([10, 15, 20]);
 // fail = 등급 유지 확률 + 단계 하락 확률
 // destroy = 파괴 확률
 //
-// This bot currently simplifies all non-destroy failures to "별 유지" 처리,
-// so keep/drop values are intentionally merged into fail here.
+// Failure routing is handled in the simulator:
+// - 0~5성: 실패 시 유지
+// - 6성 이상: 실패 시 1성 하락
+// - 단, 10/15/20성 시도는 실패해도 유지
 export const STARFORCE_BASE_RATES = Object.freeze([
   { success: 0.95, fail: 0.05, destroy: 0 },
   { success: 0.90, fail: 0.10, destroy: 0 },
@@ -47,6 +49,14 @@ export function getBaseStarforceRates(star) {
   }
 
   return STARFORCE_BASE_RATES[star];
+}
+
+export function isStarforceFailureFloor(star) {
+  return STARFORCE_FLOOR_STARS.has(star);
+}
+
+export function shouldStarforceDropOnFailure(star) {
+  return Number.isInteger(star) && star >= 6 && !isStarforceFailureFloor(star);
 }
 
 export function buildStarforceRates({
