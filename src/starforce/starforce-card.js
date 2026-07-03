@@ -22,7 +22,7 @@ const EQUIPMENT_ICON_LAYOUT = Object.freeze({
   height: 230,
 });
 const RESULT_EFFECT_LAYOUT = Object.freeze({
-  left: 130,
+  left: 150,
   top: 620,
   width: 410,
   height: 110,
