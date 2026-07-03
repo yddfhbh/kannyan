@@ -56,11 +56,14 @@ export async function renderStarforceCard(session) {
 }
 
 function buildOverlaySvg(view) {
+  const canDestroy = Number(view.destroyRate) > 0;
   const bannerText = view.statusText
     ? view.statusText
     : view.isMaxed
       ? '최대 스타포스에 도달했습니다.'
-      : '실패 시 별이 유지됩니다.';
+      : canDestroy
+        ? '실패 시 파괴될 수 있습니다.'
+        : '실패 시 별이 유지됩니다.';
   const badgeText = view.currentStar >= 10
     ? `${formatInteger(view.currentStar)}성+`
     : `${formatInteger(view.currentStar)}성`;
@@ -78,22 +81,22 @@ function buildOverlaySvg(view) {
     .tabText {
       fill: #fff7ef;
       stroke: #5a3712;
-      stroke-width: 5px;
-      font-size: 40px;
+      stroke-width: 6px;
+      font-size: 42px;
       font-weight: 900;
     }
     .bannerBase {
       fill: #fff7ef;
       stroke: #573916;
       stroke-width: 6px;
-      font-size: 33px;
+      font-size: 40px;
       font-weight: 900;
     }
     .bannerAccent {
       fill: #ffdf1f;
       stroke: #6b480b;
       stroke-width: 6px;
-      font-size: 33px;
+      font-size: 40px;
       font-weight: 900;
     }
     .badgeText {
@@ -141,15 +144,15 @@ function buildOverlaySvg(view) {
     .footerLabel {
       fill: #fff8ef;
       stroke: #573916;
-      stroke-width: 6px;
-      font-size: 34px;
+      stroke-width: 7px;
+      font-size: 40px;
       font-weight: 900;
     }
     .footerValue {
       fill: #ffe11f;
       stroke: #72490d;
-      stroke-width: 6px;
-      font-size: 41px;
+      stroke-width: 7px;
+      font-size: 48px;
       font-weight: 900;
     }
   </style>
@@ -179,10 +182,10 @@ function buildOverlaySvg(view) {
     'middle'
   )}
 
-  ${showWarningIcon ? renderWarningIcon(602, 276) : ''}
+  ${showWarningIcon ? renderWarningIcon(594, 255) : ''}
   ${renderBanner(view.statusText, bannerText)}
 
-  ${renderText(214, 402, badgeText, 'badgeText', 'middle')}
+  ${renderText(204, 410, badgeText, 'badgeText', 'middle')}
 
   ${renderText(811, 463, `${formatInteger(view.currentStar)}성`, 'starText', 'middle')}
   ${renderText(973, 463, '›', 'arrowText', 'middle')}
@@ -195,19 +198,26 @@ function buildOverlaySvg(view) {
   ${renderText(742, 802, '파괴확률 :', 'rateLabel')}
   ${renderText(1084, 802, formatPercent(view.destroyRate), 'rateValue')}
 
-  ${renderText(460, 1036, '필요한 메소 :', 'footerLabel')}
-  ${renderText(766, 1036, formatInteger(view.nextCost), 'footerValue')}
+  ${renderText(470, 1014, '필요한 메소 :', 'footerLabel')}
+  ${renderText(758, 1014, formatInteger(view.nextCost), 'footerValue')}
 </svg>`;
 }
 
 function renderBanner(statusText, bannerText) {
   if (statusText) {
-    return renderText(720, 292, bannerText, 'bannerBase', 'middle');
+    return renderText(720, 296, bannerText, 'bannerBase', 'middle');
+  }
+
+  if (bannerText === '실패 시 파괴될 수 있습니다.') {
+    return `
+      <text x="748" y="296" text-anchor="end" class="bannerBase">실패 시 </text>
+      <text x="768" y="296" text-anchor="start" class="bannerAccent">파괴될 수 있습니다.</text>
+    `;
   }
 
   return `
-    <text x="740" y="292" text-anchor="end" class="bannerBase">실패 시 </text>
-    <text x="742" y="292" text-anchor="start" class="bannerAccent">별이 유지됩니다.</text>
+    <text x="748" y="296" text-anchor="end" class="bannerBase">실패 시 </text>
+    <text x="768" y="296" text-anchor="start" class="bannerAccent">별이 유지됩니다.</text>
   `;
 }
 
