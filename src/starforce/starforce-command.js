@@ -221,21 +221,10 @@ async function buildStarforceMessagePayload(session, options = {}) {
 }
 
 function buildStarforceMessageContent(session) {
-  const logs = Array.isArray(session?.recentLogs)
-    ? session.recentLogs.slice(-3).reverse()
-    : [];
   const lines = [];
 
   if (session?.statusText) {
     lines.push(`상태: ${session.statusText}`);
-  }
-
-  lines.push('최근 결과:');
-
-  if (logs.length === 0) {
-    lines.push('아직 강화하지 않았습니다.');
-  } else {
-    lines.push(...logs);
   }
 
   return lines.join('\n');
