@@ -1,8 +1,13 @@
-export const STARFORCE_MAX_STAR = 30;
+export const STARFORCE_MAX_STAR = 25;
 export const STARFORCE_FLOOR_STARS = new Set([10, 15, 20]);
 
-// Base success/destroy values follow the current 2025-03-20 30-star table
-// used by meaegi's simulator. Destroy is stored here as the final rolled chance.
+// Base rates are stored as:
+// success = 성공 확률
+// fail = 등급 유지 확률 + 단계 하락 확률
+// destroy = 파괴 확률
+//
+// This bot currently simplifies all non-destroy failures to "별 유지" 처리,
+// so keep/drop values are intentionally merged into fail here.
 export const STARFORCE_BASE_RATES = Object.freeze([
   { success: 0.95, fail: 0.05, destroy: 0 },
   { success: 0.90, fail: 0.10, destroy: 0 },
@@ -14,21 +19,21 @@ export const STARFORCE_BASE_RATES = Object.freeze([
   { success: 0.65, fail: 0.35, destroy: 0 },
   { success: 0.60, fail: 0.40, destroy: 0 },
   { success: 0.55, fail: 0.45, destroy: 0 },
-  { success: 0.50, fail: 0.50, destroy: 0 },
   { success: 0.45, fail: 0.55, destroy: 0 },
-  { success: 0.40, fail: 0.60, destroy: 0 },
   { success: 0.35, fail: 0.65, destroy: 0 },
-  { success: 0.30, fail: 0.70, destroy: 0 },
-  { success: 0.30, fail: 0.679, destroy: 0.021 },
-  { success: 0.30, fail: 0.679, destroy: 0.021 },
-  { success: 0.15, fail: 0.782, destroy: 0.068 },
-  { success: 0.15, fail: 0.782, destroy: 0.068 },
-  { success: 0.15, fail: 0.765, destroy: 0.085 },
-  { success: 0.30, fail: 0.595, destroy: 0.105 },
-  { success: 0.15, fail: 0.7225, destroy: 0.1275 },
-  { success: 0.15, fail: 0.68, destroy: 0.17 },
-  { success: 0.10, fail: 0.72, destroy: 0.18 },
-  { success: 0.10, fail: 0.72, destroy: 0.18 },
+  { success: 0.30, fail: 0.69, destroy: 0.01 },
+  { success: 0.30, fail: 0.69, destroy: 0.01 },
+  { success: 0.30, fail: 0.69, destroy: 0.01 },
+  { success: 0.30, fail: 0.68, destroy: 0.02 },
+  { success: 0.30, fail: 0.68, destroy: 0.02 },
+  { success: 0.30, fail: 0.68, destroy: 0.02 },
+  { success: 0.30, fail: 0.67, destroy: 0.03 },
+  { success: 0.30, fail: 0.67, destroy: 0.03 },
+  { success: 0.30, fail: 0.63, destroy: 0.07 },
+  { success: 0.30, fail: 0.63, destroy: 0.07 },
+  { success: 0.03, fail: 0.78, destroy: 0.19 },
+  { success: 0.02, fail: 0.69, destroy: 0.29 },
+  { success: 0.01, fail: 0.59, destroy: 0.40 },
   { success: 0.10, fail: 0.72, destroy: 0.18 },
   { success: 0.07, fail: 0.744, destroy: 0.186 },
   { success: 0.05, fail: 0.76, destroy: 0.19 },

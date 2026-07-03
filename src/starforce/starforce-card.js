@@ -15,7 +15,7 @@ const STARFORCE_TAB_TEXT_LAYOUT = Object.freeze({
 export async function renderStarforceCard(session) {
   const event = normalizeEvent(session?.event);
   const currentStar = Number(session?.currentStar ?? 0);
-  const maxStar = Number(session?.maxStar ?? 30);
+  const maxStar = Number(session?.maxStar ?? 25);
   const level = Number(session?.equipLevel ?? session?.level ?? 0);
   const isMaxed = currentStar >= maxStar;
 

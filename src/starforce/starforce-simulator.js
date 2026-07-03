@@ -16,7 +16,7 @@ export const STARFORCE_SUPPORTED_LEVELS = Object.freeze([
   250,
 ]);
 
-export const STARFORCE_MAX_STAR = 30;
+export const STARFORCE_MAX_STAR = 25;
 export const STARFORCE_RECENT_LOG_LIMIT = 8;
 
 export function isSupportedStarforceLevel(level) {
