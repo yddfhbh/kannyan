@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import {
   ActionRowBuilder,
   AttachmentBuilder,
@@ -19,10 +20,10 @@ const STARFORCE_CUSTOM_ID_PREFIX = 'starforce';
 const STARFORCE_SESSION_TTL_MS = 20 * 60 * 1000;
 const STARFORCE_SESSION_CLEANUP_INTERVAL_MS = 60 * 1000;
 const STARFORCE_SESSION_GRACE_MS = 60 * 60 * 1000;
+const STARFORCE_EFFECT_DURATION_MS = 1000;
 const STARFORCE_USAGE_MESSAGE = [
-  '사용법:',
-  '%스타포스 <장비레벨>',
-  '/스타포스 장비레벨:<장비레벨>',
+  '사용법: %스타포스 <장비레벨>',
+  '사용법: /스타포스 장비레벨:<장비레벨>',
   '예시: %스타포스 160',
 ].join('\n');
 const STARFORCE_UNSUPPORTED_LEVEL_MESSAGE =
@@ -159,6 +160,14 @@ export async function handleStarforceComponentInteraction(interaction) {
     return true;
   }
 
+  if (session.isRendering) {
+    await interaction.reply({
+      content: '지금 렌더링 중이다냥. 잠시만 기다려줘.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
   touchStarforceSession(session, now);
 
   if (parsed.action === 'enhance') {
@@ -172,7 +181,7 @@ export async function handleStarforceComponentInteraction(interaction) {
       return true;
     }
 
-    await interaction.update(await buildStarforceMessagePayload(session));
+    await playStarforceResultEffect(interaction, session, attemptResult.type);
     return true;
   }
 
@@ -187,7 +196,7 @@ export async function handleStarforceComponentInteraction(interaction) {
 
     recoverStarforceSessionState(session, now);
     touchStarforceSession(session, now);
-    await interaction.update(await buildStarforceMessagePayload(session));
+    await updateStarforceInteractionMessage(interaction, session);
     return true;
   }
 
@@ -196,9 +205,9 @@ export async function handleStarforceComponentInteraction(interaction) {
     session.updatedAtMs = now;
     session.statusText = '세션 종료됨';
 
-    await interaction.update(await buildStarforceMessagePayload(session, {
+    await updateStarforceInteractionMessage(interaction, session, {
       disabled: true,
-    }));
+    });
     return true;
   }
 
@@ -210,7 +219,9 @@ export async function handleStarforceComponentInteraction(interaction) {
 }
 
 async function buildStarforceMessagePayload(session, options = {}) {
-  const image = await renderStarforceCard(session);
+  const image = await renderStarforceCard(session, {
+    effectType: options.effectType,
+  });
 
   return {
     content: buildStarforceMessageContent(session),
@@ -223,6 +234,7 @@ async function buildStarforceMessagePayload(session, options = {}) {
     components: [
       buildStarforceButtonRow(session, {
         disabled: Boolean(options.disabled) || session.status === 'ended' || session.status === 'expired',
+        temporarilyLocked: Boolean(options.temporarilyLocked),
       }),
     ],
   };
@@ -253,9 +265,10 @@ function formatStarforceMesos(value) {
 
 function buildStarforceButtonRow(session, options = {}) {
   const allDisabled = Boolean(options.disabled);
-  const canEnhance = !allDisabled && session?.status === 'active';
-  const canRecover = !allDisabled && session?.status === 'destroyed' && Boolean(session?.pendingRecovery);
-  const canEnd = !allDisabled && (session?.status === 'active' || session?.status === 'destroyed');
+  const temporarilyLocked = Boolean(options.temporarilyLocked);
+  const canEnhance = !allDisabled && !temporarilyLocked && session?.status === 'active';
+  const canRecover = !allDisabled && !temporarilyLocked && session?.status === 'destroyed' && Boolean(session?.pendingRecovery);
+  const canEnd = !allDisabled && !temporarilyLocked && (session?.status === 'active' || session?.status === 'destroyed');
 
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -274,6 +287,42 @@ function buildStarforceButtonRow(session, options = {}) {
       .setStyle(ButtonStyle.Danger)
       .setDisabled(!canEnd),
   );
+}
+
+async function playStarforceResultEffect(interaction, session, resultType) {
+  session.isRendering = true;
+
+  try {
+    await interaction.deferUpdate();
+
+    await interaction.message.edit(await buildStarforceMessagePayload(session, {
+      temporarilyLocked: true,
+      effectType: resultType,
+    }));
+
+    await delay(STARFORCE_EFFECT_DURATION_MS);
+
+    await interaction.message.edit(await buildStarforceMessagePayload(session));
+  } finally {
+    session.isRendering = false;
+  }
+}
+
+async function updateStarforceInteractionMessage(interaction, session, options = {}) {
+  session.isRendering = true;
+
+  try {
+    await interaction.deferUpdate();
+
+    await interaction.message.edit(await buildStarforceMessagePayload(session, {
+      ...options,
+      temporarilyLocked: true,
+    }));
+
+    await interaction.message.edit(await buildStarforceMessagePayload(session, options));
+  } finally {
+    session.isRendering = false;
+  }
 }
 
 function createStarforceCustomId(action, sessionId) {
@@ -314,8 +363,11 @@ function pruneStarforceSessions(now = Date.now()) {
       session.statusText = '세션 만료됨';
     }
 
-    if (session.status !== 'active' && session.status !== 'destroyed'
-      && now - Number(session.updatedAtMs || 0) > STARFORCE_SESSION_GRACE_MS) {
+    if (
+      session.status !== 'active'
+      && session.status !== 'destroyed'
+      && now - Number(session.updatedAtMs || 0) > STARFORCE_SESSION_GRACE_MS
+    ) {
       starforceSessions.delete(sessionId);
     }
   }

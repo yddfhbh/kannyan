@@ -13,11 +13,19 @@ import {
 
 const FRAME_WIDTH = 1439;
 const FRAME_HEIGHT = 1093;
+const STARFORCE_BASE_CARD_CACHE_KEY = '__starforceBaseCardCacheKey';
+const STARFORCE_BASE_CARD_CACHE_BUFFER = '__starforceBaseCardCacheBuffer';
 const EQUIPMENT_ICON_LAYOUT = Object.freeze({
   left: 226,
   top: 490,
   width: 230,
   height: 230,
+});
+const RESULT_EFFECT_LAYOUT = Object.freeze({
+  left: 130,
+  top: 620,
+  width: 410,
+  height: 110,
 });
 const STARFORCE_TAB_TEXT_LAYOUT = Object.freeze({
   scroll: { x: 266, y: 171, label: '주문서' },
@@ -25,7 +33,7 @@ const STARFORCE_TAB_TEXT_LAYOUT = Object.freeze({
   transfer: { x: 1174, y: 171, label: '장비전송' },
 });
 
-export async function renderStarforceCard(session) {
+export async function renderStarforceCard(session, options = {}) {
   const event = normalizeEvent(session?.event);
   const currentStar = Number(session?.currentStar ?? 0);
   const maxStar = Number(session?.maxStar ?? 25);
@@ -58,24 +66,57 @@ export async function renderStarforceCard(session) {
       failRate: rates.fail,
       destroyRate: rates.destroy,
       statusText: String(session?.statusText ?? '').trim(),
+      effectType: normalizeEffectType(options.effectType),
       isMaxed,
     }),
     { background: 'transparent' }
   );
 
+  const baseCardBuffer = await getCachedBaseCardBuffer(session, isDestroyed);
+
+  return sharp(baseCardBuffer)
+    .composite([
+      {
+        input: overlayBuffer,
+        left: 0,
+        top: 0,
+      },
+    ])
+    .png()
+    .toBuffer();
+}
+
+async function getCachedBaseCardBuffer(session, isDestroyed) {
+  const framePath = session?.imageAssetPath || STARFORCE_DEFAULT_IMAGE_PATH;
+  const cacheKey = `${framePath}:${isDestroyed ? 'destroyed' : 'normal'}`;
+
+  if (
+    session
+    && session[STARFORCE_BASE_CARD_CACHE_KEY] === cacheKey
+    && Buffer.isBuffer(session[STARFORCE_BASE_CARD_CACHE_BUFFER])
+  ) {
+    return session[STARFORCE_BASE_CARD_CACHE_BUFFER];
+  }
+
+  const baseCardBuffer = await buildBaseCardBuffer(framePath, isDestroyed);
+
+  if (session && typeof session === 'object') {
+    session[STARFORCE_BASE_CARD_CACHE_KEY] = cacheKey;
+    session[STARFORCE_BASE_CARD_CACHE_BUFFER] = baseCardBuffer;
+  }
+
+  return baseCardBuffer;
+}
+
+async function buildBaseCardBuffer(framePath, isDestroyed) {
   const equipmentIconBuffer = await renderEquipmentIcon(isDestroyed);
 
-  return sharp(session?.imageAssetPath || STARFORCE_DEFAULT_IMAGE_PATH)
+  return sharp(framePath)
     .composite([
       {
         input: equipmentIconBuffer,
         left: EQUIPMENT_ICON_LAYOUT.left,
         top: EQUIPMENT_ICON_LAYOUT.top,
-      },
-      {
-        input: overlayBuffer,
-        left: 0,
-        top: 0,
       },
     ])
     .png()
@@ -203,6 +244,26 @@ function buildOverlaySvg(view) {
       font-size: 48px;
       font-weight: 900;
     }
+    .effectText {
+      fill: #ffffff;
+      stroke: #17212b;
+      stroke-width: 10px;
+      font-size: 70px;
+      font-weight: 900;
+      font-style: italic;
+    }
+    .effectTextSuccess {
+      fill: #d8ffb4;
+      stroke: #28491d;
+    }
+    .effectTextFail {
+      fill: #e9e9e9;
+      stroke: #2d2d2d;
+    }
+    .effectTextDestroy {
+      fill: #ffd7d7;
+      stroke: #5a1111;
+    }
   </style>
 
   ${renderText(
@@ -248,6 +309,8 @@ function buildOverlaySvg(view) {
 
   ${renderText(470, 1014, '필요한 메소 :', 'footerLabel')}
   ${renderText(758, 1014, formatInteger(view.nextCost), 'footerValue')}
+
+  ${renderResultEffect(view.effectType)}
 </svg>`;
 }
 
@@ -276,6 +339,64 @@ function renderBanner(statusText, bannerText) {
   `;
 }
 
+function renderResultEffect(effectType) {
+  if (!effectType) {
+    return '';
+  }
+
+  const effectMeta = getResultEffectMeta(effectType);
+  if (!effectMeta) {
+    return '';
+  }
+
+  const centerX = RESULT_EFFECT_LAYOUT.left + (RESULT_EFFECT_LAYOUT.width / 2);
+  const centerY = RESULT_EFFECT_LAYOUT.top + (RESULT_EFFECT_LAYOUT.height / 2);
+
+  return `
+    <g>
+      <rect
+        x="${RESULT_EFFECT_LAYOUT.left}"
+        y="${RESULT_EFFECT_LAYOUT.top}"
+        width="${RESULT_EFFECT_LAYOUT.width}"
+        height="${RESULT_EFFECT_LAYOUT.height}"
+        rx="18"
+        fill="rgba(10, 16, 24, 0.76)"
+        stroke="${effectMeta.stroke}"
+        stroke-width="4"
+      />
+      ${renderText(centerX, centerY, effectMeta.label, `effectText ${effectMeta.className}`, 'middle', 'middle')}
+    </g>
+  `;
+}
+
+function getResultEffectMeta(effectType) {
+  if (effectType === 'success') {
+    return {
+      label: 'SUCCESS',
+      className: 'effectTextSuccess',
+      stroke: 'rgba(102, 173, 74, 0.9)',
+    };
+  }
+
+  if (effectType === 'fail') {
+    return {
+      label: 'FAIL',
+      className: 'effectTextFail',
+      stroke: 'rgba(164, 164, 164, 0.88)',
+    };
+  }
+
+  if (effectType === 'destroy') {
+    return {
+      label: 'DESTROYED',
+      className: 'effectTextDestroy',
+      stroke: 'rgba(195, 67, 67, 0.92)',
+    };
+  }
+
+  return null;
+}
+
 function renderWarningIcon(x, y) {
   return `
     <g transform="translate(${x} ${y})">
@@ -299,6 +420,14 @@ function normalizeEvent(event) {
     safeguard: Boolean(event?.safeguard),
     starCatch: Boolean(event?.starCatch),
   };
+}
+
+function normalizeEffectType(effectType) {
+  if (effectType === 'success' || effectType === 'fail' || effectType === 'destroy') {
+    return effectType;
+  }
+
+  return '';
 }
 
 function formatStarLabel(star) {
