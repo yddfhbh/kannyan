@@ -32,6 +32,7 @@ const STARFORCE_SESSION_STORE_KEYS = Object.freeze([
   'channelId',
   'messageId',
   'statusText',
+  'luckEvaluation',
 ]);
 
 let loadPromise = null;
@@ -134,6 +135,9 @@ function sanitizeStoredSession(value) {
   session.event = session.event && typeof session.event === 'object' ? session.event : {};
   session.status = typeof session.status === 'string' ? session.status : 'active';
   session.statusText = typeof session.statusText === 'string' ? session.statusText : '';
+  session.luckEvaluation = session.luckEvaluation && typeof session.luckEvaluation === 'object'
+    ? session.luckEvaluation
+    : null;
 
   return session;
 }

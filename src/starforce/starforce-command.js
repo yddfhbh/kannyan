@@ -11,6 +11,7 @@ import {
   primeStarforceCardCache,
   renderStarforceCard,
 } from './starforce-card.js';
+import { renderStarforceRankingCard } from './starforce-ranking-card.js';
 import {
   createStarforceSessionState,
   parseStarforceLevelInput,
@@ -27,6 +28,10 @@ import {
   ensureStarforceRankingsLoaded,
   getStarforceLeaderboard,
 } from './starforce-ranking-store.js';
+import {
+  ensureStarforceStatisticsLoaded,
+  evaluateStarforceLuck,
+} from './starforce-statistics.js';
 
 const STARFORCE_CUSTOM_ID_PREFIX = 'starforce';
 const STARFORCE_SESSION_TTL_MS = 20 * 60 * 1000;
@@ -62,6 +67,11 @@ export function initStarforceCommand() {
 
   void ensureStarforceRankingsLoaded().catch((error) => {
     console.error('[STARFORCE] failed to load persisted rankings:');
+    console.error(error);
+  });
+
+  void ensureStarforceStatisticsLoaded().catch((error) => {
+    console.error('[STARFORCE] failed to load precomputed statistics:');
     console.error(error);
   });
 
@@ -171,7 +181,7 @@ export async function handleStarforceRankingPercentCommandMessage(message, input
 
   const leaderboard = await getStarforceLeaderboard(parsed.level, STARFORCE_RANKING_LIMIT);
   await message.reply({
-    content: buildStarforceLeaderboardMessage(parsed.level, leaderboard),
+    ...(await buildStarforceLeaderboardPayload(parsed.level, leaderboard)),
     allowedMentions: { repliedUser: false, parse: [] },
   });
   return true;
@@ -200,7 +210,7 @@ export async function handleStarforceRankingSlashCommand(interaction) {
 
   const leaderboard = await getStarforceLeaderboard(parsed.level, STARFORCE_RANKING_LIMIT);
   await interaction.reply({
-    content: buildStarforceLeaderboardMessage(parsed.level, leaderboard),
+    ...(await buildStarforceLeaderboardPayload(parsed.level, leaderboard)),
     allowedMentions: { parse: [] },
   });
   return true;
@@ -297,6 +307,7 @@ export async function handleStarforceComponentInteraction(interaction) {
   if (parsed.action === 'end') {
     session.status = 'ended';
     session.updatedAtMs = now;
+    session.luckEvaluation = await buildStarforceLuckEvaluation(session);
     session.statusText = '세션 종료됨';
 
     await addStarforceRankingEntry({
@@ -349,11 +360,19 @@ function buildStarforceMessageContent(session) {
   const lines = [];
 
   if (session?.statusText) {
-    lines.push(`상태: ${session.statusText}`);
+    lines.push(`\uC0C1\uD0DC: ${session.statusText}`);
   }
 
   if (session?.status === 'ended') {
-    lines.push(`총 사용 메소: ${formatStarforceMesos(session?.mesoUsed ?? session?.totalMesos ?? 0)}`);
+    lines.push(`\uC0AC\uC6A9 \uBA54\uC18C: ${formatStarforceMesos(session?.mesoUsed ?? session?.totalMesos ?? 0)}`);
+    lines.push(`\uC2DC\uB3C4: ${formatStarforceCount(session?.attempts ?? session?.attemptCount ?? 0)}\uD68C`);
+    lines.push(`\uD30C\uAD34: ${formatStarforceCount(session?.destroyed ?? session?.destroyCount ?? 0)}\uD68C`);
+
+    const luckLines = buildStarforceLuckLines(session?.luckEvaluation);
+    if (luckLines.length > 0) {
+      lines.push('', '\uC6B4 \uD3C9\uAC00:');
+      lines.push(...luckLines);
+    }
   }
 
   return lines.join('\n');
@@ -368,21 +387,84 @@ function formatStarforceMesos(value) {
   return Math.trunc(number).toLocaleString('ko-KR');
 }
 
-function buildStarforceLeaderboardMessage(level, leaderboard) {
-  const lines = [`⭐ ${level}제 강화 랭킹`];
-
-  if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
-    lines.push('아직 기록이 없다냥.');
-    return lines.join('\n');
+function formatStarforceCount(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return '0';
   }
 
-  for (const [index, entry] of leaderboard.entries()) {
-    lines.push(
-      `${index + 1}. ${entry.nickname} - ${entry.star}성 - ${formatStarforceMesos(entry.mesosUsed)} 메소`
-    );
+  return Math.trunc(number).toLocaleString('ko-KR');
+}
+
+function buildStarforceLuckLines(evaluation) {
+  if (!evaluation || typeof evaluation !== 'object') {
+    return [];
   }
 
-  return lines.join('\n');
+  const lines = [];
+  const displayedPercent = Number(evaluation.displayedPercent);
+  const direction = evaluation.direction === 'top' ? '\uC0C1\uC704' : '\uD558\uC704';
+
+  lines.push(`${evaluation.level}\uC81C ${evaluation.currentStar}\uC131 \uB3C4\uB2EC \uBE44\uC6A9 \uAE30\uC900 ${direction} ${Number.isFinite(displayedPercent) ? displayedPercent.toFixed(1) : "50.0"}% \uC6B4`);
+
+  const averageDelta = Number(evaluation.averageDelta);
+  if (!Number.isFinite(averageDelta) || Math.abs(averageDelta) < 0.5) {
+    lines.push('\uD3C9\uADE0\uACFC \uAC19\uC740 \uBA54\uC18C\uB97C \uC0AC\uC6A9\uD588\uC2B5\uB2C8\uB2E4.');
+    return lines;
+  }
+
+  if (averageDelta < 0) {
+    lines.push(`\uD3C9\uADE0\uBCF4\uB2E4 ${formatStarforceMesos(Math.abs(averageDelta))} \uBA54\uC18C \uC544\uAF08\uC2B5\uB2C8\uB2E4.`);
+    return lines;
+  }
+
+  lines.push(`\uD3C9\uADE0\uBCF4\uB2E4 ${formatStarforceMesos(averageDelta)} \uBA54\uC18C \uB354 \uC0AC\uC6A9\uD588\uC2B5\uB2C8\uB2E4.`);
+  return lines;
+}
+
+async function buildStarforceLuckEvaluation(session) {
+  const currentStar = Number(session?.currentStar ?? 0);
+  if (!Number.isFinite(currentStar) || currentStar <= 0) {
+    return null;
+  }
+
+  try {
+    return await evaluateStarforceLuck({
+      level: session?.equipLevel ?? session?.level,
+      currentStar,
+      mesoUsed: session?.mesoUsed ?? session?.totalMesos ?? 0,
+      eventName: 'none',
+    });
+  } catch (error) {
+    console.error('[STARFORCE] failed to evaluate luck summary:');
+    console.error(error);
+    return null;
+  }
+}
+
+async function buildStarforceLeaderboardPayload(level, leaderboard) {
+  const image = await renderStarforceRankingCard({
+    level,
+    title: `${level}\uC81C \uAC15\uD654 \uB7AD\uD0B9`,
+    subtitle: `TOP ${Math.min(Array.isArray(leaderboard) ? leaderboard.length : 0, STARFORCE_RANKING_LIMIT)} / \uC885\uB8CC \uAE30\uB85D \uAE30\uC900`,
+    generatedAt: Date.now(),
+    rows: (Array.isArray(leaderboard) ? leaderboard : []).map((entry, index) => ({
+      rank: index + 1,
+      nickname: entry.nickname,
+      star: entry.star,
+      mesosUsed: entry.mesosUsed,
+    })),
+    footerLeft: '\uBCC4 \uB192\uC740 \uC21C / \uBA54\uC18C \uC801\uC740 \uC21C / \uC2DC\uB3C4 \uC801\uC740 \uC21C',
+    footerRight: 'KANNYAN STARFORCE',
+  });
+
+  return {
+    files: [
+      new AttachmentBuilder(image, {
+        name: `starforce-ranking-${level}.png`,
+      }),
+    ],
+  };
 }
 
 function getInteractionDisplayName(interaction, session) {
