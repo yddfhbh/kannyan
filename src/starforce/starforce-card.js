@@ -56,6 +56,7 @@ export async function renderStarforceCard(session, options = {}) {
       star: currentStar,
       event,
     });
+  const totalUsedMeso = Number(session?.mesoUsed ?? session?.totalMesos ?? 0);
 
   const rates = isMaxed
     ? { success: 0, fail: 0, destroy: 0 }
@@ -73,6 +74,7 @@ export async function renderStarforceCard(session, options = {}) {
     currentStar,
     nextStarText: isMaxed ? 'MAX' : formatStarLabel(currentStar + 1),
     nextCost,
+    totalUsedMeso,
     successRate: rates.success,
     failRate: rates.fail,
     destroyRate: rates.destroy,
@@ -117,11 +119,13 @@ export async function primeStarforceCardCache(session) {
       star: currentStar,
       event,
     });
+  const totalUsedMeso = Number(session?.mesoUsed ?? session?.totalMesos ?? 0);
 
   getOverlayBuffer({
     currentStar,
     nextStarText: isMaxed ? 'MAX' : formatStarLabel(currentStar + 1),
     nextCost: currentNextCost,
+    totalUsedMeso,
     successRate: currentRates.success,
     failRate: currentRates.fail,
     destroyRate: currentRates.destroy,
@@ -160,6 +164,7 @@ export async function primeStarforceCardCache(session) {
       currentStar: candidateStar,
       nextStarText: candidateIsMaxed ? 'MAX' : formatStarLabel(candidateStar + 1),
       nextCost: candidateNextCost,
+      totalUsedMeso,
       successRate: candidateRates.success,
       failRate: candidateRates.fail,
       destroyRate: candidateRates.destroy,
@@ -264,11 +269,13 @@ function buildOverlaySvg(view) {
       ? view.statusText
       : view.isMaxed
         ? '최대 스타포스에 도달했습니다.'
-        : canDestroy
-          ? '실패 시 파괴될 수 있습니다.'
-          : failureDrops
-            ? '실패 시 별이 하락합니다.'
-            : '실패 시 별이 유지됩니다.';
+        : canDestroy && failureDrops
+          ? '실패 시 별이 하락하거나 파괴됩니다.'
+          : canDestroy
+            ? '실패 시 파괴될 수 있습니다.'
+            : failureDrops
+              ? '실패 시 별이 하락합니다.'
+              : '실패 시 별이 유지됩니다.';
   const badgeText = formatStarLabel(view.currentStar);
   const showWarningIcon = !view.statusText && !view.isMaxed && !view.chanceTime;
 
@@ -426,6 +433,13 @@ function renderBanner(statusText, bannerText, chanceTime) {
     return `
       <text x="700" y="296" text-anchor="end" class="bannerBase">실패 시 </text>
       <text x="720" y="296" text-anchor="start" class="bannerAccent">파괴될 수 있습니다.</text>
+    `;
+  }
+
+  if (bannerText === '실패 시 별이 하락하거나 파괴됩니다.') {
+    return `
+      <text x="700" y="296" text-anchor="end" class="bannerBase">실패 시 </text>
+      <text x="720" y="296" text-anchor="start" class="bannerAccent">별이 하락하거나 파괴됩니다.</text>
     `;
   }
 

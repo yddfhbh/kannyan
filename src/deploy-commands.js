@@ -407,6 +407,14 @@ new SlashCommandBuilder()
           { name: '250', value: 250 }
         )
     )
+    .addIntegerOption((option) =>
+      option
+        .setName('출력수')
+        .setDescription('몇 명까지 표시할지, 1명부터 50명까지')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(50)
+    )
     .toJSON(),
 ];
 

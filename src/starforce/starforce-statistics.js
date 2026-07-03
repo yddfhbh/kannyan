@@ -7,13 +7,24 @@ const STARFORCE_STATISTICS_PATH = fileURLToPath(
 
 let loadPromise = null;
 let statisticsIndex = new Map();
+let statisticsLoaded = false;
 
 export async function ensureStarforceStatisticsLoaded() {
+  if (statisticsLoaded) {
+    return;
+  }
+
   if (!loadPromise) {
     loadPromise = loadStarforceStatistics();
   }
 
-  await loadPromise;
+  const loadedCount = await loadPromise;
+  if (loadedCount > 0) {
+    statisticsLoaded = true;
+    return;
+  }
+
+  loadPromise = null;
 }
 
 export async function getStarforceStatisticsEntry(level, star, eventName = 'none') {
@@ -81,7 +92,7 @@ async function loadStarforceStatistics() {
       console.error('[STARFORCE] failed to load statistics table:');
       console.error(error);
     }
-    return;
+    return 0;
   }
 
   let parsed;
@@ -90,7 +101,7 @@ async function loadStarforceStatistics() {
   } catch (error) {
     console.error('[STARFORCE] invalid statistics table JSON:');
     console.error(error);
-    return;
+    return 0;
   }
 
   const entries = parsed?.entries && typeof parsed.entries === 'object'
@@ -105,6 +116,8 @@ async function loadStarforceStatistics() {
 
     statisticsIndex.set(key, sanitized);
   }
+
+  return statisticsIndex.size;
 }
 
 function sanitizeStatisticsEntry(key, entry) {

@@ -154,7 +154,7 @@ function renderRankingColumn({ rows, columnIndex, x, y, width, rowHeight, column
   <rect x="${x}" y="${y}" width="${width}" height="${columnHeaderHeight}" rx="8" class="columnHeader"/>
   <text x="${x + 18}" y="${y + 22}" class="columnLabel">#</text>
   <text x="${x + 74}" y="${y + 22}" class="columnLabel">PLAYER</text>
-  <text x="${x + width - 118}" y="${y + 22}" text-anchor="end" class="columnLabel">STAR</text>
+  <text x="${x + width - 146}" y="${y + 22}" text-anchor="end" class="columnLabel">STAR</text>
   <text x="${x + width - 18}" y="${y + 22}" text-anchor="end" class="columnLabel">MESO</text>`;
 
   if (!rows.length) {
@@ -184,7 +184,7 @@ function renderRankingRow({ entry, index, x, y, width, height }) {
   <line x1="${x + 16}" y1="${y + height}" x2="${x + width - 16}" y2="${y + height}" class="separator"/>
   <text x="${x + 18}" y="${baseline}" class="place">#${escapeXml(entry.rank)}</text>
   <text x="${x + 74}" y="${baseline}" class="player">${escapeXml(truncatePlayerName(entry.nickname))}</text>
-  <text x="${x + width - 118}" y="${baseline}" text-anchor="end" class="star">${escapeXml(`${formatStar(entry.star)}성`)}</text>
+  <text x="${x + width - 146}" y="${baseline}" text-anchor="end" class="star">${escapeXml(`${formatStar(entry.star)}성`)}</text>
   <text x="${x + width - 18}" y="${baseline}" text-anchor="end" class="meso">${escapeXml(formatMeso(entry.mesosUsed))}</text>`;
 }
 

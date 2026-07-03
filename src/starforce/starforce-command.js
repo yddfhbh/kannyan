@@ -47,6 +47,8 @@ const STARFORCE_UNSUPPORTED_LEVEL_MESSAGE =
   `지원하는 장비 레벨: ${STARFORCE_SUPPORTED_LEVELS.join(', ')}`;
 
 const STARFORCE_RANKING_LIMIT = 50;
+const STARFORCE_RANKING_USAGE_MESSAGE = '사용법: %강화랭킹 <장비레벨> <출력수>\n예시: %강화랭킹 160 10';
+const STARFORCE_RANKING_SLASH_USAGE_MESSAGE = '사용법: /강화랭킹 장비레벨:<장비레벨> 출력수:<1~50>';
 const starforceSessions = new Map();
 
 let cleanupTimer = null;
@@ -168,20 +170,20 @@ export async function handleStarforceSlashCommand(interaction) {
 export async function handleStarforceRankingPercentCommandMessage(message, input) {
   await ensureStarforceRankingsLoaded();
 
-  const parsed = parseStarforceLevelInput(input);
+  const parsed = parseStarforceRankingInput(input);
   if (!parsed.ok) {
     await message.reply({
       content: parsed.error === 'unsupported_level'
         ? STARFORCE_UNSUPPORTED_LEVEL_MESSAGE
-        : '사용법: %강화랭킹 <장비레벨>\n예시: %강화랭킹 160',
+        : STARFORCE_RANKING_USAGE_MESSAGE,
       allowedMentions: { repliedUser: false },
     });
     return true;
   }
 
-  const leaderboard = await getStarforceLeaderboard(parsed.level, STARFORCE_RANKING_LIMIT);
+  const leaderboard = await getStarforceLeaderboard(parsed.level, parsed.limit);
   await message.reply({
-    ...(await buildStarforceLeaderboardPayload(parsed.level, leaderboard)),
+    ...(await buildStarforceLeaderboardPayload(parsed.level, leaderboard, parsed.limit)),
     allowedMentions: { repliedUser: false, parse: [] },
   });
   return true;
@@ -195,22 +197,23 @@ export async function handleStarforceRankingSlashCommand(interaction) {
   }
 
   const level = interaction.options.getInteger('장비레벨', true);
+  const limit = interaction.options.getInteger('출력수', true);
   const parsed = parseStarforceLevelInput(String(level));
 
-  if (!parsed.ok) {
+  if (!parsed.ok || !isValidStarforceRankingLimit(limit)) {
     await interaction.reply({
-      content: parsed.error === 'unsupported_level'
+      content: parsed?.error === 'unsupported_level'
         ? STARFORCE_UNSUPPORTED_LEVEL_MESSAGE
-        : '사용법: /강화랭킹 장비레벨:<장비레벨>',
+        : STARFORCE_RANKING_SLASH_USAGE_MESSAGE,
       allowedMentions: { parse: [] },
       flags: MessageFlags.Ephemeral,
     });
     return true;
   }
 
-  const leaderboard = await getStarforceLeaderboard(parsed.level, STARFORCE_RANKING_LIMIT);
+  const leaderboard = await getStarforceLeaderboard(parsed.level, limit);
   await interaction.reply({
-    ...(await buildStarforceLeaderboardPayload(parsed.level, leaderboard)),
+    ...(await buildStarforceLeaderboardPayload(parsed.level, leaderboard, limit)),
     allowedMentions: { parse: [] },
   });
   return true;
@@ -358,13 +361,15 @@ async function buildStarforceMessagePayload(session, options = {}) {
 
 function buildStarforceMessageContent(session) {
   const lines = [];
+  const mesoLine = `\uC0AC\uC6A9 \uBA54\uC18C: ${formatStarforceMesos(session?.mesoUsed ?? session?.totalMesos ?? 0)}`;
 
   if (session?.statusText) {
     lines.push(`\uC0C1\uD0DC: ${session.statusText}`);
   }
 
+  lines.push(mesoLine);
+
   if (session?.status === 'ended') {
-    lines.push(`\uC0AC\uC6A9 \uBA54\uC18C: ${formatStarforceMesos(session?.mesoUsed ?? session?.totalMesos ?? 0)}`);
     lines.push(`\uC2DC\uB3C4: ${formatStarforceCount(session?.attempts ?? session?.attemptCount ?? 0)}\uD68C`);
     lines.push(`\uD30C\uAD34: ${formatStarforceCount(session?.destroyed ?? session?.destroyCount ?? 0)}\uD68C`);
 
@@ -442,11 +447,45 @@ async function buildStarforceLuckEvaluation(session) {
   }
 }
 
-async function buildStarforceLeaderboardPayload(level, leaderboard) {
+function parseStarforceRankingInput(input) {
+  const normalized = String(input ?? '').trim();
+  const tokens = normalized.split(/\s+/).filter(Boolean);
+
+  if (tokens.length !== 2) {
+    return { ok: false, error: 'usage' };
+  }
+
+  const parsedLevel = parseStarforceLevelInput(tokens[0]);
+  if (!parsedLevel.ok) {
+    return parsedLevel;
+  }
+
+  if (!/^\d+$/.test(tokens[1])) {
+    return { ok: false, error: 'usage' };
+  }
+
+  const limit = Number(tokens[1]);
+  if (!isValidStarforceRankingLimit(limit)) {
+    return { ok: false, error: 'usage' };
+  }
+
+  return {
+    ok: true,
+    level: parsedLevel.level,
+    limit,
+  };
+}
+
+function isValidStarforceRankingLimit(value) {
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 1 && number <= STARFORCE_RANKING_LIMIT;
+}
+
+async function buildStarforceLeaderboardPayload(level, leaderboard, requestedLimit = STARFORCE_RANKING_LIMIT) {
   const image = await renderStarforceRankingCard({
     level,
     title: `${level}\uC81C \uAC15\uD654 \uB7AD\uD0B9`,
-    subtitle: `TOP ${Math.min(Array.isArray(leaderboard) ? leaderboard.length : 0, STARFORCE_RANKING_LIMIT)} / \uC885\uB8CC \uAE30\uB85D \uAE30\uC900`,
+    subtitle: `TOP ${Math.min(Array.isArray(leaderboard) ? leaderboard.length : 0, requestedLimit)} / \uC885\uB8CC \uAE30\uB85D \uAE30\uC900`,
     generatedAt: Date.now(),
     rows: (Array.isArray(leaderboard) ? leaderboard : []).map((entry, index) => ({
       rank: index + 1,
