@@ -22,6 +22,9 @@ const STARFORCE_SESSION_STORE_KEYS = Object.freeze([
   'recoveryStar',
   'consecutiveDropCount',
   'chanceTimePending',
+  'starCatchEnabled',
+  'pendingStarCatch',
+  'lastStarCatchResult',
   'recentLogs',
   'event',
   'imageAssetPath',
@@ -133,6 +136,13 @@ function sanitizeStoredSession(value) {
   session.pendingRecovery = Boolean(session.pendingRecovery);
   session.consecutiveDropCount = Number(session.consecutiveDropCount || 0);
   session.chanceTimePending = Boolean(session.chanceTimePending);
+  session.starCatchEnabled = Boolean(session.starCatchEnabled);
+  session.pendingStarCatch = session.pendingStarCatch && typeof session.pendingStarCatch === 'object'
+    ? session.pendingStarCatch
+    : null;
+  session.lastStarCatchResult = session.lastStarCatchResult && typeof session.lastStarCatchResult === 'object'
+    ? session.lastStarCatchResult
+    : null;
   session.recentLogs = Array.isArray(session.recentLogs) ? session.recentLogs.slice(-8) : [];
   session.event = session.event && typeof session.event === 'object' ? session.event : {};
   session.status = typeof session.status === 'string' ? session.status : 'active';

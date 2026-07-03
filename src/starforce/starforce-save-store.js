@@ -108,6 +108,7 @@ function sanitizeSaveSlotEntry(value) {
   const recoveryStar = Number(value.recoveryStar ?? 12);
   const consecutiveDropCount = Number(value.consecutiveDropCount ?? 0);
   const chanceTimePending = Boolean(value.chanceTimePending);
+  const starCatchEnabled = Boolean(value.starCatchEnabled);
   const imageAssetPath = String(value.imageAssetPath ?? '').trim();
   const savedAtMs = Number(value.savedAtMs ?? Date.now());
   const event = value.event && typeof value.event === 'object'
@@ -140,6 +141,7 @@ function sanitizeSaveSlotEntry(value) {
     recoveryStar: Number.isFinite(recoveryStar) ? recoveryStar : 12,
     consecutiveDropCount: Number.isFinite(consecutiveDropCount) ? consecutiveDropCount : 0,
     chanceTimePending,
+    starCatchEnabled,
     imageAssetPath,
     savedAtMs: Number.isFinite(savedAtMs) ? savedAtMs : Date.now(),
     event,

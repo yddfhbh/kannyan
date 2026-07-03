@@ -14,10 +14,13 @@ import {
 import { renderStarforceRankingCard } from './starforce-ranking-card.js';
 import {
   createStarforceSessionState,
+  isPendingStarCatchExpired,
+  isStarforceChanceTime,
   normalizeStarforceSessionState,
   parseStarforceLevelInput,
   performStarforceAttempt,
   recoverStarforceSessionState,
+  STARFORCE_STAR_CATCH_TIMEOUT_MS,
   STARFORCE_SUPPORTED_LEVELS,
 } from './starforce-simulator.js';
 import {
@@ -45,6 +48,11 @@ const STARFORCE_SESSION_TTL_MS = 20 * 60 * 1000;
 const STARFORCE_SESSION_CLEANUP_INTERVAL_MS = 60 * 1000;
 const STARFORCE_SESSION_GRACE_MS = 60 * 60 * 1000;
 const STARFORCE_EFFECT_DURATION_MS = 500;
+const STARFORCE_STAR_CATCH_CHOICES = Object.freeze([
+  { index: 0, label: '왼쪽' },
+  { index: 1, label: '가운데' },
+  { index: 2, label: '오른쪽' },
+]);
 const STARFORCE_USAGE_MESSAGE = [
   '사용법: %스타포스 <장비레벨>',
   '사용법: %스타포스 불러오기',
@@ -372,17 +380,131 @@ export async function handleStarforceComponentInteraction(interaction) {
       content: '이 스타포스는 이미 저장되어서 더 진행할 수 없다냥.',
       flags: MessageFlags.Ephemeral,
     });
-    await updateStarforceInteractionMessage(interaction, session, {
+    await interaction.message.edit(await buildStarforceMessagePayload(session, {
       disabled: true,
-    });
+    }));
     await persistStarforceSessions(starforceSessions);
+    return true;
+  }
+
+  if (session.pendingStarCatch && isPendingStarCatchExpired(session, now)) {
+    const timedOutAnswer = Number(session.pendingStarCatch?.answer);
+    const timedOutPick = Number.isInteger(parsed.choice) ? Number(parsed.choice) : -1;
+
+    session.pendingStarCatch = null;
+    session.lastStarCatchResult = {
+      success: false,
+      picked: timedOutPick,
+      answer: Number.isInteger(timedOutAnswer) ? timedOutAnswer : 0,
+      timedOut: true,
+    };
+    touchStarforceSession(session, now);
+
+    if (parsed.action === 'starcatch_pick') {
+      const attemptResult = performStarforceAttempt(session, {
+        now,
+        starCatchSuccess: false,
+      });
+
+      if (attemptResult.type === 'maxed') {
+        await interaction.reply({
+          content: attemptResult.log,
+          flags: MessageFlags.Ephemeral,
+        });
+        await persistStarforceSessions(starforceSessions);
+        return true;
+      }
+
+      await playStarforceResultEffect(interaction, session, attemptResult.type);
+      scheduleStarforceCardPrime(session);
+      await persistStarforceSessions(starforceSessions);
+      return true;
+    }
+
+    await interaction.deferUpdate();
+    await interaction.message.edit(await buildStarforceMessagePayload(session));
+    await persistStarforceSessions(starforceSessions);
+    return true;
+  }
+
+  if (session.pendingStarCatch && parsed.action !== 'starcatch_pick') {
+    await interaction.reply({
+      content: '지금은 스타캐치 선택 중이다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
     return true;
   }
 
   touchStarforceSession(session, now);
 
   if (parsed.action === 'enhance') {
+    session.lastStarCatchResult = null;
+
+    if (session.starCatchEnabled && isStarforceChanceTime(session)) {
+      session.lastStarCatchResult = { skippedForChanceTime: true };
+    } else if (session.starCatchEnabled) {
+      session.pendingStarCatch = {
+        answer: Math.floor(Math.random() * STARFORCE_STAR_CATCH_CHOICES.length),
+        createdAt: now,
+      };
+      await updateStarforceInteractionMessage(interaction, session);
+      await persistStarforceSessions(starforceSessions);
+      return true;
+    }
+
     const attemptResult = performStarforceAttempt(session, { now });
+
+    if (attemptResult.type === 'maxed') {
+      await interaction.reply({
+        content: attemptResult.log,
+        flags: MessageFlags.Ephemeral,
+      });
+      await persistStarforceSessions(starforceSessions);
+      return true;
+    }
+
+    await playStarforceResultEffect(interaction, session, attemptResult.type);
+    scheduleStarforceCardPrime(session);
+    await persistStarforceSessions(starforceSessions);
+    return true;
+  }
+
+  if (parsed.action === 'starcatch_toggle') {
+    session.starCatchEnabled = !Boolean(session.starCatchEnabled);
+    session.lastStarCatchResult = null;
+    touchStarforceSession(session, now);
+
+    await updateStarforceInteractionMessage(interaction, session);
+    await persistStarforceSessions(starforceSessions);
+    return true;
+  }
+
+  if (parsed.action === 'starcatch_pick') {
+    if (!session.pendingStarCatch) {
+      await interaction.reply({
+        content: '지금은 진행 중인 스타캐치가 없다냥.',
+        flags: MessageFlags.Ephemeral,
+      });
+      await interaction.message.edit(await buildStarforceMessagePayload(session));
+      await persistStarforceSessions(starforceSessions);
+      return true;
+    }
+
+    const picked = Number(parsed.choice);
+    const answer = Number(session.pendingStarCatch?.answer);
+    const success = picked === answer;
+
+    session.pendingStarCatch = null;
+    session.lastStarCatchResult = {
+      success,
+      picked,
+      answer,
+    };
+
+    const attemptResult = performStarforceAttempt(session, {
+      now,
+      starCatchSuccess: success,
+    });
 
     if (attemptResult.type === 'maxed') {
       await interaction.reply({
@@ -510,12 +632,10 @@ async function buildStarforceMessagePayload(session, options = {}) {
       }),
     ],
     attachments: [],
-    components: [
-      buildStarforceButtonRow(session, {
-        disabled: Boolean(options.disabled) || session.status === 'ended' || session.status === 'expired',
-        temporarilyLocked: Boolean(options.temporarilyLocked),
-      }),
-    ],
+    components: buildStarforceButtonRows(session, {
+      disabled: Boolean(options.disabled) || session.status === 'ended' || session.status === 'expired',
+      temporarilyLocked: Boolean(options.temporarilyLocked),
+    }),
   };
 }
 
@@ -625,11 +745,14 @@ function createLoadedStarforceSessionState({ ownerUserId, savedSlot, now = Date.
   session.recoveryStar = Number(savedSlot.recoveryStar ?? session.recoveryStar);
   session.consecutiveDropCount = Number(savedSlot.consecutiveDropCount ?? 0);
   session.chanceTimePending = Boolean(savedSlot.chanceTimePending);
+  session.starCatchEnabled = Boolean(savedSlot.starCatchEnabled);
   session.pendingRecovery = false;
   session.status = 'active';
   session.statusText = '';
   session.loadedFromSave = true;
   session.saveUsedInSession = false;
+  session.pendingStarCatch = null;
+  session.lastStarCatchResult = null;
   session.imageAssetPath = savedSlot.imageAssetPath || session.imageAssetPath;
   session.event = savedSlot.event && typeof savedSlot.event === 'object'
     ? {
@@ -658,6 +781,7 @@ function buildStarforceSaveSlot(session) {
     recoveryStar: session.recoveryStar,
     consecutiveDropCount: session.consecutiveDropCount ?? 0,
     chanceTimePending: Boolean(session.chanceTimePending),
+    starCatchEnabled: Boolean(session.starCatchEnabled),
     imageAssetPath: session.imageAssetPath ?? '',
     event: session.event ?? {},
     savedAtMs: Date.now(),
@@ -744,45 +868,76 @@ function getInteractionDisplayName(interaction, session) {
     ?? '알 수 없음';
 }
 
-function buildStarforceButtonRow(session, options = {}) {
+function buildStarforceButtonRows(session, options = {}) {
+  if (session?.pendingStarCatch) {
+    return [
+      buildStarCatchChoiceRow(session, options),
+    ];
+  }
+
   const allDisabled = Boolean(options.disabled);
   const temporarilyLocked = Boolean(options.temporarilyLocked);
   const canEnhance = !allDisabled && !temporarilyLocked && session?.status === 'active';
   const canSafeguard = !allDisabled && !temporarilyLocked && session?.status === 'active' && canToggleStarforceSafeguard(session);
   const canRecover = !allDisabled && !temporarilyLocked && session?.status === 'destroyed' && Boolean(session?.pendingRecovery);
+  const canStarCatchToggle = !allDisabled && !temporarilyLocked && session?.status === 'active';
   const canSave = !allDisabled
     && !temporarilyLocked
     && !Boolean(session?.saveUsedInSession)
     && (session?.status === 'active' || session?.status === 'destroyed');
   const canEnd = !allDisabled && !temporarilyLocked && (session?.status === 'active' || session?.status === 'destroyed');
   const safeguardEnabled = Boolean(session?.event?.safeguard);
+  const starCatchEnabled = Boolean(session?.starCatchEnabled);
+
+  return [
+    new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(createStarforceCustomId('enhance', session.sessionId))
+        .setLabel('⭐ 강화')
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(!canEnhance),
+      new ButtonBuilder()
+        .setCustomId(createStarforceCustomId('safeguard', session.sessionId))
+        .setLabel(safeguardEnabled ? '파괴방지 ON' : '파괴방지')
+        .setStyle(safeguardEnabled ? ButtonStyle.Success : ButtonStyle.Secondary)
+        .setDisabled(!canSafeguard),
+      new ButtonBuilder()
+        .setCustomId(createStarforceCustomId('starcatch_toggle', session.sessionId))
+        .setLabel(starCatchEnabled ? '스타캐치 ON' : '스타캐치 OFF')
+        .setStyle(starCatchEnabled ? ButtonStyle.Success : ButtonStyle.Secondary)
+        .setDisabled(!canStarCatchToggle),
+    ),
+    new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(createStarforceCustomId('recover', session.sessionId))
+        .setLabel('복구')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(!canRecover),
+      new ButtonBuilder()
+        .setCustomId(createStarforceCustomId('save', session.sessionId))
+        .setLabel('저장')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(!canSave),
+      new ButtonBuilder()
+        .setCustomId(createStarforceCustomId('end', session.sessionId))
+        .setLabel('❌ 종료')
+        .setStyle(ButtonStyle.Danger)
+        .setDisabled(!canEnd),
+    ),
+  ];
+}
+
+function buildStarCatchChoiceRow(session, options = {}) {
+  const disabled = Boolean(options.disabled) || Boolean(options.temporarilyLocked);
 
   return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(createStarforceCustomId('enhance', session.sessionId))
-      .setLabel('⭐ 강화')
-      .setStyle(ButtonStyle.Primary)
-      .setDisabled(!canEnhance),
-    new ButtonBuilder()
-      .setCustomId(createStarforceCustomId('safeguard', session.sessionId))
-      .setLabel(safeguardEnabled ? '파괴방지 ON' : '파괴방지')
-      .setStyle(safeguardEnabled ? ButtonStyle.Success : ButtonStyle.Secondary)
-      .setDisabled(!canSafeguard),
-    new ButtonBuilder()
-      .setCustomId(createStarforceCustomId('recover', session.sessionId))
-      .setLabel('복구')
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled(!canRecover),
-    new ButtonBuilder()
-      .setCustomId(createStarforceCustomId('save', session.sessionId))
-      .setLabel('저장')
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled(!canSave),
-    new ButtonBuilder()
-      .setCustomId(createStarforceCustomId('end', session.sessionId))
-      .setLabel('❌ 종료')
-      .setStyle(ButtonStyle.Danger)
-      .setDisabled(!canEnd),
+    ...STARFORCE_STAR_CATCH_CHOICES.map((choice) => (
+      new ButtonBuilder()
+        .setCustomId(createStarforceChoiceCustomId(session.sessionId, choice.index))
+        .setLabel(choice.label)
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(disabled)
+    )),
   );
 }
 
@@ -826,8 +981,22 @@ function createStarforceCustomId(action, sessionId) {
   return `${STARFORCE_CUSTOM_ID_PREFIX}:${action}:${sessionId}`;
 }
 
+function createStarforceChoiceCustomId(sessionId, choice) {
+  return `${STARFORCE_CUSTOM_ID_PREFIX}:starcatch_pick:${sessionId}:${choice}`;
+}
+
 function parseStarforceCustomId(customId) {
-  const match = String(customId ?? '').match(/^starforce:(enhance|safeguard|recover|save|end):([a-f0-9-]+)$/i);
+  const normalized = String(customId ?? '');
+  const choiceMatch = normalized.match(/^starforce:(starcatch_pick):([a-f0-9-]+):([0-2])$/i);
+  if (choiceMatch) {
+    return {
+      action: choiceMatch[1].toLowerCase(),
+      sessionId: choiceMatch[2],
+      choice: Number(choiceMatch[3]),
+    };
+  }
+
+  const match = normalized.match(/^starforce:(enhance|safeguard|starcatch_toggle|recover|save|end):([a-f0-9-]+)$/i);
   if (!match) {
     return null;
   }
@@ -889,13 +1058,11 @@ async function disableStarforceMessageFromInteraction(interaction, sessionId, se
 
     await interaction.message.edit({
       content: '이미 만료된 스타포스다냥.',
-      components: [
-        buildStarforceButtonRow({
-          sessionId,
-          status: 'expired',
-          pendingRecovery: false,
-        }, { disabled: true }),
-      ],
+      components: buildStarforceButtonRows({
+        sessionId,
+        status: 'expired',
+        pendingRecovery: false,
+      }, { disabled: true }),
     });
   } catch (error) {
     console.error('[STARFORCE] failed to disable expired session message:');

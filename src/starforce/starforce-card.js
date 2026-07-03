@@ -81,6 +81,9 @@ export async function renderStarforceCard(session, options = {}) {
     statusText: String(session?.statusText ?? '').trim(),
     effectType,
     chanceTime,
+    starCatchEnabled: Boolean(session?.starCatchEnabled),
+    pendingStarCatch: Boolean(session?.pendingStarCatch),
+    lastStarCatchResult: session?.lastStarCatchResult ?? null,
     isMaxed,
   });
 
@@ -132,6 +135,9 @@ export async function primeStarforceCardCache(session) {
     statusText: String(session?.statusText ?? '').trim(),
     effectType: '',
     chanceTime,
+    starCatchEnabled: Boolean(session?.starCatchEnabled),
+    pendingStarCatch: Boolean(session?.pendingStarCatch),
+    lastStarCatchResult: session?.lastStarCatchResult ?? null,
     isMaxed,
   });
 
@@ -171,6 +177,9 @@ export async function primeStarforceCardCache(session) {
       statusText: candidate.statusText,
       effectType: candidate.effectType,
       chanceTime: Boolean(candidate.chanceTime),
+      starCatchEnabled: Boolean(session?.starCatchEnabled),
+      pendingStarCatch: false,
+      lastStarCatchResult: session?.lastStarCatchResult ?? null,
       isMaxed: candidateIsMaxed,
     });
   }
@@ -263,21 +272,9 @@ function trimOverlayCache() {
 function buildOverlaySvg(view) {
   const canDestroy = Number(view.destroyRate) > 0;
   const failureDrops = shouldStarforceDropOnFailure(view.currentStar);
-  const bannerText = view.chanceTime
-    ? '찬스 타임'
-    : view.statusText
-      ? view.statusText
-      : view.isMaxed
-        ? '최대 스타포스에 도달했습니다.'
-        : canDestroy && failureDrops
-          ? '실패 시 별이 하락하거나 파괴됩니다.'
-          : canDestroy
-            ? '실패 시 파괴될 수 있습니다.'
-            : failureDrops
-              ? '실패 시 별이 하락합니다.'
-              : '실패 시 별이 유지됩니다.';
+  const bannerText = buildBannerText(view, { canDestroy, failureDrops });
   const badgeText = formatStarLabel(view.currentStar);
-  const showWarningIcon = !view.statusText && !view.isMaxed && !view.chanceTime;
+  const showWarningIcon = shouldShowWarningIcon(view, bannerText);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${FRAME_WIDTH}" height="${FRAME_HEIGHT}" viewBox="0 0 ${FRAME_WIDTH} ${FRAME_HEIGHT}">
@@ -399,7 +396,7 @@ function buildOverlaySvg(view) {
   ${renderText(STARFORCE_TAB_TEXT_LAYOUT.transfer.x, STARFORCE_TAB_TEXT_LAYOUT.transfer.y, STARFORCE_TAB_TEXT_LAYOUT.transfer.label, 'tabText', 'middle', 'middle')}
 
   ${showWarningIcon ? renderWarningIcon(546, 255) : ''}
-  ${renderBanner(view.statusText, bannerText, view.chanceTime)}
+  ${renderBanner(view, bannerText)}
 
   ${renderText(204, 410, badgeText, 'badgeText', 'middle')}
   ${renderText(811, 463, formatStarLabel(view.currentStar), 'starText', 'middle')}
@@ -420,12 +417,20 @@ function buildOverlaySvg(view) {
 </svg>`;
 }
 
-function renderBanner(statusText, bannerText, chanceTime) {
-  if (chanceTime) {
+function renderBanner(view, bannerText) {
+  if (bannerText === '찬스 타임' || bannerText === '찬스타임! 스타캐치 없이 강화됩니다.') {
     return renderText(720, 296, bannerText, 'chanceTimeText', 'middle');
   }
 
-  if (statusText) {
+  if (view.statusText || bannerText === '⭐ 스타캐치! 빛나는 별 위치를 골라라냥.') {
+    return renderText(672, 296, bannerText, 'bannerBase', 'middle');
+  }
+
+  if (bannerText === '★ 스타캐치 성공! 성공확률이 증가했습니다.') {
+    return renderText(672, 296, bannerText, 'bannerAccent', 'middle');
+  }
+
+  if (bannerText === '⚠ 스타캐치 실패... 기본 확률로 강화합니다.') {
     return renderText(672, 296, bannerText, 'bannerBase', 'middle');
   }
 
@@ -454,6 +459,66 @@ function renderBanner(statusText, bannerText, chanceTime) {
     <text x="700" y="296" text-anchor="end" class="bannerBase">실패 시 </text>
     <text x="720" y="296" text-anchor="start" class="bannerAccent">별이 유지됩니다.</text>
   `;
+}
+
+function buildBannerText(view, { canDestroy, failureDrops }) {
+  if (view.pendingStarCatch) {
+    return '⭐ 스타캐치! 빛나는 별 위치를 골라라냥.';
+  }
+
+  if (view.statusText) {
+    return view.statusText;
+  }
+
+  if (view.lastStarCatchResult?.skippedForChanceTime) {
+    return '찬스타임! 스타캐치 없이 강화됩니다.';
+  }
+
+  if (view.lastStarCatchResult?.success === true) {
+    return '★ 스타캐치 성공! 성공확률이 증가했습니다.';
+  }
+
+  if (view.lastStarCatchResult?.success === false) {
+    return '⚠ 스타캐치 실패... 기본 확률로 강화합니다.';
+  }
+
+  if (view.chanceTime) {
+    return '찬스 타임';
+  }
+
+  if (view.isMaxed) {
+    return '최대 스타포스에 도달했습니다.';
+  }
+
+  if (canDestroy && failureDrops) {
+    return '실패 시 별이 하락하거나 파괴됩니다.';
+  }
+
+  if (canDestroy) {
+    return '실패 시 파괴될 수 있습니다.';
+  }
+
+  if (failureDrops) {
+    return '실패 시 별이 하락합니다.';
+  }
+
+  return '실패 시 별이 유지됩니다.';
+}
+
+function shouldShowWarningIcon(view, bannerText) {
+  if (view.statusText || view.isMaxed || view.pendingStarCatch) {
+    return false;
+  }
+
+  if (bannerText === '★ 스타캐치 성공! 성공확률이 증가했습니다.') {
+    return false;
+  }
+
+  if (bannerText === '찬스 타임' || bannerText === '찬스타임! 스타캐치 없이 강화됩니다.') {
+    return false;
+  }
+
+  return true;
 }
 
 function renderResultEffect(effectType) {

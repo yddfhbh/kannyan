@@ -16,6 +16,7 @@ export const STARFORCE_SUPPORTED_LEVELS = Object.freeze([
 export const STARFORCE_MAX_STAR = 25;
 export const STARFORCE_RECENT_LOG_LIMIT = 8;
 export const STARFORCE_RECOVERY_STAR = 12;
+export const STARFORCE_STAR_CATCH_TIMEOUT_MS = 30 * 1000;
 
 export function isSupportedStarforceLevel(level) {
   return STARFORCE_SUPPORTED_LEVELS.includes(level);
@@ -101,6 +102,9 @@ export function createStarforceSessionState({
     recoveryStar: STARFORCE_RECOVERY_STAR,
     consecutiveDropCount: 0,
     chanceTimePending: false,
+    starCatchEnabled: false,
+    pendingStarCatch: null,
+    lastStarCatchResult: null,
     recentLogs: [],
     event: {
       name: '없음',
@@ -132,6 +136,8 @@ export function resetStarforceSessionState(session, now = Date.now()) {
   session.pendingRecovery = false;
   session.consecutiveDropCount = 0;
   session.chanceTimePending = false;
+  session.pendingStarCatch = null;
+  session.lastStarCatchResult = null;
   session.recentLogs = [];
   session.status = 'active';
   session.updatedAtMs = now;
@@ -148,6 +154,8 @@ export function recoverStarforceSessionState(session, now = Date.now()) {
   session.pendingRecovery = false;
   session.consecutiveDropCount = 0;
   session.chanceTimePending = false;
+  session.pendingStarCatch = null;
+  session.lastStarCatchResult = null;
   session.status = 'active';
   session.updatedAtMs = now;
   session.statusText = '';
@@ -167,6 +175,10 @@ export function normalizeStarforceSessionState(session) {
     session.event = {};
   }
 
+  session.starCatchEnabled = Boolean(session.starCatchEnabled);
+  session.pendingStarCatch = sanitizePendingStarCatch(session.pendingStarCatch);
+  session.lastStarCatchResult = sanitizeLastStarCatchResult(session.lastStarCatchResult);
+
   const currentStar = Number(session.currentStar);
   if (!Number.isFinite(currentStar) || currentStar >= 17) {
     session.event.safeguard = false;
@@ -181,6 +193,7 @@ export function performStarforceAttempt(session, options = {}) {
   const now = Number.isFinite(options.now) ? options.now : Date.now();
   const randomValue = normalizeRandomValue(options.randomValue);
   const chanceTime = Boolean(session.chanceTimePending);
+  const starCatchSuccess = Boolean(options.starCatchSuccess);
 
   normalizeStarforceSessionState(session);
 
@@ -198,7 +211,10 @@ export function performStarforceAttempt(session, options = {}) {
   const targetStar = beforeStar + 1;
   const rates = buildStarforceRates({
     star: beforeStar,
-    event: session.event,
+    event: {
+      ...session.event,
+      starCatch: starCatchSuccess,
+    },
     chanceTime,
   });
   const cost = calculateStarforceCost({
@@ -258,7 +274,65 @@ export function performStarforceAttempt(session, options = {}) {
     cost,
     rates,
     chanceTimeUsed: chanceTime,
+    starCatchSuccess,
   };
+}
+
+export function isStarforceChanceTime(session) {
+  return Boolean(session?.chanceTimePending);
+}
+
+export function isPendingStarCatchExpired(session, now = Date.now()) {
+  const createdAt = Number(session?.pendingStarCatch?.createdAt);
+  if (!Number.isFinite(createdAt)) {
+    return false;
+  }
+
+  return now - createdAt > STARFORCE_STAR_CATCH_TIMEOUT_MS;
+}
+
+function sanitizePendingStarCatch(value) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const answer = Number(value.answer);
+  const createdAt = Number(value.createdAt);
+
+  if (!Number.isInteger(answer) || answer < 0 || answer > 2 || !Number.isFinite(createdAt)) {
+    return null;
+  }
+
+  return {
+    answer,
+    createdAt,
+  };
+}
+
+function sanitizeLastStarCatchResult(value) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const success = value.success;
+  const picked = Number(value.picked);
+  const answer = Number(value.answer);
+
+  if (typeof success === 'boolean' && Number.isInteger(picked) && Number.isInteger(answer)) {
+    return {
+      success,
+      picked,
+      answer,
+    };
+  }
+
+  if (value.skippedForChanceTime) {
+    return {
+      skippedForChanceTime: true,
+    };
+  }
+
+  return null;
 }
 
 export function appendStarforceRecentLog(session, logLine) {
