@@ -30,6 +30,7 @@ import {
   getStarforceLeaderboard,
 } from './starforce-ranking-store.js';
 import {
+  deleteStarforceSaveSlot,
   ensureStarforceSaveSlotsLoaded,
   getStarforceSaveSlot,
   setStarforceSaveSlot,
@@ -136,6 +137,8 @@ export async function handleStarforcePercentCommandMessage(message, input) {
 
   session.channelId = sentMessage.channelId;
   session.messageId = sentMessage.id;
+  session.loadedFromSave = false;
+  session.saveUsedInSession = false;
   scheduleStarforceCardPrime(session);
   await persistStarforceSessions(starforceSessions);
   return true;
@@ -187,6 +190,8 @@ export async function handleStarforceSlashCommand(interaction) {
   const sentMessage = await interaction.fetchReply();
   session.channelId = interaction.channelId;
   session.messageId = sentMessage.id;
+  session.loadedFromSave = false;
+  session.saveUsedInSession = false;
   scheduleStarforceCardPrime(session);
   await persistStarforceSessions(starforceSessions);
   return true;
@@ -421,10 +426,20 @@ export async function handleStarforceComponentInteraction(interaction) {
   }
 
   if (parsed.action === 'save') {
+    if (session.saveUsedInSession) {
+      await interaction.reply({
+        content: '이 세션에서는 이미 저장했다냥.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return true;
+    }
+
     await setStarforceSaveSlot(buildStarforceSaveSlot(session));
+    session.saveUsedInSession = true;
     touchStarforceSession(session, now);
+    await updateStarforceInteractionMessage(interaction, session);
     await persistStarforceSessions(starforceSessions);
-    await interaction.reply({
+    await interaction.followUp({
       content: '현재 스타포스를 저장했다냥.',
       flags: MessageFlags.Ephemeral,
     });
@@ -446,6 +461,10 @@ export async function handleStarforceComponentInteraction(interaction) {
       attempts: session.attempts ?? session.attemptCount ?? 0,
       finishedAtMs: now,
     });
+
+    if (session.loadedFromSave) {
+      await deleteStarforceSaveSlot(session.ownerUserId);
+    }
 
     await updateStarforceInteractionMessage(interaction, session, {
       disabled: true,
@@ -593,6 +612,8 @@ function createLoadedStarforceSessionState({ ownerUserId, savedSlot, now = Date.
   session.pendingRecovery = false;
   session.status = 'active';
   session.statusText = '';
+  session.loadedFromSave = true;
+  session.saveUsedInSession = false;
   session.imageAssetPath = savedSlot.imageAssetPath || session.imageAssetPath;
   session.event = savedSlot.event && typeof savedSlot.event === 'object'
     ? {
@@ -713,7 +734,10 @@ function buildStarforceButtonRow(session, options = {}) {
   const canEnhance = !allDisabled && !temporarilyLocked && session?.status === 'active';
   const canSafeguard = !allDisabled && !temporarilyLocked && session?.status === 'active' && canToggleStarforceSafeguard(session);
   const canRecover = !allDisabled && !temporarilyLocked && session?.status === 'destroyed' && Boolean(session?.pendingRecovery);
-  const canSave = !allDisabled && !temporarilyLocked && (session?.status === 'active' || session?.status === 'destroyed');
+  const canSave = !allDisabled
+    && !temporarilyLocked
+    && !Boolean(session?.saveUsedInSession)
+    && (session?.status === 'active' || session?.status === 'destroyed');
   const canEnd = !allDisabled && !temporarilyLocked && (session?.status === 'active' || session?.status === 'destroyed');
   const safeguardEnabled = Boolean(session?.event?.safeguard);
 

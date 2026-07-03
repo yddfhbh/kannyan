@@ -56,7 +56,7 @@ export function isStarforceFailureFloor(star) {
 }
 
 export function shouldStarforceDropOnFailure(star) {
-  return Number.isInteger(star) && star >= 6 && !isStarforceFailureFloor(star);
+  return Number.isInteger(star) && star >= 11 && !isStarforceFailureFloor(star);
 }
 
 export function canApplyStarforceSafeguard(star) {

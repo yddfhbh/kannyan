@@ -62,6 +62,19 @@ export async function setStarforceSaveSlot(entry) {
   return sanitized;
 }
 
+export async function deleteStarforceSaveSlot(ownerUserId) {
+  await ensureStarforceSaveSlotsLoaded();
+
+  const key = String(ownerUserId ?? '').trim();
+  if (!key || !saveSlots.has(key)) {
+    return false;
+  }
+
+  saveSlots.delete(key);
+  await persistStarforceSaveSlots();
+  return true;
+}
+
 async function persistStarforceSaveSlots() {
   savePromise = savePromise
     .catch(() => {

@@ -33,6 +33,8 @@ const STARFORCE_SESSION_STORE_KEYS = Object.freeze([
   'messageId',
   'statusText',
   'luckEvaluation',
+  'loadedFromSave',
+  'saveUsedInSession',
 ]);
 
 let loadPromise = null;
@@ -138,6 +140,8 @@ function sanitizeStoredSession(value) {
   session.luckEvaluation = session.luckEvaluation && typeof session.luckEvaluation === 'object'
     ? session.luckEvaluation
     : null;
+  session.loadedFromSave = Boolean(session.loadedFromSave);
+  session.saveUsedInSession = Boolean(session.saveUsedInSession);
 
   return session;
 }
