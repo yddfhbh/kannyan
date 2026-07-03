@@ -367,6 +367,18 @@ export async function handleStarforceComponentInteraction(interaction) {
     return true;
   }
 
+  if (session.status === 'saved') {
+    await interaction.reply({
+      content: '이 스타포스는 이미 저장되어서 더 진행할 수 없다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    await updateStarforceInteractionMessage(interaction, session, {
+      disabled: true,
+    });
+    await persistStarforceSessions(starforceSessions);
+    return true;
+  }
+
   touchStarforceSession(session, now);
 
   if (parsed.action === 'enhance') {
@@ -436,8 +448,12 @@ export async function handleStarforceComponentInteraction(interaction) {
 
     await setStarforceSaveSlot(buildStarforceSaveSlot(session));
     session.saveUsedInSession = true;
+    session.status = 'saved';
+    session.statusText = '저장됨';
     touchStarforceSession(session, now);
-    await updateStarforceInteractionMessage(interaction, session);
+    await updateStarforceInteractionMessage(interaction, session, {
+      disabled: true,
+    });
     await persistStarforceSessions(starforceSessions);
     await interaction.followUp({
       content: '현재 스타포스를 저장했다냥.',
