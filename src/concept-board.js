@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  ChannelType,
   EmbedBuilder,
   MessageFlags,
   PermissionsBitField,
@@ -297,8 +298,41 @@ function getGuildConfigState(loadedState, guildId) {
   return loadedState.guilds[guildId];
 }
 
+function getNextAvailableConfigId(guildState) {
+  const usedIds = new Set(
+    Object.keys(guildState.configs ?? {})
+      .map((value) => Number.parseInt(value, 10))
+      .filter((value) => Number.isInteger(value) && value >= 1)
+  );
+
+  let candidate = 1;
+
+  while (usedIds.has(candidate)) {
+    candidate += 1;
+  }
+
+  guildState.nextConfigId = candidate;
+  return String(candidate);
+}
+
 function formatConfigSummary(config) {
-  return `ID ${config.id} | 채널 <#${config.outputChannelId}> | 이모지 ${config.emojiDisplay} | 기준 ${config.threshold}개`;
+  const excludedParts = [];
+
+  if (config.excludedChannelId) {
+    excludedParts.push(`제외채널 <#${config.excludedChannelId}>`);
+  }
+
+  if (config.excludedCategoryId) {
+    excludedParts.push(`제외카테고리 <#${config.excludedCategoryId}>`);
+  }
+
+  return [
+    `ID ${config.id}`,
+    `채널 <#${config.outputChannelId}>`,
+    `이모지 ${config.emojiDisplay}`,
+    `기준 ${config.threshold}개`,
+    ...(excludedParts.length > 0 ? [excludedParts.join(' / ')] : []),
+  ].join(' | ');
 }
 
 function buildConceptTestEmbed(interaction, config) {
@@ -361,6 +395,22 @@ async function fetchTextChannel(client, channelId, label) {
   }
 
   return channel;
+}
+
+function isExcludedByConfig(message, config) {
+  if (!message || !config) {
+    return false;
+  }
+
+  if (config.excludedChannelId && String(message.channelId) === String(config.excludedChannelId)) {
+    return true;
+  }
+
+  if (config.excludedCategoryId && String(message.channel?.parentId ?? '') === String(config.excludedCategoryId)) {
+    return true;
+  }
+
+  return false;
 }
 
 async function resolveSourceMessage(reaction) {
@@ -516,7 +566,11 @@ async function processConceptBoardReactionAdd(reaction) {
       continue;
     }
 
-    if (reactionCount < Number(config.threshold) || message.channelId === config.outputChannelId) {
+    if (
+      reactionCount < Number(config.threshold)
+      || message.channelId === config.outputChannelId
+      || isExcludedByConfig(message, config)
+    ) {
       continue;
     }
 
@@ -536,6 +590,8 @@ export async function handleConceptBoardAddInteraction(interaction) {
   const outputChannel = interaction.options.getChannel('채널', true);
   const emojiInput = interaction.options.getString('이모지', true);
   const threshold = interaction.options.getInteger('개수', true);
+  const excludedChannel = interaction.options.getChannel('제외채널');
+  const excludedCategory = interaction.options.getChannel('제외카테고리');
   const parsedEmoji = parseEmojiInput(emojiInput);
 
   if (!outputChannel.isTextBased()) {
@@ -554,9 +610,25 @@ export async function handleConceptBoardAddInteraction(interaction) {
     return;
   }
 
+  if (excludedChannel && !excludedChannel.isTextBased()) {
+    await interaction.reply({
+      content: '제외채널은 텍스트 채널로 넣어달라냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (excludedCategory && excludedCategory.type !== ChannelType.GuildCategory) {
+    await interaction.reply({
+      content: '제외카테고리는 카테고리만 넣을 수 있다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
   const loadedState = await loadState();
   const guildState = getGuildConfigState(loadedState, interaction.guildId);
-  const configId = String(guildState.nextConfigId);
+  const configId = getNextAvailableConfigId(guildState);
 
   guildState.configs[configId] = {
     id: configId,
@@ -564,11 +636,13 @@ export async function handleConceptBoardAddInteraction(interaction) {
     emojiKey: parsedEmoji.emojiKey,
     emojiDisplay: parsedEmoji.emojiDisplay,
     threshold,
+    excludedChannelId: excludedChannel?.id ?? null,
+    excludedCategoryId: excludedCategory?.id ?? null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     updatedBy: interaction.user.id,
   };
-  guildState.nextConfigId = Number(guildState.nextConfigId) + 1;
+  getNextAvailableConfigId(guildState);
 
   await saveState();
 
@@ -615,6 +689,10 @@ export async function handleConceptBoardUpdateInteraction(interaction) {
   const outputChannel = interaction.options.getChannel('채널');
   const emojiInput = interaction.options.getString('이모지');
   const threshold = interaction.options.getInteger('개수');
+  const excludedChannel = interaction.options.getChannel('제외채널');
+  const excludedCategory = interaction.options.getChannel('제외카테고리');
+  const clearExcludedChannel = interaction.options.getBoolean('제외채널초기화') === true;
+  const clearExcludedCategory = interaction.options.getBoolean('제외카테고리초기화') === true;
   const loadedState = await loadState();
   const guildState = getGuildConfigState(loadedState, interaction.guildId);
   const config = guildState.configs[configId];
@@ -627,7 +705,15 @@ export async function handleConceptBoardUpdateInteraction(interaction) {
     return;
   }
 
-  if (!outputChannel && emojiInput == null && threshold == null) {
+  if (
+    !outputChannel
+    && emojiInput == null
+    && threshold == null
+    && !excludedChannel
+    && !excludedCategory
+    && !clearExcludedChannel
+    && !clearExcludedCategory
+  ) {
     await interaction.reply({
       content: '수정할 값이 하나도 없다냥. 채널, 이모지, 개수 중 하나는 넣어달라냥.',
       flags: MessageFlags.Ephemeral,
@@ -645,6 +731,34 @@ export async function handleConceptBoardUpdateInteraction(interaction) {
     }
 
     config.outputChannelId = outputChannel.id;
+  }
+
+  if (excludedChannel) {
+    if (!excludedChannel.isTextBased()) {
+      await interaction.reply({
+        content: '제외채널은 텍스트 채널로 넣어달라냥.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    config.excludedChannelId = excludedChannel.id;
+  } else if (clearExcludedChannel) {
+    config.excludedChannelId = null;
+  }
+
+  if (excludedCategory) {
+    if (excludedCategory.type !== ChannelType.GuildCategory) {
+      await interaction.reply({
+        content: '제외카테고리는 카테고리만 넣을 수 있다냥.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    config.excludedCategoryId = excludedCategory.id;
+  } else if (clearExcludedCategory) {
+    config.excludedCategoryId = null;
   }
 
   if (emojiInput != null) {
@@ -695,6 +809,7 @@ export async function handleConceptBoardDeleteInteraction(interaction) {
   }
 
   delete guildState.configs[configId];
+  getNextAvailableConfigId(guildState);
   await saveState();
 
   await interaction.reply({

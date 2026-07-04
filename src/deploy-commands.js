@@ -452,6 +452,18 @@ new SlashCommandBuilder()
         .setMinValue(1)
         .setMaxValue(100)
     )
+    .addChannelOption((option) =>
+      option
+        .setName('제외채널')
+        .setDescription('이 채널의 메시지는 무시')
+        .setRequired(false)
+    )
+    .addChannelOption((option) =>
+      option
+        .setName('제외카테고리')
+        .setDescription('이 카테고리 아래 메시지는 무시')
+        .setRequired(false)
+    )
     .toJSON(),
   new SlashCommandBuilder()
     .setName('개념글추가')
@@ -477,6 +489,18 @@ new SlashCommandBuilder()
         .setRequired(true)
         .setMinValue(1)
         .setMaxValue(100)
+    )
+    .addChannelOption((option) =>
+      option
+        .setName('제외채널')
+        .setDescription('이 채널의 메시지는 무시')
+        .setRequired(false)
+    )
+    .addChannelOption((option) =>
+      option
+        .setName('제외카테고리')
+        .setDescription('이 카테고리 아래 메시지는 무시')
+        .setRequired(false)
     )
     .toJSON(),
   new SlashCommandBuilder()
@@ -515,6 +539,30 @@ new SlashCommandBuilder()
         .setRequired(false)
         .setMinValue(1)
         .setMaxValue(100)
+    )
+    .addChannelOption((option) =>
+      option
+        .setName('제외채널')
+        .setDescription('변경할 제외 채널')
+        .setRequired(false)
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName('제외채널초기화')
+        .setDescription('현재 제외 채널을 비움')
+        .setRequired(false)
+    )
+    .addChannelOption((option) =>
+      option
+        .setName('제외카테고리')
+        .setDescription('변경할 제외 카테고리')
+        .setRequired(false)
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName('제외카테고리초기화')
+        .setDescription('현재 제외 카테고리를 비움')
+        .setRequired(false)
     )
     .toJSON(),
   new SlashCommandBuilder()
