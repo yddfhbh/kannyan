@@ -426,6 +426,103 @@ new SlashCommandBuilder()
         .setMaxValue(50)
     )
     .toJSON(),
+  new SlashCommandBuilder()
+    .setName('개념글지정')
+    .setDescription('개념글 채널과 반응 기준을 설정합니다.')
+    .addChannelOption((option) =>
+      option
+        .setName('채널')
+        .setDescription('개념글을 보낼 채널')
+        .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName('이모지')
+        .setDescription('기준으로 삼을 이모지')
+        .setRequired(true)
+        .setMaxLength(100)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('개수')
+        .setDescription('이 개수 이상 달리면 개념글로 올림')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(100)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('개념글추가')
+    .setDescription('개념글 설정을 추가합니다.')
+    .addChannelOption((option) =>
+      option
+        .setName('채널')
+        .setDescription('개념글을 보낼 채널')
+        .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName('이모지')
+        .setDescription('기준으로 삼을 이모지')
+        .setRequired(true)
+        .setMaxLength(100)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('개수')
+        .setDescription('이 개수 이상 달리면 개념글로 올림')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(100)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('개념글목록')
+    .setDescription('등록된 개념글 설정 목록을 봅니다.')
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('개념글수정')
+    .setDescription('기존 개념글 설정을 수정합니다.')
+    .addIntegerOption((option) =>
+      option
+        .setName('id')
+        .setDescription('수정할 설정 ID')
+        .setRequired(true)
+        .setMinValue(1)
+    )
+    .addChannelOption((option) =>
+      option
+        .setName('채널')
+        .setDescription('변경할 출력 채널')
+        .setRequired(false)
+    )
+    .addStringOption((option) =>
+      option
+        .setName('이모지')
+        .setDescription('변경할 기준 이모지')
+        .setRequired(false)
+        .setMaxLength(100)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('개수')
+        .setDescription('변경할 기준 개수')
+        .setRequired(false)
+        .setMinValue(1)
+        .setMaxValue(100)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('개념글삭제')
+    .setDescription('개념글 설정을 삭제합니다.')
+    .addIntegerOption((option) =>
+      option
+        .setName('id')
+        .setDescription('삭제할 설정 ID')
+        .setRequired(true)
+        .setMinValue(1)
+    )
+    .toJSON(),
 ];
 
 const dailyPuzzleAnnouncementCommand = new SlashCommandBuilder()

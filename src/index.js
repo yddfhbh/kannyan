@@ -141,6 +141,14 @@ import {
   handleStarforceSlashCommand,
   initStarforceCommand,
 } from './starforce/starforce-command.js';
+import {
+  handleConceptBoardAddInteraction,
+  handleConceptBoardDeleteInteraction,
+  handleConceptBoardListInteraction,
+  handleConceptBoardReactionAdd,
+  handleConceptBoardReactionRemove,
+  handleConceptBoardUpdateInteraction,
+} from './concept-board.js';
 
 
 const execFileAsync = promisify(execFile);
@@ -429,11 +437,12 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.DirectMessages,
   ],
-  partials: [Partials.Channel],
+  partials: [Partials.Channel, Partials.Message, Partials.Reaction],
 });
 
 const GUILD_LIST_CHANNEL_ID = '1502965960133574703';
@@ -892,7 +901,9 @@ async function updateGuildListMessage(client, reason = 'unknown') {
         throw error;
       });
 
-      console.log(`[GUILD LIST] 메시지 갱신 완료 reason=${reason}`);
+      console.log(
+        `[GUILD LIST] 메시지 갱신 완료 reason=${reason} messageId=${oldMessage.id} channel=${channel.id}`
+      );
       return;
     }
   }
@@ -5086,6 +5097,26 @@ if (interaction.commandName === '일일퍼즐공지') {
   return;
 }
 
+if (interaction.commandName === '개념글지정' || interaction.commandName === '개념글추가') {
+  await handleConceptBoardAddInteraction(interaction);
+  return;
+}
+
+if (interaction.commandName === '개념글목록') {
+  await handleConceptBoardListInteraction(interaction);
+  return;
+}
+
+if (interaction.commandName === '개념글수정') {
+  await handleConceptBoardUpdateInteraction(interaction);
+  return;
+}
+
+if (interaction.commandName === '개념글삭제') {
+  await handleConceptBoardDeleteInteraction(interaction);
+  return;
+}
+
     if (interaction.commandName === '가르치기') {
       await handlePermanentMemoryInteraction(interaction);
       return;
@@ -5224,6 +5255,24 @@ if (interaction.commandName === '일일퍼즐공지') {
         console.error(replyError);
       }
     }
+  }
+});
+
+client.on(Events.MessageReactionAdd, async (reaction) => {
+  try {
+    await handleConceptBoardReactionAdd(reaction);
+  } catch (error) {
+    console.error('[CONCEPT BOARD] reaction add handling failed:');
+    console.error(error);
+  }
+});
+
+client.on(Events.MessageReactionRemove, async (reaction) => {
+  try {
+    await handleConceptBoardReactionRemove(reaction);
+  } catch (error) {
+    console.error('[CONCEPT BOARD] reaction remove handling failed:');
+    console.error(error);
   }
 });
 
