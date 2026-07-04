@@ -873,6 +873,7 @@ async function updateGuildListMessage(client, reason = 'unknown') {
   const channel = await fetchTextChannel(client, GUILD_LIST_CHANNEL_ID, 'GUILD LIST');
 
   if (!channel) {
+    console.error(`[GUILD LIST] 메시지 갱신 건너뜀: 채널 접근 불가 reason=${reason} channel=${GUILD_LIST_CHANNEL_ID}`);
     return;
   }
 
@@ -885,6 +886,10 @@ async function updateGuildListMessage(client, reason = 'unknown') {
       await oldMessage.edit({
         content,
         allowedMentions: { parse: [] },
+      }).catch((error) => {
+        console.error(`[GUILD LIST] 기존 메시지 수정 실패 reason=${reason} messageId=${state.messageId}`);
+        console.error(error);
+        throw error;
       });
 
       console.log(`[GUILD LIST] 메시지 갱신 완료 reason=${reason}`);
@@ -895,6 +900,10 @@ async function updateGuildListMessage(client, reason = 'unknown') {
   const sent = await channel.send({
     content,
     allowedMentions: { parse: [] },
+  }).catch((error) => {
+    console.error(`[GUILD LIST] 새 메시지 전송 실패 reason=${reason}`);
+    console.error(error);
+    throw error;
   });
 
   state.messageId = sent.id;
@@ -938,6 +947,9 @@ async function syncCurrentGuildsToGuildListState(client, options = {}) {
   }
 
   await writeGuildListState(state);
+  console.log(
+    `[GUILD LIST] 상태 저장 완료 reason=${reason} path=${GUILD_LIST_STATE_PATH} guilds=${Object.keys(state.guilds).length}`
+  );
   await updateGuildListMessage(client, reason);
 
   const activeCount = Object.values(state.guilds).filter((guild) => guild.status === 'active').length;
