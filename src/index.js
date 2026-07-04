@@ -195,6 +195,10 @@ const minomuncherReplayMaxBytes = Number(process.env.MINOMUNCHER_REPLAY_MAX_BYTE
 const vmStatusChannelId = process.env.VM_STATUS_CHANNEL_ID?.trim() ?? '';
 const vmStatusMessageId = process.env.VM_STATUS_MESSAGE_ID?.trim() ?? '';
 const vmStatusIntervalMs = Math.max(5000, Number(process.env.VM_STATUS_INTERVAL_MS) || 5000);
+const guildListRefreshIntervalMs = Math.max(
+  60 * 1000,
+  Number(process.env.GUILD_LIST_REFRESH_INTERVAL_MS) || 30 * 60 * 1000
+);
 const vmStatusDiskPath = process.env.VM_STATUS_DISK_PATH?.trim() || '/';
 const vmStatusMessageTitle = 'VM 상태 대시보드다냥';
 
@@ -401,6 +405,7 @@ let discordReady = false;
 let vmStatusMessage = null;
 let vmStatusTimer = null;
 let vmStatusUpdateInFlight = false;
+let guildListTimer = null;
 let chessPlayInactivityTimer = null;
 let chessPlayInactivitySweepInFlight = false;
 let previousCpuSample = sampleCpuTimes();
@@ -898,7 +903,9 @@ async function updateGuildListMessage(client, reason = 'unknown') {
   console.log(`[GUILD LIST] 새 메시지 생성 완료 messageId=${sent.id} reason=${reason}`);
 }
 
-async function syncCurrentGuildsToGuildListState(client) {
+async function syncCurrentGuildsToGuildListState(client, options = {}) {
+  const reason = String(options.reason ?? 'ready-sync');
+  const sendSummaryLog = options.sendSummaryLog ?? reason === 'ready-sync';
   const state = await readGuildListState();
   const now = new Date().toISOString();
   const currentGuildIds = new Set(client.guilds.cache.keys());
@@ -931,21 +938,23 @@ async function syncCurrentGuildsToGuildListState(client) {
   }
 
   await writeGuildListState(state);
-  await updateGuildListMessage(client, 'ready-sync');
+  await updateGuildListMessage(client, reason);
 
   const activeCount = Object.values(state.guilds).filter((guild) => guild.status === 'active').length;
   const leftCount = Object.values(state.guilds).filter((guild) => guild.status === 'left').length;
 
-  await sendGuildLogMessage(
-    client,
-    [
-      '🔄 **서버 목록 동기화 완료**',
-      `현재 참가: ${activeCount}개`,
-      `탈퇴 기록: ${leftCount}개`,
-      `전체 기록: ${Object.keys(state.guilds).length}개`,
-      `시간: ${formatKstTime(new Date())}`,
-    ].join('\n')
-  );
+  if (sendSummaryLog) {
+    await sendGuildLogMessage(
+      client,
+      [
+        '🔄 **서버 목록 동기화 완료**',
+        `현재 참가: ${activeCount}개`,
+        `탈퇴 기록: ${leftCount}개`,
+        `전체 기록: ${Object.keys(state.guilds).length}개`,
+        `시간: ${formatKstTime(new Date())}`,
+      ].join('\n')
+    );
+  }
 }
 
 async function markGuildJoined(client, guild) {
@@ -1056,12 +1065,16 @@ client.once(Events.ClientReady, async (readyClient) => {
   }
 
   try {
-    await syncCurrentGuildsToGuildListState(readyClient);
+    await syncCurrentGuildsToGuildListState(readyClient, {
+      reason: 'ready-sync',
+      sendSummaryLog: true,
+    });
   } catch (error) {
     console.error('[GUILD LIST] ready-sync 실패');
     console.error(error);
   }
 
+  startGuildListUpdater(readyClient);
   startVmStatusUpdater(readyClient);
   startChessPlayInactivityMonitor(readyClient);
   initDailyChessPuzzle(readyClient);
@@ -5283,6 +5296,7 @@ process.on('uncaughtException', (error) => {
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => {
     console.log(`Received ${signal}, shutting down...`);
+    stopGuildListUpdater();
     stopVmStatusUpdater();
     stopChessPlayInactivityMonitor();
     closeStockfishEngine();
@@ -5311,6 +5325,36 @@ function stopVmStatusUpdater() {
   }
 
   vmStatusUpdateInFlight = false;
+}
+
+function startGuildListUpdater(readyClient) {
+  stopGuildListUpdater();
+  console.log(
+    `Guild list updater enabled for channel ${GUILD_LIST_CHANNEL_ID} every ${guildListRefreshIntervalMs}ms.`
+  );
+  guildListTimer = setInterval(() => {
+    void syncCurrentGuildsToGuildListState(readyClient, {
+      reason: 'interval-sync',
+      sendSummaryLog: false,
+    }).catch((error) => {
+      console.error('[GUILD LIST] interval-sync 실패');
+      console.error(error);
+
+      if (isDiscordPermissionError(error)) {
+        console.error(
+          'Guild list updater stopped. Give the bot View Channel, Send Messages, and Read Message History permissions, then restart it.'
+        );
+        stopGuildListUpdater();
+      }
+    });
+  }, guildListRefreshIntervalMs);
+}
+
+function stopGuildListUpdater() {
+  if (guildListTimer) {
+    clearInterval(guildListTimer);
+    guildListTimer = null;
+  }
 }
 
 async function updateVmStatusMessage(readyClient) {

@@ -45,6 +45,57 @@ const STAT_CONFIG = {
   stride: { label: 'Stride', key: 'stride', digits: 4 },
   infds: { label: 'Inf DS', key: 'infiniteDs', digits: 4 },
 };
+const KNOWN_TETRIO_RANKS = new Set([
+  'x+',
+  'x',
+  'u',
+  'ss',
+  's+',
+  's',
+  's-',
+  'a+',
+  'a',
+  'a-',
+  'b+',
+  'b',
+  'b-',
+  'c+',
+  'c',
+  'c-',
+  'd+',
+  'd',
+  'd-',
+  'z',
+]);
+const COUNTRY_DISPLAY_NAMES = {
+  en: new Intl.DisplayNames(['en'], { type: 'region' }),
+  ko: new Intl.DisplayNames(['ko'], { type: 'region' }),
+};
+const COUNTRY_ALIASES = new Map([
+  ['korea', 'KR'],
+  ['south korea', 'KR'],
+  ['republic of korea', 'KR'],
+  ['대한민국', 'KR'],
+  ['한국', 'KR'],
+  ['남한', 'KR'],
+  ['usa', 'US'],
+  ['us', 'US'],
+  ['u.s.', 'US'],
+  ['u.s.a.', 'US'],
+  ['united states', 'US'],
+  ['united states of america', 'US'],
+  ['america', 'US'],
+  ['미국', 'US'],
+  ['japan', 'JP'],
+  ['日本', 'JP'],
+  ['일본', 'JP'],
+  ['uk', 'GB'],
+  ['u.k.', 'GB'],
+  ['britain', 'GB'],
+  ['great britain', 'GB'],
+  ['united kingdom', 'GB'],
+  ['영국', 'GB'],
+]);
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -88,6 +139,53 @@ function normalizeRank(value) {
   }
 
   return rank;
+}
+
+function normalizeCountrySearchTerm(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[._-]+/g, ' ')
+    .replace(/\s+/g, ' ');
+}
+
+function getAvailableCountryCodes() {
+  return [...new Set(
+    activeData.users
+      .map(user => String(user?.country ?? '').trim().toUpperCase())
+      .filter(code => /^[A-Z]{2}$/.test(code))
+  )];
+}
+
+function resolveCountryCode(value) {
+  const query = normalizeCountrySearchTerm(value);
+
+  if (!query) {
+    return null;
+  }
+
+  const directAlias = COUNTRY_ALIASES.get(query);
+  if (directAlias) {
+    return directAlias;
+  }
+
+  if (/^[a-z]{2}$/i.test(query)) {
+    const upper = query.toUpperCase();
+    if (getAvailableCountryCodes().includes(upper)) {
+      return upper;
+    }
+  }
+
+  for (const code of getAvailableCountryCodes()) {
+    const englishName = normalizeCountrySearchTerm(COUNTRY_DISPLAY_NAMES.en.of(code));
+    const koreanName = normalizeCountrySearchTerm(COUNTRY_DISPLAY_NAMES.ko.of(code));
+
+    if (query === englishName || query === koreanName) {
+      return code;
+    }
+  }
+
+  return null;
 }
 
 function formatPrisecter(p) {
@@ -383,12 +481,44 @@ export function parseTetrioLeaderboardCommand(content) {
 
   let page = 1;
   let rank = null;
+  let country = null;
+  let invalidCountry = null;
+  const filterTokens = [];
 
   for (const token of tokens.slice(3)) {
     if (/^\d+$/.test(token)) {
       page = clampInt(token, 1, 9999, 1);
     } else {
-      rank = normalizeRank(token);
+      filterTokens.push(token);
+    }
+  }
+
+  const countryTokens = [];
+
+  for (const token of filterTokens) {
+    const normalized = normalizeRank(token);
+    if (normalized === null) {
+      continue;
+    }
+
+    if (!rank && KNOWN_TETRIO_RANKS.has(normalized)) {
+      rank = normalized;
+      continue;
+    }
+
+    countryTokens.push(token);
+  }
+
+  if (countryTokens.length > 0) {
+    const countryQuery = countryTokens.join(' ');
+    const resolvedCountry = resolveCountryCode(countryQuery);
+
+    if (resolvedCountry) {
+      country = resolvedCountry;
+    } else if (!rank && countryTokens.length === 1) {
+      rank = normalizeRank(countryTokens[0]);
+    } else {
+      invalidCountry = countryQuery;
     }
   }
 
@@ -399,6 +529,8 @@ export function parseTetrioLeaderboardCommand(content) {
     limit,
     page,
     rank,
+    country,
+    invalidCountry,
   };
 }
 
@@ -409,6 +541,8 @@ function getTetrioLeaderboardView(parsed = {}) {
     limit = 10,
     page = 1,
     rank = null,
+    country = null,
+    invalidCountry = null,
   } = parsed;
 
   const cfg = STAT_CONFIG[stat];
@@ -421,6 +555,7 @@ function getTetrioLeaderboardView(parsed = {}) {
         '`%rlb apm 10` → APM 낮은 순 10명',
         '`%lb pps 50 2` → PPS 높은 순 51~100등',
         '`%lb glicko 20 x` → X랭크 안에서 Glicko 높은 순 20명',
+        '`%lb tr 10 korea` → 한국 유저 안에서 TR 높은 순 10명',
         '',
         `가능한 값: ${Object.keys(STAT_CONFIG).join(', ')}`,
       ].join('\n'),
@@ -436,10 +571,18 @@ function getTetrioLeaderboardView(parsed = {}) {
   }
 
   const normalizedRank = normalizeRank(rank);
+  const normalizedCountry = country ? String(country).trim().toUpperCase() : null;
+
+  if (invalidCountry) {
+    return {
+      message: `국가 필터 \`${invalidCountry}\` 를 찾지 못했음. 예: \`%lb tr 10 korea\`, \`%lb tr 10 kr\``,
+    };
+  }
 
   const rows = activeData.users
     .filter(user => hasNumber(getLeaderboardStatValue(user, cfg.key)))
     .filter(user => !normalizedRank || user.rank === normalizedRank)
+    .filter(user => !normalizedCountry || String(user.country ?? '').trim().toUpperCase() === normalizedCountry)
     .sort((a, b) => {
       const av = getLeaderboardStatValue(a, cfg.key);
       const bv = getLeaderboardStatValue(b, cfg.key);
@@ -453,8 +596,13 @@ function getTetrioLeaderboardView(parsed = {}) {
   const sliced = rows.slice(start, start + limit);
 
   if (!sliced.length) {
+    const filters = [
+      `page=${page}`,
+      `rank=${normalizedRank ?? 'all'}`,
+      `country=${normalizedCountry ?? 'all'}`,
+    ];
     return {
-      message: `${cfg.label} 리더보드에 표시할 데이터가 없음. page=${page}, rank=${normalizedRank ?? 'all'}`,
+      message: `${cfg.label} 리더보드에 표시할 데이터가 없음. ${filters.join(', ')}`,
     };
   }
 
@@ -463,7 +611,9 @@ function getTetrioLeaderboardView(parsed = {}) {
     reverse,
     page,
     normalizedRank,
+    countryCode: normalizedCountry,
     start,
+    filteredUserCount: rows.length,
     rows: sliced.map((user, index) => ({
       ...user,
       place: start + index + 1,
@@ -486,9 +636,10 @@ export async function createTetrioLeaderboardCard(parsed = {}) {
   const image = await renderTetrioLeaderboardCard(view);
   const mode = view.reverse ? 'rlb' : 'lb';
   const rank = view.normalizedRank ?? 'all';
+  const country = view.countryCode?.toLowerCase() ?? 'all';
 
   return {
     image,
-    filename: `tetrio-${mode}-${view.cfg.key}-${rank}-page-${view.page}.png`,
+    filename: `tetrio-${mode}-${view.cfg.key}-${rank}-${country}-page-${view.page}.png`,
   };
 }

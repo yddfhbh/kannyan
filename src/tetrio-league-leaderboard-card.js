@@ -29,9 +29,13 @@ function renderTetrioLeaderboardCardSvg(view) {
   const contentX = outerPadding;
   const contentY = outerPadding;
   const rowsY = contentY + headerHeight + columnHeaderHeight;
-  const titleRank = view.normalizedRank ? ` ${view.normalizedRank.toUpperCase()}` : '';
+  const titleFilters = [view.normalizedRank, view.countryCode]
+    .filter(Boolean)
+    .map(value => String(value).toUpperCase())
+    .join(' ');
   const direction = view.reverse ? 'REVERSE ' : '';
   const mode = view.reverse ? 'RLB' : 'LB';
+  const subtitleFilter = titleFilters ? ` / ${titleFilters}` : '';
   const rowMarkup = view.rows
     .map((user, index) => renderTetrioLeaderboardRow({
       user,
@@ -118,8 +122,8 @@ function renderTetrioLeaderboardCardSvg(view) {
 
   <rect x="1" y="1" width="${viewBoxWidth - 2}" height="${viewBoxHeight - 2}" class="outerBox"/>
   <rect x="${contentX}" y="${contentY}" width="${contentWidth}" height="${headerHeight}" class="headerBox"/>
-  <text x="${contentX + 18}" y="${contentY + 35}" class="title">${escapeXml(`${direction}${view.cfg.label}${titleRank} LEADERBOARD`)}</text>
-  <text x="${contentX + 18}" y="${contentY + 59}" class="subtitle">${escapeXml(`${mode}  /  PAGE ${view.page}  /  ${view.userCount.toLocaleString('en-US')} USERS`)}</text>
+  <text x="${contentX + 18}" y="${contentY + 35}" class="title">${escapeXml(`${direction}${view.cfg.label}${titleFilters ? ` ${titleFilters}` : ''} LEADERBOARD`)}</text>
+  <text x="${contentX + 18}" y="${contentY + 59}" class="subtitle">${escapeXml(`${mode}  /  PAGE ${view.page}${subtitleFilter}  /  ${view.filteredUserCount.toLocaleString('en-US')} PLAYERS`)}</text>
 
   <rect x="${contentX}" y="${contentY + headerHeight}" width="${contentWidth}" height="${columnHeaderHeight}" class="columnHeader"/>
   <text x="${contentX + 20}" y="${contentY + headerHeight + 22}" class="columnLabel">#</text>
