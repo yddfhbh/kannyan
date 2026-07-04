@@ -301,6 +301,33 @@ function formatConfigSummary(config) {
   return `ID ${config.id} | 채널 <#${config.outputChannelId}> | 이모지 ${config.emojiDisplay} | 기준 ${config.threshold}개`;
 }
 
+function buildConceptTestEmbed(interaction, config) {
+  const authorName =
+    interaction.member?.displayName
+    || interaction.user?.globalName
+    || interaction.user?.username
+    || 'Test User';
+  const authorIconUrl = interaction.user?.displayAvatarURL?.({ size: 256 }) ?? null;
+  const sourceChannelName = String(interaction.channel?.name ?? 'test');
+  const jumpUrl = `https://discord.com/channels/${interaction.guildId}/${interaction.channelId}`;
+
+  return new EmbedBuilder()
+    .setColor(0x2b2d31)
+    .setTitle(`${config.emojiDisplay} 테스트 999`)
+    .setAuthor({
+      name: authorName,
+      ...(authorIconUrl ? { iconURL: authorIconUrl } : {}),
+    })
+    .setDescription(
+      '개념글 테스트 카드다냥.\n이 카드가 보이면 출력 채널 접근, 임베드 전송, 기본 레이아웃은 정상이다냥.'
+    )
+    .addFields({
+      name: 'Original Message',
+      value: `[#${sourceChannelName} Jump](${jumpUrl})`,
+    })
+    .setTimestamp(new Date());
+}
+
 async function ensureManager(interaction) {
   if (!interaction.inGuild() || !interaction.guildId || !interaction.guild) {
     await interaction.reply({
@@ -672,6 +699,76 @@ export async function handleConceptBoardDeleteInteraction(interaction) {
 
   await interaction.reply({
     content: `개념글 설정 ID ${configId} 를 삭제했다냥.`,
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+export async function handleConceptBoardTestInteraction(interaction) {
+  if (!await ensureManager(interaction)) {
+    return;
+  }
+
+  const configId = String(interaction.options.getInteger('id', true));
+  const loadedState = await loadState();
+  const guildState = getGuildConfigState(loadedState, interaction.guildId);
+  const config = guildState.configs[configId];
+
+  if (!config) {
+    await interaction.reply({
+      content: `ID ${configId} 설정을 찾지 못했다냥.`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const outputChannel = await fetchTextChannel(interaction.client, config.outputChannelId, 'OUTPUT');
+
+  if (!outputChannel) {
+    await interaction.reply({
+      content: `ID ${configId} 설정의 출력 채널에 접근하지 못했다냥. channel=${config.outputChannelId}`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (!outputChannel.permissionsFor?.(interaction.client.user)?.has([
+    PermissionsBitField.Flags.ViewChannel,
+    PermissionsBitField.Flags.SendMessages,
+    PermissionsBitField.Flags.EmbedLinks,
+    PermissionsBitField.Flags.ReadMessageHistory,
+  ])) {
+    console.error(
+      `[CONCEPT BOARD] test permission missing guild=${interaction.guildId} config=${config.id} channel=${config.outputChannelId}`
+    );
+    await interaction.reply({
+      content: `ID ${configId} 설정 채널에 보낼 권한이 부족하다냥. View Channel / Send Messages / Embed Links / Read Message History를 확인해달라냥.`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const embed = buildConceptTestEmbed(interaction, config);
+  const sent = await outputChannel.send({
+    embeds: [embed],
+    allowedMentions: { parse: [] },
+  }).catch((error) => {
+    console.error(
+      `[CONCEPT BOARD] test send failed guild=${interaction.guildId} config=${config.id} output=${config.outputChannelId}`
+    );
+    console.error(error);
+    return null;
+  });
+
+  if (!sent) {
+    await interaction.reply({
+      content: `ID ${configId} 설정 채널로 테스트 카드를 보내지 못했다냥. 로그를 확인해달라냥.`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  await interaction.reply({
+    content: `ID ${configId} 설정 채널 ${outputChannel} 에 테스트 카드를 보냈다냥.`,
     flags: MessageFlags.Ephemeral,
   });
 }

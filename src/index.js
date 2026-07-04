@@ -147,6 +147,7 @@ import {
   handleConceptBoardListInteraction,
   handleConceptBoardReactionAdd,
   handleConceptBoardReactionRemove,
+  handleConceptBoardTestInteraction,
   handleConceptBoardUpdateInteraction,
 } from './concept-board.js';
 
@@ -5114,6 +5115,11 @@ if (interaction.commandName === '개념글수정') {
 
 if (interaction.commandName === '개념글삭제') {
   await handleConceptBoardDeleteInteraction(interaction);
+  return;
+}
+
+if (interaction.commandName === '개념글테스트') {
+  await handleConceptBoardTestInteraction(interaction);
   return;
 }
 

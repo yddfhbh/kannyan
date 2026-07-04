@@ -529,6 +529,18 @@ new SlashCommandBuilder()
         .setMinValue(1)
     )
     .toJSON(),
+  new SlashCommandBuilder()
+    .setName('개념글테스트')
+    .setDescription('개념글 설정 채널로 테스트 카드를 보냅니다.')
+    .setDefaultMemberPermissions(adminOnlyPermission)
+    .addIntegerOption((option) =>
+      option
+        .setName('id')
+        .setDescription('테스트할 설정 ID')
+        .setRequired(true)
+        .setMinValue(1)
+    )
+    .toJSON(),
 ];
 
 const dailyPuzzleAnnouncementCommand = new SlashCommandBuilder()
