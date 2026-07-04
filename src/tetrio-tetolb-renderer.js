@@ -160,7 +160,7 @@ function formatTr(value) {
   return Number.isFinite(number) ? number.toFixed(2) : '0.00';
 }
 
-function estimateUsernameWidth(text, fontSize = 15.5) {
+function estimateUsernameWidth(text, fontSize = 17) {
   let units = 0;
 
   for (const char of String(text ?? '')) {
@@ -202,7 +202,7 @@ function estimateTrWidth(text, fontSize = 16) {
   return Math.ceil(units * fontSize + 1);
 }
 
-async function measureTetolbUsernameWidth(text, fontSize = 15.5, fontWeight = 900) {
+async function measureTetolbUsernameWidth(text, fontSize = 17, fontWeight = 900) {
   const normalized = String(text ?? '').trim().toUpperCase();
   if (!normalized) {
     return 0;
@@ -832,7 +832,7 @@ export async function renderTetolbLeaderboardCardSvg({ entries, countryCode = nu
       }
       .username {
         font-family: Arial, sans-serif;
-        font-size: 15.5px;
+        font-size: 17px;
         font-weight: 900;
         fill: #bde8b6;
         ${renderTetrioTextWeightCss()}
