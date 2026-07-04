@@ -39,6 +39,7 @@ const headerAccent = '#99dd81';
 const textPrimary = '#e8f5df';
 const textSecondary = '#94a893';
 const lineColor = '#5d8b5c';
+const usernameFontSize = 18.5;
 const levelBadgeGradients = [
   ['#C9C9C9', '#E4E4E4', '#C9C9C9', '#AEAEAE'],
   ['#FD3535', '#FF6D6D', '#FD3535', '#EB1A1A'],
@@ -160,7 +161,7 @@ function formatTr(value) {
   return Number.isFinite(number) ? number.toFixed(2) : '0.00';
 }
 
-function estimateUsernameWidth(text, fontSize = 18) {
+function estimateUsernameWidth(text, fontSize = usernameFontSize) {
   let units = 0;
 
   for (const char of String(text ?? '')) {
@@ -202,7 +203,7 @@ function estimateTrWidth(text, fontSize = 16) {
   return Math.ceil(units * fontSize + 1);
 }
 
-async function measureTetolbUsernameWidth(text, fontSize = 18, fontWeight = 900) {
+async function measureTetolbUsernameWidth(text, fontSize = usernameFontSize, fontWeight = 900) {
   const normalized = String(text ?? '').trim().toUpperCase();
   if (!normalized) {
     return 0;
@@ -314,9 +315,43 @@ function renderTetolbDecimalNumberMarkup(value, options = {}) {
   return markup;
 }
 
-function getCompactBadgeTag(value) {
-  const numericValue = Number(value);
-  const displayValue = Number.isFinite(numericValue) ? Math.max(0, Math.round(numericValue)) : 0;
+function renderTetolbUsernameMarkup(value) {
+  const text = String(value ?? '').toUpperCase();
+  const parts = text.split(/(_+)/);
+  const underscoreDyEm = -0.08;
+  const underscoreDxEm = 0.06;
+  const underscoreLetterSpacingEm = 0.04;
+  let needsBaselineRestore = false;
+
+  return parts.map((part) => {
+    if (!part) {
+      return '';
+    }
+
+    if (/^_+$/.test(part)) {
+      needsBaselineRestore = true;
+      return `<tspan font-family="Arial, sans-serif" dy="${underscoreDyEm}em" dx="${underscoreDxEm}em" letter-spacing="${underscoreLetterSpacingEm}em">${escapeXml(part)}</tspan>`;
+    }
+
+    const restoreDy = needsBaselineRestore
+      ? ` dy="${Math.abs(underscoreDyEm)}em"`
+      : '';
+    needsBaselineRestore = false;
+    return `<tspan${restoreDy}>${escapeXml(part)}</tspan>`;
+  }).join('');
+}
+
+function xpToLevel(xp) {
+  if (!Number.isFinite(xp) || xp < 0) {
+    return 0;
+  }
+
+  return (xp / 500) ** 0.6 + (xp / (5000 + Math.max(0, xp - 4_000_000) / 5000)) + 1;
+}
+
+function getCompactLevelTag(xp) {
+  const rawLevel = xpToLevel(Number(xp));
+  const displayValue = Number.isFinite(rawLevel) ? Math.max(0, Math.floor(rawLevel)) : 0;
   const text = String(displayValue);
   const width = text.length * 9 + 34;
 
@@ -327,7 +362,7 @@ function getCompactBadgeTag(value) {
     shapeColor: Math.floor(displayValue / 10) % 10,
     badgeColor: Math.floor(displayValue / 500) % 10,
     golden: displayValue >= 5000,
-    nullTag: !Number.isFinite(numericValue) || numericValue < 0,
+    nullTag: !Number.isFinite(Number(xp)) || Number(xp) < 0,
   };
 }
 
@@ -457,7 +492,7 @@ function renderCompactLevelBadge(tag, x, y, height = 18) {
 }
 
 function renderTetolbTitle(titleX, titleY, countryCode = null) {
-  const segmentGap = 20;
+  const segmentGap = 14;
   const leagueWidth = 102;
   const tetraWidth = 86;
   const suffixStartX = titleX + leagueWidth / 2 + segmentGap;
@@ -667,14 +702,14 @@ function renderLeaderboardRow({
   const usernameText = usernameLayout?.text ?? truncateName(entry.username, 32);
   const rank = String(entry?.league?.rank ?? '').toLowerCase() || 'z';
   const rankLabel = String(entry?.league?.rank ?? 'z').toUpperCase();
-  const glickoBadge = getCompactBadgeTag(entry?.league?.glicko);
+  const levelBadge = getCompactLevelTag(entry?.xp);
   const tr = formatTr(entry?.league?.tr);
   const avatarDataUri = assets.get(getAvatarUrl(entry)) ?? null;
   const bannerDataUri = assets.get(getBannerUrl(entry)) ?? null;
   const flagDataUri = assets.get(getFlagUrl(entry.country)) ?? null;
   const rankIconDataUri = assets.get(getRankIconUrl(entry?.league?.rank)) ?? null;
 const cardBaseFill = rowIndex % 2 === 0 ? panelBg : panelBgAlt;
-const bannerOverlayOpacity = bannerDataUri ? 0.64 : 0.08;
+const bannerOverlayOpacity = bannerDataUri ? 0.34 : 0.08;
 const usernameStyle = bannerDataUri ? 'fill:#ffffff;' : '';
 const trValueStyle = bannerDataUri ? 'fill:#ffffff;' : '';
   const usernameX = cardX + 60;
@@ -688,11 +723,11 @@ const nameFlagGap = 18;
 
 const flagX = Math.round(usernameX + usernameWidth + supporterExtraWidth + nameFlagGap);
 const flagY = cardY + 5;
-  const rankX = badgeX + glickoBadge.width + 7;
+  const rankX = badgeX + levelBadge.width + 7;
   const rankY = cardY + 25;
   const rankWidth = 20;
   const rankHeight = 20;
-  const trX = rankX + rankWidth + 8;
+  const trX = rankX + rankWidth + 2;
   const trY = cardY + 41;
   const trWidth = estimateTrWidth(tr);
   const trSuffixX = trX + trWidth + 2;
@@ -722,9 +757,9 @@ const flagMarkup = flagDataUri
 <rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="6" fill="rgba(8,15,8,${bannerOverlayOpacity})"/>
     ${avatarMarkup}
     <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="4" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
-    <text x="${usernameX}" y="${usernameY}" class="username"${usernameStyle ? ` style="${usernameStyle}"` : ''} xml:space="preserve">${escapeXml(usernameText)}${entry.supporter ? `<tspan dx="3.5" fill="#ff9f2e">★</tspan>` : ''}</text>
+    <text x="${usernameX}" y="${usernameY}" class="username"${usernameStyle ? ` style="${usernameStyle}"` : ''} xml:space="preserve">${renderTetolbUsernameMarkup(usernameText)}${entry.supporter ? `<tspan dx="3.5" fill="#ff9f2e">★</tspan>` : ''}</text>
     ${flagMarkup}
-    ${renderCompactLevelBadge(glickoBadge, badgeX, badgeY, badgeHeight)}
+    ${renderCompactLevelBadge(levelBadge, badgeX, badgeY, badgeHeight)}
     ${rankIconDataUri
       ? `<image href="${rankIconDataUri}" x="${rankX}" y="${rankY}" width="${rankWidth}" height="${rankHeight}" preserveAspectRatio="xMidYMid meet"/>`
       : `<text x="${rankX + rankWidth / 2}" y="${trY}" text-anchor="middle" class="rankLabel">${renderTetrioTextMarkup(rankLabel)}</text>`}
@@ -832,7 +867,7 @@ export async function renderTetolbLeaderboardCardSvg({ entries, countryCode = nu
       }
       .username {
         font-family: Arial, sans-serif;
-        font-size: 18px;
+        font-size: ${usernameFontSize}px;
         font-weight: 900;
         fill: #bde8b6;
         ${renderTetrioTextWeightCss()}
