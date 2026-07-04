@@ -79,6 +79,10 @@ import {
   parseTetrioLeaderboardCommand,
   refreshTetrioLeagueCache,
 } from './tetrio-league-leaderboard.js';
+import {
+  buildTetolbFallbackText,
+  createTetolbLeaderboardReplyData,
+} from './tetrio-tetolb.js';
 import { renderLiveRatingCard } from './live-rating-card.js';
 import { createVArchiveTierCard } from './varchive-tier-card.js';
 import {
@@ -385,6 +389,7 @@ const percentCommandAliases = {
   minomuncher: ['munch'],
   tetr: ['tetr', 'tetoranks'],
   tetrioLeagueMatch: ['tetra'],
+  tetolb: ['tetolb'],
   quickplay: ['qp'],
   expertQuickplay: ['exqp'],
   fortyLines: ['40l'],
@@ -5944,6 +5949,11 @@ async function handlePercentMessageCommand(message) {
     return true;
   }
 
+  if (command === 'tetolb') {
+    await handleTetolbMessage(message, input);
+    return true;
+  }
+
   if (command === 'tetrioLeagueRecentList') {
     await handleTetrioLeagueRecentListMessage(message, input, parsedCommand.recentCount);
     return true;
@@ -8201,6 +8211,7 @@ function getHelpMessage() {
     '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석한다냥.',
     '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여준다냥.',
     '`/전적 닉네임:[TETR.IO 닉네임] 숫자:[경기 번호]` 또는 `%tetra 닉네임 [경기 번호]`, `%tetra10 닉네임` - TETRA LEAGUE 최근 경기 전적이나 최근 N경기 목록을 이미지로 보여준다냥.',
+    '`%tetolb`, `%tetolb KR`, `%tetolb 한국` - TETRA LEAGUE 글로벌 또는 국가 상위 50명을 이미지로 보여준다냥.',
     '`/체스비교 플랫폼:<체닷|리체스> 타임컨트롤:<래피드|블리츠|불렛> 닉네임1:<이름> 닉네임2:<이름>` - 두 사람의 점수와 예상 승률을 비교한다냥.',
     '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산한다냥.',
     '`/알람 내용:<알람 내용> 분:<1~10080>` - 지정한 분 뒤에 멘션으로 알려준다냥.',
@@ -9707,6 +9718,53 @@ async function showTetrioProfileMessage(message, input) {
 
     await message.reply({
       content,
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+
+async function handleTetolbMessage(message, input) {
+  try {
+    await message.channel.sendTyping();
+    const replyData = await createTetolbLeaderboardReplyData(input);
+    const attachment = new AttachmentBuilder(replyData.image, {
+      name: replyData.filename,
+    });
+
+    await message.reply({
+      files: [attachment],
+      allowedMentions: { repliedUser: false },
+    });
+  } catch (error) {
+    console.error(`Failed to render %tetolb for input="${input}":`);
+    console.error(error);
+
+    if (error.code === 'INVALID_COUNTRY') {
+      await message.reply({
+        content: error.message,
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (error.code === 'NO_ENTRIES') {
+      await message.reply({
+        content: error.message,
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (error.entries) {
+      await message.reply({
+        content: buildTetolbFallbackText(error.entries, error.countryCode ?? null),
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    await message.reply({
+      content: 'TETR.IO 리더보드를 불러오지 못했다냥. 잠시 후 다시 시도해줘.',
       allowedMentions: { repliedUser: false },
     });
   }

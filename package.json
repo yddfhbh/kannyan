@@ -9,6 +9,7 @@
     "build:puzzle-rush-pool": "node scripts/build-lichess-puzzle-rush-pool.js",
     "build:starforce-statistics": "node scripts/precompute-starforce-statistics.js",
     "match:stockfish": "powershell -ExecutionPolicy Bypass -File scripts/run-kannya-vs-stockfish.ps1",
+    "preview:tetolb": "node scripts/preview-tetolb.js",
     "register": "node src/deploy-commands.js",
     "start": "node src/index.js",
     "uci": "node src/chess/kannyan-uci.js",
