@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import sharp from 'sharp';
+
 import {
   getTetrioHunDinFontDataUri,
   renderTetrioHunDinFontFace,
@@ -32,9 +32,9 @@ const supportedImageContentTypes = new Set([
   'image/webp',
   'image/gif',
 ]);
-const panelBg = '#122514';
-const panelBgAlt = '#173118';
-const pageBg = '#081008';
+const panelBg = '#10210f';
+const panelBgAlt = '#132914';
+const pageBg = '#071007';
 const headerAccent = '#99dd81';
 const textPrimary = '#e8f5df';
 const textSecondary = '#94a893';
@@ -160,7 +160,7 @@ function formatTr(value) {
   return Number.isFinite(number) ? number.toFixed(2) : '0.00';
 }
 
-function estimateUsernameWidth(text, fontSize = 15) {
+function estimateUsernameWidth(text, fontSize = 15.5) {
   let units = 0;
 
   for (const char of String(text ?? '')) {
@@ -202,7 +202,7 @@ function estimateTrWidth(text, fontSize = 16) {
   return Math.ceil(units * fontSize + 1);
 }
 
-async function measureTetolbUsernameWidth(text, fontSize = 15, fontWeight = 900) {
+async function measureTetolbUsernameWidth(text, fontSize = 15.5, fontWeight = 900) {
   const normalized = String(text ?? '').trim().toUpperCase();
   if (!normalized) {
     return 0;
@@ -673,9 +673,10 @@ function renderLeaderboardRow({
   const bannerDataUri = assets.get(getBannerUrl(entry)) ?? null;
   const flagDataUri = assets.get(getFlagUrl(entry.country)) ?? null;
   const rankIconDataUri = assets.get(getRankIconUrl(entry?.league?.rank)) ?? null;
-  const cardBaseFill = rowIndex % 2 === 0 ? panelBg : panelBgAlt;
-  const usernameStyle = bannerDataUri ? 'fill:#ffffff;' : '';
-  const trValueStyle = bannerDataUri ? 'fill:#ffffff;' : '';
+const cardBaseFill = rowIndex % 2 === 0 ? panelBg : panelBgAlt;
+const bannerOverlayOpacity = bannerDataUri ? 0.64 : 0.08;
+const usernameStyle = bannerDataUri ? 'fill:#ffffff;' : '';
+const trValueStyle = bannerDataUri ? 'fill:#ffffff;' : '';
   const usernameX = cardX + 60;
   const usernameY = cardY + 19;
   const badgeX = cardX + 60;
@@ -706,9 +707,9 @@ const flagY = cardY + 5;
   const avatarMarkup = avatarDataUri
     ? `<image href="${avatarDataUri}" x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${cardId}-avatar)"/>`
     : `<rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="4" fill="#29422c"/>`;
-  const flagMarkup = flagDataUri
-    ? `<image href="${flagDataUri}" x="${flagX}" y="${flagY}" width="21" height="15" preserveAspectRatio="xMidYMid slice"/>`
-    : '';
+const flagMarkup = flagDataUri
+  ? `<image href="${flagDataUri}" x="${flagX}" y="${flagY}" width="${flagWidth}" height="15" preserveAspectRatio="xMidYMid slice"/>`
+  : '';
   const placeText = String(place);
   const placeX = columnX + (place >= 10 ? 13 : 33);
 
@@ -718,7 +719,7 @@ const flagY = cardY + 5;
   <g>
     <rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="6" fill="${cardBaseFill}" stroke="rgba(138,182,128,0.10)" stroke-width="1"/>
     ${bannerMarkup}
-    <rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="6" fill="rgba(8,15,8,${bannerDataUri ? '0.52' : '0.10'})"/>
+<rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="6" fill="rgba(8,15,8,${bannerOverlayOpacity})"/>
     ${avatarMarkup}
     <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="4" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
     <text x="${usernameX}" y="${usernameY}" class="username"${usernameStyle ? ` style="${usernameStyle}"` : ''} xml:space="preserve">${escapeXml(usernameText)}${entry.supporter ? `<tspan dx="3.5" fill="#ff9f2e">★</tspan>` : ''}</text>
@@ -805,7 +806,7 @@ export async function renderTetolbLeaderboardCardSvg({ entries, countryCode = nu
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
     <pattern id="bgGrid" width="32" height="32" patternUnits="userSpaceOnUse">
-      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(255,255,255,0.018)" stroke-width="1"/>
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(255,255,255,0.006)" stroke-width="1"/>
     </pattern>
     ${renderTetolbLevelTagGradients()}
     <style>
@@ -815,23 +816,23 @@ export async function renderTetolbLeaderboardCardSvg({ entries, countryCode = nu
         letter-spacing: 0;
       }
       .title {
-        font-size: 27px;
+        font-size: 25px;
         font-weight: 900;
         fill: ${headerAccent};
         ${renderTetrioTextWeightCss()}
       }
       .countrySuffix {
-        font-size: 23px;
+        font-size: 21px;
       }
       .place {
-        font-size: 34px;
+        font-size: 32px;
         font-weight: 900;
         fill: #f4f7ef;
         ${renderTetrioTextWeightCss()}
       }
       .username {
         font-family: Arial, sans-serif;
-        font-size: 15px;
+        font-size: 15.5px;
         font-weight: 900;
         fill: #bde8b6;
         ${renderTetrioTextWeightCss()}
