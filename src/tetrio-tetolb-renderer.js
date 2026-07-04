@@ -160,7 +160,7 @@ function formatTr(value) {
   return Number.isFinite(number) ? number.toFixed(2) : '0.00';
 }
 
-function estimateUsernameWidth(text, fontSize = 17) {
+function estimateUsernameWidth(text, fontSize = 18) {
   let units = 0;
 
   for (const char of String(text ?? '')) {
@@ -202,7 +202,7 @@ function estimateTrWidth(text, fontSize = 16) {
   return Math.ceil(units * fontSize + 1);
 }
 
-async function measureTetolbUsernameWidth(text, fontSize = 17, fontWeight = 900) {
+async function measureTetolbUsernameWidth(text, fontSize = 18, fontWeight = 900) {
   const normalized = String(text ?? '').trim().toUpperCase();
   if (!normalized) {
     return 0;
@@ -832,7 +832,7 @@ export async function renderTetolbLeaderboardCardSvg({ entries, countryCode = nu
       }
       .username {
         font-family: Arial, sans-serif;
-        font-size: 17px;
+        font-size: 18px;
         font-weight: 900;
         fill: #bde8b6;
         ${renderTetrioTextWeightCss()}
@@ -871,7 +871,7 @@ export async function createTetolbLeaderboardImage(options) {
   const requestedScale = Number(process.env.TETOLB_RENDER_SCALE ?? '1.25');
   const renderScale = Number.isFinite(requestedScale)
     ? Math.min(1.5, Math.max(1, requestedScale))
-    : 1.25;
+    : 1.5;
 
   return renderTetrioSvgToPng(svg, renderScale);
 }
