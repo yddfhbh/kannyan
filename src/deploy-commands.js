@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { REST, Routes, SlashCommandBuilder } from 'discord.js';
+import { PermissionsBitField, REST, Routes, SlashCommandBuilder } from 'discord.js';
 
 const { DISCORD_TOKEN, CLIENT_ID } = process.env;
 const guildId = process.env.GUILD_ID?.trim();
@@ -14,6 +14,7 @@ const quickPlayRecordChoices = [
   { name: 'top', value: 'top' },
   { name: 'recent', value: 'recent' },
 ];
+const adminOnlyPermission = PermissionsBitField.Flags.Administrator;
 
 const commands = [
   new SlashCommandBuilder()
@@ -429,6 +430,7 @@ new SlashCommandBuilder()
   new SlashCommandBuilder()
     .setName('개념글지정')
     .setDescription('개념글 채널과 반응 기준을 설정합니다.')
+    .setDefaultMemberPermissions(adminOnlyPermission)
     .addChannelOption((option) =>
       option
         .setName('채널')
@@ -454,6 +456,7 @@ new SlashCommandBuilder()
   new SlashCommandBuilder()
     .setName('개념글추가')
     .setDescription('개념글 설정을 추가합니다.')
+    .setDefaultMemberPermissions(adminOnlyPermission)
     .addChannelOption((option) =>
       option
         .setName('채널')
@@ -479,10 +482,12 @@ new SlashCommandBuilder()
   new SlashCommandBuilder()
     .setName('개념글목록')
     .setDescription('등록된 개념글 설정 목록을 봅니다.')
+    .setDefaultMemberPermissions(adminOnlyPermission)
     .toJSON(),
   new SlashCommandBuilder()
     .setName('개념글수정')
     .setDescription('기존 개념글 설정을 수정합니다.')
+    .setDefaultMemberPermissions(adminOnlyPermission)
     .addIntegerOption((option) =>
       option
         .setName('id')
@@ -515,6 +520,7 @@ new SlashCommandBuilder()
   new SlashCommandBuilder()
     .setName('개념글삭제')
     .setDescription('개념글 설정을 삭제합니다.')
+    .setDefaultMemberPermissions(adminOnlyPermission)
     .addIntegerOption((option) =>
       option
         .setName('id')

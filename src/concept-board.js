@@ -310,9 +310,9 @@ async function ensureManager(interaction) {
     return false;
   }
 
-  if (!interaction.memberPermissions?.has(PermissionsBitField.Flags.ManageGuild)) {
+  if (!interaction.memberPermissions?.has(PermissionsBitField.Flags.Administrator)) {
     await interaction.reply({
-      content: '이 명령어는 관리자 또는 서버 관리 권한이 있어야 쓸 수 있다냥.',
+      content: '이 명령어는 관리자만 쓸 수 있다냥.',
       flags: MessageFlags.Ephemeral,
     });
     return false;
