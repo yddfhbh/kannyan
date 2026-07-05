@@ -726,6 +726,17 @@ async function fetchImageDataUri(url) {
   return promise;
 }
 
+async function readLocalImageDataUri(path, mimeType = null) {
+  try {
+    const buffer = await fs.readFile(path);
+    const contentType = mimeType
+      ?? (path.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg');
+    return `data:${contentType};base64,${buffer.toString('base64')}`;
+  } catch {
+    return null;
+  }
+}
+
 async function buildAssetMap(entries) {
   const urls = new Set([defaultAvatarUrl]);
 
