@@ -204,11 +204,7 @@ const boardOrientation =
     ? 'b'
     : detectedBoardOrientation === 'w'
       ? 'w'
-      : null;
-
-if (!boardOrientation) {
-  throw new Error('Chess board orientation could not be detected');
-}
+      : prompt.turn;
 
 console.log(
   `[CHESS IMAGE] turn=${prompt.turn} boardOrientation=${boardOrientation}`
@@ -216,13 +212,16 @@ console.log(
 
 const recognizedFen = await (options.imageToFen ?? imageToFen)(
   temporaryImage.filePath,
-  prompt.turn,
   {
+    turn: prompt.turn,
     boardOrientation,
   }
 );
 
-fen = validateAnalyzableChessFen(forceFenTurn(recognizedFen, prompt.turn), prompt.turn);
+fen = validateAnalyzableChessFen(
+  forceFenTurn(recognizedFen, prompt.turn),
+  prompt.turn
+);
 
   } catch (error) {
     console.error('Primary chess image recognition failed:');
@@ -340,21 +339,21 @@ async function extractFenFromImage(message, imagePath, prompt, options = {}) {
   }
 
   const boardOrientation =
-    detectedBoardOrientation === 'b'
-      ? 'b'
-      : detectedBoardOrientation === 'w'
-        ? 'w'
-        : null;
+  detectedBoardOrientation === 'b'
+    ? 'b'
+    : detectedBoardOrientation === 'w'
+      ? 'w'
+      : prompt.turn;
 
-  if (!boardOrientation) {
-    throw new Error('Chess board orientation could not be detected');
-  }
-
-  const recognizedFen = await (options.imageToFen ?? imageToFen)(imagePath, prompt.turn, {
+const recognizedFen = await (options.imageToFen ?? imageToFen)(
+  imagePath,
+  {
+    turn: prompt.turn,
     boardOrientation,
-  });
+  }
+);
 
-  return normalizeDirectFen(recognizedFen);
+return normalizeDirectFen(forceFenTurn(recognizedFen, prompt.turn));
 }
 
 async function analyzeAndReply(message, fen, options = {}) {
