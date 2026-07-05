@@ -1167,9 +1167,6 @@ if (chessAnalysisFollowupHandled) {
 
  const chessAnalysisHandled = await handleChessAnalysisMessage(message, {
   createReply: createNaturalChessAnalysisReply,
-  recognizeFenFallback: recognizeChessFenWithGemini,
-  detectBoardOrientation: detectChessBoardOrientationWithGemini,
-  extractFenFromImage: extractChessFenFromImage,
   onFenExtracted({ message: extractionMessage, fen, boardFen }) {
     rememberRecentChessAnalysis(extractionMessage, {
       fen,

@@ -106,6 +106,24 @@ export function normalizeDirectFen(input) {
   return fen;
 }
 
+function forceFenTurn(fen, turn) {
+  const normalizedTurn = turn === 'b' ? 'b' : 'w';
+  const fields = String(fen ?? '').trim().split(/\s+/).filter(Boolean);
+
+  if (fields.length < 4) {
+    throw new Error(`Invalid FEN field count: ${fen}`);
+  }
+
+  const output =
+    fields.length >= 6
+      ? fields.slice(0, 6)
+      : [fields[0], fields[1] ?? normalizedTurn, fields[2] ?? '-', fields[3] ?? '-', '0', '1'];
+
+  output[1] = normalizedTurn;
+
+  return output.join(' ');
+}
+
 export async function handleChessAnalysisMessage(message, options = {}) {
   const directFenMatch = String(message.content ?? '').trim().match(/^%fen(?:\s+(.+))?$/i);
   if (directFenMatch) {
@@ -204,7 +222,7 @@ const recognizedFen = await (options.imageToFen ?? imageToFen)(
   }
 );
 
-fen = validateAnalyzableChessFen(recognizedFen, prompt.turn);
+fen = validateAnalyzableChessFen(forceFenTurn(recognizedFen, prompt.turn), prompt.turn);
 
   } catch (error) {
     console.error('Primary chess image recognition failed:');
@@ -216,7 +234,7 @@ fen = validateAnalyzableChessFen(recognizedFen, prompt.turn);
           message,
           turn: prompt.turn,
         });
-        fen = validateAnalyzableChessFen(fallbackFen, prompt.turn);
+        fen = validateAnalyzableChessFen(forceFenTurn(fallbackFen, prompt.turn), prompt.turn);
       } catch (fallbackError) {
         console.error('Gemini chess image recognition fallback failed:');
         console.error(fallbackError);
