@@ -7,7 +7,15 @@ const DISCORD_API_BASE = 'https://discord.com/api/v10';
 
 const LEADERBOARD = process.env.TETRIO_RECORD_LEADERBOARD || '40l_global';
 const LIMIT = Math.max(1, Math.min(100, Number(process.env.TETRIO_SCAN_LIMIT) || 100));
-const DELAY_MS = Math.max(0, Number(process.env.TETRIO_SCAN_DELAY_MS) || 1100);
+const DELAY_MS = Math.max(0, Number(process.env.TETRIO_SCAN_DELAY_MS) || 300);
+
+// 기본값: 상위 100페이지까지만 스캔
+// 전체 스캔하고 싶으면 TETRIO_SCAN_MAX_PAGES=0 으로 실행
+const MAX_PAGES_RAW = Number(process.env.TETRIO_SCAN_MAX_PAGES ?? 100);
+const MAX_PAGES =
+  Number.isFinite(MAX_PAGES_RAW) && MAX_PAGES_RAW > 0
+    ? Math.floor(MAX_PAGES_RAW)
+    : Infinity;
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const DISCORD_RESULT_CHANNEL_ID =
@@ -171,6 +179,7 @@ function buildDiscordResultMessage(result) {
   const lines = [];
 
   lines.push(`**TETR.IO ${result.leaderboard} 밴 유저 스캔 결과**`);
+  lines.push(`스캔 범위: \`상위 ${result.scannedPages}페이지\``);
   lines.push(`스캔 시각: \`${result.scannedAt}\``);
   lines.push(`스캔 기록 수: \`${result.scannedRecords}\``);
   lines.push(`고유 유저 수: \`${result.uniqueUsers}\``);
@@ -206,7 +215,7 @@ async function main() {
   let page = 0;
   let scannedRecords = 0;
 
-  console.log(`[scan] leaderboard=${LEADERBOARD} limit=${LIMIT} delay=${DELAY_MS}ms`);
+  console.log(`[scan] leaderboard=${LEADERBOARD} limit=${LIMIT} delay=${DELAY_MS}ms maxPages=${Number.isFinite(MAX_PAGES) ? MAX_PAGES : 'all'}`);
   console.log(`[scan] session=${SESSION_ID}`);
 
   while (true) {
@@ -262,6 +271,11 @@ async function main() {
     console.log(
       `[page ${page}] entries=${entries.length} scannedRecords=${scannedRecords} uniqueUsers=${users.size} nextAfter=${nextAfter || '-'}`
     );
+
+    if (page >= MAX_PAGES) {
+      console.log(`[scan] reached max pages=${MAX_PAGES}`);
+      break;
+    }
 
     if (!nextAfter || nextAfter === after) {
       console.log('[scan] pagination stopped: no next after');
@@ -319,6 +333,7 @@ async function main() {
 
   const result = {
     leaderboard: LEADERBOARD,
+    scannedPages: page,
     scannedRecords,
     uniqueUsers: users.size,
     bannedCount: banned.length,
