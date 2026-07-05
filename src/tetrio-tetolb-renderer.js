@@ -186,7 +186,7 @@ function estimateUsernameWidth(text, fontSize = usernameFontSize) {
   return Math.ceil(units * fontSize + 2);
 }
 
-function estimateTrWidth(text, fontSize = 16) {
+function estimateMetricWidth(text, fontSize = 16) {
   let units = 0;
 
   for (const char of String(text ?? '')) {
@@ -194,6 +194,10 @@ function estimateTrWidth(text, fontSize = 16) {
       units += 0.55;
     } else if (char === '.') {
       units += 0.28;
+    } else if (char === ':') {
+      units += 0.3;
+    } else if (char === ',') {
+      units += 0.25;
     } else if (char === ' ') {
       units += 0.24;
     } else {
@@ -492,7 +496,20 @@ function renderCompactLevelBadge(tag, x, y, height = 18) {
   </g>`;
 }
 
-function renderTetolbTitle(titleX, titleY, countryCode = null) {
+function renderTetolbTitle(titleX, titleY, countryCode = null, mode = 'league') {
+  if (mode === '40l' || mode === 'blitz') {
+    const title = mode === '40l' ? '40 LINES' : 'BLITZ';
+
+    if (!countryCode) {
+      return `
+  <text x="${titleX}" y="${titleY}" text-anchor="middle" class="title">${renderTetrioTextMarkup(title)}</text>`;
+    }
+
+    return `
+  <text x="${titleX - 8}" y="${titleY}" text-anchor="end" class="title">${renderTetrioTextMarkup(title)}</text>
+  <text x="${titleX + 8}" y="${titleY}" text-anchor="start" class="title countrySuffix">${renderTetrioTextMarkup(`· ${countryCode}`)}</text>`;
+  }
+
   const segmentGap = 14;
   const leagueWidth = 102;
   const tetraWidth = 86;
@@ -746,6 +763,7 @@ function renderLeaderboardRow({
   rowY,
   assets,
   usernameLayout,
+  mode = 'league',
 }) {
   const cardX = columnX + 52;
   const cardY = rowY;
@@ -760,7 +778,16 @@ function renderLeaderboardRow({
   const rank = String(entry?.league?.rank ?? '').toLowerCase() || 'z';
   const rankLabel = String(entry?.league?.rank ?? 'z').toUpperCase();
   const levelBadge = getCompactLevelTag(entry?.xp);
-  const tr = formatTr(entry?.league?.tr);
+  const metricText = mode === '40l'
+    ? (entry?.tetolbMetric?.text ?? '-')
+    : mode === 'blitz'
+      ? (entry?.tetolbMetric?.text ?? '-')
+      : formatTr(entry?.league?.tr);
+  const metricSuffix = mode === '40l'
+    ? (entry?.tetolbMetric?.suffix ?? 'SEC')
+    : mode === 'blitz'
+      ? (entry?.tetolbMetric?.suffix ?? 'PTS')
+      : 'TR';
   const avatarDataUri = assets.get(getAvatarUrl(entry)) ?? null;
   const bannerDataUri = assets.get(getBannerUrl(entry)) ?? null;
   const flagDataUri = assets.get(getFlagUrl(entry.country)) ?? null;
@@ -786,7 +813,7 @@ const flagY = cardY + 5;
   const rankHeight = 20;
   const trX = rankX + rankWidth + 2;
   const trY = cardY + 41;
-  const trWidth = estimateTrWidth(tr);
+  const trWidth = estimateMetricWidth(metricText);
   const trSuffixX = trX + trWidth + 2;
   const clipMarkup = [
     `<clipPath id="${cardId}-clip"><rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="6"/></clipPath>`,
@@ -820,12 +847,12 @@ const flagMarkup = flagDataUri
     ${rankIconDataUri
       ? `<image href="${rankIconDataUri}" x="${rankX}" y="${rankY}" width="${rankWidth}" height="${rankHeight}" preserveAspectRatio="xMidYMid meet"/>`
       : `<text x="${rankX + rankWidth / 2}" y="${trY}" text-anchor="middle" class="rankLabel">${renderTetrioTextMarkup(rankLabel)}</text>`}
-    <text x="${trX}" y="${trY}" class="trValue"${trValueStyle ? ` style="${trValueStyle}"` : ''}>${renderTetolbDecimalNumberMarkup(tr)}</text>
-    <text x="${trSuffixX}" y="${trY}" class="trSuffix">${renderTetrioTextMarkup('TR')}</text>
+    <text x="${trX}" y="${trY}" class="trValue"${trValueStyle ? ` style="${trValueStyle}"` : ''}>${renderTetolbDecimalNumberMarkup(metricText)}</text>
+    <text x="${trSuffixX}" y="${trY}" class="trSuffix">${renderTetrioTextMarkup(metricSuffix)}</text>
   </g>`;
 }
 
-export async function renderTetolbLeaderboardCardSvg({ entries, countryCode = null }) {
+export async function renderTetolbLeaderboardCardSvg({ entries, countryCode = null, mode = 'league' }) {
   const fontDataUri = await getTetrioHunDinFontDataUri();
   const assets = await buildAssetMap(entries);
 
@@ -890,6 +917,7 @@ export async function renderTetolbLeaderboardCardSvg({ entries, countryCode = nu
         rowY,
         assets,
         usernameLayout: usernameLayouts[startRank + rowIndex - 1],
+        mode,
       });
     }).join('');
   }).join('');
@@ -950,7 +978,7 @@ export async function renderTetolbLeaderboardCardSvg({ entries, countryCode = nu
   </defs>
   <rect width="${width}" height="${height}" fill="${pageBg}"/>
   <rect x="0" y="0" width="${width}" height="${height}" fill="url(#bgGrid)"/>
-  ${renderTetolbTitle(titleX, headerY, countryCode)}
+  ${renderTetolbTitle(titleX, headerY, countryCode, mode)}
   <line x1="${outerPadding}" y1="${headerY + 8}" x2="${width - outerPadding}" y2="${headerY + 8}" stroke="${lineColor}" stroke-width="1.5"/>
   <line x1="${width / 2 - 82}" y1="${headerY + 8}" x2="${width / 2 + 82}" y2="${headerY + 8}" stroke="${headerAccent}" stroke-width="3.2"/>
   ${rowMarkup}

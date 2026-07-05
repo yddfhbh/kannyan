@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { createTetolbLeaderboardImage } from './tetrio-tetolb-renderer.js';
 
 const tetrioApiBaseUrl = 'https://ch.tetr.io/api';
-const leaderboardApiPath = '/users/by/league';
+const leagueLeaderboardApiPath = '/users/by/league';
 const dataDir = resolve(
   process.env.TETRIO_LEAGUE_DATA_DIR?.trim()
     || process.env.DATA_DIR?.trim()
@@ -17,7 +17,39 @@ const userCacheTtlMs = 24 * 60 * 60 * 1000;
 const leaderboardRequestTimeoutMs = 12_000;
 const overallTetolbTimeoutMs = 25_000;
 const userFetchConcurrency = 5;
+const tetolbModeAliases = new Map([
+  ['40l', '40l'],
+  ['40line', '40l'],
+  ['40lines', '40l'],
+  ['fortylines', '40l'],
+  ['40라인', '40l'],
+  ['블리츠', 'blitz'],
+  ['blitz', 'blitz'],
+]);
+const tetolbModeConfig = {
+  league: {
+    title: 'TETRA LEAGUE',
+    filenamePrefix: 'tetolb',
+    fallbackValueSuffix: 'TR',
+  },
+  '40l': {
+    title: '40 LINES',
+    filenamePrefix: 'tetolb-40l',
+    fallbackValueSuffix: 'SEC',
+  },
+  blitz: {
+    title: 'BLITZ',
+    filenamePrefix: 'tetolb-blitz',
+    fallbackValueSuffix: 'PTS',
+  },
+};
 const countryAliases = new Map([
+  ['global', null],
+  ['all', null],
+  ['world', null],
+  ['전체', null],
+  ['전세계', null],
+  ['글로벌', null],
   ['한국', 'KR'],
   ['대한민국', 'KR'],
   ['korea', 'KR'],
@@ -72,6 +104,15 @@ function createEmptyUserCacheState() {
   return {
     users: {},
   };
+}
+
+function getTetolbModeConfig(mode = 'league') {
+  return tetolbModeConfig[mode] ?? tetolbModeConfig.league;
+}
+
+function normalizeTetolbModeToken(value) {
+  const normalized = normalizeCountryQuery(value);
+  return tetolbModeAliases.get(normalized) ?? null;
 }
 
 async function loadCacheState() {
@@ -134,15 +175,19 @@ async function saveUserCacheState() {
   return userCacheSaveQueue;
 }
 
-function getScopeKey(countryCode) {
-  return countryCode ? `country:${countryCode}` : 'global';
+function getScopeKey(mode, countryCode) {
+  return `${mode}:${countryCode ? `country:${countryCode}` : 'global'}`;
 }
 
 function entriesNeedProfileEnrichment(entries) {
   return Array.isArray(entries) && entries.some((entry) =>
     entry
-    && entry._id
-    && (entry.avatar_revision == null || (entry.supporter && entry.banner_revision == null))
+    && entry.username
+    && (
+      entry.avatar_revision == null
+      || entry.xp == null
+      || (entry.supporter && entry.banner_revision == null)
+    )
   );
 }
 
@@ -152,6 +197,10 @@ function normalizeCountryQuery(value) {
     .toLowerCase()
     .replace(/[\s_]+/g, '')
     .replace(/[()]/g, '');
+}
+
+function getUserCacheKey(username) {
+  return String(username ?? '').trim().toLowerCase();
 }
 
 export function parseTetolbCountryOption(input) {
@@ -170,7 +219,7 @@ export function parseTetolbCountryOption(input) {
     const countryCode = countryAliases.get(normalized);
     return {
       countryCode,
-      scopeLabel: countryCode,
+      scopeLabel: countryCode ?? 'global',
     };
   }
 
@@ -184,6 +233,35 @@ export function parseTetolbCountryOption(input) {
 
   return {
     errorMessage: '국가는 KR, JP, US 같은 2글자 코드나 한국/일본/미국처럼 입력해달라냥.',
+  };
+}
+
+function parseTetolbQuery(input = '') {
+  const trimmed = String(input ?? '').trim();
+
+  if (!trimmed) {
+    return {
+      mode: 'league',
+      countryCode: null,
+    };
+  }
+
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
+  const parsedMode = normalizeTetolbModeToken(tokens[0]);
+  const mode = parsedMode ?? 'league';
+  const countryInput = parsedMode ? tokens.slice(1).join(' ') : trimmed;
+  const parsedCountry = parseTetolbCountryOption(countryInput);
+
+  if (parsedCountry.errorMessage) {
+    return {
+      mode,
+      errorMessage: parsedCountry.errorMessage,
+    };
+  }
+
+  return {
+    mode,
+    countryCode: parsedCountry.countryCode,
   };
 }
 
@@ -236,6 +314,12 @@ function normalizeTetolbUserProfile(user) {
     banner_revision: user?.banner_revision ?? null,
     supporter: Boolean(user?.supporter),
     country: user?.country ?? null,
+    xp: Number.isFinite(user?.xp) ? user.xp : null,
+    league: user?.league && typeof user.league === 'object'
+      ? {
+        ...user.league,
+      }
+      : null,
     expiresAt: Date.now() + userCacheTtlMs,
     fetchedAt: Date.now(),
   };
@@ -250,21 +334,24 @@ function mergeEntryWithUserProfile(entry, userProfile) {
     ...entry,
     _id: userProfile._id ?? entry?._id ?? null,
     username: userProfile.username ?? entry?.username ?? null,
-    avatar_revision: userProfile.avatar_revision ?? null,
-    banner_revision: userProfile.banner_revision ?? null,
+    avatar_revision: userProfile.avatar_revision ?? entry?.avatar_revision ?? null,
+    banner_revision: userProfile.banner_revision ?? entry?.banner_revision ?? null,
     supporter: userProfile.supporter ?? entry?.supporter ?? false,
     country: userProfile.country ?? entry?.country ?? null,
+    xp: userProfile.xp ?? entry?.xp ?? null,
+    league: userProfile.league ?? entry?.league ?? null,
   };
 }
 
 async function fetchTetolbUserProfile(username) {
   const normalizedUsername = String(username ?? '').trim();
-  if (!normalizedUsername) {
+  const cacheKey = getUserCacheKey(normalizedUsername);
+  if (!cacheKey) {
     return null;
   }
 
-  if (pendingUserRequests.has(normalizedUsername)) {
-    return pendingUserRequests.get(normalizedUsername);
+  if (pendingUserRequests.has(cacheKey)) {
+    return pendingUserRequests.get(cacheKey);
   }
 
   const promise = (async () => {
@@ -285,10 +372,10 @@ async function fetchTetolbUserProfile(username) {
 
     return normalizeTetolbUserProfile(body.data);
   })().finally(() => {
-    pendingUserRequests.delete(normalizedUsername);
+    pendingUserRequests.delete(cacheKey);
   });
 
-  pendingUserRequests.set(normalizedUsername, promise);
+  pendingUserRequests.set(cacheKey, promise);
   return promise;
 }
 
@@ -299,15 +386,15 @@ async function enrichTetolbEntries(entries) {
   const staleEntries = [];
 
   for (const [index, entry] of result.entries()) {
-    const cacheKey = String(entry?.username ?? '').trim();
+    const cacheKey = getUserCacheKey(entry?.username);
     const cachedProfile = cacheKey ? userCache.users[cacheKey] : null;
 
-    if (cachedProfile?.expiresAt > now) {
+    if (cachedProfile?.expiresAt > now && cachedProfile.xp != null) {
       result[index] = mergeEntryWithUserProfile(entry, cachedProfile);
       continue;
     }
 
-    staleEntries.push({ index, entry, cacheKey });
+    staleEntries.push({ index, cacheKey });
   }
 
   if (staleEntries.length === 0) {
@@ -316,19 +403,19 @@ async function enrichTetolbEntries(entries) {
 
   let cacheDirty = false;
 
-  await runWithConcurrencyLimit(staleEntries, userFetchConcurrency, async ({ index, entry, cacheKey }) => {
+  await runWithConcurrencyLimit(staleEntries, userFetchConcurrency, async ({ index, cacheKey }) => {
     if (!cacheKey) {
       return;
     }
 
     try {
-      const profile = await fetchTetolbUserProfile(cacheKey);
+      const profile = await fetchTetolbUserProfile(result[index]?.username);
       if (!profile) {
         return;
       }
 
       userCache.users[cacheKey] = profile;
-      result[index] = mergeEntryWithUserProfile(entry, profile);
+      result[index] = mergeEntryWithUserProfile(result[index], profile);
       cacheDirty = true;
     } catch (error) {
       console.warn(`[TETOLB] user enrich skipped username=${cacheKey} reason=${error?.message ?? error}`);
@@ -342,9 +429,64 @@ async function enrichTetolbEntries(entries) {
   return result;
 }
 
-export async function fetchTetolbLeaderboard(countryCode = null) {
+function formatTetolb40lValue(finalTimeMs) {
+  const ms = Math.round(Number(finalTimeMs));
+  if (!Number.isFinite(ms) || ms < 0) {
+    return '-';
+  }
+
+  const minutes = Math.floor(ms / 60_000);
+  const seconds = Math.floor((ms % 60_000) / 1000);
+  const milliseconds = ms % 1000;
+
+  if (minutes > 0) {
+    return `${minutes}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(3, '0')}`;
+  }
+
+  return `${seconds}.${String(milliseconds).padStart(3, '0')}`;
+}
+
+function buildTetolbMetricFromRecord(record, mode) {
+  if (mode === '40l') {
+    return {
+      text: formatTetolb40lValue(record?.results?.stats?.finaltime),
+      suffix: 'SEC',
+    };
+  }
+
+  if (mode === 'blitz') {
+    const score = Number(record?.results?.stats?.score);
+    return {
+      text: Number.isFinite(score) ? score.toLocaleString('en-US') : '-',
+      suffix: 'PTS',
+    };
+  }
+
+  return {
+    text: '0.00',
+    suffix: 'TR',
+  };
+}
+
+function normalizeTetolbRecordEntry(record, mode) {
+  const user = record?.user ?? {};
+
+  return {
+    _id: user?.id ?? null,
+    username: user?.username ?? null,
+    avatar_revision: user?.avatar_revision ?? null,
+    banner_revision: user?.banner_revision ?? null,
+    supporter: Boolean(user?.supporter),
+    country: user?.country ?? null,
+    xp: null,
+    league: null,
+    tetolbMetric: buildTetolbMetricFromRecord(record, mode),
+  };
+}
+
+async function fetchTetolbLeagueLeaderboard(countryCode = null) {
   const normalizedCountryCode = countryCode ? String(countryCode).trim().toUpperCase() : null;
-  const scopeKey = getScopeKey(normalizedCountryCode);
+  const scopeKey = getScopeKey('league', normalizedCountryCode);
   const loadedCache = await loadCacheState();
   const cached = loadedCache.scopes[scopeKey];
   const now = Date.now();
@@ -360,6 +502,7 @@ export async function fetchTetolbLeaderboard(countryCode = null) {
     }
 
     return {
+      mode: 'league',
       countryCode: normalizedCountryCode,
       entries,
       fromCache: true,
@@ -373,7 +516,7 @@ export async function fetchTetolbLeaderboard(countryCode = null) {
   }
 
   const promise = (async () => {
-    const url = new URL(`${tetrioApiBaseUrl}${leaderboardApiPath}`);
+    const url = new URL(`${tetrioApiBaseUrl}${leagueLeaderboardApiPath}`);
     url.searchParams.set('limit', '50');
 
     if (normalizedCountryCode) {
@@ -403,6 +546,7 @@ export async function fetchTetolbLeaderboard(countryCode = null) {
     const expiresAt = computeLeaderboardExpiresAt(body);
 
     loadedCache.scopes[scopeKey] = {
+      mode: 'league',
       countryCode: normalizedCountryCode,
       entries,
       expiresAt,
@@ -411,6 +555,7 @@ export async function fetchTetolbLeaderboard(countryCode = null) {
     await saveCacheState();
 
     return {
+      mode: 'league',
       countryCode: normalizedCountryCode,
       entries,
       fromCache: false,
@@ -425,35 +570,192 @@ export async function fetchTetolbLeaderboard(countryCode = null) {
   return promise;
 }
 
-export function buildTetolbFallbackText(entries, countryCode = null) {
+async function fetchTetolbRecordLeaderboard(mode, countryCode = null) {
+  const normalizedCountryCode = countryCode ? String(countryCode).trim().toUpperCase() : null;
+  const scopeKey = getScopeKey(mode, normalizedCountryCode);
+  const loadedCache = await loadCacheState();
+  const cached = loadedCache.scopes[scopeKey];
+  const now = Date.now();
+
+  if (
+    cached?.expiresAt
+    && cached.expiresAt > now
+    && Array.isArray(cached.entries)
+    && (cached.entries.length >= 50 || cached.complete === true)
+  ) {
+    const entries = entriesNeedProfileEnrichment(cached.entries)
+      ? await enrichTetolbEntries(cached.entries)
+      : cached.entries;
+
+    if (entries !== cached.entries) {
+      loadedCache.scopes[scopeKey].entries = entries;
+      await saveCacheState();
+    }
+
+    return {
+      mode,
+      countryCode: normalizedCountryCode,
+      entries,
+      fromCache: true,
+      expiresAt: cached.expiresAt,
+      fetchedAt: cached.fetchedAt ?? null,
+    };
+  }
+
+  if (pendingLeaderboardRequests.has(scopeKey)) {
+    return pendingLeaderboardRequests.get(scopeKey);
+  }
+
+  const promise = (async () => {
+    const scope = normalizedCountryCode ? `country_${normalizedCountryCode}` : 'global';
+    const entries = [];
+    let expiresAt = Date.now() + leaderboardCacheMinTtlMs;
+    let fetchedAt = Date.now();
+    let after = null;
+    let complete = false;
+
+    while (entries.length < 50 && !complete) {
+      const url = new URL(`${tetrioApiBaseUrl}/records/${mode}_${scope}`);
+      url.searchParams.set('limit', '50');
+      if (after) {
+        url.searchParams.set('after', after);
+      }
+
+      const response = await fetchWithTimeout(url, {
+        headers: {
+          'User-Agent': 'kannyan discord bot; TETR.IO tetolb',
+          'X-Session-ID': `kannyan-tetolb-${mode}`,
+        },
+      });
+      const body = await response.json().catch(() => null);
+
+      if (!response.ok || !body?.success) {
+        const error = new Error(body?.error?.msg ?? `HTTP ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
+
+      expiresAt = Math.max(expiresAt, computeLeaderboardExpiresAt(body));
+      const rawBatch = Array.isArray(body?.data?.records)
+        ? body.data.records
+        : Array.isArray(body?.data?.entries)
+          ? body.data.entries
+          : [];
+
+      if (rawBatch.length === 0) {
+        complete = true;
+        break;
+      }
+
+      entries.push(...rawBatch.map((record) => normalizeTetolbRecordEntry(record, mode)));
+
+      if (entries.length >= 50) {
+        entries.length = 50;
+        complete = true;
+        break;
+      }
+
+      const lastEntry = rawBatch.at(-1);
+      if (rawBatch.length < 50 || !lastEntry?.p) {
+        complete = true;
+        break;
+      }
+
+      const nextAfter = `${lastEntry.p.pri}:${lastEntry.p.sec}:${lastEntry.p.ter}`;
+      if (!nextAfter || nextAfter === after) {
+        complete = true;
+        break;
+      }
+
+      after = nextAfter;
+    }
+    const enrichedEntries = await enrichTetolbEntries(entries);
+
+    loadedCache.scopes[scopeKey] = {
+      mode,
+      countryCode: normalizedCountryCode,
+      entries: enrichedEntries,
+      complete,
+      expiresAt,
+      fetchedAt,
+    };
+    await saveCacheState();
+
+    return {
+      mode,
+      countryCode: normalizedCountryCode,
+      entries: enrichedEntries,
+      fromCache: false,
+      expiresAt,
+      fetchedAt,
+    };
+  })().finally(() => {
+    pendingLeaderboardRequests.delete(scopeKey);
+  });
+
+  pendingLeaderboardRequests.set(scopeKey, promise);
+  return promise;
+}
+
+export async function fetchTetolbLeaderboard(mode = 'league', countryCode = null) {
+  if (mode === '40l' || mode === 'blitz') {
+    return fetchTetolbRecordLeaderboard(mode, countryCode);
+  }
+
+  return fetchTetolbLeagueLeaderboard(countryCode);
+}
+
+function getTetolbFallbackValue(entry, mode) {
+  if (mode === '40l' || mode === 'blitz') {
+    return entry?.tetolbMetric?.text ?? '-';
+  }
+
+  const tr = Number(entry?.league?.tr);
+  return Number.isFinite(tr) ? tr.toFixed(2) : '0.00';
+}
+
+export function buildTetolbFallbackText(entries, countryCode = null, mode = 'league') {
+  const config = getTetolbModeConfig(mode);
   const title = countryCode
-    ? `TETRA LEAGUE ${countryCode} TOP 10`
-    : 'TETRA LEAGUE GLOBAL TOP 10';
+    ? `${config.title} ${countryCode} TOP 10`
+    : `${config.title} GLOBAL TOP 10`;
   const lines = [title];
 
   for (const [index, entry] of entries.slice(0, 10).entries()) {
-    const tr = Number(entry?.league?.tr);
-    lines.push(`${index + 1}. ${entry?.username ?? 'UNKNOWN'} - ${Number.isFinite(tr) ? tr.toFixed(2) : '0.00'} TR`);
+    lines.push(
+      `${index + 1}. ${entry?.username ?? 'UNKNOWN'} - ${getTetolbFallbackValue(entry, mode)} ${config.fallbackValueSuffix}`
+    );
   }
 
   return lines.join('\n');
 }
 
+function buildTetolbFilename(mode, countryCode) {
+  const config = getTetolbModeConfig(mode);
+  if (countryCode) {
+    return `${config.filenamePrefix}-${countryCode.toLowerCase()}.png`;
+  }
+
+  return `${config.filenamePrefix}-global.png`;
+}
+
 export async function createTetolbLeaderboardReplyData(input = '') {
-  const parsed = parseTetolbCountryOption(input);
+  const parsed = parseTetolbQuery(input);
 
   if (parsed.errorMessage) {
     const error = new Error(parsed.errorMessage);
     error.code = 'INVALID_COUNTRY';
+    error.mode = parsed.mode;
     throw error;
   }
 
-  const { countryCode } = parsed;
-  const leaderboard = await fetchTetolbLeaderboard(countryCode);
+  const { mode, countryCode } = parsed;
+  const leaderboard = await fetchTetolbLeaderboard(mode, countryCode);
 
   if (!Array.isArray(leaderboard.entries) || leaderboard.entries.length === 0) {
     const error = new Error('해당 국가 리더보드에 표시할 유저가 없다냥.');
     error.code = 'NO_ENTRIES';
+    error.mode = mode;
     throw error;
   }
 
@@ -462,6 +764,7 @@ export async function createTetolbLeaderboardReplyData(input = '') {
       createTetolbLeaderboardImage({
         entries: leaderboard.entries,
         countryCode,
+        mode,
       }),
       new Promise((_, reject) => {
         setTimeout(() => {
@@ -474,15 +777,15 @@ export async function createTetolbLeaderboardReplyData(input = '') {
 
     return {
       image,
-      filename: countryCode
-        ? `tetolb-${countryCode.toLowerCase()}.png`
-        : 'tetolb-global.png',
+      filename: buildTetolbFilename(mode, countryCode),
       entries: leaderboard.entries,
       countryCode,
+      mode,
     };
   } catch (error) {
     error.entries = leaderboard.entries;
     error.countryCode = countryCode;
+    error.mode = mode;
     throw error;
   }
 }

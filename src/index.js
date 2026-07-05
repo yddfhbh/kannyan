@@ -8208,7 +8208,7 @@ function getHelpMessage() {
     '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석한다냥.',
     '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여준다냥.',
     '`/전적 닉네임:[TETR.IO 닉네임] 숫자:[경기 번호]` 또는 `%tetra 닉네임 [경기 번호]`, `%tetra10 닉네임` - TETRA LEAGUE 최근 경기 전적이나 최근 N경기 목록을 이미지로 보여준다냥.',
-    '`%tetolb`, `%tetolb KR`, `%tetolb 한국` - TETRA LEAGUE 글로벌 또는 국가 상위 50명을 이미지로 보여준다냥.',
+    '`%tetolb`, `%tetolb KR`, `%tetolb 40l`, `%tetolb 40l KR`, `%tetolb blitz 한국` - TETRA LEAGUE / 40 LINES / BLITZ 글로벌 또는 국가 상위 50명을 이미지로 보여준다냥.',
     '`/체스비교 플랫폼:<체닷|리체스> 타임컨트롤:<래피드|블리츠|불렛> 닉네임1:<이름> 닉네임2:<이름>` - 두 사람의 점수와 예상 승률을 비교한다냥.',
     '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산한다냥.',
     '`/알람 내용:<알람 내용> 분:<1~10080>` - 지정한 분 뒤에 멘션으로 알려준다냥.',
@@ -9754,7 +9754,7 @@ async function handleTetolbMessage(message, input) {
 
     if (error.entries) {
       await message.reply({
-        content: buildTetolbFallbackText(error.entries, error.countryCode ?? null),
+        content: buildTetolbFallbackText(error.entries, error.countryCode ?? null, error.mode ?? 'league'),
         allowedMentions: { repliedUser: false },
       });
       return;
