@@ -224,70 +224,132 @@ def find_board_bbox(rgb):
     return x, y, size, best_score
 
 
-def label_ink_score(patch) -> float:
+def rank_label_features(patch):
     """
-    좌상단 작은 좌표 숫자 패치에서 글자 잉크량을 대충 계산.
-    8은 1보다 보통 넓고 잉크량이 많아서 orientation 판별에 쓴다.
+    좌측 랭크 숫자 패치에서 실제 숫자 글자 영역만 대충 추출한다.
+    1은 폭이 좁고, 8은 폭이 넓다는 점을 이용한다.
     """
     try:
         import numpy as np
     except Exception:
-        return 0.0
+        return None
 
-    if patch.size == 0:
-        return 0.0
+    if patch is None or patch.size == 0:
+        return None
 
     arr = patch.astype(np.float32)
-    flat = arr.reshape(-1, 3)
+    h, w = arr.shape[:2]
 
-    median = np.median(flat, axis=0)
-    dist = np.linalg.norm(arr - median, axis=2)
+    if h < 8 or w < 6:
+        return None
 
-    threshold = max(16.0, float(np.percentile(dist, 78)))
+    bg = np.median(arr.reshape(-1, 3), axis=0)
+    dist = np.linalg.norm(arr - bg, axis=2)
+
+    threshold = max(12.0, float(np.percentile(dist, 82)))
     mask = dist > threshold
+
+    # 크롭 경계나 보드 밖 배경이 가로줄처럼 잡히는 경우 제거
+    row_counts = mask.sum(axis=1)
+    mask[row_counts > max(4, w * 0.62), :] = False
+
+    col_counts = mask.sum(axis=0)
+    mask[:, col_counts > max(4, h * 0.70)] = False
 
     ys, xs = np.where(mask)
 
-    if len(xs) < 3:
-        return 0.0
+    if len(xs) < 6:
+        return None
 
-    box_w = int(xs.max() - xs.min() + 1)
-    box_h = int(ys.max() - ys.min() + 1)
+    x0 = int(xs.min())
+    x1 = int(xs.max())
+    y0 = int(ys.min())
+    y1 = int(ys.max())
+
+    box_w = x1 - x0 + 1
+    box_h = y1 - y0 + 1
     ink = int(mask.sum())
-    area = box_w * box_h
 
-    return float(ink + area * 0.12 + box_w * 1.5)
+    if box_h < max(8, h * 0.25) or box_w < 2:
+        return None
+
+    return {
+        "width": box_w,
+        "height": box_h,
+        "ink": ink,
+        "bbox": [x0, y0, box_w, box_h],
+        "aspect": box_w / max(1, box_h),
+    }
+
+
+def classify_rank_label(patch):
+    """
+    랭크 숫자를 1 또는 8로 분류.
+    실패하면 None.
+    """
+    features = rank_label_features(patch)
+
+    if not features:
+        return None, None
+
+    width = features["width"]
+    height = features["height"]
+    aspect = width / max(1, height)
+
+    # 1은 세로로 길고 폭이 좁음
+    if width <= max(8, height * 0.44) or aspect <= 0.44:
+        return "1", features
+
+    # 8은 폭이 확실히 넓음
+    if width >= max(10, height * 0.52) or aspect >= 0.52:
+        return "8", features
+
+    return None, features
 
 
 def detect_board_orientation_from_coords(board_rgb, fallback: str) -> tuple[str, str]:
     """
     보드 안쪽 좌측 랭크 숫자로 방향 판별.
-    백 시점: 좌상단이 8, 좌하단 첫 칸 위쪽이 1
-    흑 시점: 좌상단이 1, 좌하단 첫 칸 위쪽이 8
+
+    백 시점:
+      좌상단 = 8
+      좌하단 = 1
+
+    흑 시점:
+      좌상단 = 1
+      좌하단 = 8
     """
     height, width = board_rgb.shape[:2]
     size = min(width, height)
     cell = size / 8
 
-    patch_w = max(10, int(cell * 0.18))
-    patch_h = max(12, int(cell * 0.24))
+    patch_w = max(18, int(cell * 0.32))
+    patch_h = max(22, int(cell * 0.40))
 
-    # 좌상단: 백 시점이면 8, 흑 시점이면 1
     top_patch = board_rgb[0:patch_h, 0:patch_w]
 
-    # 좌하단 칸의 "위쪽" 좌표 숫자 위치
     bottom_y = int(round(7 * cell))
-    bottom_patch = board_rgb[bottom_y:bottom_y + patch_h, 0:patch_w]
+    bottom_patch = board_rgb[
+        bottom_y:min(height, bottom_y + patch_h),
+        0:patch_w,
+    ]
 
-    top_score = label_ink_score(top_patch)
-    bottom_score = label_ink_score(bottom_patch)
+    top_digit, top_features = classify_rank_label(top_patch)
+    bottom_digit, bottom_features = classify_rank_label(bottom_patch)
 
-    # 8이 1보다 잉크량/폭이 크다는 점을 이용
-    if top_score > 24 and top_score >= bottom_score * 1.25:
-        return "w", "rank-labels"
+    # 제일 신뢰도 높은 판정: 좌상단 숫자
+    if top_digit == "8":
+        return "w", "rank-top-8"
 
-    if bottom_score > 24 and bottom_score >= top_score * 1.25:
-        return "b", "rank-labels"
+    if top_digit == "1":
+        return "b", "rank-top-1"
+
+    # 좌상단이 애매하면 좌하단 숫자로 보조 판정
+    if bottom_digit == "1":
+        return "w", "rank-bottom-1"
+
+    if bottom_digit == "8":
+        return "b", "rank-bottom-8"
 
     return fallback, "fallback"
 
