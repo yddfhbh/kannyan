@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 
 import {
   getTetrioHunDinFontDataUri,
@@ -550,10 +551,57 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = imageFetchTimeout
 }
 
 function getImageCachePaths(url) {
-  const key = createHash('sha1').update(url).digest('hex');
+  const key = createHash('sha1').update(getImageCacheKey(url)).digest('hex');
   return {
     metaPath: join(assetCacheDir, `${key}.json`),
     dataPath: join(assetCacheDir, `${key}.bin`),
+  };
+}
+
+function isAvatarImageUrl(url) {
+  return typeof url === 'string'
+    && (
+      url.includes('/user-content/avatars/')
+      || url === defaultAvatarUrl
+    );
+}
+
+function getImageCacheKey(url) {
+  if (isAvatarImageUrl(url)) {
+    return `avatar-v2:${url}`;
+  }
+
+  return url;
+}
+
+async function enhanceAvatarBuffer(buffer) {
+  const metadata = await sharp(buffer).metadata().catch(() => null);
+  if (!metadata?.width || !metadata?.height) {
+    return {
+      buffer,
+      contentType: 'image/png',
+    };
+  }
+
+  const output = await sharp(buffer)
+    .resize(600, 600, {
+      fit: 'cover',
+      kernel: sharp.kernel.lanczos3,
+    })
+    .sharpen({
+      sigma: 0.9,
+      m1: 0.8,
+      m2: 2.5,
+      x1: 2,
+      y2: 10,
+      y3: 18,
+    })
+    .png()
+    .toBuffer();
+
+  return {
+    buffer: output,
+    contentType: 'image/png',
   };
 }
 
@@ -638,8 +686,17 @@ async function fetchImageDataUri(url) {
         return null;
       }
 
-      const buffer = Buffer.from(await response.arrayBuffer());
-      return writeCachedImage(url, buffer, contentType);
+      const sourceBuffer = Buffer.from(await response.arrayBuffer());
+      const finalImage = isAvatarImageUrl(url)
+        ? await enhanceAvatarBuffer(sourceBuffer).catch(() => ({
+          buffer: sourceBuffer,
+          contentType,
+        }))
+        : {
+          buffer: sourceBuffer,
+          contentType,
+        };
+      return writeCachedImage(url, finalImage.buffer, finalImage.contentType);
     } catch {
       return null;
     } finally {
@@ -903,10 +960,10 @@ export async function renderTetolbLeaderboardCardSvg({ entries, countryCode = nu
 export async function createTetolbLeaderboardImage(options) {
   const svg = await renderTetolbLeaderboardCardSvg(options);
 
-  const requestedScale = Number(process.env.TETOLB_RENDER_SCALE ?? '1.25');
+  const requestedScale = Number(process.env.TETOLB_RENDER_SCALE ?? '2');
   const renderScale = Number.isFinite(requestedScale)
-    ? Math.min(1.5, Math.max(1, requestedScale))
-    : 1.5;
+    ? Math.min(2, Math.max(1, requestedScale))
+    : 2;
 
   return renderTetrioSvgToPng(svg, renderScale);
 }
