@@ -1,0 +1,1 @@
+chessimg2pos==0.1.6
