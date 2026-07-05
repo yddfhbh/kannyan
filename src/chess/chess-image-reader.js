@@ -1,73 +1,138 @@
 import { execFile } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { Chess } from 'chess.js';
 
 const execFileAsync = promisify(execFile);
-const projectRoot = fileURLToPath(new URL('../../', import.meta.url));
-const imageToFenScriptPath = fileURLToPath(
+
+const chessImageScriptPath = fileURLToPath(
   new URL('../../scripts/chess-image-to-fen.py', import.meta.url)
 );
 
-function getPythonCommand() {
+function getPythonInvocation() {
   const configuredCommand = process.env.CHESS_IMAGE_PYTHON?.trim();
+
   if (configuredCommand) {
-    return configuredCommand;
+    return {
+      command: configuredCommand,
+      argsPrefix: [],
+    };
   }
 
-  const venvCommand = process.platform === 'win32'
-    ? path.join(projectRoot, '.venv-chess', 'Scripts', 'python.exe')
-    : path.join(projectRoot, '.venv-chess', 'bin', 'python3');
-
-  if (existsSync(venvCommand)) {
-    return venvCommand;
+  if (process.platform === 'win32') {
+    return {
+      command: 'py',
+      argsPrefix: ['-3'],
+    };
   }
 
-  return process.platform === 'win32' ? 'python' : 'python3';
+  return {
+    command: 'python3',
+    argsPrefix: [],
+  };
 }
 
-export async function imageToFen(imagePath, turn = 'w', options = {}) {
-  // turn은 "누구 차례인지" 용도로만 남겨둠.
-  // chess-image-to-fen.py에 넘기는 값은 보드 방향이므로 따로 둔다.
-  const normalizedTurn = turn === 'b' ? 'b' : 'w';
+function compressFenRow(row) {
+  const output = [];
+  let empty = 0;
 
-  // 기본은 백 기준 보드로 읽기.
-  // %흑선이어도 여기는 black으로 바꾸면 안 됨.
+  for (const ch of row) {
+    if (ch === '1' || ch === '.') {
+      empty += 1;
+      continue;
+    }
+
+    if (empty > 0) {
+      output.push(String(empty));
+      empty = 0;
+    }
+
+    output.push(ch);
+  }
+
+  if (empty > 0) {
+    output.push(String(empty));
+  }
+
+  return output.join('');
+}
+
+function expandFenRow(row) {
+  let output = '';
+
+  for (const ch of String(row)) {
+    if (/^[1-8]$/.test(ch)) {
+      output += '1'.repeat(Number(ch));
+    } else {
+      output += ch;
+    }
+  }
+
+  if (output.length !== 8) {
+    throw new Error(`Invalid FEN row width: ${row}`);
+  }
+
+  return output;
+}
+
+function normalizeBoardFen(input) {
+  const boardFen = String(input ?? '').trim().split(/\s+/)[0];
+
+  if (!boardFen) {
+    throw new Error('Empty board FEN');
+  }
+
+  const rows = boardFen.split('/');
+
+  if (rows.length !== 8) {
+    throw new Error(`Invalid board FEN row count: ${boardFen}`);
+  }
+
+  return rows.map((row) => compressFenRow(expandFenRow(row))).join('/');
+}
+
+function parseRecognizerOutput(stdout) {
+  const text = String(stdout ?? '').trim();
+
+  if (!text) {
+    throw new Error('Chess image recognizer returned empty output');
+  }
+
+  try {
+    const parsed = JSON.parse(text);
+    return normalizeBoardFen(
+      parsed?.fen ??
+      parsed?.boardFen ??
+      parsed?.board ??
+      parsed?.result?.fen
+    );
+  } catch {
+    return normalizeBoardFen(text);
+  }
+}
+
+export async function imageToFen(imagePath, options = {}) {
   const boardOrientation = options.boardOrientation === 'b' ? 'b' : 'w';
+  const turn = options.turn === 'b' ? 'b' : 'w';
+  const timeoutMs =
+    Number(options.timeoutMs ?? process.env.CHESS_IMAGE_TIMEOUT_MS) || 120_000;
 
-  const timeoutMs = Math.max(
-    10_000,
-    Number(options.timeoutMs ?? process.env.CHESS_IMAGE_TIMEOUT_MS) || 120_000
-  );
+  const { command, argsPrefix } = getPythonInvocation();
 
   const { stdout } = await execFileAsync(
-    options.pythonCommand ?? getPythonCommand(),
-    [imageToFenScriptPath, imagePath, boardOrientation],
+    command,
+    [
+      ...argsPrefix,
+      chessImageScriptPath,
+      imagePath,
+      boardOrientation,
+    ],
     {
-      cwd: projectRoot,
       timeout: timeoutMs,
-      windowsHide: true,
       maxBuffer: 1024 * 1024,
     }
   );
 
-  const rawFen = String(stdout ?? '').trim().split(/\r?\n/).at(-1)?.trim() ?? '';
-  if (!rawFen) {
-    throw new Error('chessimg2pos returned an empty FEN');
-  }
+  const boardFen = parseRecognizerOutput(stdout);
 
-  const boardFen = rawFen.split(/\s+/)[0];
-  const fen = `${boardFen} ${normalizedTurn} - - 0 1`;
-
-  try {
-    new Chess(fen);
-  } catch (error) {
-    throw new Error(`chessimg2pos returned an invalid FEN: ${fen}`, {
-      cause: error,
-    });
-  }
-
-  return fen;
+  return `${boardFen} ${turn} - - 0 1`;
 }

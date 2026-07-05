@@ -1,4 +1,3 @@
-@'
 .env
 node_modules/
 *.zip
@@ -6,16 +5,23 @@ node_modules/
 *.log
 bot.err
 bot.log
-
 .vscode/
 .DS_Store
 Thumbs.db
-'@ | Set-Content .gitignore -Encoding UTF8
 *.bak.*
+
+.venv-chess/
+
 data/gemini-memory.json
 data/gemini-permanent-memory.json
 data/daily-chess-puzzle.json
 data/daily-chess-puzzle.json.tmp
 data/tetrio-league-cache.json
 data/tetrio-league-cache.tmp.json
-.venv-chess/
+data/lichess_db_puzzle.csv.zst
+data/lichess-puzzle-pool.jsonl
+data/lichess-player-opening-cache.json
+data/lichess-player-opening-manual-book.json
+data/starforce-statistics/
+data/tetolb-cache.json
+data/tetolb-user-cache.json
