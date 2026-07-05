@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import readline from 'node:readline';
 import { Chess } from 'chess.js';
 
-const outputPath = 'data/lichess-puzzle-pool.jsonl';
+const outputPath = process.env.LICHESS_PUZZLE_OUTPUT_PATH || 'data/lichess-puzzle-pool.jsonl';
 
 const minRating = Number(process.env.LICHESS_PUZZLE_MIN_RATING) || 2000;
 const maxRating = Number(process.env.LICHESS_PUZZLE_MAX_RATING) || 2600;

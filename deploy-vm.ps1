@@ -192,7 +192,7 @@ if [ ! -f scripts/build-lichess-puzzle-pool.js ]; then
   exit 1
 fi
 
-if grep -R 'Replies with Pong\|commandName === '\''ping'\''\|commandName === "ping"' -n .; then
+if grep -R -n --include='*.js' --include='*.mjs' --include='*.cjs' 'Replies with Pong\|commandName === '\''ping'\''\|commandName === "ping"' src; then
   echo "Legacy ping code is still present. Aborting deploy."
   exit 1
 fi
