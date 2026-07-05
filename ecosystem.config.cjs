@@ -23,9 +23,10 @@ module.exports = {
         PORT: '8080',
         TETRIO_LEAGUE_DATA_DIR: process.env.TETRIO_LEAGUE_DATA_DIR
           || path.join(os.homedir(), 'discord-bot-data'),
-        ...(process.env.CHESS_IMAGE_PYTHON
-          ? { CHESS_IMAGE_PYTHON: process.env.CHESS_IMAGE_PYTHON }
-          : {}),
+
+        CHESS_IMAGE_PYTHON: process.env.CHESS_IMAGE_PYTHON
+          || path.join(__dirname, '.venv-chess', 'bin', 'python'),
+
         ...linuxFontconfigEnv,
       },
     },
