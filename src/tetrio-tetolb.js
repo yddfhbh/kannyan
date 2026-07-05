@@ -186,6 +186,7 @@ function entriesNeedProfileEnrichment(entries) {
     && (
       entry.avatar_revision == null
       || entry.xp == null
+      || entry.league == null
       || (entry.supporter && entry.banner_revision == null)
     )
   );
@@ -306,7 +307,7 @@ async function runWithConcurrencyLimit(items, limit, handler) {
   await Promise.all(workers);
 }
 
-function normalizeTetolbUserProfile(user) {
+function normalizeTetolbUserProfile(user, summaries = null) {
   return {
     _id: user?._id ?? null,
     username: user?.username ?? null,
@@ -315,7 +316,11 @@ function normalizeTetolbUserProfile(user) {
     supporter: Boolean(user?.supporter),
     country: user?.country ?? null,
     xp: Number.isFinite(user?.xp) ? user.xp : null,
-    league: user?.league && typeof user.league === 'object'
+    league: summaries?.league && typeof summaries.league === 'object'
+      ? {
+        ...summaries.league,
+      }
+      : user?.league && typeof user.league === 'object'
       ? {
         ...user.league,
       }
@@ -355,22 +360,32 @@ async function fetchTetolbUserProfile(username) {
   }
 
   const promise = (async () => {
-    const url = `${tetrioApiBaseUrl}/users/${encodeURIComponent(normalizedUsername)}`;
-    const response = await fetchWithTimeout(url, {
-      headers: {
-        'User-Agent': 'kannyan discord bot; TETR.IO tetolb',
-        'X-Session-ID': 'kannyan-tetolb-user',
-      },
-    });
-    const body = await response.json().catch(() => null);
+    const headers = {
+      'User-Agent': 'kannyan discord bot; TETR.IO tetolb',
+      'X-Session-ID': 'kannyan-tetolb-user',
+    };
+    const [userResponse, summariesResponse] = await Promise.all([
+      fetchWithTimeout(`${tetrioApiBaseUrl}/users/${encodeURIComponent(normalizedUsername)}`, { headers }),
+      fetchWithTimeout(`${tetrioApiBaseUrl}/users/${encodeURIComponent(normalizedUsername)}/summaries`, { headers }),
+    ]);
+    const [userBody, summariesBody] = await Promise.all([
+      userResponse.json().catch(() => null),
+      summariesResponse.json().catch(() => null),
+    ]);
 
-    if (!response.ok || !body?.success || !body?.data) {
-      const error = new Error(body?.error?.msg ?? `HTTP ${response.status}`);
-      error.status = response.status;
+    if (!userResponse.ok || !userBody?.success || !userBody?.data) {
+      const error = new Error(userBody?.error?.msg ?? `HTTP ${userResponse.status}`);
+      error.status = userResponse.status;
       throw error;
     }
 
-    return normalizeTetolbUserProfile(body.data);
+    if (!summariesResponse.ok || !summariesBody?.success || !summariesBody?.data) {
+      const error = new Error(summariesBody?.error?.msg ?? `HTTP ${summariesResponse.status}`);
+      error.status = summariesResponse.status;
+      throw error;
+    }
+
+    return normalizeTetolbUserProfile(userBody.data, summariesBody.data);
   })().finally(() => {
     pendingUserRequests.delete(cacheKey);
   });
@@ -389,7 +404,7 @@ async function enrichTetolbEntries(entries) {
     const cacheKey = getUserCacheKey(entry?.username);
     const cachedProfile = cacheKey ? userCache.users[cacheKey] : null;
 
-    if (cachedProfile?.expiresAt > now && cachedProfile.xp != null) {
+    if (cachedProfile?.expiresAt > now && cachedProfile.xp != null && cachedProfile.league != null) {
       result[index] = mergeEntryWithUserProfile(entry, cachedProfile);
       continue;
     }

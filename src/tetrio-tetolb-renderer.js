@@ -24,6 +24,7 @@ const assetCacheDir = join(dataDir, 'tetolb-assets');
 const tetrioGameBaseUrl = 'https://tetr.io';
 const tetrioContentBaseUrl = 'https://tetr.io/user-content';
 const defaultAvatarUrl = `${tetrioGameBaseUrl}/res/avatar.png`;
+const localUnknownRankIconPath = fileURLToPath(new URL('../assets/tetrio-ranks/z.png', import.meta.url));
 const imageCacheTtlMs = 24 * 60 * 60 * 1000;
 const imageFetchTimeoutMs = 8_000;
 const imageFetchConcurrency = 5;
@@ -751,7 +752,13 @@ async function buildAssetMap(entries) {
     [...urls].map(async (url) => [url, await fetchImageDataUri(url)])
   );
 
-  return new Map(assetEntries);
+  const assetMap = new Map(assetEntries);
+
+  if (entries.some((entry) => !String(entry?.league?.rank ?? '').trim())) {
+    assetMap.set(localUnknownRankIconPath, await readLocalImageDataUri(localUnknownRankIconPath));
+  }
+
+  return assetMap;
 }
 
 function renderLeaderboardRow({
@@ -791,7 +798,10 @@ function renderLeaderboardRow({
   const avatarDataUri = assets.get(getAvatarUrl(entry)) ?? null;
   const bannerDataUri = assets.get(getBannerUrl(entry)) ?? null;
   const flagDataUri = assets.get(getFlagUrl(entry.country)) ?? null;
-  const rankIconDataUri = assets.get(getRankIconUrl(entry?.league?.rank)) ?? null;
+  const rankIconKey = String(entry?.league?.rank ?? '').trim()
+    ? getRankIconUrl(entry?.league?.rank)
+    : localUnknownRankIconPath;
+  const rankIconDataUri = assets.get(rankIconKey) ?? null;
 const cardBaseFill = rowIndex % 2 === 0 ? panelBg : panelBgAlt;
 const bannerOverlayOpacity = bannerDataUri ? 0.34 : 0.08;
 const usernameStyle = bannerDataUri ? 'fill:#ffffff;' : '';
