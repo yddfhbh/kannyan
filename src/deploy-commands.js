@@ -44,6 +44,37 @@ const commands = [
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('블랙리스트')
+    .setDescription('특정 디스코드 계정을 봇 사용 금지 목록에 추가하거나 제거합니다.')
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('추가')
+        .setDescription('디스코드 계정을 블랙리스트에 추가합니다.')
+        .addStringOption((option) =>
+          option
+            .setName('유저아이디')
+            .setDescription('차단할 디스코드 계정 ID')
+            .setRequired(true)
+        )
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('제거')
+        .setDescription('디스코드 계정을 블랙리스트에서 제거합니다.')
+        .addStringOption((option) =>
+          option
+            .setName('유저아이디')
+            .setDescription('차단 해제할 디스코드 계정 ID')
+            .setRequired(true)
+        )
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('목록')
+        .setDescription('현재 블랙리스트에 등록된 계정 목록을 봅니다.')
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
   .setName('일일퍼즐지정')
   .setDescription('이 채널을 매일 일일 체스 퍼즐 알림 채널로 지정합니다.')
   .toJSON(),

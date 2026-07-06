@@ -154,6 +154,12 @@ import {
   handleConceptBoardTestInteraction,
   handleConceptBoardUpdateInteraction,
 } from './concept-board.js';
+import {
+  addDiscordBlacklistUser,
+  isDiscordUserBlacklisted,
+  listDiscordBlacklistUsers,
+  removeDiscordBlacklistUser,
+} from './discord-blacklist.js';
 
 
 const execFileAsync = promisify(execFile);
@@ -198,6 +204,7 @@ const geminiMemoryPath = fileURLToPath(new URL('../data/gemini-memory.json', imp
 const geminiPermanentMemoryPath = fileURLToPath(new URL('../data/gemini-permanent-memory.json', import.meta.url));
 const geminiPermanentMemoryAdminUserId = '635107514471415808';
 const geminiMemoryResetAdminUserId = '635107514471415808';
+const blacklistAdminUserId = '635107514471415808';
 const geminiMemoryRetentionDays = Number(process.env.GEMINI_MEMORY_DAYS) || 45;
 const geminiMemoryRetentionMs = geminiMemoryRetentionDays * 24 * 60 * 60 * 1000;
 const geminiMemoryMaxMessagesPerSession = Number(process.env.GEMINI_MEMORY_MAX_MESSAGES_PER_SESSION) || 30;
@@ -1120,6 +1127,12 @@ client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) {
     return;
   }
+
+  const blacklistedMessageBlocked = await blockBlacklistedMessage(message);
+  if (blacklistedMessageBlocked) {
+    return;
+  }
+
   const puzzleRushHandled = await handlePuzzleRushMessage(message);
   if (puzzleRushHandled) {
     return;
@@ -5047,6 +5060,11 @@ async function handlePermanentMemoryInteraction(interaction) {
 
 client.on(Events.InteractionCreate, async (interaction) => {
   try {
+    const blacklistedInteractionBlocked = await blockBlacklistedInteraction(interaction);
+    if (blacklistedInteractionBlocked) {
+      return;
+    }
+
     const handledStarforceComponent = await handleStarforceComponentInteraction(interaction);
     if (handledStarforceComponent) {
       return;
@@ -5127,6 +5145,11 @@ if (interaction.commandName === '개념글테스트') {
 
     if (interaction.commandName === '가르치기') {
       await handlePermanentMemoryInteraction(interaction);
+      return;
+    }
+
+    if (interaction.commandName === '블랙리스트') {
+      await handleDiscordBlacklistInteraction(interaction);
       return;
     }
 
@@ -6052,8 +6075,148 @@ function splitDiscordMessage(text, maxLength = 1900) {
 }
 
 const reactionFailureMessage = '나는 할수없다냥...능이버섯이다냥...';
+const blacklistBlockedMessage = '너는 이 봇을 사용할 수 없다냥.';
 
 const reactionContextByUser = new Map();
+
+async function handleDiscordBlacklistInteraction(interaction) {
+  if (interaction.commandName !== '블랙리스트') {
+    return false;
+  }
+
+  if (interaction.user.id !== blacklistAdminUserId) {
+    await interaction.reply({
+      content: '이 명령어는 지정된 관리자만 쓸 수 있다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
+  const subcommand = interaction.options.getSubcommand(true);
+
+  if (subcommand === '목록') {
+    const entries = await listDiscordBlacklistUsers();
+    const content = entries.length === 0
+      ? '지금은 블랙리스트가 비어 있다냥.'
+      : [
+        `총 ${entries.length}명이다냥.`,
+        ...entries.map((entry, index) => `${index + 1}. <@${entry.userId}> (\`${entry.userId}\`)`),
+      ].join('\n');
+
+    await interaction.reply({
+      content,
+      allowedMentions: { parse: [] },
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
+  const targetUserId = interaction.options.getString('유저아이디', true).trim();
+
+  if (!/^\d{17,20}$/.test(targetUserId)) {
+    await interaction.reply({
+      content: '디스코드 계정 ID는 숫자만 있는 올바른 snowflake로 넣어달라냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
+  if (targetUserId === blacklistAdminUserId) {
+    await interaction.reply({
+      content: '관리자 본인은 블랙리스트에 넣을 수 없게 막아뒀다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
+  if (subcommand === '추가') {
+    const result = await addDiscordBlacklistUser(targetUserId, interaction.user.id);
+    const content = !result.ok
+      ? '블랙리스트를 저장하다가 문제가 생겼다냥.'
+      : result.added
+        ? `<@${targetUserId}> 를 블랙리스트에 추가했다냥. 이제 이 유저는 봇을 못 쓴다냥.`
+        : `<@${targetUserId}> 는 이미 블랙리스트에 들어가 있다냥.`;
+
+    await interaction.reply({
+      content,
+      allowedMentions: { parse: [] },
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
+  if (subcommand === '제거') {
+    const result = await removeDiscordBlacklistUser(targetUserId);
+    const content = !result.ok
+      ? '블랙리스트를 저장하다가 문제가 생겼다냥.'
+      : result.removed
+        ? `<@${targetUserId}> 를 블랙리스트에서 제거했다냥.`
+        : `<@${targetUserId}> 는 블랙리스트에 없었다냥.`;
+
+    await interaction.reply({
+      content,
+      allowedMentions: { parse: [] },
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
+  await interaction.reply({
+    content: '무슨 작업을 할지 모르겠다냥.',
+    flags: MessageFlags.Ephemeral,
+  });
+  return true;
+}
+
+async function blockBlacklistedInteraction(interaction) {
+  const userId = String(interaction?.user?.id ?? '').trim();
+  if (!userId) {
+    return false;
+  }
+
+  if (!(await isDiscordUserBlacklisted(userId))) {
+    return false;
+  }
+
+  if (interaction.isRepliable()) {
+    await interaction.reply({
+      content: blacklistBlockedMessage,
+      flags: MessageFlags.Ephemeral,
+    }).catch(() => {});
+  }
+
+  return true;
+}
+
+async function blockBlacklistedMessage(message) {
+  const userId = String(message?.author?.id ?? '').trim();
+  if (!userId || !(await isDiscordUserBlacklisted(userId))) {
+    return false;
+  }
+
+  if (!isBotUsageAttemptMessage(message)) {
+    return false;
+  }
+
+  await message.reply({
+    content: blacklistBlockedMessage,
+    allowedMentions: { parse: [], repliedUser: false },
+  });
+  return true;
+}
+
+function isBotUsageAttemptMessage(message) {
+  if (!message) {
+    return false;
+  }
+
+  if (!message.guildId) {
+    return true;
+  }
+
+  const content = String(message.content ?? '').trim();
+  return content.startsWith('%') || isDirectBotMention(message);
+}
 
 async function handleReactionRequestMessage(message) {
   const content = message.content?.trim() ?? '';
