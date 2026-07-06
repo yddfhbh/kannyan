@@ -5247,6 +5247,11 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
+    if (interaction.commandName === 'b10') {
+      await showVArchiveTierCard(interaction, { displayCount: 10 });
+      return;
+    }
+
     if (interaction.commandName === '퀵플') {
       await showQuickPlayAltitude(interaction);
       return;
@@ -10853,17 +10858,18 @@ async function showLiveRatings(interaction) {
   }
 }
 
-async function showVArchiveTierCard(interaction) {
+async function showVArchiveTierCard(interaction, options = {}) {
   const nickname = interaction.options.getString('닉네임', true).trim();
   const button = interaction.options.getInteger('버튼', true);
+  const displayCount = Number(options.displayCount) || 30;
 
   await interaction.deferReply();
 
   try {
-    const card = await createVArchiveTierCard(nickname, button);
+    const card = await createVArchiveTierCard(nickname, button, { displayCount });
     const attachmentExtension = card.imageFormat === 'jpeg' ? 'jpg' : 'png';
     const attachment = new AttachmentBuilder(card.image, {
-      name: `varchive-tier-${formatAttachmentSafeName(card.nickname)}-${card.button}b.${attachmentExtension}`,
+      name: `varchive-tier-${formatAttachmentSafeName(card.nickname)}-${card.button}b-top${card.displayCount}.${attachmentExtension}`,
     });
 
     await interaction.editReply({

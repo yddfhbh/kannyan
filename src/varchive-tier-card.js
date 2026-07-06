@@ -7,7 +7,8 @@ import {
 const vArchiveBaseUrl = 'https://v-archive.net';
 const vArchiveApiBaseUrl = `${vArchiveBaseUrl}/api/v3/archive`;
 const vArchiveRequestTimeoutMs = 15_000;
-const maxDisplayedSongs = 30;
+const defaultDisplayedSongs = 30;
+const vArchiveTierCardColumns = 5;
 const vArchiveTierCardRenderScale = 1.5;
 const discordSafeImageBudgetBytes = 7_900_000;
 const songImageSize = 244;
@@ -58,6 +59,7 @@ const tierPaletteByCode = {
 export async function createVArchiveTierCard(nickname, button, options = {}) {
   const normalizedNickname = normalizeNickname(nickname);
   const normalizedButton = normalizeButton(button);
+  const displayCount = normalizeDisplayCount(options.displayCount);
   const fetchImpl = resolveFetch(options.fetchImpl);
   const tierBoard = await fetchVArchiveTierBoard(normalizedNickname, normalizedButton, { fetchImpl });
 
@@ -69,7 +71,7 @@ export async function createVArchiveTierCard(nickname, button, options = {}) {
   }
 
   const displayEntries = Array.isArray(tierBoard.userRatingList)
-    ? tierBoard.userRatingList.slice(0, maxDisplayedSongs)
+    ? tierBoard.userRatingList.slice(0, displayCount)
     : [];
 
   const tierCode = tierBoard.tierInfo.tier?.code ?? '';
@@ -115,6 +117,7 @@ export async function createVArchiveTierCard(nickname, button, options = {}) {
   const view = buildVArchiveTierCardView({
     nickname: normalizedNickname,
     button: normalizedButton,
+    displayCount,
     tierBoard,
     tierImageDataUrl,
     entries: songEntries,
@@ -127,6 +130,7 @@ export async function createVArchiveTierCard(nickname, button, options = {}) {
     imageContentType: renderedCard.contentType,
     nickname: normalizedNickname,
     button: normalizedButton,
+    displayCount,
     pageUrl: `${vArchiveBaseUrl}/archive/${encodeURIComponent(normalizedNickname)}/tier/${normalizedButton}`,
     apiUrl: `${vArchiveApiBaseUrl}/${encodeURIComponent(normalizedNickname)}/tier/${normalizedButton}`,
     view,
@@ -218,8 +222,8 @@ async function encodeVArchiveTierCardJpeg(pngBuffer) {
 function getVArchiveTierCardLayout(view) {
   const outerPadding = 42;
   const gap = 20;
-  const columns = 5;
-  const totalSlots = maxDisplayedSongs;
+  const columns = vArchiveTierCardColumns;
+  const totalSlots = Math.max(1, Number(view.displayCount) || defaultDisplayedSongs);
   const songCardWidth = 244;
   const songMetaHeight = 94;
   const songCardHeight = songImageSize + songMetaHeight;
@@ -863,6 +867,7 @@ export async function fetchVArchiveTierBoard(nickname, button, options = {}) {
 function buildVArchiveTierCardView({
   nickname,
   button,
+  displayCount,
   tierBoard,
   tierImageDataUrl,
   entries,
@@ -881,6 +886,7 @@ function buildVArchiveTierCardView({
   return {
     nickname,
     button,
+    displayCount: normalizeDisplayCount(displayCount),
     palette,
     tierCode: tierBoard.tierInfo.tier?.code ?? '',
     tierName: tierBoard.tierInfo.tier?.name ?? 'Unknown Tier',
@@ -896,8 +902,8 @@ function buildVArchiveTierCardView({
       : '최상위 티어',
     generatedAtText: formatGeneratedAt(new Date().toISOString()),
     entries: displayEntries.map((entry, index) => {
-      const column = index % 5;
-      const row = Math.floor(index / 5);
+      const column = index % vArchiveTierCardColumns;
+      const row = Math.floor(index / vArchiveTierCardColumns);
       const cardX = 42 + column * (244 + 20);
       const cardY = 42 + 260 + 30 + row * (244 + 94 + 20);
 
@@ -915,6 +921,15 @@ function buildVArchiveTierCardView({
       };
     }),
   };
+}
+
+function normalizeDisplayCount(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return defaultDisplayedSongs;
+  }
+
+  return Math.max(1, Math.min(50, Math.floor(parsed)));
 }
 
 function renderSongCardBackground(entry, width, cardHeight) {
