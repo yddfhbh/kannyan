@@ -290,13 +290,24 @@ new SlashCommandBuilder()
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('브아카')
+    .setDescription('내 디스코드 계정에 V-ARCHIVE 닉네임을 저장합니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('V-ARCHIVE 닉네임')
+        .setRequired(true)
+        .setMaxLength(40)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('b30')
     .setDescription('V-ARCHIVE 티어 카드를 이미지로 보여줍니다.')
     .addStringOption((option) =>
       option
         .setName('닉네임')
         .setDescription('V-ARCHIVE 닉네임')
-        .setRequired(true)
+        .setRequired(false)
         .setMaxLength(40)
     )
     .addIntegerOption((option) =>
@@ -329,7 +340,7 @@ new SlashCommandBuilder()
       option
         .setName('닉네임')
         .setDescription('V-ARCHIVE 닉네임')
-        .setRequired(true)
+        .setRequired(false)
         .setMaxLength(40)
     )
     .addIntegerOption((option) =>
@@ -362,7 +373,7 @@ new SlashCommandBuilder()
       option
         .setName('닉네임')
         .setDescription('V-ARCHIVE 닉네임')
-        .setRequired(true)
+        .setRequired(false)
         .setMaxLength(40)
     )
     .addIntegerOption((option) =>

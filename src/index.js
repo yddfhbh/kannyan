@@ -91,6 +91,11 @@ import {
   searchVArchiveSong,
 } from './varchive-song.js';
 import {
+  normalizeVArchiveNickname,
+  parseVArchiveTierLookupInput,
+  VArchiveLinkStore,
+} from './varchive-link-store.js';
+import {
   createPermanentMemoryScope,
   extractPermanentMemoryUsage,
   extractPercentPermanentMemory,
@@ -395,6 +400,9 @@ const percentCommandAliases = {
   chesscom: ['체닷'],
   lichess: ['리체스'],
   varchiveSong: ['서열표', '곡정보'],
+  varchiveTier10: ['b10'],
+  varchiveTier30: ['b30'],
+  varchiveTier50: ['b50'],
   teto: ['teto'],
   tetrioStats: ['ts'],
   tetrioPlaystyleGraph: ['psq'],
@@ -606,6 +614,8 @@ const DATA_DIR =
 
 const GUILD_LIST_STATE_PATH = path.join(DATA_DIR, 'guild-list-state.json');
 const CHESS_PLAY_STATE_PATH = path.join(DATA_DIR, 'chess-play-state.json');
+const VARCHIVE_LINK_STATE_PATH = path.join(DATA_DIR, 'varchive-user-links.json');
+const vArchiveLinkStore = new VArchiveLinkStore(VARCHIVE_LINK_STATE_PATH);
 const chessPlaySessionMaxAgeMs =
   Number(process.env.CHESS_PLAY_SESSION_MAX_AGE_MS) || 6 * 60 * 60 * 1000;
 const chessPlayIdleForfeitMs =
@@ -1099,10 +1109,18 @@ client.once(Events.ClientReady, async (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}`);
 
   void flushDiscordConsoleLogs();
-    try {
+  try {
     await loadChessPlayState();
   } catch (error) {
     console.error('[CHESS PLAY] restore failed:');
+    console.error(error);
+  }
+
+  try {
+    await vArchiveLinkStore.load();
+    console.log(`[VARCHIVE LINK] restored links=${vArchiveLinkStore.size}`);
+  } catch (error) {
+    console.error('[VARCHIVE LINK] restore failed:');
     console.error(error);
   }
 
@@ -5248,6 +5266,11 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
+    if (interaction.commandName === '브아카') {
+      await linkVArchiveAccount(interaction);
+      return;
+    }
+
     if (interaction.commandName === 'b30') {
       await showVArchiveTierCard(interaction);
       return;
@@ -5962,6 +5985,21 @@ async function handlePercentMessageCommand(message) {
 
   if (command === 'varchiveSong') {
     await showVArchiveSongInfoMessage(message, input);
+    return true;
+  }
+
+  if (command === 'varchiveTier10') {
+    await showVArchiveTierCardMessage(message, input, { displayCount: 10, commandName: 'b10' });
+    return true;
+  }
+
+  if (command === 'varchiveTier30') {
+    await showVArchiveTierCardMessage(message, input, { displayCount: 30, commandName: 'b30' });
+    return true;
+  }
+
+  if (command === 'varchiveTier50') {
+    await showVArchiveTierCardMessage(message, input, { displayCount: 50, commandName: 'b50' });
     return true;
   }
 
@@ -8402,6 +8440,8 @@ function getHelpMessage() {
     '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산한다냥.',
     '`/알람 내용:<알람 내용> 분:<1~10080>` - 지정한 분 뒤에 멘션으로 알려준다냥.',
     '`/라이브레이팅 종류:<클래시컬|블리츠|래피드> 사람수:<1~50>` - 2700chess 라이브레이팅을 이미지 카드로 보여준다냥.',
+    '`/브아카 닉네임:<V-ARCHIVE 닉네임>` - 내 디스코드 계정에 V-ARCHIVE 닉네임을 영구 저장한다냥.',
+    '`/b10`, `/b30`, `/b50`은 닉네임을 생략하면 저장된 V-ARCHIVE 닉네임을 쓰고, `%b10 4`, `%b30 6`, `%b50 Hebi 8`처럼 `%` 명령도 바로 쓸 수 있다냥.',
     '`/서열표 곡명:<곡명>`, `/곡정보 곡명:<곡명>`, `%서열표 곡명`, `%곡정보 곡명` - V-ARCHIVE 기준 4B/5B/6B/8B 난이도를 보여준다냥.',
     '체스판 이미지와 `%백선`, `%흑선`, `%분석해봐`, `%답이 뭐야` 같은 말을 보내면 FEN으로 읽고 Stockfish 최선 수를 보여준다냥.',
     '`%fen <FEN>` - 직접 입력한 FEN을 Stockfish로 분석한다냥.',
@@ -10880,25 +10920,54 @@ async function showLiveRatings(interaction) {
   }
 }
 
+async function linkVArchiveAccount(interaction) {
+  let nickname;
+
+  try {
+    nickname = normalizeVArchiveNickname(interaction.options.getString('닉네임', true));
+  } catch (error) {
+    await interaction.reply({
+      content: error?.message ?? 'V-ARCHIVE 닉네임을 저장하지 못했다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  try {
+    await vArchiveLinkStore.setNickname(interaction.user.id, nickname);
+    await interaction.reply({
+      content: `V-ARCHIVE 닉네임을 \`${nickname}\`으로 저장했다냥. 이제 \`/b10\`, \`/b30\`, \`/b50\`이나 \`%b10 4\`처럼 바로 쓸 수 있다냥.`,
+      flags: MessageFlags.Ephemeral,
+    });
+  } catch (error) {
+    console.error(`Failed to save V-ARCHIVE nickname for Discord user ${interaction.user.id}:`);
+    console.error(error);
+    await interaction.reply({
+      content: error?.message ?? 'V-ARCHIVE 닉네임을 저장하지 못했다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+  }
+}
+
 async function showVArchiveTierCard(interaction, options = {}) {
-  const nickname = interaction.options.getString('닉네임', true).trim();
+  const nickname = resolveVArchiveNicknameForInteraction(interaction);
   const button = interaction.options.getInteger('버튼', true);
   const displayCount = Number(options.displayCount) || 30;
   const theme = interaction.options.getString('테마') ?? 'light';
 
+  if (!nickname) {
+    await interaction.reply({
+      content: getMissingVArchiveNicknameMessage(),
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
   await interaction.deferReply();
 
   try {
-    const card = await createVArchiveTierCard(nickname, button, { displayCount, theme });
-    const attachmentExtension = card.imageFormat === 'jpeg' ? 'jpg' : 'png';
-    const attachment = new AttachmentBuilder(card.image, {
-      name: `varchive-tier-${formatAttachmentSafeName(card.nickname)}-${card.button}b-top${card.displayCount}.${attachmentExtension}`,
-    });
-
-    await interaction.editReply({
-      content: `<${card.pageUrl}>`,
-      files: [attachment],
-    });
+    const replyData = await createVArchiveTierReplyData(nickname, button, { displayCount, theme });
+    await interaction.editReply(replyData);
   } catch (error) {
     console.error(`Failed to render V-ARCHIVE tier card for ${nickname} ${button}B:`);
     console.error(error);
@@ -10906,6 +10975,88 @@ async function showVArchiveTierCard(interaction, options = {}) {
     const knownErrorMessage = getVArchiveKnownErrorMessage(error, button);
     await interaction.editReply(knownErrorMessage ?? 'V-ARCHIVE 티어 카드를 만들지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
+}
+
+async function showVArchiveTierCardMessage(message, input, options = {}) {
+  const commandName = String(options.commandName ?? 'b30');
+  const fallbackNickname = vArchiveLinkStore.getNickname(message.author.id);
+  let parsedInput;
+
+  try {
+    parsedInput = parseVArchiveTierLookupInput(input, fallbackNickname);
+  } catch (error) {
+    await message.reply({
+      content: error?.message ?? 'V-ARCHIVE 입력을 해석하지 못했다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return;
+  }
+
+  if (!parsedInput.button) {
+    const usage = getVArchiveTierPercentUsageMessage(commandName);
+    const extra = fallbackNickname ? '' : `\n${getMissingVArchiveNicknameMessage()}`;
+    await message.reply({
+      content: `${usage}${extra}`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return;
+  }
+
+  if (!parsedInput.nickname) {
+    await message.reply({
+      content: getMissingVArchiveNicknameMessage(),
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return;
+  }
+
+  await message.channel.sendTyping().catch(() => {});
+
+  try {
+    const replyData = await createVArchiveTierReplyData(parsedInput.nickname, parsedInput.button, {
+      displayCount: Number(options.displayCount) || 30,
+    });
+    await message.reply({
+      ...replyData,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+  } catch (error) {
+    console.error(`Failed to render V-ARCHIVE tier card for ${parsedInput.nickname} ${parsedInput.button}B:`);
+    console.error(error);
+    await message.reply({
+      content: getVArchiveKnownErrorMessage(error, parsedInput.button)
+        ?? 'V-ARCHIVE 티어 카드를 만들지 못했다냥. 잠시 뒤 다시 시도해달라냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+  }
+}
+
+async function createVArchiveTierReplyData(nickname, button, options = {}) {
+  const displayCount = Number(options.displayCount) || 30;
+  const theme = options.theme ?? 'light';
+  const card = await createVArchiveTierCard(nickname, button, { displayCount, theme });
+  const attachmentExtension = card.imageFormat === 'jpeg' ? 'jpg' : 'png';
+  const attachment = new AttachmentBuilder(card.image, {
+    name: `varchive-tier-${formatAttachmentSafeName(card.nickname)}-${card.button}b-top${card.displayCount}.${attachmentExtension}`,
+  });
+
+  return {
+    content: `<${card.pageUrl}>`,
+    files: [attachment],
+  };
+}
+
+function resolveVArchiveNicknameForInteraction(interaction) {
+  const explicitNickname = interaction.options.getString('닉네임')?.trim();
+  return explicitNickname || vArchiveLinkStore.getNickname(interaction.user.id);
+}
+
+function getMissingVArchiveNicknameMessage() {
+  return 'V-ARCHIVE 닉네임이 연결되어 있지 않다냥. `/브아카 닉네임:<닉네임>`으로 먼저 저장하거나 이번 명령에 닉네임을 직접 넣어달라냥.';
+}
+
+function getVArchiveTierPercentUsageMessage(commandName) {
+  return `사용법은 \`%${commandName} <버튼>\` 또는 \`%${commandName} <닉네임> <버튼>\`이다냥. 예: \`%${commandName} 4\`, \`%${commandName} Hebi 4\``;
 }
 
 async function showVArchiveSongInfo(interaction) {
@@ -10952,6 +11103,15 @@ async function showVArchiveSongInfoMessage(message, input) {
 }
 
 async function createVArchiveSongReplyData(query) {
+  const parsedQuery = parseVArchiveSongSelectionQuery(query);
+  const selectedResult = parsedQuery.selectionIndex !== null
+    ? await resolveSelectedVArchiveSongReplyData(parsedQuery)
+    : null;
+
+  if (selectedResult) {
+    return selectedResult;
+  }
+
   const result = await searchVArchiveSong(query);
 
   if (result.status === 'none') {
@@ -10977,8 +11137,60 @@ async function createVArchiveSongReplyData(query) {
   };
 }
 
+async function resolveSelectedVArchiveSongReplyData(parsedQuery) {
+  if (!parsedQuery || parsedQuery.selectionIndex === null || !parsedQuery.baseQuery) {
+    return null;
+  }
+
+  const result = await searchVArchiveSong(parsedQuery.baseQuery);
+
+  if (result.status !== 'multiple') {
+    return null;
+  }
+
+  const selectedSong = result.songs?.[parsedQuery.selectionIndex - 1];
+  if (!selectedSong) {
+    const error = new Error(`검색 결과에서 ${parsedQuery.selectionIndex}번 후보는 없다냥.`);
+    error.code = 'INVALID_VARCHIVE_SONG_SELECTION';
+    throw error;
+  }
+
+  const card = await createVArchiveSongCard(selectedSong);
+  return {
+    content: `<${card.pageUrl}>`,
+    files: [
+      new AttachmentBuilder(card.image, {
+        name: `varchive-song-${formatAttachmentSafeName(card.songName)}-${card.titleId}.png`,
+      }),
+    ],
+  };
+}
+
+function parseVArchiveSongSelectionQuery(query) {
+  const trimmed = String(query ?? '').trim();
+  const match = trimmed.match(/^(.*\S)\s+([1-9]\d*)$/);
+
+  if (!match) {
+    return {
+      rawQuery: trimmed,
+      baseQuery: trimmed,
+      selectionIndex: null,
+    };
+  }
+
+  return {
+    rawQuery: trimmed,
+    baseQuery: match[1].trim(),
+    selectionIndex: Number(match[2]),
+  };
+}
+
 function getVArchiveSongKnownErrorMessage(error) {
   if (error?.code === 'INVALID_VARCHIVE_SONG_QUERY') {
+    return error.message;
+  }
+
+  if (error?.code === 'INVALID_VARCHIVE_SONG_SELECTION') {
     return error.message;
   }
 
