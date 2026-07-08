@@ -8,7 +8,8 @@ const vArchiveBaseUrl = 'https://v-archive.net';
 const vArchiveApiBaseUrl = `${vArchiveBaseUrl}/api/v3/archive`;
 const vArchiveRequestTimeoutMs = 15_000;
 const defaultDisplayedSongs = 30;
-const vArchiveTierCardColumns = 5;
+const defaultTierCardColumns = 5;
+const wideTierCardColumns = 10;
 const vArchiveTierCardRenderScale = 1.5;
 const discordSafeImageBudgetBytes = 7_900_000;
 const songImageSize = 244;
@@ -56,10 +57,72 @@ const tierPaletteByCode = {
   },
 };
 
+const tierCardThemes = {
+  light: {
+    pageBg: '#f7edef',
+    panelFill: 'rgba(255,255,255,0.95)',
+    panelStroke: 'rgba(80, 80, 95, 0.10)',
+    divider: 'rgba(72, 88, 110, 0.28)',
+    songCardFill: 'rgba(255,255,255,0.97)',
+    songCardStroke: 'rgba(70, 80, 100, 0.10)',
+    placeholder: '#dce4ec',
+    nickname: '#11131a',
+    subTitle: '#5f6d77',
+    tierName: '#27313a',
+    metaLabel: '#71808b',
+    metaValue: '#1e2a35',
+    metaValueSmall: '#31404f',
+    summaryTitle: '#23303a',
+    summaryLabel: '#71808b',
+    summaryValue: '#22303b',
+    songShade: 'rgba(10, 14, 24, 0.88)',
+    rankBadge: 'rgba(12, 16, 28, 0.90)',
+    rankText: '#f8f8fb',
+    patternText: '#ffffff',
+    scoreText: '#ffffff',
+    floorBadge: 'rgba(255,255,255,0.96)',
+    songTitle: '#171c25',
+    songPoint: '#516272',
+    songMeta: '#7a8794',
+    placeholderText: '#708090',
+    footer: '#72808c',
+  },
+  dark: {
+    pageBg: '#0f131a',
+    panelFill: 'rgba(22,28,38,0.94)',
+    panelStroke: 'rgba(143, 160, 187, 0.20)',
+    divider: 'rgba(118, 140, 170, 0.26)',
+    songCardFill: 'rgba(20,26,36,0.98)',
+    songCardStroke: 'rgba(126, 146, 176, 0.18)',
+    placeholder: '#253041',
+    nickname: '#f3f6fb',
+    subTitle: '#9fb0c6',
+    tierName: '#d7e2f0',
+    metaLabel: '#8ea0b8',
+    metaValue: '#f4f7fb',
+    metaValueSmall: '#d7e0ec',
+    summaryTitle: '#edf3fb',
+    summaryLabel: '#8fa1b9',
+    summaryValue: '#edf4fc',
+    songShade: 'rgba(6, 9, 16, 0.84)',
+    rankBadge: 'rgba(3, 6, 12, 0.92)',
+    rankText: '#f8fbff',
+    patternText: '#ffffff',
+    scoreText: '#ffffff',
+    floorBadge: 'rgba(233,239,247,0.96)',
+    songTitle: '#eef3fa',
+    songPoint: '#9eb1c8',
+    songMeta: '#7f92a8',
+    placeholderText: '#8da1b8',
+    footer: '#8396ad',
+  },
+};
+
 export async function createVArchiveTierCard(nickname, button, options = {}) {
   const normalizedNickname = normalizeNickname(nickname);
   const normalizedButton = normalizeButton(button);
   const displayCount = normalizeDisplayCount(options.displayCount);
+  const theme = normalizeTierCardTheme(options.theme);
   const fetchImpl = resolveFetch(options.fetchImpl);
   const tierBoard = await fetchVArchiveTierBoard(normalizedNickname, normalizedButton, { fetchImpl });
 
@@ -118,6 +181,7 @@ export async function createVArchiveTierCard(nickname, button, options = {}) {
     nickname: normalizedNickname,
     button: normalizedButton,
     displayCount,
+    theme,
     tierBoard,
     tierImageDataUrl,
     entries: songEntries,
@@ -131,6 +195,7 @@ export async function createVArchiveTierCard(nickname, button, options = {}) {
     nickname: normalizedNickname,
     button: normalizedButton,
     displayCount,
+    theme,
     pageUrl: `${vArchiveBaseUrl}/archive/${encodeURIComponent(normalizedNickname)}/tier/${normalizedButton}`,
     apiUrl: `${vArchiveApiBaseUrl}/${encodeURIComponent(normalizedNickname)}/tier/${normalizedButton}`,
     view,
@@ -222,7 +287,7 @@ async function encodeVArchiveTierCardJpeg(pngBuffer) {
 function getVArchiveTierCardLayout(view) {
   const outerPadding = 42;
   const gap = 20;
-  const columns = vArchiveTierCardColumns;
+  const columns = getTierCardColumns(view.displayCount);
   const totalSlots = Math.max(1, Number(view.displayCount) || defaultDisplayedSongs);
   const songCardWidth = 244;
   const songMetaHeight = 94;
@@ -324,6 +389,7 @@ export function renderVArchiveTierCardBackgroundSvg(view) {
     songCardWidth,
     songCardHeight,
   } = getVArchiveTierCardLayout(view);
+  const theme = getTierCardTheme(view.theme);
 
   const songCardBackgrounds = entries
     .map((entry) => renderSongCardBackground(entry, songCardWidth, songCardHeight))
@@ -333,14 +399,14 @@ export function renderVArchiveTierCardBackgroundSvg(view) {
 <svg xmlns="http://www.w3.org/2000/svg" width="${viewBoxWidth}" height="${viewBoxHeight}" viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}">
   <defs>
     <style>
-      .pageBg { fill: #f7edef; }
+      .pageBg { fill: ${theme.pageBg}; }
       .panel {
-        fill: rgba(255,255,255,0.95);
-        stroke: rgba(80, 80, 95, 0.10);
+        fill: ${theme.panelFill};
+        stroke: ${theme.panelStroke};
         stroke-width: 1.5;
       }
       .divider {
-        stroke: rgba(72, 88, 110, 0.28);
+        stroke: ${theme.divider};
         stroke-width: 2;
       }
       .heroAccent { fill: ${palette.accentSoft}; }
@@ -350,12 +416,12 @@ export function renderVArchiveTierCardBackgroundSvg(view) {
         stroke-width: 2;
       }
       .songCardBg {
-        fill: rgba(255,255,255,0.97);
-        stroke: rgba(70, 80, 100, 0.10);
+        fill: ${theme.songCardFill};
+        stroke: ${theme.songCardStroke};
         stroke-width: 1.2;
       }
       .placeholder {
-        fill: #dce4ec;
+        fill: ${theme.placeholder};
       }
     </style>
   </defs>
@@ -384,6 +450,7 @@ export function renderVArchiveTierCardOverlaySvg(view) {
     entries,
     songCardWidth,
   } = getVArchiveTierCardLayout(view);
+  const theme = getTierCardTheme(view.theme);
 
   const summaryRows = [
     ['표시 곡수', `${entries.length}곡`],
@@ -426,32 +493,32 @@ export function renderVArchiveTierCardOverlaySvg(view) {
         letter-spacing: 0;
       }
       .nickname {
-        fill: #11131a;
+        fill: ${theme.nickname};
         font-size: 48px;
         font-weight: 900;
       }
       .subTitle {
-        fill: #5f6d77;
+        fill: ${theme.subTitle};
         font-size: 18px;
         font-weight: 700;
       }
       .tierName {
-        fill: #27313a;
+        fill: ${theme.tierName};
         font-size: 22px;
         font-weight: 800;
       }
       .metaLabel {
-        fill: #71808b;
+        fill: ${theme.metaLabel};
         font-size: 14px;
         font-weight: 700;
       }
       .metaValue {
-        fill: #1e2a35;
+        fill: ${theme.metaValue};
         font-size: 24px;
         font-weight: 900;
       }
       .metaValueSmall {
-        fill: #31404f;
+        fill: ${theme.metaValueSmall};
         font-size: 18px;
         font-weight: 800;
       }
@@ -461,17 +528,17 @@ export function renderVArchiveTierCardOverlaySvg(view) {
         font-weight: 800;
       }
       .summaryTitle {
-        fill: #23303a;
+        fill: ${theme.summaryTitle};
         font-size: 24px;
         font-weight: 900;
       }
       .summaryLabel {
-        fill: #71808b;
+        fill: ${theme.summaryLabel};
         font-size: 14px;
         font-weight: 700;
       }
       .summaryValue {
-        fill: #22303b;
+        fill: ${theme.summaryValue};
         font-size: 16px;
         font-weight: 900;
       }
@@ -481,13 +548,13 @@ export function renderVArchiveTierCardOverlaySvg(view) {
         font-weight: 800;
       }
       .songShade {
-        fill: rgba(10, 14, 24, 0.88);
+        fill: ${theme.songShade};
       }
       .rankBadge {
-        fill: rgba(12, 16, 28, 0.90);
+        fill: ${theme.rankBadge};
       }
       .rankText {
-        fill: #f8f8fb;
+        fill: ${theme.rankText};
         font-size: 18px;
         font-weight: 900;
       }
@@ -495,17 +562,17 @@ export function renderVArchiveTierCardOverlaySvg(view) {
         fill: ${palette.accentStrong};
       }
       .patternText {
-        fill: #ffffff;
+        fill: ${theme.patternText};
         font-size: 15px;
         font-weight: 900;
       }
       .scoreText {
-        fill: #ffffff;
+        fill: ${theme.scoreText};
         font-size: 16px;
         font-weight: 900;
       }
       .floorBadge {
-        fill: rgba(255,255,255,0.96);
+        fill: ${theme.floorBadge};
       }
       .floorText {
         fill: ${palette.accentStrong};
@@ -513,17 +580,17 @@ export function renderVArchiveTierCardOverlaySvg(view) {
         font-weight: 900;
       }
       .songTitle {
-        fill: #171c25;
+        fill: ${theme.songTitle};
         font-size: 17px;
         font-weight: 900;
       }
       .songPoint {
-        fill: #516272;
+        fill: ${theme.songPoint};
         font-size: 16px;
         font-weight: 800;
       }
       .songMeta {
-        fill: #7a8794;
+        fill: ${theme.songMeta};
         font-size: 12px;
         font-weight: 700;
       }
@@ -536,12 +603,12 @@ export function renderVArchiveTierCardOverlaySvg(view) {
         font-weight: 900;
       }
       .placeholderText {
-        fill: #708090;
+        fill: ${theme.placeholderText};
         font-size: 15px;
         font-weight: 800;
       }
       .footer {
-        fill: #72808c;
+        fill: ${theme.footer};
         font-size: 12px;
         font-weight: 700;
       }
@@ -586,6 +653,7 @@ export function renderVArchiveTierCardSvg(view) {
     palette,
     entries,
   } = getVArchiveTierCardLayout(view);
+  const theme = getTierCardTheme(view.theme);
 
   const songCards = entries
     .map((entry, index) => renderSongCard({
@@ -632,14 +700,14 @@ export function renderVArchiveTierCardSvg(view) {
         font-family: ${bundledSvgFontFamily};
         letter-spacing: 0;
       }
-      .pageBg { fill: #f7edef; }
+      .pageBg { fill: ${theme.pageBg}; }
       .panel {
-        fill: rgba(255,255,255,0.95);
-        stroke: rgba(80, 80, 95, 0.10);
+        fill: ${theme.panelFill};
+        stroke: ${theme.panelStroke};
         stroke-width: 1.5;
       }
       .divider {
-        stroke: rgba(72, 88, 110, 0.28);
+        stroke: ${theme.divider};
         stroke-width: 2;
       }
       .heroAccent { fill: ${palette.accentSoft}; }
@@ -649,32 +717,32 @@ export function renderVArchiveTierCardSvg(view) {
         stroke-width: 2;
       }
       .nickname {
-        fill: #11131a;
+        fill: ${theme.nickname};
         font-size: 48px;
         font-weight: 900;
       }
       .subTitle {
-        fill: #5f6d77;
+        fill: ${theme.subTitle};
         font-size: 18px;
         font-weight: 700;
       }
       .tierName {
-        fill: #27313a;
+        fill: ${theme.tierName};
         font-size: 22px;
         font-weight: 800;
       }
       .metaLabel {
-        fill: #71808b;
+        fill: ${theme.metaLabel};
         font-size: 14px;
         font-weight: 700;
       }
       .metaValue {
-        fill: #1e2a35;
+        fill: ${theme.metaValue};
         font-size: 24px;
         font-weight: 900;
       }
       .metaValueSmall {
-        fill: #31404f;
+        fill: ${theme.metaValueSmall};
         font-size: 18px;
         font-weight: 800;
       }
@@ -684,17 +752,17 @@ export function renderVArchiveTierCardSvg(view) {
         font-weight: 800;
       }
       .summaryTitle {
-        fill: #23303a;
+        fill: ${theme.summaryTitle};
         font-size: 24px;
         font-weight: 900;
       }
       .summaryLabel {
-        fill: #71808b;
+        fill: ${theme.summaryLabel};
         font-size: 14px;
         font-weight: 700;
       }
       .summaryValue {
-        fill: #22303b;
+        fill: ${theme.summaryValue};
         font-size: 16px;
         font-weight: 900;
       }
@@ -704,18 +772,18 @@ export function renderVArchiveTierCardSvg(view) {
         font-weight: 800;
       }
       .songCardBg {
-        fill: rgba(255,255,255,0.97);
-        stroke: rgba(70, 80, 100, 0.10);
+        fill: ${theme.songCardFill};
+        stroke: ${theme.songCardStroke};
         stroke-width: 1.2;
       }
       .songShade {
-        fill: rgba(10, 14, 24, 0.88);
+        fill: ${theme.songShade};
       }
       .rankBadge {
-        fill: rgba(12, 16, 28, 0.90);
+        fill: ${theme.rankBadge};
       }
       .rankText {
-        fill: #f8f8fb;
+        fill: ${theme.rankText};
         font-size: 18px;
         font-weight: 900;
       }
@@ -723,17 +791,17 @@ export function renderVArchiveTierCardSvg(view) {
         fill: ${palette.accentStrong};
       }
       .patternText {
-        fill: #ffffff;
+        fill: ${theme.patternText};
         font-size: 15px;
         font-weight: 900;
       }
       .scoreText {
-        fill: #ffffff;
+        fill: ${theme.scoreText};
         font-size: 16px;
         font-weight: 900;
       }
       .floorBadge {
-        fill: rgba(255,255,255,0.96);
+        fill: ${theme.floorBadge};
       }
       .floorText {
         fill: ${palette.accentStrong};
@@ -741,17 +809,17 @@ export function renderVArchiveTierCardSvg(view) {
         font-weight: 900;
       }
       .songTitle {
-        fill: #171c25;
+        fill: ${theme.songTitle};
         font-size: 17px;
         font-weight: 900;
       }
       .songPoint {
-        fill: #516272;
+        fill: ${theme.songPoint};
         font-size: 16px;
         font-weight: 800;
       }
       .songMeta {
-        fill: #7a8794;
+        fill: ${theme.songMeta};
         font-size: 12px;
         font-weight: 700;
       }
@@ -764,15 +832,15 @@ export function renderVArchiveTierCardSvg(view) {
         font-weight: 900;
       }
       .placeholder {
-        fill: #dce4ec;
+        fill: ${theme.placeholder};
       }
       .placeholderText {
-        fill: #708090;
+        fill: ${theme.placeholderText};
         font-size: 15px;
         font-weight: 800;
       }
       .footer {
-        fill: #72808c;
+        fill: ${theme.footer};
         font-size: 12px;
         font-weight: 700;
       }
@@ -868,12 +936,14 @@ function buildVArchiveTierCardView({
   nickname,
   button,
   displayCount,
+  theme,
   tierBoard,
   tierImageDataUrl,
   entries,
 }) {
   const displayEntries = Array.isArray(entries) ? entries : [];
   const palette = getTierPalette(tierBoard.tierInfo.tier?.code);
+  const columns = getTierCardColumns(displayCount);
   const displayAverage = displayEntries.length > 0
     ? displayEntries.reduce((sum, entry) => sum + Number(entry.rating || 0), 0) / displayEntries.length
     : 0;
@@ -887,6 +957,7 @@ function buildVArchiveTierCardView({
     nickname,
     button,
     displayCount: normalizeDisplayCount(displayCount),
+    theme: normalizeTierCardTheme(theme),
     palette,
     tierCode: tierBoard.tierInfo.tier?.code ?? '',
     tierName: tierBoard.tierInfo.tier?.name ?? 'Unknown Tier',
@@ -902,8 +973,8 @@ function buildVArchiveTierCardView({
       : '최상위 티어',
     generatedAtText: formatGeneratedAt(new Date().toISOString()),
     entries: displayEntries.map((entry, index) => {
-      const column = index % vArchiveTierCardColumns;
-      const row = Math.floor(index / vArchiveTierCardColumns);
+      const column = index % columns;
+      const row = Math.floor(index / columns);
       const cardX = 42 + column * (244 + 20);
       const cardY = 42 + 260 + 30 + row * (244 + 94 + 20);
 
@@ -930,6 +1001,20 @@ function normalizeDisplayCount(value) {
   }
 
   return Math.max(1, Math.min(50, Math.floor(parsed)));
+}
+
+function getTierCardColumns(displayCount) {
+  return Number(displayCount) >= 50
+    ? wideTierCardColumns
+    : defaultTierCardColumns;
+}
+
+function normalizeTierCardTheme(value) {
+  return value === 'dark' ? 'dark' : 'light';
+}
+
+function getTierCardTheme(theme) {
+  return tierCardThemes[normalizeTierCardTheme(theme)] ?? tierCardThemes.light;
 }
 
 function renderSongCardBackground(entry, width, cardHeight) {

@@ -5258,6 +5258,11 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
+    if (interaction.commandName === 'b50') {
+      await showVArchiveTierCard(interaction, { displayCount: 50 });
+      return;
+    }
+
     if (interaction.commandName === '서열표' || interaction.commandName === '곡정보') {
       await showVArchiveSongInfo(interaction);
       return;
@@ -10879,11 +10884,12 @@ async function showVArchiveTierCard(interaction, options = {}) {
   const nickname = interaction.options.getString('닉네임', true).trim();
   const button = interaction.options.getInteger('버튼', true);
   const displayCount = Number(options.displayCount) || 30;
+  const theme = interaction.options.getString('테마') ?? 'light';
 
   await interaction.deferReply();
 
   try {
-    const card = await createVArchiveTierCard(nickname, button, { displayCount });
+    const card = await createVArchiveTierCard(nickname, button, { displayCount, theme });
     const attachmentExtension = card.imageFormat === 'jpeg' ? 'jpg' : 'png';
     const attachment = new AttachmentBuilder(card.image, {
       name: `varchive-tier-${formatAttachmentSafeName(card.nickname)}-${card.button}b-top${card.displayCount}.${attachmentExtension}`,

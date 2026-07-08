@@ -311,6 +311,16 @@ new SlashCommandBuilder()
           { name: '8버튼', value: 8 }
         )
     )
+    .addStringOption((option) =>
+      option
+        .setName('테마')
+        .setDescription('카드 테마, 생략하면 기본 밝은 테마')
+        .setRequired(false)
+        .addChoices(
+          { name: '기본', value: 'light' },
+          { name: '다크', value: 'dark' }
+        )
+    )
     .toJSON(),
   new SlashCommandBuilder()
     .setName('b10')
@@ -332,6 +342,49 @@ new SlashCommandBuilder()
           { name: '5버튼', value: 5 },
           { name: '6버튼', value: 6 },
           { name: '8버튼', value: 8 }
+        )
+    )
+    .addStringOption((option) =>
+      option
+        .setName('테마')
+        .setDescription('카드 테마, 생략하면 기본 밝은 테마')
+        .setRequired(false)
+        .addChoices(
+          { name: '기본', value: 'light' },
+          { name: '다크', value: 'dark' }
+        )
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('b50')
+    .setDescription('V-ARCHIVE 상위 50곡 티어 카드를 10x5 배치로 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('V-ARCHIVE 닉네임')
+        .setRequired(true)
+        .setMaxLength(40)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('버튼')
+        .setDescription('조회할 버튼 수')
+        .setRequired(true)
+        .addChoices(
+          { name: '4버튼', value: 4 },
+          { name: '5버튼', value: 5 },
+          { name: '6버튼', value: 6 },
+          { name: '8버튼', value: 8 }
+        )
+    )
+    .addStringOption((option) =>
+      option
+        .setName('테마')
+        .setDescription('카드 테마, 생략하면 기본 밝은 테마')
+        .setRequired(false)
+        .addChoices(
+          { name: '기본', value: 'light' },
+          { name: '다크', value: 'dark' }
         )
     )
     .toJSON(),
