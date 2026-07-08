@@ -357,7 +357,7 @@ new SlashCommandBuilder()
     .toJSON(),
   new SlashCommandBuilder()
     .setName('b50')
-    .setDescription('V-ARCHIVE 상위 50곡 티어 카드를 10x5 배치로 보여줍니다.')
+    .setDescription('V-ARCHIVE 상위 50곡 티어 카드를 5x10 배치로 보여줍니다.')
     .addStringOption((option) =>
       option
         .setName('닉네임')

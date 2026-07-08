@@ -9,7 +9,6 @@ const vArchiveApiBaseUrl = `${vArchiveBaseUrl}/api/v3/archive`;
 const vArchiveRequestTimeoutMs = 15_000;
 const defaultDisplayedSongs = 30;
 const defaultTierCardColumns = 5;
-const wideTierCardColumns = 10;
 const vArchiveTierCardRenderScale = 1.5;
 const discordSafeImageBudgetBytes = 7_900_000;
 const songImageSize = 244;
@@ -1004,9 +1003,7 @@ function normalizeDisplayCount(value) {
 }
 
 function getTierCardColumns(displayCount) {
-  return Number(displayCount) >= 50
-    ? wideTierCardColumns
-    : defaultTierCardColumns;
+  return defaultTierCardColumns;
 }
 
 function normalizeTierCardTheme(value) {
