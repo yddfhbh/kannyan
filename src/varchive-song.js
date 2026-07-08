@@ -15,6 +15,11 @@ const vArchiveSongAliasTitleIds = {
   다이인: [553],
   디인: [553],
 };
+const hangulSyllableBase = 0xac00;
+const hangulSyllableEnd = 0xd7a3;
+const hangulInitialRomanization = ['g', 'kk', 'n', 'd', 'tt', 'r', 'm', 'b', 'pp', 's', 'ss', '', 'j', 'jj', 'ch', 'k', 't', 'p', 'h'];
+const hangulMedialRomanization = ['a', 'ae', 'ya', 'yae', 'eo', 'e', 'yeo', 'ye', 'o', 'wa', 'wae', 'oe', 'yo', 'u', 'wo', 'we', 'wi', 'yu', 'eu', 'ui', 'i'];
+const hangulFinalRomanization = ['', 'k', 'k', 'ks', 'n', 'nj', 'nh', 't', 'l', 'lk', 'lm', 'lb', 'ls', 'lt', 'lp', 'lh', 'm', 'p', 'ps', 't', 't', 'ng', 't', 't', 'k', 't', 'p', 'h'];
 
 const vArchiveSongCache = {
   songs: null,
@@ -108,13 +113,27 @@ export async function searchVArchiveSong(query, options = {}) {
         : null
     ),
     collectTierMatches(searchEntries, (entry) =>
+      entry.phoneticSearchKeys.some((key) => queryMeta.phoneticSearchKeys.includes(key))
+        ? 880 - scorePhoneticSearchKeyExact(entry, queryMeta)
+        : null
+    ),
+    collectTierMatches(searchEntries, (entry) =>
       scoreSearchKeyPrefix(entry, queryMeta)
     ),
     collectTierMatches(searchEntries, (entry) =>
       scoreSearchKeyIncludes(entry, queryMeta)
     ),
     collectTierMatches(searchEntries, (entry) =>
+      scorePhoneticSearchKeyPrefix(entry, queryMeta)
+    ),
+    collectTierMatches(searchEntries, (entry) =>
+      scorePhoneticSearchKeyIncludes(entry, queryMeta)
+    ),
+    collectTierMatches(searchEntries, (entry) =>
       scoreTokenCoverage(entry, queryMeta)
+    ),
+    collectTierMatches(searchEntries, (entry) =>
+      scorePhoneticTokenCoverage(entry, queryMeta)
     ),
     collectTierMatches(searchEntries, (entry) =>
       scoreFuzzyCandidate(entry, queryMeta)
@@ -340,26 +359,23 @@ function resolveFetch(fetchImpl) {
 }
 
 function buildSongSearchEntry(song) {
-  const words = normalizeSongWords(song?.name);
-  const normalizedName = words.join('');
-  const withoutStopWords = removeStopWords(words);
-  const withoutWeakWords = removeWeakWords(withoutStopWords);
-  const searchKeys = getUniqueSearchKeys([
-    normalizedName,
-    withoutStopWords.join(''),
-    withoutWeakWords.join(''),
-  ]);
-
   return {
     song,
-    normalizedName,
-    words,
-    searchKeys,
+    ...buildSongSearchMeta(song?.name),
   };
 }
 
 function buildSongQueryMeta(query) {
-  const words = normalizeSongWords(query);
+  return {
+    rawQuery: String(query ?? ''),
+    ...buildSongSearchMeta(query),
+    titleId: /^\d+$/.test(String(query ?? '').trim()) ? String(Number(query)) : null,
+    aliasKey: normalizeSongName(query),
+  };
+}
+
+function buildSongSearchMeta(text) {
+  const words = normalizeSongWords(text);
   const normalizedName = words.join('');
   const wordsWithoutStopWords = removeStopWords(words);
   const wordsWithoutWeakWords = removeWeakWords(wordsWithoutStopWords);
@@ -371,9 +387,29 @@ function buildSongQueryMeta(query) {
   const primarySearchKey = searchKeys[0] ?? normalizedName;
   const tokenWords = wordsWithoutStopWords.length > 0 ? wordsWithoutStopWords : words;
   const coreTokens = wordsWithoutWeakWords.length > 0 ? wordsWithoutWeakWords : tokenWords;
+  const phoneticWords = normalizePhoneticWords(text);
+  const phoneticWordsWithoutStopWords = removeStopWords(phoneticWords);
+  const phoneticWordsWithoutWeakWords = removeWeakWords(phoneticWordsWithoutStopWords);
+  const phoneticJoined = phoneticWords.join('');
+  const phoneticWithoutStopJoined = phoneticWordsWithoutStopWords.join('');
+  const phoneticWithoutWeakJoined = phoneticWordsWithoutWeakWords.join('');
+  const phoneticSearchKeys = getUniqueSearchKeys([
+    phoneticJoined,
+    phoneticWithoutStopJoined,
+    phoneticWithoutWeakJoined,
+    buildConsonantSkeleton(phoneticJoined),
+    buildConsonantSkeleton(phoneticWithoutStopJoined),
+    buildConsonantSkeleton(phoneticWithoutWeakJoined),
+  ]);
+  const primaryPhoneticKey = phoneticSearchKeys[0] ?? '';
+  const phoneticTokenWords = phoneticWordsWithoutStopWords.length > 0
+    ? phoneticWordsWithoutStopWords
+    : phoneticWords;
+  const phoneticCoreTokens = phoneticWordsWithoutWeakWords.length > 0
+    ? phoneticWordsWithoutWeakWords
+    : phoneticTokenWords;
 
   return {
-    rawQuery: String(query ?? ''),
     normalizedName,
     words,
     wordsWithoutStopWords,
@@ -382,8 +418,11 @@ function buildSongQueryMeta(query) {
     coreTokens,
     searchKeys,
     primarySearchKey,
-    titleId: /^\d+$/.test(String(query ?? '').trim()) ? String(Number(query)) : null,
-    aliasKey: normalizeSongName(query),
+    phoneticWords,
+    phoneticSearchKeys,
+    primaryPhoneticKey,
+    phoneticTokenWords,
+    phoneticCoreTokens,
   };
 }
 
@@ -397,6 +436,83 @@ function normalizeSongWords(text) {
     .trim()
     .split(/\s+/)
     .filter(Boolean);
+}
+
+function normalizePhoneticWords(text) {
+  return splitSongSearchTerms(text)
+    .map((term) => normalizePhoneticToken(term))
+    .filter(Boolean);
+}
+
+function splitSongSearchTerms(text) {
+  return String(text ?? '')
+    .normalize('NFKC')
+    .replace(/&/g, ' and ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function normalizePhoneticToken(text) {
+  return foldPhoneticLatin(romanizeHangulToLatin(text));
+}
+
+function foldPhoneticLatin(text) {
+  return String(text ?? '')
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/ph/g, 'f')
+    .replace(/qu/g, 'kw')
+    .replace(/ck/g, 'k')
+    .replace(/x/g, 'ks')
+    .replace(/v/g, 'b')
+    .replace(/c(?=[eiy])/g, 's')
+    .replace(/c/g, 'k')
+    .replace(/[^a-z0-9]+/g, '');
+}
+
+function romanizeHangulToLatin(text) {
+  let output = '';
+
+  for (const character of String(text ?? '').normalize('NFKC')) {
+    const codePoint = character.codePointAt(0);
+
+    if (!Number.isInteger(codePoint) || codePoint < hangulSyllableBase || codePoint > hangulSyllableEnd) {
+      output += character;
+      continue;
+    }
+
+    const syllableIndex = codePoint - hangulSyllableBase;
+    const initialIndex = Math.floor(syllableIndex / 588);
+    const medialIndex = Math.floor((syllableIndex % 588) / 28);
+    const finalIndex = syllableIndex % 28;
+
+    output += `${hangulInitialRomanization[initialIndex] ?? ''}${hangulMedialRomanization[medialIndex] ?? ''}${hangulFinalRomanization[finalIndex] ?? ''}`;
+  }
+
+  return output;
+}
+
+function buildConsonantSkeleton(text) {
+  const folded = foldPhoneticLatin(text).replace(/[aeiouyw]/g, '');
+  return dedupeSequentialCharacters(folded);
+}
+
+function dedupeSequentialCharacters(text) {
+  let output = '';
+
+  for (const character of String(text ?? '')) {
+    if (output.endsWith(character)) {
+      continue;
+    }
+
+    output += character;
+  }
+
+  return output;
 }
 
 function removeStopWords(words) {
@@ -486,8 +602,16 @@ function collectTierMatches(searchEntries, scoreResolver) {
 }
 
 function scoreSearchKeyExact(entry, queryMeta) {
-  for (const queryKey of queryMeta.searchKeys) {
-    const index = entry.searchKeys.indexOf(queryKey);
+  return scoreKeyExact(entry.searchKeys, queryMeta.searchKeys);
+}
+
+function scorePhoneticSearchKeyExact(entry, queryMeta) {
+  return scoreKeyExact(entry.phoneticSearchKeys, queryMeta.phoneticSearchKeys);
+}
+
+function scoreKeyExact(entryKeys, queryKeys) {
+  for (const queryKey of queryKeys) {
+    const index = entryKeys.indexOf(queryKey);
     if (index !== -1) {
       return index;
     }
@@ -497,19 +621,27 @@ function scoreSearchKeyExact(entry, queryMeta) {
 }
 
 function scoreSearchKeyPrefix(entry, queryMeta) {
+  return scoreKeyPrefix(entry.searchKeys, queryMeta.searchKeys, 800);
+}
+
+function scorePhoneticSearchKeyPrefix(entry, queryMeta) {
+  return scoreKeyPrefix(entry.phoneticSearchKeys, queryMeta.phoneticSearchKeys, 760);
+}
+
+function scoreKeyPrefix(entryKeys, queryKeys, baseScore) {
   let bestScore = null;
 
-  for (const queryKey of queryMeta.searchKeys) {
+  for (const queryKey of queryKeys) {
     if (!queryKey) {
       continue;
     }
 
-    for (const entryKey of entry.searchKeys) {
+    for (const entryKey of entryKeys) {
       if (!entryKey.startsWith(queryKey)) {
         continue;
       }
 
-      const score = 800 - (entryKey.length - queryKey.length);
+      const score = baseScore - (entryKey.length - queryKey.length);
       bestScore = bestScore === null ? score : Math.max(bestScore, score);
     }
   }
@@ -518,20 +650,28 @@ function scoreSearchKeyPrefix(entry, queryMeta) {
 }
 
 function scoreSearchKeyIncludes(entry, queryMeta) {
+  return scoreKeyIncludes(entry.searchKeys, queryMeta.searchKeys, 700);
+}
+
+function scorePhoneticSearchKeyIncludes(entry, queryMeta) {
+  return scoreKeyIncludes(entry.phoneticSearchKeys, queryMeta.phoneticSearchKeys, 660);
+}
+
+function scoreKeyIncludes(entryKeys, queryKeys, baseScore) {
   let bestScore = null;
 
-  for (const queryKey of queryMeta.searchKeys) {
+  for (const queryKey of queryKeys) {
     if (!queryKey) {
       continue;
     }
 
-    for (const entryKey of entry.searchKeys) {
+    for (const entryKey of entryKeys) {
       const matchIndex = entryKey.indexOf(queryKey);
       if (matchIndex === -1) {
         continue;
       }
 
-      const score = 700 - matchIndex * 2 - (entryKey.length - queryKey.length);
+      const score = baseScore - matchIndex * 2 - (entryKey.length - queryKey.length);
       bestScore = bestScore === null ? score : Math.max(bestScore, score);
     }
   }
@@ -544,6 +684,18 @@ function scoreTokenCoverage(entry, queryMeta) {
     ? queryMeta.coreTokens
     : queryMeta.tokenWords;
 
+  return scoreTokenCoverageFromWords(entry.words, tokens, 500);
+}
+
+function scorePhoneticTokenCoverage(entry, queryMeta) {
+  const tokens = queryMeta.phoneticCoreTokens.length > 0
+    ? queryMeta.phoneticCoreTokens
+    : queryMeta.phoneticTokenWords;
+
+  return scoreTokenCoverageFromWords(entry.phoneticWords, tokens, 470, { phonetic: true });
+}
+
+function scoreTokenCoverageFromWords(words, tokens, baseScore, options = {}) {
   if (tokens.length === 0) {
     return null;
   }
@@ -551,20 +703,20 @@ function scoreTokenCoverage(entry, queryMeta) {
   let score = 0;
 
   for (const token of tokens) {
-    const tokenScore = scoreTokenAgainstEntry(token, entry);
+    const tokenScore = scoreTokenAgainstWords(token, words, options);
     if (!Number.isFinite(tokenScore)) {
       return null;
     }
     score += tokenScore;
   }
 
-  return 500 + score;
+  return baseScore + score;
 }
 
-function scoreTokenAgainstEntry(token, entry) {
+function scoreTokenAgainstWords(token, words, options = {}) {
   let bestScore = null;
 
-  for (const word of entry.words) {
+  for (const word of words) {
     if (word === token) {
       bestScore = Math.max(bestScore ?? -Infinity, 50);
       continue;
@@ -578,31 +730,108 @@ function scoreTokenAgainstEntry(token, entry) {
     if (word.includes(token)) {
       bestScore = Math.max(bestScore ?? -Infinity, 28 - Math.max(0, word.indexOf(token)));
     }
+
+    if (options.phonetic) {
+      const phoneticScore = scorePhoneticSkeletonMatch(token, word);
+      if (Number.isFinite(phoneticScore)) {
+        bestScore = Math.max(bestScore ?? -Infinity, phoneticScore);
+      }
+    }
   }
 
   return bestScore;
 }
 
 function scoreFuzzyCandidate(entry, queryMeta) {
-  const queryKey = queryMeta.primarySearchKey;
-  const entryKey = entry.searchKeys[0] ?? entry.normalizedName;
+  return scoreFuzzyCandidateFromWords(
+    entry.searchKeys[0] ?? entry.normalizedName,
+    queryMeta.primarySearchKey,
+    entry.words,
+    queryMeta.coreTokens,
+    45
+  );
+}
 
+function scorePhoneticFuzzyCandidate(entry, queryMeta) {
+  if (queryMeta.phoneticCoreTokens.length !== 1) {
+    return null;
+  }
+
+  return scoreFuzzyCandidateFromWords(
+    entry.phoneticSearchKeys[0] ?? entry.primaryPhoneticKey,
+    queryMeta.primaryPhoneticKey,
+    entry.phoneticWords,
+    queryMeta.phoneticCoreTokens,
+    38
+  );
+}
+
+function scoreFuzzyCandidateFromWords(entryKey, queryKey, entryWords, queryTokens, minimumScore) {
   if (!queryKey || !entryKey) {
     return null;
   }
 
   const similarity = computeDiceCoefficient(queryKey, entryKey);
-  const partialTokenHits = queryMeta.coreTokens.filter((token) =>
-    entry.words.some((word) => word.startsWith(token) || token.startsWith(word) || word.includes(token))
+  const partialTokenHits = queryTokens.filter((token) =>
+    entryWords.some((word) => word.startsWith(token) || token.startsWith(word) || word.includes(token))
   ).length;
-  const minPartialHits = queryMeta.coreTokens.length >= 2 ? 2 : 1;
+  const minPartialHits = queryTokens.length >= 2 ? 2 : 1;
 
   if (partialTokenHits < minPartialHits && similarity < 0.5) {
     return null;
   }
 
   const score = Math.round(similarity * 100) + partialTokenHits * 20;
-  return score >= 45 ? score : null;
+  return score >= minimumScore ? score : null;
+}
+
+function scorePhoneticSkeletonMatch(token, word) {
+  const tokenSkeleton = buildConsonantSkeleton(token);
+  const wordSkeleton = buildConsonantSkeleton(word);
+
+  if (!tokenSkeleton || !wordSkeleton) {
+    return null;
+  }
+
+  if (tokenSkeleton[0] !== wordSkeleton[0]) {
+    return null;
+  }
+
+  if (wordSkeleton === tokenSkeleton) {
+    return 34;
+  }
+
+  if (wordSkeleton.startsWith(tokenSkeleton)) {
+    return 30 - (wordSkeleton.length - tokenSkeleton.length);
+  }
+
+  if (wordSkeleton.includes(tokenSkeleton)) {
+    return 26 - Math.max(0, wordSkeleton.indexOf(tokenSkeleton));
+  }
+
+  if (
+    tokenSkeleton.at(-1) === wordSkeleton.at(-1)
+    && isLooseSubsequence(tokenSkeleton, wordSkeleton)
+  ) {
+    return 24 - Math.max(0, wordSkeleton.length - tokenSkeleton.length);
+  }
+
+  return null;
+}
+
+function isLooseSubsequence(needle, haystack) {
+  let index = 0;
+
+  for (const character of haystack) {
+    if (character === needle[index]) {
+      index += 1;
+      if (index >= needle.length) {
+        return true;
+      }
+    }
+  }
+
+  return index >= needle.length;
 }
 
 function computeDiceCoefficient(left, right) {
