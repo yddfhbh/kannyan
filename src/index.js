@@ -394,7 +394,7 @@ const percentCommandAliases = {
   starforceRanking: ['강화랭킹'],
   chesscom: ['체닷'],
   lichess: ['리체스'],
-  varchiveSong: ['서열표'],
+  varchiveSong: ['서열표', '곡정보'],
   teto: ['teto'],
   tetrioStats: ['ts'],
   tetrioPlaystyleGraph: ['psq'],
@@ -5258,7 +5258,7 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
-    if (interaction.commandName === '서열표') {
+    if (interaction.commandName === '서열표' || interaction.commandName === '곡정보') {
       await showVArchiveSongInfo(interaction);
       return;
     }
@@ -8397,7 +8397,7 @@ function getHelpMessage() {
     '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산한다냥.',
     '`/알람 내용:<알람 내용> 분:<1~10080>` - 지정한 분 뒤에 멘션으로 알려준다냥.',
     '`/라이브레이팅 종류:<클래시컬|블리츠|래피드> 사람수:<1~50>` - 2700chess 라이브레이팅을 이미지 카드로 보여준다냥.',
-    '`/서열표 곡명:<곡명>` 또는 `%서열표 곡명` - V-ARCHIVE 기준 4B/5B/6B/8B 난이도를 보여준다냥.',
+    '`/서열표 곡명:<곡명>`, `/곡정보 곡명:<곡명>`, `%서열표 곡명`, `%곡정보 곡명` - V-ARCHIVE 기준 4B/5B/6B/8B 난이도를 보여준다냥.',
     '체스판 이미지와 `%백선`, `%흑선`, `%분석해봐`, `%답이 뭐야` 같은 말을 보내면 FEN으로 읽고 Stockfish 최선 수를 보여준다냥.',
     '`%fen <FEN>` - 직접 입력한 FEN을 Stockfish로 분석한다냥.',
     '`%fen 추출해줘` - 체스판 이미지에서 FEN을 읽어서 그대로 알려준다냥.',
@@ -10921,7 +10921,7 @@ async function showVArchiveSongInfoMessage(message, input) {
   const query = String(input ?? '').trim();
   if (!query) {
     await message.reply({
-      content: '사용법은 `%서열표 곡명`이다냥.',
+      content: '사용법은 `%서열표 곡명` 또는 `%곡정보 곡명`이다냥.',
       allowedMentions: { parse: [], repliedUser: false },
     });
     return;

@@ -9,10 +9,18 @@ const vArchiveSongCandidateLimit = 10;
 const vArchiveSongEmbedColor = 0x5a86d6;
 const vArchiveKeyOrder = ['4B', '5B', '6B', '8B'];
 const vArchiveDifficultyOrder = ['NM', 'HD', 'MX', 'SC'];
+const vArchiveSongSearchStopWords = new Set(['the', 'a', 'an']);
+const vArchiveSongSearchWeakWords = new Set(['of']);
+const vArchiveSongAliasTitleIds = {
+  다이인: [553],
+  디인: [553],
+};
 
 const vArchiveSongCache = {
   songs: null,
-  indexedSongs: null,
+  searchEntries: null,
+  songsByTitleId: null,
+  aliasTitleIdsByKey: null,
   expiresAt: 0,
   nextRefreshAllowedAt: 0,
   pendingPromise: null,
@@ -71,7 +79,8 @@ export async function fetchVArchiveSongs(options = {}) {
 
 export async function searchVArchiveSong(query, options = {}) {
   const trimmedQuery = String(query ?? '').trim();
-  const normalizedQuery = normalizeSongName(trimmedQuery);
+  const queryMeta = buildSongQueryMeta(trimmedQuery);
+  const normalizedQuery = queryMeta.normalizedName;
 
   if (!normalizedQuery) {
     const error = new Error('곡명을 입력해달라냥.');
@@ -80,22 +89,38 @@ export async function searchVArchiveSong(query, options = {}) {
   }
 
   await fetchVArchiveSongs(options);
-  const indexedSongs = Array.isArray(vArchiveSongCache.indexedSongs)
-    ? vArchiveSongCache.indexedSongs
+  const searchEntries = Array.isArray(vArchiveSongCache.searchEntries)
+    ? vArchiveSongCache.searchEntries
     : [];
-
-  const exactMatches = indexedSongs.filter((entry) => entry.normalizedName === normalizedQuery);
-  const startsWithMatches = exactMatches.length === 0
-    ? indexedSongs.filter((entry) => entry.normalizedName.startsWith(normalizedQuery))
-    : [];
-  const includesMatches = exactMatches.length === 0 && startsWithMatches.length === 0
-    ? indexedSongs.filter((entry) => entry.normalizedName.includes(normalizedQuery))
-    : [];
-  const matches = exactMatches.length > 0
-    ? exactMatches
-    : startsWithMatches.length > 0
-      ? startsWithMatches
-      : includesMatches;
+  const songsByTitleId = vArchiveSongCache.songsByTitleId ?? new Map();
+  const aliasTitleIdsByKey = vArchiveSongCache.aliasTitleIdsByKey ?? new Map();
+  const tieredMatches = [
+    resolveTitleIdMatches(queryMeta, songsByTitleId),
+    resolveAliasMatches(queryMeta, aliasTitleIdsByKey, songsByTitleId),
+    collectTierMatches(searchEntries, (entry) =>
+      entry.normalizedName === queryMeta.normalizedName
+        ? 1_000
+        : null
+    ),
+    collectTierMatches(searchEntries, (entry) =>
+      entry.searchKeys.some((key) => queryMeta.searchKeys.includes(key))
+        ? 900 - scoreSearchKeyExact(entry, queryMeta)
+        : null
+    ),
+    collectTierMatches(searchEntries, (entry) =>
+      scoreSearchKeyPrefix(entry, queryMeta)
+    ),
+    collectTierMatches(searchEntries, (entry) =>
+      scoreSearchKeyIncludes(entry, queryMeta)
+    ),
+    collectTierMatches(searchEntries, (entry) =>
+      scoreTokenCoverage(entry, queryMeta)
+    ),
+    collectTierMatches(searchEntries, (entry) =>
+      scoreFuzzyCandidate(entry, queryMeta)
+    ),
+  ];
+  const matches = tieredMatches.find((entries) => entries.length > 0) ?? [];
 
   if (matches.length === 0) {
     return {
@@ -176,10 +201,7 @@ export function buildSongDifficultyText(song) {
 }
 
 export function normalizeSongName(text) {
-  return String(text ?? '')
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, '');
+  return normalizeSongWords(text).join('');
 }
 
 export function buildVArchiveSongSearchResultsEmbed(query, songs, totalMatches = songs?.length ?? 0) {
@@ -227,10 +249,11 @@ async function refreshVArchiveSongs(fetchImpl) {
     }
 
     vArchiveSongCache.songs = payload;
-    vArchiveSongCache.indexedSongs = payload.map((song) => ({
-      song,
-      normalizedName: normalizeSongName(song?.name),
-    }));
+    vArchiveSongCache.searchEntries = payload.map((song) => buildSongSearchEntry(song));
+    vArchiveSongCache.songsByTitleId = new Map(
+      payload.map((song) => [getSongTitleId(song), song])
+    );
+    vArchiveSongCache.aliasTitleIdsByKey = buildAliasTitleIdsByKey();
     vArchiveSongCache.expiresAt = Date.now() + vArchiveSongCacheTtlMs;
     vArchiveSongCache.nextRefreshAllowedAt = 0;
 
@@ -314,4 +337,306 @@ function resolveFetch(fetchImpl) {
   }
 
   return targetFetch;
+}
+
+function buildSongSearchEntry(song) {
+  const words = normalizeSongWords(song?.name);
+  const normalizedName = words.join('');
+  const withoutStopWords = removeStopWords(words);
+  const withoutWeakWords = removeWeakWords(withoutStopWords);
+  const searchKeys = getUniqueSearchKeys([
+    normalizedName,
+    withoutStopWords.join(''),
+    withoutWeakWords.join(''),
+  ]);
+
+  return {
+    song,
+    normalizedName,
+    words,
+    searchKeys,
+  };
+}
+
+function buildSongQueryMeta(query) {
+  const words = normalizeSongWords(query);
+  const normalizedName = words.join('');
+  const wordsWithoutStopWords = removeStopWords(words);
+  const wordsWithoutWeakWords = removeWeakWords(wordsWithoutStopWords);
+  const searchKeys = getUniqueSearchKeys([
+    normalizedName,
+    wordsWithoutStopWords.join(''),
+    wordsWithoutWeakWords.join(''),
+  ]);
+  const primarySearchKey = searchKeys[0] ?? normalizedName;
+  const tokenWords = wordsWithoutStopWords.length > 0 ? wordsWithoutStopWords : words;
+  const coreTokens = wordsWithoutWeakWords.length > 0 ? wordsWithoutWeakWords : tokenWords;
+
+  return {
+    rawQuery: String(query ?? ''),
+    normalizedName,
+    words,
+    wordsWithoutStopWords,
+    wordsWithoutWeakWords,
+    tokenWords,
+    coreTokens,
+    searchKeys,
+    primarySearchKey,
+    titleId: /^\d+$/.test(String(query ?? '').trim()) ? String(Number(query)) : null,
+    aliasKey: normalizeSongName(query),
+  };
+}
+
+function normalizeSongWords(text) {
+  return String(text ?? '')
+    .normalize('NFKD')
+    .replace(/&/g, ' and ')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function removeStopWords(words) {
+  return words.filter((word) => !vArchiveSongSearchStopWords.has(word));
+}
+
+function removeWeakWords(words) {
+  return words.filter((word) => !vArchiveSongSearchWeakWords.has(word));
+}
+
+function getUniqueSearchKeys(values) {
+  return [...new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean))];
+}
+
+function buildAliasTitleIdsByKey() {
+  const aliasEntries = new Map();
+
+  for (const [alias, titleIds] of Object.entries(vArchiveSongAliasTitleIds)) {
+    const normalizedAlias = normalizeSongName(alias);
+    if (!normalizedAlias) {
+      continue;
+    }
+
+    aliasEntries.set(normalizedAlias, [...new Set(
+      (Array.isArray(titleIds) ? titleIds : [titleIds])
+        .map((titleId) => String(Number(titleId)))
+        .filter((titleId) => /^\d+$/.test(titleId))
+    )]);
+  }
+
+  return aliasEntries;
+}
+
+function resolveTitleIdMatches(queryMeta, songsByTitleId) {
+  if (!queryMeta.titleId) {
+    return [];
+  }
+
+  const song = songsByTitleId.get(queryMeta.titleId);
+  return song ? [{ song, score: Number.POSITIVE_INFINITY }] : [];
+}
+
+function resolveAliasMatches(queryMeta, aliasTitleIdsByKey, songsByTitleId) {
+  const titleIds = aliasTitleIdsByKey.get(queryMeta.aliasKey);
+  if (!Array.isArray(titleIds) || titleIds.length === 0) {
+    return [];
+  }
+
+  return titleIds
+    .map((titleId) => songsByTitleId.get(titleId))
+    .filter(Boolean)
+    .map((song, index) => ({
+      song,
+      score: Number.POSITIVE_INFINITY - index - 1,
+    }));
+}
+
+function collectTierMatches(searchEntries, scoreResolver) {
+  const results = [];
+  const seen = new Set();
+
+  for (const entry of searchEntries) {
+    const score = scoreResolver(entry);
+    if (!Number.isFinite(score)) {
+      continue;
+    }
+
+    const titleId = getSongTitleId(entry.song);
+    if (seen.has(titleId)) {
+      continue;
+    }
+
+    seen.add(titleId);
+    results.push({
+      song: entry.song,
+      score,
+    });
+  }
+
+  return results.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+
+    return formatVArchiveSongCandidate(a.song).localeCompare(formatVArchiveSongCandidate(b.song), 'en');
+  });
+}
+
+function scoreSearchKeyExact(entry, queryMeta) {
+  for (const queryKey of queryMeta.searchKeys) {
+    const index = entry.searchKeys.indexOf(queryKey);
+    if (index !== -1) {
+      return index;
+    }
+  }
+
+  return Number.POSITIVE_INFINITY;
+}
+
+function scoreSearchKeyPrefix(entry, queryMeta) {
+  let bestScore = null;
+
+  for (const queryKey of queryMeta.searchKeys) {
+    if (!queryKey) {
+      continue;
+    }
+
+    for (const entryKey of entry.searchKeys) {
+      if (!entryKey.startsWith(queryKey)) {
+        continue;
+      }
+
+      const score = 800 - (entryKey.length - queryKey.length);
+      bestScore = bestScore === null ? score : Math.max(bestScore, score);
+    }
+  }
+
+  return bestScore;
+}
+
+function scoreSearchKeyIncludes(entry, queryMeta) {
+  let bestScore = null;
+
+  for (const queryKey of queryMeta.searchKeys) {
+    if (!queryKey) {
+      continue;
+    }
+
+    for (const entryKey of entry.searchKeys) {
+      const matchIndex = entryKey.indexOf(queryKey);
+      if (matchIndex === -1) {
+        continue;
+      }
+
+      const score = 700 - matchIndex * 2 - (entryKey.length - queryKey.length);
+      bestScore = bestScore === null ? score : Math.max(bestScore, score);
+    }
+  }
+
+  return bestScore;
+}
+
+function scoreTokenCoverage(entry, queryMeta) {
+  const tokens = queryMeta.coreTokens.length > 0
+    ? queryMeta.coreTokens
+    : queryMeta.tokenWords;
+
+  if (tokens.length === 0) {
+    return null;
+  }
+
+  let score = 0;
+
+  for (const token of tokens) {
+    const tokenScore = scoreTokenAgainstEntry(token, entry);
+    if (!Number.isFinite(tokenScore)) {
+      return null;
+    }
+    score += tokenScore;
+  }
+
+  return 500 + score;
+}
+
+function scoreTokenAgainstEntry(token, entry) {
+  let bestScore = null;
+
+  for (const word of entry.words) {
+    if (word === token) {
+      bestScore = Math.max(bestScore ?? -Infinity, 50);
+      continue;
+    }
+
+    if (word.startsWith(token)) {
+      bestScore = Math.max(bestScore ?? -Infinity, 40 - (word.length - token.length));
+      continue;
+    }
+
+    if (word.includes(token)) {
+      bestScore = Math.max(bestScore ?? -Infinity, 28 - Math.max(0, word.indexOf(token)));
+    }
+  }
+
+  return bestScore;
+}
+
+function scoreFuzzyCandidate(entry, queryMeta) {
+  const queryKey = queryMeta.primarySearchKey;
+  const entryKey = entry.searchKeys[0] ?? entry.normalizedName;
+
+  if (!queryKey || !entryKey) {
+    return null;
+  }
+
+  const similarity = computeDiceCoefficient(queryKey, entryKey);
+  const partialTokenHits = queryMeta.coreTokens.filter((token) =>
+    entry.words.some((word) => word.startsWith(token) || token.startsWith(word) || word.includes(token))
+  ).length;
+  const minPartialHits = queryMeta.coreTokens.length >= 2 ? 2 : 1;
+
+  if (partialTokenHits < minPartialHits && similarity < 0.5) {
+    return null;
+  }
+
+  const score = Math.round(similarity * 100) + partialTokenHits * 20;
+  return score >= 45 ? score : null;
+}
+
+function computeDiceCoefficient(left, right) {
+  const leftBigrams = buildBigrams(left);
+  const rightBigrams = buildBigrams(right);
+
+  if (leftBigrams.length === 0 || rightBigrams.length === 0) {
+    return left === right ? 1 : 0;
+  }
+
+  const rightCounts = new Map();
+  for (const bigram of rightBigrams) {
+    rightCounts.set(bigram, (rightCounts.get(bigram) ?? 0) + 1);
+  }
+
+  let overlap = 0;
+  for (const bigram of leftBigrams) {
+    const count = rightCounts.get(bigram) ?? 0;
+    if (count <= 0) {
+      continue;
+    }
+
+    overlap += 1;
+    rightCounts.set(bigram, count - 1);
+  }
+
+  return (2 * overlap) / (leftBigrams.length + rightBigrams.length);
+}
+
+function buildBigrams(value) {
+  const text = String(value ?? '').trim();
+  if (text.length < 2) {
+    return text ? [text] : [];
+  }
+
+  return Array.from({ length: text.length - 1 }, (_, index) => text.slice(index, index + 2));
 }
