@@ -85,6 +85,7 @@ import {
 } from './tetrio-tetolb.js';
 import { renderLiveRatingCard } from './live-rating-card.js';
 import { createVArchiveSongCard } from './varchive-song-card.js';
+import { createVArchivePerformanceCard } from './varchive-performance-card.js';
 import { createVArchiveTierCard } from './varchive-tier-card.js';
 import {
   buildVArchiveSongSearchResultsEmbed,
@@ -400,6 +401,7 @@ const percentCommandAliases = {
   chesscom: ['체닷'],
   lichess: ['리체스'],
   varchiveSong: ['서열표', '곡정보'],
+  varchivePerformance: ['성과'],
   varchiveTier10: ['b10'],
   varchiveTier30: ['b30'],
   varchiveTier50: ['b50'],
@@ -5291,6 +5293,11 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
+    if (interaction.commandName === '성과') {
+      await showVArchivePerformance(interaction);
+      return;
+    }
+
     if (interaction.commandName === '퀵플') {
       await showQuickPlayAltitude(interaction);
       return;
@@ -5985,6 +5992,11 @@ async function handlePercentMessageCommand(message) {
 
   if (command === 'varchiveSong') {
     await showVArchiveSongInfoMessage(message, input);
+    return true;
+  }
+
+  if (command === 'varchivePerformance') {
+    await showVArchivePerformanceMessage(message, input);
     return true;
   }
 
@@ -8443,6 +8455,7 @@ function getHelpMessage() {
     '`/브아카 닉네임:<V-ARCHIVE 닉네임>` - 내 디스코드 계정에 V-ARCHIVE 닉네임을 영구 저장한다냥.',
     '`/b10`, `/b30`, `/b50`은 닉네임을 생략하면 저장된 V-ARCHIVE 닉네임을 쓰고, `%b10 4`, `%b30 6`, `%b50 Hebi 8`처럼 `%` 명령도 바로 쓸 수 있다냥.',
     '`/서열표 곡명:<곡명>`, `/곡정보 곡명:<곡명>`, `%서열표 곡명`, `%곡정보 곡명` - V-ARCHIVE 기준 4B/5B/6B/8B 난이도를 보여준다냥.',
+    '`/성과 곡명:<곡명> 닉네임:[V-ARCHIVE 닉네임]`, `%성과 곡명`, `%성과 곡명 | 닉네임` - 연동된 V-ARCHIVE 닉네임 기준 개인 기록 성과표를 카드로 보여준다냥.',
     '체스판 이미지와 `%백선`, `%흑선`, `%분석해봐`, `%답이 뭐야` 같은 말을 보내면 FEN으로 읽고 Stockfish 최선 수를 보여준다냥.',
     '`%fen <FEN>` - 직접 입력한 FEN을 Stockfish로 분석한다냥.',
     '`%fen 추출해줘` - 체스판 이미지에서 FEN을 읽어서 그대로 알려준다냥.',
@@ -11074,6 +11087,33 @@ async function showVArchiveSongInfo(interaction) {
   }
 }
 
+async function showVArchivePerformance(interaction) {
+  const nickname = resolveVArchiveNicknameForInteraction(interaction);
+  const query = interaction.options.getString('곡명', true).trim();
+
+  if (!nickname) {
+    await interaction.reply({
+      content: getMissingVArchiveNicknameMessage(),
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  await interaction.deferReply();
+
+  try {
+    const replyData = await createVArchivePerformanceReplyData(nickname, query);
+    await interaction.editReply(replyData);
+  } catch (error) {
+    console.error(`Failed to fetch V-ARCHIVE performance for ${nickname} / ${query}:`);
+    console.error(error);
+    await interaction.editReply(
+      getVArchivePerformanceKnownErrorMessage(error, nickname)
+        ?? 'V-ARCHIVE 성과표를 가져오지 못했다냥.'
+    );
+  }
+}
+
 async function showVArchiveSongInfoMessage(message, input) {
   const query = String(input ?? '').trim();
   if (!query) {
@@ -11102,17 +11142,56 @@ async function showVArchiveSongInfoMessage(message, input) {
   }
 }
 
-async function createVArchiveSongReplyData(query) {
-  const parsedQuery = parseVArchiveSongSelectionQuery(query);
-  const selectedResult = parsedQuery.selectionIndex !== null
-    ? await resolveSelectedVArchiveSongReplyData(parsedQuery)
-    : null;
+async function showVArchivePerformanceMessage(message, input) {
+  let parsedInput;
 
-  if (selectedResult) {
-    return selectedResult;
+  try {
+    parsedInput = parseVArchivePerformanceMessageInput(input, vArchiveLinkStore.getNickname(message.author.id));
+  } catch (error) {
+    await message.reply({
+      content: error?.message ?? getVArchivePerformancePercentUsageMessage(),
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return;
   }
 
-  const result = await searchVArchiveSong(query);
+  if (!parsedInput.query) {
+    await message.reply({
+      content: getVArchivePerformancePercentUsageMessage(),
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return;
+  }
+
+  if (!parsedInput.nickname) {
+    await message.reply({
+      content: `${getVArchivePerformancePercentUsageMessage()}\n${getMissingVArchiveNicknameMessage()}`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return;
+  }
+
+  await message.channel.sendTyping().catch(() => {});
+
+  try {
+    const replyData = await createVArchivePerformanceReplyData(parsedInput.nickname, parsedInput.query);
+    await message.reply({
+      ...replyData,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+  } catch (error) {
+    console.error(`Failed to fetch V-ARCHIVE performance for ${parsedInput.nickname} / ${parsedInput.query}:`);
+    console.error(error);
+    await message.reply({
+      content: getVArchivePerformanceKnownErrorMessage(error, parsedInput.nickname)
+        ?? 'V-ARCHIVE 성과표를 가져오지 못했다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+  }
+}
+
+async function createVArchiveSongReplyData(query) {
+  const result = await resolveVArchiveSongLookup(query);
 
   if (result.status === 'none') {
     return {
@@ -11121,23 +11200,59 @@ async function createVArchiveSongReplyData(query) {
   }
 
   if (result.status === 'single') {
-    const card = await createVArchiveSongCard(result.song);
-    return {
-      content: `<${card.pageUrl}>`,
-      files: [
-        new AttachmentBuilder(card.image, {
-          name: `varchive-song-${formatAttachmentSafeName(card.songName)}-${card.titleId}.png`,
-        }),
-      ],
-    };
+    return createVArchiveSongCardReplyData(result.song);
   }
 
   return {
-    embeds: [buildVArchiveSongSearchResultsEmbed(query, result.songs, result.totalMatches)],
+    embeds: [buildVArchiveSongSearchResultsEmbed(result.query, result.songs, result.totalMatches)],
   };
 }
 
-async function resolveSelectedVArchiveSongReplyData(parsedQuery) {
+async function createVArchivePerformanceReplyData(nickname, query) {
+  const normalizedNickname = normalizeVArchiveNickname(nickname);
+  const result = await resolveVArchiveSongLookup(query);
+
+  if (result.status === 'none') {
+    return {
+      content: '곡을 못 찾았다냥.',
+    };
+  }
+
+  if (result.status === 'multiple') {
+    return {
+      embeds: [buildVArchiveSongSearchResultsEmbed(result.query, result.songs, result.totalMatches)],
+    };
+  }
+
+  const card = await createVArchivePerformanceCard(normalizedNickname, result.song);
+  return {
+    content: `<${card.focusUrl ?? card.pageUrl}>`,
+    files: [
+      new AttachmentBuilder(card.image, {
+        name: `varchive-performance-${formatAttachmentSafeName(card.nickname)}-${formatAttachmentSafeName(card.songName)}-${card.titleId}.png`,
+      }),
+    ],
+  };
+}
+
+async function resolveVArchiveSongLookup(query) {
+  const parsedQuery = parseVArchiveSongSelectionQuery(query);
+
+  if (parsedQuery.selectionIndex !== null && parsedQuery.baseQuery) {
+    const selectedSongResult = await resolveSelectedVArchiveSongLookup(parsedQuery);
+    if (selectedSongResult) {
+      return selectedSongResult;
+    }
+  }
+
+  const result = await searchVArchiveSong(parsedQuery.rawQuery);
+  return {
+    ...result,
+    query: parsedQuery.rawQuery,
+  };
+}
+
+async function resolveSelectedVArchiveSongLookup(parsedQuery) {
   if (!parsedQuery || parsedQuery.selectionIndex === null || !parsedQuery.baseQuery) {
     return null;
   }
@@ -11155,7 +11270,15 @@ async function resolveSelectedVArchiveSongReplyData(parsedQuery) {
     throw error;
   }
 
-  const card = await createVArchiveSongCard(selectedSong);
+  return {
+    status: 'single',
+    song: selectedSong,
+    query: parsedQuery.baseQuery,
+  };
+}
+
+async function createVArchiveSongCardReplyData(song) {
+  const card = await createVArchiveSongCard(song);
   return {
     content: `<${card.pageUrl}>`,
     files: [
@@ -11185,6 +11308,52 @@ function parseVArchiveSongSelectionQuery(query) {
   };
 }
 
+function parseVArchivePerformanceMessageInput(input, fallbackNickname = null) {
+  const trimmed = String(input ?? '').trim();
+  const normalizedFallbackNickname = fallbackNickname
+    ? normalizeVArchiveNickname(fallbackNickname)
+    : null;
+
+  if (!trimmed) {
+    return {
+      query: '',
+      nickname: normalizedFallbackNickname,
+    };
+  }
+
+  const separatorIndex = trimmed.lastIndexOf('|');
+  if (separatorIndex < 0) {
+    return {
+      query: trimmed,
+      nickname: normalizedFallbackNickname,
+    };
+  }
+
+  const query = trimmed.slice(0, separatorIndex).trim();
+  const nicknameText = trimmed.slice(separatorIndex + 1).trim();
+
+  if (!query) {
+    const error = new Error(getVArchivePerformancePercentUsageMessage());
+    error.code = 'INVALID_VARCHIVE_PERFORMANCE_INPUT';
+    throw error;
+  }
+
+  if (!nicknameText) {
+    const error = new Error('`|` 뒤에 V-ARCHIVE 닉네임을 같이 적어달라냥.');
+    error.code = 'INVALID_NICKNAME';
+    throw error;
+  }
+
+  return {
+    query,
+    nickname: normalizeVArchiveNickname(nicknameText),
+  };
+}
+
+function getVArchivePerformancePercentUsageMessage() {
+  return '사용법은 `%성과 <곡명>` 또는 `%성과 <곡명> | <닉네임>`이다냥. 예: `%성과 메긴 1`, `%성과 Daylight | Hebi`';
+}
+
 function getVArchiveSongKnownErrorMessage(error) {
   if (error?.code === 'INVALID_VARCHIVE_SONG_QUERY') {
     return error.message;
@@ -11199,6 +11368,35 @@ function getVArchiveSongKnownErrorMessage(error) {
   }
 
   return 'V-ARCHIVE 곡 정보를 가져오지 못했다냥.';
+}
+
+function getVArchivePerformanceKnownErrorMessage(error, nickname) {
+  if (!error) {
+    return null;
+  }
+
+  if (error.code === 'INVALID_NICKNAME' || error.code === 'INVALID_VARCHIVE_PERFORMANCE_INPUT') {
+    return error.message;
+  }
+
+  const songErrorMessage = getVArchiveSongKnownErrorMessage(error);
+  if (songErrorMessage && songErrorMessage !== 'V-ARCHIVE 곡 정보를 가져오지 못했다냥.') {
+    return songErrorMessage;
+  }
+
+  if (error.code === 'VARCHIVE_PROFILE_NOT_FOUND') {
+    return `V-ARCHIVE에서 ${nickname} 유저를 찾지 못했다냥.`;
+  }
+
+  if (error.code === 'VARCHIVE_BOARD_TIMEOUT') {
+    return 'V-ARCHIVE 응답이 너무 오래 걸린다냥. 잠시 뒤 다시 시도해달라냥.';
+  }
+
+  if (error.code === 'VARCHIVE_BOARD_FETCH_FAILED') {
+    return 'V-ARCHIVE 성과표를 불러오지 못했다냥.';
+  }
+
+  return null;
 }
 
 function normalizeChessComUsername(input) {

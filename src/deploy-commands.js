@@ -422,6 +422,24 @@ new SlashCommandBuilder()
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('성과')
+    .setDescription('V-ARCHIVE 곡의 개인 기록 성과표를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('곡명')
+        .setDescription('검색할 곡 이름')
+        .setRequired(true)
+        .setMaxLength(200)
+    )
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('V-ARCHIVE 닉네임, 생략하면 연동된 닉네임')
+        .setRequired(false)
+        .setMaxLength(40)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('퀵플')
     .setDescription('TETR.IO 퀵플레이 top 또는 recent 기록의 고도를 이미지로 보여줍니다.')
     .addStringOption((option) =>
