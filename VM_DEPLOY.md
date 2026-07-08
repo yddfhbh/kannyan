@@ -27,6 +27,8 @@ bash ~/discord-bot-vm-deploy.sh
 
 `.sh` 파일을 올릴 수 없는 경우에만 `.\deploy-vm.ps1`가 출력한 heredoc 전체를 그대로 붙여넣어 실행하세요.
 
+예전에 쓰던 `git clone` / `git pull --ff-only` 기반 heredoc은 현재 공식 배포 경로가 아닙니다. 특히 VM 체크아웃 안에 untracked `data`가 남아 있으면 `git pull`이 `The following untracked working tree files would be overwritten by merge: data`로 실패할 수 있으니, 지금은 그 예전 스크립트 대신 이 `.sh` 업로드 실행 방식을 사용하세요.
+
 배포 스크립트는 다음을 자동으로 처리합니다.
 
 - 기존 `discord-bot` / `discord-bot-new` 프로세스 중지
@@ -61,6 +63,36 @@ pm2 logs discord-bot --lines 80 --nostream
 curl -s http://127.0.0.1:8080/health
 ls -lah ~/discord-bot-data
 ```
+
+## 6. 문제 해결
+
+### `git pull` 중 `data` 충돌이 난 경우
+
+예전 Git 기반 배포 문구를 실행하다가 아래와 비슷한 오류가 나면:
+
+```text
+The following untracked working tree files would be overwritten by merge:
+        data
+```
+
+원인은 VM의 `~/discord-bot-new/data`가 Git 체크아웃 안에 일반 파일/디렉터리로 남아 있어서입니다. 현재 공식 흐름에서는 `data`를 앱 폴더에 두지 않고 `~/discord-bot-data`로 분리해서 심볼릭 링크로 연결하므로, 아래처럼 기존 `data`만 안전하게 빼낸 뒤 tarball 배포로 넘어가면 됩니다.
+
+```bash
+mkdir -p ~/discord-bot-backups
+if [ -e ~/discord-bot-new/data ] && [ ! -L ~/discord-bot-new/data ]; then
+  mv ~/discord-bot-new/data ~/discord-bot-backups/data-from-git-checkout-$(date +%Y%m%d-%H%M%S)
+fi
+```
+
+그 다음 이 문서의 공식 절차대로 다시 실행하세요.
+
+```bash
+bash ~/discord-bot-vm-deploy.sh
+```
+
+### 브라우저 SSH 붙여넣기 내용이 깨진 경우
+
+붙여넣은 heredoc 중간에 이상한 문자열이 섞이거나 줄이 깨지면 paste corruption일 가능성이 큽니다. 그 경우에는 heredoc 재붙여넣기보다 `discord-bot-vm-deploy.sh` 파일 자체를 업로드해서 실행하는 쪽이 안전합니다.
 
 ## 참고
 
