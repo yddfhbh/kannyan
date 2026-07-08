@@ -129,12 +129,12 @@ export async function searchVArchiveSong(query, options = {}) {
   const aliasTitleIdsByKey = vArchiveSearchIndexCache.aliasTitleIdsByKey ?? new Map();
   const tieredMatches = [
     resolveTitleIdMatches(queryMeta, songsByTitleId),
-    resolveAliasMatches(queryMeta, aliasTitleIdsByKey, songsByTitleId),
     collectTierMatches(searchEntries, (entry) =>
       entry.nameExactKey === queryMeta.normalizedName
         ? 1_000
         : null
     ),
+    resolveAliasMatches(queryMeta, aliasTitleIdsByKey, songsByTitleId),
     collectTierMatches(searchEntries, (entry) =>
       scoreStartsWith(entry.searchKeys, queryMeta.searchKeys, 820)
     ),
