@@ -336,6 +336,17 @@ new SlashCommandBuilder()
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('서열표')
+    .setDescription('V-ARCHIVE 곡의 4B/5B/6B/8B 난이도를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('곡명')
+        .setDescription('검색할 곡 이름')
+        .setRequired(true)
+        .setMaxLength(200)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('퀵플')
     .setDescription('TETR.IO 퀵플레이 top 또는 recent 기록의 고도를 이미지로 보여줍니다.')
     .addStringOption((option) =>
