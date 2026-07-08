@@ -467,13 +467,13 @@ export function renderVArchiveTierCardOverlaySvg(view) {
   <text x="${viewBoxWidth - outerPadding - 28}" y="${y}" text-anchor="end" class="summaryValue">${escapeXml(row[1])}</text>`;
     })
     .join('');
-  const topSongLines = splitTextLines(view.bestSongTitle, 22, 2);
+  const topSongLines = splitTextLines(view.bestSongTitle, 26, 2);
   const topSongMarkup = renderTextLines({
     lines: topSongLines,
     x: outerPadding + leftHeaderWidth + gap + 28,
-    y: headerY + 246,
+    y: headerY + 240,
     className: 'summaryTopSong',
-    lineHeight: 17,
+    lineHeight: 16,
   });
   const songCardOverlays = entries
     .map((entry, index) => renderSongCardOverlay({
@@ -683,13 +683,13 @@ export function renderVArchiveTierCardSvg(view) {
     })
     .join('');
 
-  const topSongLines = splitTextLines(view.bestSongTitle, 22, 2);
+  const topSongLines = splitTextLines(view.bestSongTitle, 26, 2);
   const topSongMarkup = renderTextLines({
     lines: topSongLines,
     x: outerPadding + leftHeaderWidth + gap + 28,
-    y: headerY + 246,
+    y: headerY + 240,
     className: 'summaryTopSong',
-    lineHeight: 17,
+    lineHeight: 16,
   });
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -1156,15 +1156,15 @@ function splitTextLines(value, maxCharactersPerLine, maxLines) {
   let remaining = text;
 
   while (remaining && lines.length < maxLines) {
-    if (remaining.length <= maxCharactersPerLine) {
+    if (getTextDisplayUnits(remaining) <= maxCharactersPerLine) {
       lines.push(remaining);
       remaining = '';
       break;
     }
 
-    let breakIndex = remaining.lastIndexOf(' ', maxCharactersPerLine);
+    let breakIndex = findWrapIndexByDisplayUnits(remaining, maxCharactersPerLine);
     if (breakIndex <= 0) {
-      breakIndex = maxCharactersPerLine;
+      breakIndex = Math.max(1, findHardWrapIndexByDisplayUnits(remaining, maxCharactersPerLine));
     }
 
     lines.push(remaining.slice(0, breakIndex).trim());
@@ -1173,7 +1173,7 @@ function splitTextLines(value, maxCharactersPerLine, maxLines) {
 
   if (remaining) {
     const lastLineIndex = Math.max(0, lines.length - 1);
-    lines[lastLineIndex] = truncateText(
+    lines[lastLineIndex] = truncateTextByDisplayUnits(
       `${lines[lastLineIndex]} ${remaining}`.trim(),
       maxCharactersPerLine
     );
@@ -1189,6 +1189,76 @@ function truncateText(value, maxLength) {
   }
 
   return `${text.slice(0, Math.max(1, maxLength - 1))}…`;
+}
+
+function findWrapIndexByDisplayUnits(text, maxUnits) {
+  const hardIndex = findHardWrapIndexByDisplayUnits(text, maxUnits);
+  if (hardIndex >= text.length) {
+    return text.length;
+  }
+
+  const candidate = text.slice(0, hardIndex + 1);
+  const breakIndex = candidate.lastIndexOf(' ');
+  return breakIndex > 0 ? breakIndex : hardIndex;
+}
+
+function findHardWrapIndexByDisplayUnits(text, maxUnits) {
+  let units = 0;
+
+  for (let index = 0; index < text.length; index += 1) {
+    units += getCharacterDisplayUnits(text[index]);
+    if (units > maxUnits) {
+      return index;
+    }
+  }
+
+  return text.length;
+}
+
+function truncateTextByDisplayUnits(value, maxUnits) {
+  const text = String(value ?? '');
+  if (getTextDisplayUnits(text) <= maxUnits) {
+    return text;
+  }
+
+  let output = '';
+  let units = 0;
+
+  for (const character of text) {
+    const characterUnits = getCharacterDisplayUnits(character);
+    if (units + characterUnits > Math.max(1, maxUnits - 1)) {
+      break;
+    }
+
+    output += character;
+    units += characterUnits;
+  }
+
+  return `${output.trimEnd()}…`;
+}
+
+function getTextDisplayUnits(text) {
+  return [...String(text ?? '')].reduce((sum, character) => sum + getCharacterDisplayUnits(character), 0);
+}
+
+function getCharacterDisplayUnits(character) {
+  if (/\s/.test(character)) {
+    return 0.35;
+  }
+
+  if (/[A-Z]/.test(character)) {
+    return 0.72;
+  }
+
+  if (/[a-z0-9]/.test(character)) {
+    return 0.62;
+  }
+
+  if (/[()&.,'":;!?\-~]/.test(character)) {
+    return 0.45;
+  }
+
+  return 1;
 }
 
 async function fetchAssetDataUrl(url, fetchImpl, options = {}) {
