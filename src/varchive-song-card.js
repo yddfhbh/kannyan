@@ -301,17 +301,15 @@ function renderDifficultyCell({ pattern, difficulty, x, y, width, height }) {
   const contentStartX = x + (width - contentWidth) / 2;
   const iconY = y + 49;
   const levelX = contentStartX + (iconDataUrl ? iconSize + 8 : 0);
-  const floorMarkup = floor
-    ? `<text x="${levelX + 62}" y="${y + 79}" class="cellFloor" fill="${levelColor}">(${escapeXml(floor)}F)</text>`
-    : '';
 
   return `
   <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="#f8f4f8"/>
   ${iconDataUrl
     ? `<image href="${escapeXml(iconDataUrl)}" x="${contentStartX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid meet"/>`
     : ''}
-  <text x="${levelX}" y="${y + 79}" class="cellLevel" fill="${levelColor}">${escapeXml(level)}</text>
-  ${floorMarkup}`;
+  <text x="${levelX}" y="${y + 79}" fill="${levelColor}">
+    <tspan class="cellLevel">${escapeXml(level)}</tspan>${floor ? `<tspan dx="8" class="cellFloor">(${escapeXml(floor)}F)</tspan>` : ''}
+  </text>`;
 }
 
 function renderTableGridLines({
