@@ -19,6 +19,7 @@ const varchiveBoardPageCount = 17;
 const varchiveBoardPageCacheTtlMs = 10 * 60 * 1000;
 const varchiveKeyOrder = ['4B', '5B', '6B', '8B'];
 const varchiveDifficultyOrder = ['NM', 'HD', 'MX', 'SC'];
+const varchiveHeaderTitleYOffset = 6;
 const keyBackgroundUrls = {
   '4B': `${varchiveBaseUrl}/images/bg/4B-BG.png?v=knzjg`,
   '5B': `${varchiveBaseUrl}/images/bg/5B-BG.png?v=knzjg`,
@@ -288,8 +289,8 @@ export function renderVArchivePerformanceCardSvg({
   ${renderHeaderJacket({ contentX, contentY, jacketDataUrl })}
   <rect x="${contentX + 124}" y="${contentY + 14}" width="156" height="30" rx="8" ry="8" fill="${dlcAccent.badgeFill}"/>
   <text x="${contentX + 142}" y="${contentY + 36}" class="dlcBadgeText">${escapeXml(dlcLabel)}</text>
-  <text x="${contentX + 124}" y="${contentY + 78}" class="title">${escapeXml(songName)}</text>
-  <text x="${contentX + 124}" y="${contentY + 110}" class="subtitle">${escapeXml(composer)}</text>
+  <text x="${contentX + 124}" y="${contentY + 78 + varchiveHeaderTitleYOffset}" class="title">${escapeXml(songName)}</text>
+  <text x="${contentX + 124}" y="${contentY + 110 + varchiveHeaderTitleYOffset}" class="subtitle">${escapeXml(composer)}</text>
   <text x="${contentX + contentWidth - 12}" y="${contentY + 34}" text-anchor="end" class="player">${escapeXml(playerLabel)}</text>
 
   <rect x="${contentX}" y="${tableY}" width="${tableWidth}" height="${tableHeaderHeight + rowHeight * 4}" fill="#f6f3f7" stroke="${dlcAccent.gridColor}" stroke-width="2"/>

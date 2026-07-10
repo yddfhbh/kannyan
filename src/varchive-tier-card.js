@@ -14,6 +14,7 @@ const vArchiveTierCardRenderScale = 1.5;
 const discordSafeImageBudgetBytes = 7_900_000;
 const songImageSize = 244;
 const tierImageDisplaySize = 160;
+const tierSongTitleYOffset = 4;
 const embeddedSongImageSize = Math.round(songImageSize * vArchiveTierCardRenderScale);
 const embeddedTierImageSize = Math.round(tierImageDisplaySize * vArchiveTierCardRenderScale);
 const embeddedSongCornerRadius = Math.round(18 * (embeddedSongImageSize / songImageSize));
@@ -1034,7 +1035,7 @@ function renderSongCardOverlay({
   imageSize,
 }) {
   const metaY = entry.cardY + imageSize;
-  const titleY = metaY + 28;
+  const titleY = metaY + 28 + tierSongTitleYOffset;
   const pointY = metaY + 72;
   const updatedY = metaY + 92;
 
@@ -1072,7 +1073,7 @@ function renderSongCardOverlay({
 
 function renderSongCard({ entry, index, width, imageSize, cardHeight, palette }) {
   const metaY = entry.cardY + imageSize;
-  const titleY = metaY + 28;
+  const titleY = metaY + 28 + tierSongTitleYOffset;
   const pointY = metaY + 72;
   const updatedY = metaY + 92;
 
