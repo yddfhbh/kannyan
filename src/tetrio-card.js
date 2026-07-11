@@ -161,14 +161,24 @@ export async function findTetrioUsername(input) {
 
 export async function findTetrioUsernameByDiscordId(discordUserId) {
   const normalizedDiscordUserId = String(discordUserId ?? '').trim();
-  const sessionId = createTetrioApiSessionId('discord-link-lookup');
 
   if (!/^\d{17,20}$/.test(normalizedDiscordUserId)) {
     return null;
   }
 
+  // 수동으로 지정한 Discord ID → TETR.IO 닉네임
+  if (normalizedDiscordUserId === '842312482622144522') {
+    return 'pyhok';
+  }
+
+  const sessionId = createTetrioApiSessionId('discord-link-lookup');
   const query = `discord:id:${normalizedDiscordUserId}`;
-  const response = await fetchTetrioJson(`/users/search/${encodeURIComponent(query)}`, { sessionId });
+
+  const response = await fetchTetrioJson(
+    `/users/search/${encodeURIComponent(query)}`,
+    { sessionId },
+  );
+
   const users = Array.isArray(response.data?.users)
     ? response.data.users
     : [];
