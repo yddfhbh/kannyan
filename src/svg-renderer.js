@@ -20,7 +20,9 @@ export function renderSvgToPng(svg, options = {}) {
     ? options.fontFiles.filter(Boolean)
     : [];
 
-  return new Resvg(svg, {
+  const normalizedSvg = ensureSvgNamespace(svg);
+
+return new Resvg(normalizedSvg, {
     background: options.background,
     font: {
       fontFiles: [...bundledFontFiles, ...extraFontFiles],
@@ -36,4 +38,32 @@ export function renderSvgToPng(svg, options = {}) {
         value: scale,
       },
   }).render().asPng();
+}
+
+export function ensureSvgNamespace(svg) {
+  const source = Buffer.isBuffer(svg)
+    ? svg.toString('utf8')
+    : String(svg ?? '');
+
+  const rootMatch = /<svg\b[^>]*>/i.exec(source);
+
+  if (!rootMatch) {
+    return source;
+  }
+
+  // 기본 SVG 네임스페이스가 이미 있으면 그대로 반환
+  if (/\sxmlns\s*=\s*["'][^"']+["']/i.test(rootMatch[0])) {
+    return source;
+  }
+
+  const patchedRoot = rootMatch[0].replace(
+    /<svg\b/i,
+    '<svg xmlns="http://www.w3.org/2000/svg"',
+  );
+
+  return (
+    source.slice(0, rootMatch.index)
+    + patchedRoot
+    + source.slice(rootMatch.index + rootMatch[0].length)
+  );
 }

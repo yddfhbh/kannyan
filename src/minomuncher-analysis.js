@@ -22,6 +22,7 @@ const muncherSingleGraphTypes = [
   'PPS',
 ];
 const muncherGraphRenderConcurrency = 3;
+const muncherGraphBackground = Theme.defaultScheme?.b_med ?? '#181820';
 
 export async function createMinomuncherAnalysis(options = {}) {
   const replayFiles = normalizeReplayFiles(options.replays);
@@ -116,7 +117,7 @@ async function createMinomuncherGraphFiles(stats) {
     muncherGraphRenderConcurrency,
     async ({ name, svg }) => ({
       name,
-      buffer: await renderSvgData(svg),
+      buffer: await renderSvgData(name, svg),
     }),
   );
 
@@ -146,17 +147,35 @@ async function mapWithConcurrency(items, concurrency, mapper) {
 }
 
 function createMinomuncherGraphSvg(graphType, stats) {
-  const dom = new JSDOM();
-  const root = dom.window.document.createElement('div');
-  dom.window.document.body.appendChild(root);
-  createGraph(root, graphType, stats);
-  return root.innerHTML;
+  try {
+    const dom = new JSDOM();
+    const root = dom.window.document.createElement('div');
+    dom.window.document.body.appendChild(root);
+    createGraph(root, graphType, stats);
+    return root.innerHTML;
+  } catch (error) {
+    console.error(`Failed to build MinoMuncher graph SVG for ${graphType}:`);
+    console.error(error);
+    return '';
+  }
 }
 
-async function renderSvgData(svg) {
-  return renderSvgToPng(svg, {
-    background: Theme.defaultScheme?.b_med ?? '#181820',
-  });
+async function renderSvgData(name, svg) {
+  const normalizedSvg = normalizeRenderableSvg(svg);
+  if (!normalizedSvg) {
+    console.error(`MinoMuncher graph ${name} did not produce a renderable SVG root.`);
+    return renderFallbackGraphPng(name, '그래프 데이터를 만들지 못했다냥.');
+  }
+
+  try {
+    return renderSvgToPng(normalizedSvg, {
+      background: muncherGraphBackground,
+    });
+  } catch (error) {
+    console.error(`Failed to render MinoMuncher graph ${name}:`);
+    console.error(error);
+    return renderFallbackGraphPng(name, '그래프 렌더링에 실패했다냥.');
+  }
 }
 
 function combineSvgData(svgData) {
@@ -175,10 +194,12 @@ function combineSvgData(svgData) {
 
   for (let index = 0; index < svgData.length; index += 1) {
     const fragment = JSDOM.fragment(svgData[index]);
-    const svgElement = fragment.firstChild;
-    if (!svgElement) {
-      continue;
-    }
+const svgElement = fragment.querySelector('svg');
+
+if (!svgElement) {
+  console.error(`Combined MinoMuncher graph item ${index} does not contain an SVG root.`);
+  continue;
+}
 
     const width = Number.parseFloat(svgElement.getAttribute('width') || '0');
     const height = Number.parseFloat(svgElement.getAttribute('height') || '0');
@@ -208,6 +229,37 @@ function combineSvgData(svgData) {
   baseSvg.setAttribute('viewBox', `0 0 ${maxWidth} ${maxHeight}`);
 
   return root.innerHTML;
+}
+
+function normalizeRenderableSvg(svg) {
+  const markup = String(svg ?? '').trim();
+  if (!markup) {
+    return '';
+  }
+
+  const fragment = JSDOM.fragment(markup);
+  const svgElement = [...fragment.childNodes]
+    .find((node) => node.nodeType === 1 && node.nodeName.toLowerCase() === 'svg');
+
+  return svgElement?.outerHTML?.trim() ?? '';
+}
+
+function renderFallbackGraphPng(name, message) {
+  return renderSvgToPng(buildFallbackGraphSvg(name, message), {
+    background: muncherGraphBackground,
+  });
+}
+
+function buildFallbackGraphSvg(name, message) {
+  const title = escapeXml(name);
+  const body = escapeXml(message);
+
+  return `
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <rect width="1200" height="675" fill="${muncherGraphBackground}" />
+  <text x="64" y="110" fill="#f5f7ff" font-size="44" font-family="Arial, sans-serif">${title}</text>
+  <text x="64" y="180" fill="#c7cede" font-size="28" font-family="Arial, sans-serif">${body}</text>
+</svg>`.trim();
 }
 
 function factorClosestPair(value) {
@@ -240,4 +292,13 @@ function formatAttachmentName(value) {
     .replace(/[^a-z0-9_-]+/g, '-')
     .replace(/^-+|-+$/g, '')
     || 'graph';
+}
+
+function escapeXml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }
