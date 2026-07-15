@@ -1081,7 +1081,7 @@ function getRecentLeagueRowLayout(x, width) {
   const vsValueX = x + 708;
   const appX = x + 792;
   const deltaX = x + width - 28;
-  const dateX = deltaX - 92;
+  const dateX = deltaX - 108;
   const dateLabelX = dateX - 84;
 
   return {
