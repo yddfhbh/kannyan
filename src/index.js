@@ -89,6 +89,7 @@ import { createVArchivePerformanceCard } from './varchive-performance-card.js';
 import { createVArchiveTierCard } from './varchive-tier-card.js';
 import {
   buildVArchiveSongSearchResultsEmbed,
+  normalizeSongName,
   searchVArchiveSong,
 } from './varchive-song.js';
 import {
@@ -8484,7 +8485,7 @@ function getHelpMessage() {
     '`/브아카 닉네임:<V-ARCHIVE 닉네임>` - 내 디스코드 계정에 V-ARCHIVE 닉네임을 영구 저장한다냥.',
     '`/b10`, `/b30`, `/b50`은 닉네임을 생략하면 저장된 V-ARCHIVE 닉네임을 쓰고, `%b10 4`, `%b30 6`, `%b50 Hebi 8`처럼 `%` 명령도 바로 쓸 수 있다냥.',
     '`/서열표 곡명:<곡명>`, `/곡정보 곡명:<곡명>`, `%서열표 곡명`, `%곡정보 곡명` - V-ARCHIVE 기준 4B/5B/6B/8B 난이도를 보여준다냥.',
-    '`/성과 곡명:<곡명> 닉네임:[V-ARCHIVE 닉네임]`, `%성과 곡명`, `%성과 곡명 | 닉네임` - 연동된 V-ARCHIVE 닉네임 기준 개인 기록 성과표를 카드로 보여준다냥.',
+    '`/성과 곡명:<곡명> 닉네임:[V-ARCHIVE 닉네임]`, `%성과 곡명`, `%성과 곡명 | 닉네임`, `%성과 곡명 닉네임` - 연동된 V-ARCHIVE 닉네임 기준 개인 기록 성과표를 카드로 보여준다냥.',
     '체스판 이미지와 `%백선`, `%흑선`, `%분석해봐`, `%답이 뭐야` 같은 말을 보내면 FEN으로 읽고 Stockfish 최선 수를 보여준다냥.',
     '`%fen <FEN>` - 직접 입력한 FEN을 Stockfish로 분석한다냥.',
     '`%fen 추출해줘` - 체스판 이미지에서 FEN을 읽어서 그대로 알려준다냥.',
@@ -11187,6 +11188,10 @@ async function showVArchivePerformanceMessage(message, input) {
     return;
   }
 
+  await safeSendTyping(message.channel, 'showVArchivePerformanceMessage');
+
+  parsedInput = await resolveVArchivePerformanceMessageInput(parsedInput);
+
   if (!parsedInput.nickname) {
     await message.reply({
       content: `${getVArchivePerformancePercentUsageMessage()}\n${getMissingVArchiveNicknameMessage()}`,
@@ -11194,8 +11199,6 @@ async function showVArchivePerformanceMessage(message, input) {
     });
     return;
   }
-
-  await safeSendTyping(message.channel, 'showVArchivePerformanceMessage');
 
   try {
     const replyData = await createVArchivePerformanceReplyData(parsedInput.nickname, parsedInput.query);
@@ -11342,14 +11345,28 @@ function parseVArchivePerformanceMessageInput(input, fallbackNickname = null) {
     return {
       query: '',
       nickname: normalizedFallbackNickname,
+      trailingQueryCandidate: '',
+      trailingNicknameCandidate: null,
     };
   }
 
   const separatorIndex = trimmed.lastIndexOf('|');
   if (separatorIndex < 0) {
+    const tokens = trimmed.split(/\s+/);
+    const trailingToken = tokens.length > 1
+      ? tokens[tokens.length - 1]
+      : null;
+    const trailingQueryCandidate = trailingToken
+      ? trimmed.slice(0, trimmed.length - trailingToken.length).trim()
+      : '';
+
     return {
       query: trimmed,
       nickname: normalizedFallbackNickname,
+      trailingQueryCandidate,
+      trailingNicknameCandidate: trailingToken
+        ? normalizeVArchiveNickname(trailingToken)
+        : null,
     };
   }
 
@@ -11371,11 +11388,66 @@ function parseVArchivePerformanceMessageInput(input, fallbackNickname = null) {
   return {
     query,
     nickname: normalizeVArchiveNickname(nicknameText),
+    trailingQueryCandidate: '',
+    trailingNicknameCandidate: null,
   };
 }
 
+async function resolveVArchivePerformanceMessageInput(parsedInput) {
+  if (!parsedInput?.trailingQueryCandidate || !parsedInput?.trailingNicknameCandidate) {
+    return parsedInput;
+  }
+
+  const fullQuery = parsedInput.query;
+  const splitQuery = parsedInput.trailingQueryCandidate;
+  const [fullQueryResult, splitQueryResult] = await Promise.all([
+    resolveVArchiveSongLookup(fullQuery),
+    resolveVArchiveSongLookup(splitQuery),
+  ]);
+
+  if (!shouldPreferSplitVArchivePerformanceInput({
+    fullQuery,
+    fullQueryResult,
+    splitQuery,
+    splitQueryResult,
+  })) {
+    return parsedInput;
+  }
+
+  return {
+    ...parsedInput,
+    query: splitQuery,
+    nickname: parsedInput.trailingNicknameCandidate,
+    trailingQueryCandidate: '',
+    trailingNicknameCandidate: null,
+  };
+}
+
+function shouldPreferSplitVArchivePerformanceInput({
+  fullQuery,
+  fullQueryResult,
+  splitQuery,
+  splitQueryResult,
+}) {
+  if (!splitQuery || splitQueryResult?.status === 'none') {
+    return false;
+  }
+
+  const fullQueryIsExactSingle = isExactVArchiveSongLookupResult(fullQueryResult, fullQuery);
+
+  return !fullQueryIsExactSingle;
+}
+
+function isExactVArchiveSongLookupResult(result, query) {
+  if (result?.status !== 'single' || !result.song) {
+    return false;
+  }
+
+  return normalizeSongName(result.song.name ?? '') === normalizeSongName(query);
+}
+
 function getVArchivePerformancePercentUsageMessage() {
-  return '사용법은 `%성과 <곡명>` 또는 `%성과 <곡명> | <닉네임>`이다냥. 예: `%성과 메긴 1`, `%성과 Daylight | Hebi`';
+  return '사용법은 `%성과 <곡명>`, `%성과 <곡명> | <닉네임>`, 또는 `%성과 <곡명> <닉네임>`이다냥. 예: `%성과 메긴 1`, `%성과 Daylight | Hebi`, `%성과 규츄 pyhok`';
 }
 
 function getVArchiveSongKnownErrorMessage(error) {

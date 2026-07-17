@@ -15,6 +15,8 @@ const discordSafeImageBudgetBytes = 7_900_000;
 const songImageSize = 244;
 const tierImageDisplaySize = 160;
 const tierSongTitleYOffset = 4;
+const tierSongTitleMaxDisplayUnits = 17;
+const tierSongTitleClipHeight = 40;
 const embeddedSongImageSize = Math.round(songImageSize * vArchiveTierCardRenderScale);
 const embeddedTierImageSize = Math.round(tierImageDisplaySize * vArchiveTierCardRenderScale);
 const embeddedSongCornerRadius = Math.round(18 * (embeddedSongImageSize / songImageSize));
@@ -989,7 +991,7 @@ function buildVArchiveTierCardView({
         patternText: `${entry.pattern ?? '-'} ${entry.level ?? '-'}`,
         floorText: entry.floorName ?? '-',
         updatedText: formatDayAgo(entry.dayAgo),
-        titleLines: splitTextLines(entry.title, 20, 2),
+        titleLines: splitTextLines(entry.title, tierSongTitleMaxDisplayUnits, 2),
       };
     }),
   };
@@ -1055,13 +1057,7 @@ function renderSongCardOverlay({
     <rect x="${entry.cardX + width - 88}" y="${entry.cardY + imageSize - 42}" width="76" height="28" rx="14" ry="14" class="floorBadge" />
     <text x="${entry.cardX + width - 50}" y="${entry.cardY + imageSize - 23}" text-anchor="middle" class="floorText">${escapeXml(entry.floorText)}</text>
 
-    ${renderTextLines({
-      lines: entry.titleLines,
-      x: entry.cardX + 12,
-      y: titleY,
-      className: 'songTitle',
-      lineHeight: 18,
-    })}
+    ${renderSongTitle({ entry, index, width, y: titleY })}
 
     <text x="${entry.cardX + 12}" y="${pointY}" class="songPoint">${escapeXml(`${entry.pointText} / ${entry.maxRatingText}`)}</text>
     <text x="${entry.cardX + width - 12}" y="${pointY}" text-anchor="end" class="songMeta">${escapeXml(entry.updatedText)}</text>
@@ -1095,13 +1091,7 @@ function renderSongCard({ entry, index, width, imageSize, cardHeight, palette })
     <rect x="${entry.cardX + width - 88}" y="${entry.cardY + imageSize - 42}" width="76" height="28" rx="14" ry="14" class="floorBadge" />
     <text x="${entry.cardX + width - 50}" y="${entry.cardY + imageSize - 23}" text-anchor="middle" class="floorText">${escapeXml(entry.floorText)}</text>
 
-    ${renderTextLines({
-      lines: entry.titleLines,
-      x: entry.cardX + 12,
-      y: titleY,
-      className: 'songTitle',
-      lineHeight: 18,
-    })}
+    ${renderSongTitle({ entry, index, width, y: titleY })}
 
     <text x="${entry.cardX + 12}" y="${pointY}" class="songPoint">${escapeXml(`${entry.pointText} / ${entry.maxRatingText}`)}</text>
     <text x="${entry.cardX + width - 12}" y="${pointY}" text-anchor="end" class="songMeta">${escapeXml(entry.updatedText)}</text>
@@ -1116,6 +1106,32 @@ function renderSongImage(entry, index, imageSize) {
   return `
     <rect x="${entry.cardX}" y="${entry.cardY}" width="${imageSize}" height="${imageSize}" rx="18" ry="18" class="placeholder" />
     <text x="${entry.cardX + imageSize / 2}" y="${entry.cardY + imageSize / 2}" text-anchor="middle" class="placeholderText">NO JACKET</text>`;
+}
+
+function renderSongTitle({
+  entry,
+  index,
+  width,
+  y,
+}) {
+  const clipId = `song-title-clip-${index}`;
+  const x = entry.cardX + 12;
+
+  return `
+    <defs>
+      <clipPath id="${clipId}">
+        <rect x="${x}" y="${y - 16}" width="${width - 24}" height="${tierSongTitleClipHeight}" />
+      </clipPath>
+    </defs>
+    <g clip-path="url(#${clipId})">
+      ${renderTextLines({
+        lines: entry.titleLines,
+        x,
+        y,
+        className: 'songTitle',
+        lineHeight: 18,
+      })}
+    </g>`;
 }
 
 function renderTierImage(dataUrl, x, y, width, height) {
