@@ -609,6 +609,35 @@ function installDiscordConsoleMirror(client) {
   discordConsoleOriginal.log(`[CONSOLE MIRROR] Discord console log mirror enabled. channel=${GUILD_LOG_CHANNEL_ID}`);
 }
 
+const sendTypingWarningThrottleMs = 45 * 1000;
+const sendTypingWarningTimestamps = new Map();
+
+async function safeSendTyping(channel, context = '') {
+  if (!channel || typeof channel.sendTyping !== 'function') {
+    return false;
+  }
+
+  try {
+    await channel.sendTyping();
+    return true;
+  } catch (error) {
+    const normalizedContext = String(context ?? '').trim();
+    const warningKey = normalizedContext || '__default__';
+    const now = Date.now();
+    const lastLoggedAt = sendTypingWarningTimestamps.get(warningKey) ?? 0;
+
+    if (now - lastLoggedAt >= sendTypingWarningThrottleMs) {
+      sendTypingWarningTimestamps.set(warningKey, now);
+      console.warn(
+        `[DISCORD] sendTyping failed${normalizedContext ? ` context=${normalizedContext}` : ''}:`,
+        error?.message ?? error
+      );
+    }
+
+    return false;
+  }
+}
+
 const DATA_DIR =
   process.env.TETRIO_LEAGUE_DATA_DIR ||
   process.env.DATA_DIR ||
@@ -1731,7 +1760,7 @@ async function handleChessMoveRevisionMessage(message, key, existingSession, cur
 
   await queueSaveChessPlayState();
 
-  await message.channel.sendTyping().catch(() => {});
+  await safeSendTyping(message.channel, 'handleChessMoveRevisionMessage');
 
   const choice = await chooseBotChessMove(base.chess);
   const botMove = applyUciMove(base.chess, choice.selectedUci);
@@ -2704,7 +2733,7 @@ async function startChessPlaySession(message, key, options = {}) {
   await queueSaveChessPlayState();
 
   if (botColor === 'w') {
-    await message.channel.sendTyping().catch(() => {});
+    await safeSendTyping(message.channel, 'startChessPlaySession');
 
     const choice = await chooseBotChessMove(chess);
     const botMove = applyUciMove(chess, choice.selectedUci);
@@ -2847,7 +2876,7 @@ async function startChessPlaySessionWithInitialUserMove(message, key, initialMov
     return true;
   }
 
-  await message.channel.sendTyping().catch(() => {});
+  await safeSendTyping(message.channel, 'startChessPlaySessionWithInitialUserMove');
 
   const choice = await chooseBotChessMove(chess);
   const botMove = applyUciMove(chess, choice.selectedUci);
@@ -3373,7 +3402,7 @@ async function handleChessPlayMessage(message) {
   // 유저 수까지 일단 저장
   await queueSaveChessPlayState();
 
-  await message.channel.sendTyping().catch(() => {});
+  await safeSendTyping(message.channel, 'handleChessPlayMessage');
 
   const choice = await chooseBotChessMove(chess);
   const botMove = applyUciMove(chess, choice.selectedUci);
@@ -4766,7 +4795,7 @@ async function handleChessAnalysisFollowupMessage(message) {
   }
 
   if (looksLikeChessMoveSequenceQuestion(text)) {
-    await message.channel.sendTyping().catch(() => {});
+    await safeSendTyping(message.channel, 'handleChessAnalysisFollowupMessage:move-sequence');
     const reply = await createRecentChessLineFollowupReply(message, text, recent);
 
     await message.reply({
@@ -4787,7 +4816,7 @@ async function handleChessAnalysisFollowupMessage(message) {
   }
 
   if (looksLikeChessContinuationRequest(text)) {
-    await message.channel.sendTyping().catch(() => {});
+    await safeSendTyping(message.channel, 'handleChessAnalysisFollowupMessage:continuation');
 
     const reply = await createRecentChessContinuationReply(message, text, recent);
 
@@ -4805,7 +4834,7 @@ async function handleChessAnalysisFollowupMessage(message) {
     return false;
   }
 
-  await message.channel.sendTyping().catch(() => {});
+  await safeSendTyping(message.channel, 'handleChessAnalysisFollowupMessage');
   if (intent.action === 'reanalyze_last_position') {
     const oldParts = String(recent.fen).trim().split(/\s+/);
     const oldTurn = oldParts[1] === 'b' ? 'b' : 'w';
@@ -5879,7 +5908,7 @@ async function handleTetrioLeaderboardTextCommand(message) {
   }
 
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'handleTetrioLeaderboardTextCommand');
     const card = await createTetrioLeaderboardCard(lbCommand);
 
     if (card.content) {
@@ -6905,7 +6934,7 @@ async function handleGeminiFallbackMessage(message, options = {}) {
   }
 
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'handleGeminiFallbackMessage');
 
     await Promise.all([
       ensureGeminiMemoryLoaded(),
@@ -7127,7 +7156,7 @@ async function handleGeminiFallbackMessage(message, options = {}) {
 
 async function handleWebSearchMessage(message, input) {
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'handleWebSearchMessage');
     const responseText = await createWebSearchResponse(String(input ?? '').trim(), {
       mentionContext: getGeminiMentionContext(message),
       currentUserContext: getGeminiCurrentUserContext(message),
@@ -7170,7 +7199,7 @@ async function handleHexColorPreviewMessage(message, options = {}) {
     return;
   }
 
-  await message.channel.sendTyping();
+  await safeSendTyping(message.channel, 'handleHexColorPreviewMessage');
 
   let attachment;
   try {
@@ -8841,7 +8870,7 @@ async function showMinomuncherAnalysis(interaction) {
 
 async function showMinomuncherAnalysisMessage(message, input) {
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'showMinomuncherAnalysisMessage');
 
     const replayFiles = await fetchMinomuncherReplayAttachments(message.attachments.values());
     if (replayFiles.length === 0) {
@@ -9439,10 +9468,10 @@ async function handleTetrioLeagueRecentListMessage(message, input, recentCount =
 
 async function handleAmbiguousNumericTetrioLeagueMatchMessage(message, input, matchIndex) {
   try {
-    await message.channel.sendTyping();
     const username = await findTetrioUsername(input);
 
     if (username) {
+      await safeSendTyping(message.channel, 'handleAmbiguousNumericTetrioLeagueMatchMessage');
       try {
         const replyData = await createTetrioLeagueMatchReplyData(username, 1);
         await message.reply({
@@ -9536,7 +9565,6 @@ function parseTetrioLeagueMatchMessageInput(input) {
 
 async function showLinkedTetrioLeagueMatchMessage(message, user, matchIndex) {
   try {
-    await message.channel.sendTyping();
     const username = await findTetrioUsernameByDiscordId(user.id);
 
     if (!username) {
@@ -9558,7 +9586,6 @@ async function showLinkedTetrioLeagueMatchMessage(message, user, matchIndex) {
 
 async function showLinkedTetrioLeagueRecentListMessage(message, user, recentCount) {
   try {
-    await message.channel.sendTyping();
     const username = await findTetrioUsernameByDiscordId(user.id);
 
     if (!username) {
@@ -9599,7 +9626,7 @@ async function createTetrioLeagueMatchReplyData(username, matchIndex) {
 
 async function showTetrioLeagueMatchMessage(message, username, matchIndex, assumeExistingUser = false) {
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'showTetrioLeagueMatchMessage');
     const replyData = await createTetrioLeagueMatchReplyData(username, matchIndex);
 
     await message.reply({
@@ -9622,7 +9649,7 @@ async function showTetrioLeagueMatchMessage(message, username, matchIndex, assum
 
 async function showTetrioLeagueRecentListMessage(message, username, recentCount, assumeExistingUser = false) {
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'showTetrioLeagueRecentListMessage');
     const card = await createTetrioLeagueRecentListCard(username, recentCount);
     const newestRow = Array.isArray(card.rows) ? card.rows[0] : null;
     console.log(
@@ -9716,7 +9743,6 @@ function isTrollingNumericInput(input) {
 
 async function handleAmbiguousNumericTetrioProfileMessage(message, input) {
   try {
-    await message.channel.sendTyping();
     const username = await findTetrioUsername(input);
 
     if (username) {
@@ -9752,10 +9778,10 @@ async function handleAmbiguousNumericQuickPlayAltitudeMessage(
   leaderboard = 'top'
 ) {
   try {
-    await message.channel.sendTyping();
     const username = await findTetrioUsername(input);
 
     if (username) {
+      await safeSendTyping(message.channel, 'handleAmbiguousNumericQuickPlayAltitudeMessage');
       try {
         const replyData = await createQuickPlayAltitudeReplyData(username, 1, mode, leaderboard);
         await message.reply({
@@ -9869,7 +9895,6 @@ function parsePositiveIntegerToken(input) {
 
 async function showLinkedQuickPlayAltitudeMessage(message, user, recordIndex, mode = 'zenith', leaderboard = 'top') {
   try {
-    await message.channel.sendTyping();
     const username = await findTetrioUsernameByDiscordId(user.id);
 
     if (!username) {
@@ -9915,7 +9940,7 @@ async function showQuickPlayAltitudeMessage(
   const genericErrorMessage = getTetrioPersonalRecordErrorMessage(mode);
 
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'showQuickPlayAltitudeMessage');
     const replyData = await createQuickPlayAltitudeReplyData(username, recordIndex, mode, leaderboard);
 
     await message.reply({
@@ -9937,9 +9962,7 @@ async function showQuickPlayAltitudeMessage(
 
 async function showTetrioProfileMessage(message, input) {
   try {
-    await message.channel.sendTyping().catch((error) => {
-    console.warn('[TETR.IO PROFILE] sendTyping 실패, 계속 진행:', error.message);
-    });
+    await safeSendTyping(message.channel, 'showTetrioProfileMessage');
     const card = await createTetrioProfileCard(input);
     const attachment = new AttachmentBuilder(card.image, {
       name: `tetrio-${card.username}.png`,
@@ -9967,7 +9990,7 @@ async function showTetrioProfileMessage(message, input) {
 
 async function handleTetolbMessage(message, input) {
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'handleTetolbMessage');
     const replyData = await createTetolbLeaderboardReplyData(input);
     const attachment = new AttachmentBuilder(replyData.image, {
       name: replyData.filename,
@@ -10014,7 +10037,7 @@ async function handleTetolbMessage(message, input) {
 
 async function showTetrioStatsMessage(message, input) {
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'showTetrioStatsMessage');
     const target = String(input ?? '').trim();
     const metricInput = parseTetrioStatsMetricInput(target);
 
@@ -10211,7 +10234,7 @@ function createCustomTetrioStatsCardData({ apm, pps, vs }) {
 
 async function showTetrioPlaystyleGraphMessage(message, input) {
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'showTetrioPlaystyleGraphMessage');
     const target = String(input ?? '').trim();
 
     const parsedInput = parseTetrioGraphInput(target);
@@ -10304,7 +10327,7 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
 
 async function showTetrioVersusGraphMessage(message, input) {
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'showTetrioVersusGraphMessage');
     const target = String(input ?? '').trim();
 
     const parsedInput = parseTetrioGraphInput(target);
@@ -10637,7 +10660,7 @@ function toFiniteNumber(value) {
 
 async function showTetrioRankCutMessage(message) {
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'showTetrioRankCutMessage');
     const image = await createTetrioRankCutImage();
     const attachment = new AttachmentBuilder(image, {
       name: 'tetrio-rankcut.png',
@@ -10661,7 +10684,6 @@ async function showTetrioRankCutMessage(message) {
 
 async function showLinkedTetrioProfileMessage(message, user = message.author) {
   try {
-    await message.channel.sendTyping();
     const username = await findTetrioUsernameByDiscordId(user.id);
 
     if (!username) {
@@ -10722,7 +10744,7 @@ async function showChessComRatingsMessage(message, input) {
   }
 
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'showChessComRatingsMessage');
     const stats = await fetchChessComStats(username);
     await message.reply({
       content: formatChessComRatings(username, stats),
@@ -10755,7 +10777,7 @@ async function showLichessRatingsMessage(message, input) {
   }
 
   try {
-    await message.channel.sendTyping();
+    await safeSendTyping(message.channel, 'showLichessRatingsMessage');
     const user = await fetchLichessUser(username);
     await message.reply({
       content: formatLichessRatings(user),
@@ -11025,7 +11047,7 @@ async function showVArchiveTierCardMessage(message, input, options = {}) {
     return;
   }
 
-  await message.channel.sendTyping().catch(() => {});
+  await safeSendTyping(message.channel, 'showVArchiveTierCardMessage');
 
   try {
     const replyData = await createVArchiveTierReplyData(parsedInput.nickname, parsedInput.button, {
@@ -11126,7 +11148,7 @@ async function showVArchiveSongInfoMessage(message, input) {
     return;
   }
 
-  await message.channel.sendTyping().catch(() => {});
+  await safeSendTyping(message.channel, 'showVArchiveSongInfoMessage');
 
   try {
     const replyData = await createVArchiveSongReplyData(query);
@@ -11173,7 +11195,7 @@ async function showVArchivePerformanceMessage(message, input) {
     return;
   }
 
-  await message.channel.sendTyping().catch(() => {});
+  await safeSendTyping(message.channel, 'showVArchivePerformanceMessage');
 
   try {
     const replyData = await createVArchivePerformanceReplyData(parsedInput.nickname, parsedInput.query);
