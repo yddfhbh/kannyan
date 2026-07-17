@@ -9937,7 +9937,9 @@ async function showQuickPlayAltitudeMessage(
 
 async function showTetrioProfileMessage(message, input) {
   try {
-    await message.channel.sendTyping();
+    await message.channel.sendTyping().catch((error) => {
+    console.warn('[TETR.IO PROFILE] sendTyping 실패, 계속 진행:', error.message);
+    });
     const card = await createTetrioProfileCard(input);
     const attachment = new AttachmentBuilder(card.image, {
       name: `tetrio-${card.username}.png`,
