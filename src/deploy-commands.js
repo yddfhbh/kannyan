@@ -132,6 +132,23 @@ new SlashCommandBuilder()
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('업적')
+    .setDescription('TETR.IO 업적 카드를 이미지로 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('업적')
+        .setDescription('보여줄 업적 이름')
+        .setRequired(true)
+        .setAutocomplete(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('스탯')
     .setDescription('TETR.IO 스탯 카드 형식을 보여줍니다.')
     .addStringOption((option) =>

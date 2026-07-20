@@ -22,6 +22,10 @@ import {
   findTetrioUsername,
   findTetrioUsernameByDiscordId,
 } from './tetrio-card.js';
+import {
+  createTetrioAchievementCard,
+  searchTetrioAchievements,
+} from './tetrio-achievement-card.js';
 import { calculateTetrioStats } from './tetrio-stats-calculations.js';
 import {
   createBlitzRecentScoreCard,
@@ -5136,6 +5140,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
+    if (interaction.isAutocomplete()) {
+      await handleSlashCommandAutocomplete(interaction);
+      return;
+    }
+
     if (!interaction.isChatInputCommand()) {
       return;
     }
@@ -5245,6 +5254,11 @@ if (interaction.commandName === '개념글테스트') {
 
     if (interaction.commandName === '테토') {
       await showTetrioProfile(interaction);
+      return;
+    }
+
+    if (interaction.commandName === '업적') {
+      await showTetrioAchievement(interaction);
       return;
     }
 
@@ -8656,6 +8670,105 @@ async function showTetrioProfile(interaction) {
     }
 
     await interaction.editReply('TETR.IO 프로필을 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
+  }
+}
+
+async function handleSlashCommandAutocomplete(interaction) {
+  try {
+    if (interaction.commandName === '업적') {
+      await autocompleteTetrioAchievement(interaction);
+      return;
+    }
+
+    await interaction.respond([]);
+  } catch (error) {
+    console.error(`Failed to handle autocomplete for /${interaction.commandName}:`);
+    console.error(error);
+
+    try {
+      await interaction.respond([]);
+    } catch {
+      // Ignore autocomplete response failures.
+    }
+  }
+}
+
+async function autocompleteTetrioAchievement(interaction) {
+  const focused = interaction.options.getFocused(true);
+  if (focused.name !== '업적') {
+    await interaction.respond([]);
+    return;
+  }
+
+  const input = interaction.options.getString('닉네임')?.trim();
+  const username = input
+    ? await findTetrioUsername(input)
+    : await findTetrioUsernameByDiscordId(interaction.user.id);
+
+  if (!username) {
+    await interaction.respond([]);
+    return;
+  }
+
+  const achievements = await searchTetrioAchievements(
+    username,
+    typeof focused.value === 'string' ? focused.value : '',
+    25,
+  );
+
+  await interaction.respond(achievements.map((achievement) => ({
+    name: limitSlashChoiceText(achievement.name, 100),
+    value: limitSlashChoiceText(achievement.name, 100),
+  })));
+}
+
+function limitSlashChoiceText(value, maxLength = 100) {
+  return String(value ?? '').slice(0, maxLength) || '-';
+}
+
+async function showTetrioAchievement(interaction) {
+  const achievementQuery = interaction.options.getString('업적', true)?.trim();
+  const input = interaction.options.getString('닉네임')?.trim();
+
+  await interaction.deferReply();
+
+  try {
+    const username = input
+      ? await findTetrioUsername(input)
+      : await findTetrioUsernameByDiscordId(interaction.user.id);
+
+    if (!username) {
+      await interaction.editReply(input
+        ? '그런 유저는 없다냥.'
+        : 'TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.'
+      );
+      return;
+    }
+
+    const card = await createTetrioAchievementCard(username, achievementQuery);
+    const attachment = new AttachmentBuilder(card.image, {
+      name: `tetrio-achievement-${formatAttachmentSafeName(card.username)}-${formatAttachmentSafeName(card.achievementName)}.png`,
+    });
+
+    await interaction.editReply({
+      content: `https://ch.tetr.io/u/${encodeURIComponent(card.username)}/achievements`,
+      files: [attachment],
+    });
+  } catch (error) {
+    console.error(`Failed to fetch TETR.IO achievement for ${input ?? 'linked account'} / ${achievementQuery}:`);
+    console.error(error);
+
+    if (error?.code === 'TETRIO_ACHIEVEMENT_NOT_FOUND') {
+      await interaction.editReply('해당 업적을 찾지 못했다냥.');
+      return;
+    }
+
+    if (error?.status === 404) {
+      await interaction.editReply('그런 유저는 없다냥.');
+      return;
+    }
+
+    await interaction.editReply('TETR.IO 업적 카드를 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
 }
 
