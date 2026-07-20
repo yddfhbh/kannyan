@@ -60,6 +60,46 @@ const compactProfileStatsBoxHeight = 24;
 const achievementIconGridSize = 8;
 const achievementIconInnerScale = 0.5714;
 const achievementIconInnerOffsetScale = 0.2143;
+const achievementPercentileCutoffs = new Map([
+  [5, [0.00, 0.05, 0, 4]],
+  [4, [0.05, 0.10, 5, 9]],
+  [3, [0.10, 0.30, 10, 29]],
+  [2, [0.30, 0.50, 30, 49]],
+  [1, [0.50, 0.70, 50, 69]],
+  [0, [0.70, 1.00, 0, 1]],
+]);
+const achievementPercentileLaxCutoffs = new Map([
+  [5, [0.00, 0.05, 0, 4]],
+  [4, [0.05, 0.20, 5, 19]],
+  [3, [0.20, 0.60, 20, 59]],
+  [2, [0.60, 1.00, 60, 99]],
+  [1, [1.00, 1.00, 100, Number.POSITIVE_INFINITY]],
+  [0, [1.00, 1.00, 100, Number.POSITIVE_INFINITY]],
+]);
+const achievementPercentileMLaxCutoffs = new Map([
+  [5, [0.00, 0.10, 0, 9]],
+  [4, [0.10, 0.20, 10, 19]],
+  [3, [0.20, 0.50, 20, 49]],
+  [2, [0.50, 1.00, 50, 99]],
+  [1, [1.00, 1.00, 100, Number.POSITIVE_INFINITY]],
+  [0, [1.00, 1.00, 100, Number.POSITIVE_INFINITY]],
+]);
+const achievementPercentileVLaxCutoffs = new Map([
+  [5, [0.00, 0.20, 0, 1]],
+  [4, [0.20, 0.50, 2, 4]],
+  [3, [0.50, 1.00, 5, 9]],
+  [2, [1.00, 1.00, 10, Number.POSITIVE_INFINITY]],
+  [1, [1.00, 1.00, 10, Number.POSITIVE_INFINITY]],
+  [0, [1.00, 1.00, 10, Number.POSITIVE_INFINITY]],
+]);
+const achievementZenithCutoffs = new Map([
+  [5, [0, 1]],
+  [4, [1350, 1650]],
+  [3, [850, 1350]],
+  [2, [450, 850]],
+  [1, [150, 450]],
+  [0, [0, 150]],
+]);
 const achievementRankNames = new Map([
   [0, 'none'],
   [1, 'bronze'],
@@ -432,7 +472,8 @@ function getUniqueFeaturedAchievementIds(achievementIds) {
 
 async function fetchFeaturedAchievementAsset(achievement) {
   const id = Number(achievement?.k);
-  const rankName = achievementRankNames.get(Number(achievement?.rank));
+  const rank = Number(achievement?.rank);
+  const rankName = achievementRankNames.get(rank);
   if (!Number.isSafeInteger(id) || id < 1 || !rankName) {
     return null;
   }
@@ -440,10 +481,12 @@ async function fetchFeaturedAchievementAsset(achievement) {
   const spriteIndex = Math.floor((id - 1) / 64);
   const tileIndex = (id - 1) % (achievementIconGridSize * achievementIconGridSize);
   const competitivePlace = getAchievementCompetitivePlace(achievement);
-  const [frame, wreath, icon] = await Promise.all([
+  const progress = calculateAchievementProgress(achievement);
+  const [frame, ringPiece, wreath, icon] = await Promise.all([
     fetchImageDataUri(`${tetrioGameBaseUrl}/res/achievements/frames/${rankName}.png`),
+    fetchImageDataUri(`${tetrioGameBaseUrl}/res/achievements/frames/ring-piece.png`),
     fetchImageDataUri(competitivePlace ? `${tetrioGameBaseUrl}/res/achievements/wreaths/${competitivePlace}.png` : null),
-    fetchAchievementIconDataUri(spriteIndex, tileIndex),
+    fetchAchievementIconDataUri(spriteIndex, tileIndex, { invertRgb: rank !== 0 }),
   ]);
 
   return {
@@ -451,13 +494,16 @@ async function fetchFeaturedAchievementAsset(achievement) {
     competitivePlace,
     frame,
     icon,
+    progress,
     rankName,
+    ringPiece,
     wreath,
   };
 }
 
-async function fetchAchievementIconDataUri(spriteIndex, tileIndex) {
-  const cacheKey = `achievement-icon:${spriteIndex}:${tileIndex}`;
+async function fetchAchievementIconDataUri(spriteIndex, tileIndex, options = {}) {
+  const invertRgb = Boolean(options?.invertRgb);
+  const cacheKey = `achievement-icon:${spriteIndex}:${tileIndex}:${invertRgb ? 'invert' : 'plain'}`;
   if (imageDataUriCache.has(cacheKey)) {
     return imageDataUriCache.get(cacheKey);
   }
@@ -466,7 +512,7 @@ async function fetchAchievementIconDataUri(spriteIndex, tileIndex) {
     return achievementIconPendingPromises.get(cacheKey);
   }
 
-  const promise = fetchAchievementIconDataUriUncached(spriteIndex, tileIndex, cacheKey)
+  const promise = fetchAchievementIconDataUriUncached(spriteIndex, tileIndex, cacheKey, { invertRgb })
     .finally(() => {
       achievementIconPendingPromises.delete(cacheKey);
     });
@@ -474,7 +520,7 @@ async function fetchAchievementIconDataUri(spriteIndex, tileIndex) {
   return promise;
 }
 
-async function fetchAchievementIconDataUriUncached(spriteIndex, tileIndex, cacheKey) {
+async function fetchAchievementIconDataUriUncached(spriteIndex, tileIndex, cacheKey, options = {}) {
   try {
     const sprite = await fetchAchievementSprite(spriteIndex);
     const tileWidth = Math.floor((sprite?.width ?? 0) / achievementIconGridSize);
@@ -485,16 +531,17 @@ async function fetchAchievementIconDataUriUncached(spriteIndex, tileIndex, cache
 
     const tileColumn = tileIndex % achievementIconGridSize;
     const tileRow = Math.floor(tileIndex / achievementIconGridSize);
-    const buffer = await sharp(sprite.buffer)
-      .extract({
-        left: tileColumn * tileWidth,
-        top: tileRow * tileHeight,
-        width: tileWidth,
-        height: tileHeight,
-      })
-      .negate({ alpha: false })
-      .png()
-      .toBuffer();
+    let image = sharp(sprite.buffer).extract({
+      left: tileColumn * tileWidth,
+      top: tileRow * tileHeight,
+      width: tileWidth,
+      height: tileHeight,
+    });
+    if (options?.invertRgb) {
+      image = image.negate({ alpha: false });
+    }
+
+    const buffer = await image.png().toBuffer();
     const dataUri = `data:image/png;base64,${buffer.toString('base64')}`;
     cacheImageDataUriResult(cacheKey, dataUri);
     return dataUri;
@@ -553,8 +600,17 @@ function cacheAchievementSpriteResult(key, result) {
 }
 
 function getAchievementCompetitivePlace(achievement) {
-  const position = Number(achievement?.pos);
-  if (Number(achievement?.art) !== 2 || !Number.isFinite(position) || position < 0) {
+  const rawPosition = achievement?.pos;
+  const position = Number(rawPosition);
+  const achievementRatingType = Number(achievement?.art);
+
+  if (
+    achievementRatingType !== 2
+    || rawPosition == null
+    || !Number.isFinite(position)
+    || position < 0
+    || position >= 100
+  ) {
     return null;
   }
 
@@ -563,8 +619,125 @@ function getAchievementCompetitivePlace(achievement) {
   if (position < 10) return 't10';
   if (position < 25) return 't25';
   if (position < 50) return 't50';
-  if (position < 100) return 't100';
+  return 't100';
+}
+
+function clampAchievementProgress(value) {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(1, value));
+}
+
+function getAchievementProgressCutoff(rt, rank) {
+  if (!Number.isFinite(rt) || !Number.isFinite(rank)) {
+    return null;
+  }
+
+  if (rt === 1) return achievementPercentileCutoffs.get(rank) ?? null;
+  if (rt === 4) return achievementPercentileLaxCutoffs.get(rank) ?? null;
+  if (rt === 5) return achievementPercentileVLaxCutoffs.get(rank) ?? null;
+  if (rt === 6) return achievementPercentileMLaxCutoffs.get(rank) ?? null;
   return null;
+}
+
+function calculateAchievementProgress(achievement) {
+  const rt = Number(achievement?.rt);
+  const rank = Number(achievement?.rank);
+  const position = Number(achievement?.pos);
+  const total = Number(achievement?.total);
+  let progress = 0;
+
+  if (!Number.isFinite(rank) || !Number.isFinite(position) || !Number.isFinite(total)) {
+    return progress;
+  }
+
+  if (rt === 2) {
+    return 0;
+  }
+
+  if (rt === 3) {
+    const cutoff = achievementZenithCutoffs.get(rank);
+    const value = Number(achievement?.v);
+    if (!cutoff || !Number.isFinite(value)) {
+      return 0;
+    }
+
+    const [minValue, maxValue] = cutoff;
+    const denominator = maxValue - minValue;
+    if (!Number.isFinite(denominator) || denominator === 0) {
+      return 0;
+    }
+
+    progress = (value - minValue) / denominator;
+    return clampAchievementProgress(progress);
+  }
+
+  const cutoff = getAchievementProgressCutoff(rt, rank);
+  if (!cutoff) {
+    return 0;
+  }
+
+  const percentile = position / Math.max(1, total - 1);
+  const [minPercentile, maxPercentile, minCount, maxCount] = cutoff;
+  const percentileDenominator = maxPercentile - minPercentile;
+  const countDenominator = maxCount - minCount;
+  const candidates = [];
+
+  if (Number.isFinite(percentileDenominator) && percentileDenominator !== 0) {
+    candidates.push(1 - (percentile - minPercentile) / percentileDenominator);
+  }
+
+  if (Number.isFinite(countDenominator) && countDenominator !== 0) {
+    candidates.push(1 - (position - minCount) / countDenominator);
+  }
+
+  if (candidates.length === 0) {
+    return 0;
+  }
+
+  progress = Math.max(...candidates);
+  return clampAchievementProgress(progress);
+}
+
+function getAchievementRingClipPoints(progress, size) {
+  const clampedProgress = clampAchievementProgress(progress);
+  const n = 21.0907499842;
+  const v = 100 - 2 * n;
+  const o = 107.756034934;
+  const center = size / 2;
+  let points;
+
+  if (clampedProgress <= 1 / 3) {
+    const px = 3 * clampedProgress;
+    points = [
+      [n / 100 * size, 0],
+      [(n + px * v) / 100 * size, 0],
+      [center, center],
+    ];
+  } else if (clampedProgress <= 2 / 3) {
+    const px = 3 * clampedProgress - 1;
+    points = [
+      [n / 100 * size, 0],
+      [(n + v) / 100 * size, 0],
+      [(n + v + px * (o - (n + v))) / 100 * size, (50 * px) / 100 * size],
+      [center, center],
+    ];
+  } else {
+    const px = 3 * clampedProgress - 2;
+    points = [
+      [n / 100 * size, 0],
+      [(n + v) / 100 * size, 0],
+      [o / 100 * size, center],
+      [(n + v + (1 - px) * (o - (n + v))) / 100 * size, (50 + 50 * px) / 100 * size],
+      [center, center],
+    ];
+  }
+
+  return points
+    .map(([pointX, pointY]) => `${roundSvgNumber(pointX)},${roundSvgNumber(pointY)}`)
+    .join(' ');
 }
 
 function formatTetrioAssetPath(value) {
@@ -2410,21 +2583,34 @@ function renderFeaturedAchievements(achievements = [], x, y) {
   return `
   <g filter="url(#featuredAchievementShadow)">
     ${visibleAchievements.map((achievement, index) =>
-      renderFeaturedAchievementIcon(achievement, x + index * (iconSize + gap), y, iconSize)
+      renderFeaturedAchievementIcon(achievement, x + index * (iconSize + gap), y, iconSize, index)
     ).join('')}
   </g>`;
 }
 
-function renderFeaturedAchievementIcon(achievement, x, y, size) {
+function renderFeaturedAchievementIcon(achievement, x, y, size, index = 0) {
   const innerSize = roundSvgNumber(size * achievementIconInnerScale);
   const innerOffset = roundSvgNumber(size * achievementIconInnerOffsetScale);
+  const clipPathId = `featured-achievement-ring-${String(achievement?.k ?? 'unknown')
+    .replaceAll(/[^a-zA-Z0-9_-]/g, '')}-${index}-${Math.round(x)}-${Math.round(y)}`;
+  const ringClipPoints = getAchievementRingClipPoints(achievement?.progress, size);
+  const ringMarkup = achievement.ringPiece
+    ? `
+      <defs>
+        <clipPath id="${clipPathId}">
+          <polygon points="${ringClipPoints}"/>
+        </clipPath>
+      </defs>
+      <image href="${achievement.ringPiece}" x="0" y="0" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet" clip-path="url(#${clipPathId})"/>
+      <image href="${achievement.ringPiece}" x="0" y="0" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet" clip-path="url(#${clipPathId})" transform="rotate(180 ${roundSvgNumber(size / 2)} ${roundSvgNumber(size / 2)})"/>`
+    : '';
 
   return `
     <g transform="translate(${roundSvgNumber(x)} ${roundSvgNumber(y)})">
-      <rect x="${innerOffset - 1}" y="${innerOffset - 1}" width="${innerSize + 2}" height="${innerSize + 2}" rx="2" fill="#171f19" opacity="0.58"/>
       ${achievement.frame ? `<image href="${achievement.frame}" x="0" y="0" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet"/>` : `<rect x="0" y="0" width="${size}" height="${size}" rx="4" fill="none" stroke="#9cd69e" stroke-width="2"/>`}
+      ${ringMarkup}
+      ${achievement.icon ? `<image href="${achievement.icon}" x="${innerOffset}" y="${innerOffset}" width="${innerSize}" height="${innerSize}" preserveAspectRatio="xMidYMid meet" opacity="0.8"/>` : ''}
       ${achievement.wreath ? `<image href="${achievement.wreath}" x="0" y="0" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet"/>` : ''}
-      ${achievement.icon ? `<image href="${achievement.icon}" x="${innerOffset}" y="${innerOffset}" width="${innerSize}" height="${innerSize}" preserveAspectRatio="xMidYMid meet" opacity="0.88"/>` : ''}
     </g>`;
 }
 
@@ -4309,3 +4495,9 @@ function escapeXml(value) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
 }
+
+export {
+  calculateAchievementProgress,
+  getAchievementCompetitivePlace,
+  getAchievementRingClipPoints,
+};
