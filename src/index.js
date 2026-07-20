@@ -8700,18 +8700,7 @@ async function autocompleteTetrioAchievement(interaction) {
     return;
   }
 
-  const input = interaction.options.getString('닉네임')?.trim();
-  const username = input
-    ? await findTetrioUsername(input)
-    : await findTetrioUsernameByDiscordId(interaction.user.id);
-
-  if (!username) {
-    await interaction.respond([]);
-    return;
-  }
-
   const achievements = await searchTetrioAchievements(
-    username,
     typeof focused.value === 'string' ? focused.value : '',
     25,
   );

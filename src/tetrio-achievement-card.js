@@ -21,12 +21,21 @@ const tetrioHeaders = {
 };
 const achievementIconGridSize = 8;
 const achievementSummaryCacheTtlMs = 30_000;
+const achievementCatalogCacheTtlMs = 21_600_000;
+const achievementCatalogSeedUsers = ['pyhok', 'hebi_', 'dude', 'osk', 'toptester'];
+const achievementCatalogFrontierProbeLimit = 24;
+const achievementCatalogFrontierMissLimit = 8;
+const achievementCatalogHighIdThreshold = 1_000;
 const imageDataUriCache = new Map();
 const imageDataUriPendingPromises = new Map();
 const summaryCache = new Map();
 const summaryPendingPromises = new Map();
 const spriteCache = new Map();
 const spritePendingPromises = new Map();
+const achievementDefinitionCache = new Map();
+const achievementDefinitionPendingPromises = new Map();
+let achievementCatalogCache = null;
+let achievementCatalogPendingPromise = null;
 const achievementRankNames = new Map([
   [0, 'none'],
   [1, 'bronze'],
@@ -46,8 +55,8 @@ const achievementAccentPalette = new Map([
   [100, { primary: '#ffb6d8', secondary: '#ea71b2', glow: 'rgba(255,182,216,0.28)' }],
 ]);
 
-export async function searchTetrioAchievements(username, query = '', limit = 25) {
-  const { achievements } = await fetchTetrioAchievementSummary(username);
+export async function searchTetrioAchievements(query = '', limit = 25) {
+  const achievements = await fetchTetrioAchievementCatalog();
   const normalizedQuery = normalizeAchievementSearchText(query);
   const uniqueAchievements = dedupeAchievementsByName(achievements);
   const filtered = normalizedQuery
@@ -62,8 +71,15 @@ export async function searchTetrioAchievements(username, query = '', limit = 25)
 }
 
 export async function createTetrioAchievementCard(username, achievementQuery) {
-  const summary = await fetchTetrioAchievementSummary(username);
-  const achievement = findBestAchievementMatch(summary.achievements, achievementQuery);
+  const [summary, catalog] = await Promise.all([
+    fetchTetrioAchievementSummary(username),
+    fetchTetrioAchievementCatalog(),
+  ]);
+  const catalogAchievement = findBestAchievementMatch(catalog, achievementQuery);
+  const summaryAchievement = catalogAchievement
+    ? findAchievementByKey(summary.achievements, catalogAchievement.k) ?? findBestAchievementMatch(summary.achievements, achievementQuery)
+    : findBestAchievementMatch(summary.achievements, achievementQuery);
+  const achievement = summaryAchievement ?? (catalogAchievement ? createStubAchievementFromDefinition(catalogAchievement) : null);
 
   if (!achievement) {
     const error = new Error('Achievement not found');
@@ -83,6 +99,52 @@ export async function createTetrioAchievementCard(username, achievementQuery) {
     svg,
     username: summary.username,
   };
+}
+
+async function fetchTetrioAchievementCatalog() {
+  if (achievementCatalogCache && achievementCatalogCache.expiresAt > Date.now()) {
+    return achievementCatalogCache.value;
+  }
+
+  if (achievementCatalogPendingPromise) {
+    return achievementCatalogPendingPromise;
+  }
+
+  const promise = fetchTetrioAchievementCatalogUncached()
+    .finally(() => {
+      achievementCatalogPendingPromise = null;
+    });
+  achievementCatalogPendingPromise = promise;
+  return promise;
+}
+
+async function fetchTetrioAchievementCatalogUncached() {
+  const seedSummaries = await Promise.all(achievementCatalogSeedUsers.map(async (username) => {
+    try {
+      return await fetchTetrioAchievementSummary(username);
+    } catch {
+      return null;
+    }
+  }));
+  const catalog = new Map();
+
+  for (const summary of seedSummaries) {
+    for (const achievement of summary?.achievements ?? []) {
+      mergeAchievementCatalogEntry(catalog, achievement);
+    }
+  }
+
+  await fillAchievementCatalogRegularRange(catalog);
+  await fillAchievementCatalogFrontier(catalog, getHighestCatalogIdBelow(catalog, achievementCatalogHighIdThreshold), achievementCatalogHighIdThreshold);
+  await fillAchievementCatalogHighRange(catalog);
+
+  const value = [...catalog.values()].sort(compareAchievementListOrder);
+  achievementCatalogCache = {
+    expiresAt: Date.now() + achievementCatalogCacheTtlMs,
+    value,
+  };
+
+  return value;
 }
 
 async function fetchTetrioAchievementSummary(username) {
@@ -145,6 +207,138 @@ async function fetchTetrioAchievementSummaryUncached(username) {
   return value;
 }
 
+async function fillAchievementCatalogRegularRange(catalog) {
+  const highestKnownRegularId = getHighestCatalogIdBelow(catalog, achievementCatalogHighIdThreshold);
+  if (!Number.isFinite(highestKnownRegularId) || highestKnownRegularId < 1) {
+    return;
+  }
+
+  const missingIds = [];
+  for (let id = 1; id <= highestKnownRegularId; id += 1) {
+    if (!catalog.has(id)) {
+      missingIds.push(id);
+    }
+  }
+
+  const missingDefinitions = await Promise.all(missingIds.map((id) => fetchTetrioAchievementDefinition(id)));
+  for (const definition of missingDefinitions) {
+    mergeAchievementCatalogEntry(catalog, definition);
+  }
+}
+
+async function fillAchievementCatalogHighRange(catalog) {
+  const highIds = [...catalog.keys()]
+    .filter((id) => id >= achievementCatalogHighIdThreshold)
+    .sort((left, right) => left - right);
+
+  if (highIds.length === 0) {
+    return;
+  }
+
+  const highStart = highIds[0];
+  const highEnd = highIds[highIds.length - 1];
+  const missingIds = [];
+
+  for (let id = highStart; id <= highEnd; id += 1) {
+    if (!catalog.has(id)) {
+      missingIds.push(id);
+    }
+  }
+
+  const missingDefinitions = await Promise.all(missingIds.map((id) => fetchTetrioAchievementDefinition(id)));
+  for (const definition of missingDefinitions) {
+    mergeAchievementCatalogEntry(catalog, definition);
+  }
+
+  await fillAchievementCatalogFrontier(catalog, highEnd, Number.POSITIVE_INFINITY);
+}
+
+async function fillAchievementCatalogFrontier(catalog, startId, maxIdExclusive) {
+  let currentId = Number(startId) + 1;
+  let misses = 0;
+  let attempts = 0;
+
+  while (
+    Number.isSafeInteger(currentId)
+    && currentId > 0
+    && currentId < maxIdExclusive
+    && misses < achievementCatalogFrontierMissLimit
+    && attempts < achievementCatalogFrontierProbeLimit
+  ) {
+    const definition = await fetchTetrioAchievementDefinition(currentId);
+    if (definition) {
+      mergeAchievementCatalogEntry(catalog, definition);
+      misses = 0;
+    } else {
+      misses += 1;
+    }
+
+    attempts += 1;
+    currentId += 1;
+  }
+}
+
+async function fetchTetrioAchievementDefinition(id) {
+  const normalizedId = Number(id);
+  if (!Number.isSafeInteger(normalizedId) || normalizedId < 1) {
+    return null;
+  }
+
+  if (achievementDefinitionCache.has(normalizedId)) {
+    return achievementDefinitionCache.get(normalizedId);
+  }
+
+  if (achievementDefinitionPendingPromises.has(normalizedId)) {
+    return achievementDefinitionPendingPromises.get(normalizedId);
+  }
+
+  const promise = fetchTetrioAchievementDefinitionUncached(normalizedId)
+    .finally(() => {
+      achievementDefinitionPendingPromises.delete(normalizedId);
+    });
+  achievementDefinitionPendingPromises.set(normalizedId, promise);
+  return promise;
+}
+
+async function fetchTetrioAchievementDefinitionUncached(id) {
+  const response = await fetch(`${tetrioApiBaseUrl}/achievements/${id}`, { headers: tetrioHeaders });
+  if (response.status === 404) {
+    achievementDefinitionCache.set(id, null);
+    return null;
+  }
+
+  if (!response.ok) {
+    const error = new Error(`TETR.IO achievement lookup failed with ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  const payload = await response.json();
+  const entry = normalizeAchievementCatalogEntry(payload?.data?.achievement);
+  achievementDefinitionCache.set(id, entry);
+  return entry;
+}
+
+function mergeAchievementCatalogEntry(catalog, achievement) {
+  const normalized = normalizeAchievementCatalogEntry(achievement);
+  if (!normalized) {
+    return;
+  }
+
+  const existing = catalog.get(normalized.k);
+  if (!existing) {
+    catalog.set(normalized.k, normalized);
+    return;
+  }
+
+  catalog.set(normalized.k, {
+    ...existing,
+    ...normalized,
+    n: normalized.n || existing.n,
+    o: Number.isFinite(Number(normalized.o)) ? Number(normalized.o) : existing.o,
+  });
+}
+
 function dedupeAchievementsByName(achievements = []) {
   const seen = new Set();
   const result = [];
@@ -167,6 +361,12 @@ function compareAchievementListOrder(left, right) {
 
   if (Number.isFinite(leftOrder) && Number.isFinite(rightOrder) && leftOrder !== rightOrder) {
     return leftOrder - rightOrder;
+  }
+
+  const leftId = Number(left?.k);
+  const rightId = Number(right?.k);
+  if (Number.isFinite(leftId) && Number.isFinite(rightId) && leftId !== rightId) {
+    return leftId - rightId;
   }
 
   return String(left?.name ?? '').localeCompare(String(right?.name ?? ''), 'en', { sensitivity: 'base' });
@@ -208,6 +408,60 @@ function normalizeAchievementSearchText(value) {
     .replaceAll(/[^a-z0-9]+/g, ' ')
     .trim()
     .replaceAll(/\s+/g, ' ');
+}
+
+function normalizeAchievementCatalogEntry(achievement) {
+  const id = Number(achievement?.k);
+  const name = String(achievement?.name ?? '').trim();
+  if (!Number.isSafeInteger(id) || id < 1 || !name) {
+    return null;
+  }
+
+  const order = Number(achievement?.o);
+
+  return {
+    ...achievement,
+    k: id,
+    n: String(achievement?.n ?? name).trim() || name,
+    name,
+    o: Number.isFinite(order) ? order : id,
+  };
+}
+
+function findAchievementByKey(achievements = [], id) {
+  const normalizedId = Number(id);
+  if (!Number.isSafeInteger(normalizedId)) {
+    return null;
+  }
+
+  return achievements.find((achievement) => Number(achievement?.k) === normalizedId) ?? null;
+}
+
+function createStubAchievementFromDefinition(achievement) {
+  return {
+    ...achievement,
+    art: Number.isFinite(Number(achievement?.art)) ? Number(achievement.art) : 0,
+    pos: -1,
+    progress: 0,
+    rank: 0,
+    stub: true,
+    t: null,
+    total: 0,
+    v: 0,
+    x: achievement?.x ?? {},
+  };
+}
+
+function getHighestCatalogIdBelow(catalog, maxExclusive) {
+  let highest = 0;
+
+  for (const id of catalog.keys()) {
+    if (id < maxExclusive && id > highest) {
+      highest = id;
+    }
+  }
+
+  return highest;
 }
 
 async function fetchAchievementAsset(achievement) {
@@ -482,6 +736,10 @@ function renderAchievementIcon(achievement, x, y, size, idSuffix) {
 }
 
 function formatAchievementPrimaryValue(achievement) {
+  if (achievement?.stub) {
+    return '---';
+  }
+
   const numericValue = Number(achievement?.v);
   const precision = Math.max(0, Math.min(3, Number(achievement?.deci) || 0));
 
@@ -527,6 +785,10 @@ function formatAchievementTime(milliseconds) {
 }
 
 function formatAchievementMeta(achievement) {
+  if (achievement?.stub) {
+    return '';
+  }
+
   const parts = [];
   const position = Number(achievement?.pos);
   const total = Number(achievement?.total);
