@@ -15,8 +15,9 @@ const userCachePath = join(dataDir, 'tetolb-user-cache.json');
 const leaderboardCacheMinTtlMs = 10 * 60 * 1000;
 const userCacheTtlMs = 24 * 60 * 60 * 1000;
 const leaderboardRequestTimeoutMs = 12_000;
+const userProfileRequestTimeoutMs = 3_500;
 const overallTetolbTimeoutMs = 25_000;
-const userFetchConcurrency = 5;
+const userFetchConcurrency = 8;
 const tetolbModeAliases = new Map([
   ['40l', '40l'],
   ['40line', '40l'],
@@ -179,17 +180,21 @@ function getScopeKey(mode, countryCode) {
   return `${mode}:${countryCode ? `country:${countryCode}` : 'global'}`;
 }
 
-function entriesNeedProfileEnrichment(entries) {
-  return Array.isArray(entries) && entries.some((entry) =>
+function entryNeedsProfileEnrichment(entry, mode = 'league') {
+  return Boolean(
     entry
     && entry.username
     && (
       entry.avatar_revision == null
       || entry.xp == null
-      || entry.league == null
+      || (mode === 'league' && entry.league == null)
       || (entry.supporter && entry.banner_revision == null)
     )
   );
+}
+
+function entriesNeedProfileEnrichment(entries, mode = 'league') {
+  return Array.isArray(entries) && entries.some((entry) => entryNeedsProfileEnrichment(entry, mode));
 }
 
 function normalizeCountryQuery(value) {
@@ -313,7 +318,7 @@ function normalizeTetolbUserProfile(user, summaries = null) {
     username: user?.username ?? null,
     avatar_revision: user?.avatar_revision ?? null,
     banner_revision: user?.banner_revision ?? null,
-    supporter: Boolean(user?.supporter),
+    supporter: typeof user?.supporter === 'boolean' ? user.supporter : null,
     country: user?.country ?? null,
     xp: Number.isFinite(user?.xp) ? user.xp : null,
     league: summaries?.league && typeof summaries.league === 'object'
@@ -323,6 +328,25 @@ function normalizeTetolbUserProfile(user, summaries = null) {
       : user?.league && typeof user.league === 'object'
       ? {
         ...user.league,
+      }
+      : null,
+    expiresAt: Date.now() + userCacheTtlMs,
+    fetchedAt: Date.now(),
+  };
+}
+
+function buildTetolbCachedUserProfile(entry) {
+  return {
+    _id: entry?._id ?? null,
+    username: entry?.username ?? null,
+    avatar_revision: entry?.avatar_revision ?? null,
+    banner_revision: entry?.banner_revision ?? null,
+    supporter: typeof entry?.supporter === 'boolean' ? entry.supporter : null,
+    country: entry?.country ?? null,
+    xp: Number.isFinite(entry?.xp) ? entry.xp : null,
+    league: entry?.league && typeof entry.league === 'object'
+      ? {
+        ...entry.league,
       }
       : null,
     expiresAt: Date.now() + userCacheTtlMs,
@@ -348,15 +372,23 @@ function mergeEntryWithUserProfile(entry, userProfile) {
   };
 }
 
-async function fetchTetolbUserProfile(username) {
+async function fetchTetolbUserProfile(username, options = {}) {
   const normalizedUsername = String(username ?? '').trim();
   const cacheKey = getUserCacheKey(normalizedUsername);
+  const includeUserData = options.includeUserData !== false;
+  const includeLeagueData = options.includeLeagueData === true;
   if (!cacheKey) {
     return null;
   }
 
-  if (pendingUserRequests.has(cacheKey)) {
-    return pendingUserRequests.get(cacheKey);
+  if (!includeUserData && !includeLeagueData) {
+    return null;
+  }
+
+  const requestKey = `${cacheKey}:${includeUserData ? 'user' : 'skip-user'}:${includeLeagueData ? 'league' : 'skip-league'}`;
+
+  if (pendingUserRequests.has(requestKey)) {
+    return pendingUserRequests.get(requestKey);
   }
 
   const promise = (async () => {
@@ -364,49 +396,90 @@ async function fetchTetolbUserProfile(username) {
       'User-Agent': 'kannyan discord bot; TETR.IO tetolb',
       'X-Session-ID': 'kannyan-tetolb-user',
     };
-    const [userResponse, summariesResponse] = await Promise.all([
-      fetchWithTimeout(`${tetrioApiBaseUrl}/users/${encodeURIComponent(normalizedUsername)}`, { headers }),
-      fetchWithTimeout(`${tetrioApiBaseUrl}/users/${encodeURIComponent(normalizedUsername)}/summaries`, { headers }),
-    ]);
-    const [userBody, summariesBody] = await Promise.all([
-      userResponse.json().catch(() => null),
-      summariesResponse.json().catch(() => null),
-    ]);
+    const userPromise = includeUserData
+      ? (async () => {
+        const response = await fetchWithTimeout(
+          `${tetrioApiBaseUrl}/users/${encodeURIComponent(normalizedUsername)}`,
+          { headers },
+          userProfileRequestTimeoutMs
+        );
+        const body = await response.json().catch(() => null);
 
-    if (!userResponse.ok || !userBody?.success || !userBody?.data) {
-      const error = new Error(userBody?.error?.msg ?? `HTTP ${userResponse.status}`);
-      error.status = userResponse.status;
+        if (!response.ok || !body?.success || !body?.data) {
+          const error = new Error(body?.error?.msg ?? `HTTP ${response.status}`);
+          error.status = response.status;
+          throw error;
+        }
+
+        return body.data;
+      })()
+      : Promise.resolve(null);
+    const summariesPromise = includeLeagueData
+      ? (async () => {
+        const response = await fetchWithTimeout(
+          `${tetrioApiBaseUrl}/users/${encodeURIComponent(normalizedUsername)}/summaries`,
+          { headers },
+          userProfileRequestTimeoutMs
+        );
+        const body = await response.json().catch(() => null);
+
+        if (!response.ok || !body?.success || !body?.data) {
+          const error = new Error(body?.error?.msg ?? `HTTP ${response.status}`);
+          error.status = response.status;
+          throw error;
+        }
+
+        return body.data;
+      })()
+      : Promise.resolve(null);
+    const [userResult, summariesResult] = await Promise.allSettled([userPromise, summariesPromise]);
+    const userData = userResult.status === 'fulfilled' ? userResult.value : null;
+    const summariesData = summariesResult.status === 'fulfilled' ? summariesResult.value : null;
+
+    if (!userData && !summariesData) {
+      const error = userResult.status === 'rejected'
+        ? userResult.reason
+        : summariesResult.status === 'rejected'
+        ? summariesResult.reason
+        : new Error('Failed to fetch TETR.IO user profile');
       throw error;
     }
 
-    if (!summariesResponse.ok || !summariesBody?.success || !summariesBody?.data) {
-      const error = new Error(summariesBody?.error?.msg ?? `HTTP ${summariesResponse.status}`);
-      error.status = summariesResponse.status;
-      throw error;
-    }
-
-    return normalizeTetolbUserProfile(userBody.data, summariesBody.data);
+    return normalizeTetolbUserProfile(
+      userData ?? { username: normalizedUsername },
+      summariesData
+    );
   })().finally(() => {
-    pendingUserRequests.delete(cacheKey);
+    pendingUserRequests.delete(requestKey);
   });
 
-  pendingUserRequests.set(cacheKey, promise);
+  pendingUserRequests.set(requestKey, promise);
   return promise;
 }
 
-async function enrichTetolbEntries(entries) {
+async function enrichTetolbEntries(entries, mode = 'league') {
   const userCache = await loadUserCacheState();
   const now = Date.now();
   const result = Array.isArray(entries) ? entries.map((entry) => ({ ...entry })) : [];
   const staleEntries = [];
 
   for (const [index, entry] of result.entries()) {
+    if (!entryNeedsProfileEnrichment(entry, mode)) {
+      continue;
+    }
+
     const cacheKey = getUserCacheKey(entry?.username);
     const cachedProfile = cacheKey ? userCache.users[cacheKey] : null;
 
-    if (cachedProfile?.expiresAt > now && cachedProfile.xp != null && cachedProfile.league != null) {
+    if (
+      cachedProfile?.expiresAt > now
+      && cachedProfile.xp != null
+      && (mode !== 'league' || cachedProfile.league != null)
+    ) {
       result[index] = mergeEntryWithUserProfile(entry, cachedProfile);
-      continue;
+      if (!entryNeedsProfileEnrichment(result[index], mode)) {
+        continue;
+      }
     }
 
     staleEntries.push({ index, cacheKey });
@@ -424,14 +497,26 @@ async function enrichTetolbEntries(entries) {
     }
 
     try {
-      const profile = await fetchTetolbUserProfile(result[index]?.username);
+      const currentEntry = result[index];
+      const profile = await fetchTetolbUserProfile(result[index]?.username, {
+        includeUserData:
+          currentEntry?.avatar_revision == null
+          || currentEntry?.xp == null
+          || currentEntry?.country == null
+          || (currentEntry?.supporter && currentEntry?.banner_revision == null),
+        includeLeagueData: mode === 'league' && currentEntry?.league == null,
+      });
       if (!profile) {
         return;
       }
 
-      userCache.users[cacheKey] = profile;
-      result[index] = mergeEntryWithUserProfile(result[index], profile);
-      cacheDirty = true;
+      const mergedEntry = mergeEntryWithUserProfile(currentEntry, profile);
+      result[index] = mergedEntry;
+
+      if (mergedEntry.xp != null && mergedEntry.league != null) {
+        userCache.users[cacheKey] = buildTetolbCachedUserProfile(mergedEntry);
+        cacheDirty = true;
+      }
     } catch (error) {
       console.warn(`[TETOLB] user enrich skipped username=${cacheKey} reason=${error?.message ?? error}`);
     }
@@ -507,8 +592,8 @@ async function fetchTetolbLeagueLeaderboard(countryCode = null) {
   const now = Date.now();
 
   if (cached?.expiresAt && cached.expiresAt > now && Array.isArray(cached.entries)) {
-    const entries = entriesNeedProfileEnrichment(cached.entries)
-      ? await enrichTetolbEntries(cached.entries)
+    const entries = entriesNeedProfileEnrichment(cached.entries, 'league')
+      ? await enrichTetolbEntries(cached.entries, 'league')
       : cached.entries;
 
     if (entries !== cached.entries) {
@@ -557,7 +642,7 @@ async function fetchTetolbLeagueLeaderboard(countryCode = null) {
       : Array.isArray(body?.data?.users)
         ? body.data.users
         : [];
-    const entries = await enrichTetolbEntries(rawEntries);
+    const entries = await enrichTetolbEntries(rawEntries, 'league');
     const expiresAt = computeLeaderboardExpiresAt(body);
 
     loadedCache.scopes[scopeKey] = {
@@ -598,8 +683,8 @@ async function fetchTetolbRecordLeaderboard(mode, countryCode = null) {
     && Array.isArray(cached.entries)
     && (cached.entries.length >= 50 || cached.complete === true)
   ) {
-    const entries = entriesNeedProfileEnrichment(cached.entries)
-      ? await enrichTetolbEntries(cached.entries)
+    const entries = entriesNeedProfileEnrichment(cached.entries, mode)
+      ? await enrichTetolbEntries(cached.entries, mode)
       : cached.entries;
 
     if (entries !== cached.entries) {
@@ -684,7 +769,7 @@ async function fetchTetolbRecordLeaderboard(mode, countryCode = null) {
 
       after = nextAfter;
     }
-    const enrichedEntries = await enrichTetolbEntries(entries);
+    const enrichedEntries = await enrichTetolbEntries(entries, mode);
 
     loadedCache.scopes[scopeKey] = {
       mode,

@@ -1060,8 +1060,7 @@ const cardHeight = svgHeight - 32;
 ${assets.banner ? `<image href="${assets.banner}" x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" preserveAspectRatio="xMidYMid slice" clip-path="url(#bannerClip)"/>` : ''}
 <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" fill="#000000" opacity="0.08" clip-path="url(#bannerClip)"/>
 
-<rect x="${bannerX}" y="-18" width="${layoutWidth - bannerX - 4}" height="44" fill="#000000"/> 
-//검은박스 조절
+<rect x="${bannerX}" y="-18" width="${layoutWidth - bannerX - 4}" height="44" fill="${tetrioPalette.pageBg}"/>
 
 ${renderHeaderOverlayStrip(
   assets.headerOverlay,

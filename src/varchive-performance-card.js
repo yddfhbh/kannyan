@@ -52,8 +52,8 @@ const scorePaletteByKind = {
     text: '#3f2a00',
   },
   maxcombo: {
-    fill: '#59d98e',
-    text: '#ffffff',
+    fill: '#cfd8e6',
+    text: '#223447',
   },
   clear: {
     fill: '#77daf2',
@@ -71,6 +71,7 @@ const scorePaletteByKind = {
 
 const assetDataUrlCache = new Map();
 const boardPageHtmlCache = new Map();
+const tierBoardApiCache = new Map();
 
 export async function createVArchivePerformanceCard(nickname, song, options = {}) {
   const normalizedNickname = normalizeVArchiveNickname(nickname);
@@ -122,8 +123,7 @@ export async function fetchVArchiveSongPerformance(nickname, song, options = {})
     const resolvedEntries = patterns.length > 0
       ? await resolveVArchiveBoardEntriesForButton(normalizedNickname, titleId, button, patterns, { fetchImpl })
       : {};
-
-    cells[key] = Object.fromEntries(
+    const buttonCells = Object.fromEntries(
       varchiveDifficultyOrder.map((difficulty) => {
         const pattern = song?.patterns?.[key]?.[difficulty] ?? null;
         const entry = resolvedEntries[difficulty] ?? null;
@@ -133,6 +133,14 @@ export async function fetchVArchiveSongPerformance(nickname, song, options = {})
         ];
       })
     );
+    await applyTierMaxComboFlags({
+      nickname: normalizedNickname,
+      titleId,
+      button,
+      buttonCells,
+      fetchImpl,
+    });
+    cells[key] = buttonCells;
   }
 
   return {
@@ -255,6 +263,10 @@ export function renderVArchivePerformanceCardSvg({
       .cellScore {
         font-size: 34px;
         font-weight: 900;
+      }
+      .cellScoreKind {
+        font-size: 18px;
+        font-weight: 800;
       }
       .cellDash {
         fill: #8d8694;
@@ -425,6 +437,99 @@ async function fetchVArchiveBoardPageHtml(nickname, button, boardNo, options = {
   return promise;
 }
 
+async function fetchVArchiveTierBoardEntries(nickname, button, options = {}) {
+  const fetchImpl = resolveFetch(options.fetchImpl);
+  const normalizedNickname = normalizeVArchiveNickname(nickname);
+  const normalizedButton = Number(button);
+  const cacheKey = `${normalizedNickname}:${normalizedButton}`;
+  const cached = tierBoardApiCache.get(cacheKey);
+  const now = Date.now();
+
+  if (cached && cached.expiresAt > now) {
+    return cached.promise;
+  }
+
+  const promise = (async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), varchiveRequestTimeoutMs);
+    const url = `${varchiveBaseUrl}/api/v3/archive/${encodeURIComponent(normalizedNickname)}/tier/${normalizedButton}`;
+
+    try {
+      const response = await fetchImpl(url, {
+        signal: controller.signal,
+        headers: {
+          accept: 'application/json',
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
+        },
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || payload?.success === false) {
+        return [];
+      }
+
+      return Array.isArray(payload?.tierBoard?.userRatingList)
+        ? payload.tierBoard.userRatingList
+        : [];
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        return [];
+      }
+
+      return [];
+    } finally {
+      clearTimeout(timeout);
+    }
+  })();
+
+  tierBoardApiCache.set(cacheKey, {
+    expiresAt: now + varchiveBoardPageCacheTtlMs,
+    promise,
+  });
+
+  return promise;
+}
+
+async function applyTierMaxComboFlags({ nickname, titleId, button, buttonCells, fetchImpl }) {
+  const playedDifficulties = varchiveDifficultyOrder.filter((difficulty) => {
+    const cell = buttonCells?.[difficulty];
+    return cell?.scoreText && cell.scoreText !== '-';
+  });
+
+  if (playedDifficulties.length === 0) {
+    return;
+  }
+
+  const tierEntries = await fetchVArchiveTierBoardEntries(nickname, button, { fetchImpl });
+  if (!Array.isArray(tierEntries) || tierEntries.length === 0) {
+    return;
+  }
+
+  const tierEntryMap = new Map(
+    tierEntries.map((entry) => [buildTierPerformanceEntryKey(entry), entry])
+  );
+
+  for (const difficulty of playedDifficulties) {
+    const cell = buttonCells[difficulty];
+    const tierEntry = tierEntryMap.get(buildTierPerformanceEntryKey({
+      title: titleId,
+      pattern: difficulty,
+      boardNo: cell?.boardNo,
+    }));
+
+    if (tierEntry?.maxCombo === true) {
+      cell.scoreKind = 'maxcombo';
+    }
+  }
+}
+
+function buildTierPerformanceEntryKey(entry) {
+  const title = String(entry?.title ?? '').trim();
+  const pattern = String(entry?.pattern ?? '').trim().toUpperCase();
+  const boardNo = Number(entry?.boardNo);
+  return `${title}:${pattern}:${Number.isFinite(boardNo) ? boardNo : '-'}`;
+}
+
 function looksLikeNotFoundHtml(html) {
   const text = String(html ?? '');
   return text.includes('페이지를 찾을 수 없습니다')
@@ -576,10 +681,12 @@ function renderDifficultyCell({ pattern, cell, difficulty, x, y, width, height }
   const iconY = y + 17;
   const levelX = contentStartX + (iconDataUrl ? iconSize + 8 : 0);
   const scorePalette = scorePaletteByKind[cell?.scoreKind ?? 'none'] ?? scorePaletteByKind.score;
-  const scoreText = formatPerformanceScoreText(cell?.scoreText);
+  const scoreDisplay = buildPerformanceScoreDisplay(cell);
+  const scoreText = scoreDisplay.text;
+  const scoreKindLabel = scoreDisplay.kindLabel;
   const scoreBadgeWidth = scoreText === '-'
     ? 0
-    : Math.max(86, 30 + scoreText.length * 14);
+    : estimatePerformanceBadgeWidth(scoreText, scoreKindLabel);
   const scoreBadgeX = x + (width - scoreBadgeWidth) / 2;
 
   return `
@@ -594,7 +701,7 @@ function renderDifficultyCell({ pattern, cell, difficulty, x, y, width, height }
   ${scoreText === '-'
     ? `<text x="${x + width / 2}" y="${y + 102}" text-anchor="middle" class="cellDash">-</text>`
     : `<rect x="${scoreBadgeX}" y="${y + 78}" width="${scoreBadgeWidth}" height="34" rx="6" ry="6" fill="${scorePalette.fill}"/>
-       <text x="${x + width / 2}" y="${y + 103}" text-anchor="middle" fill="${scorePalette.text}" class="cellScore">${escapeXml(scoreText)}</text>`}`;
+       <text x="${x + width / 2}" y="${y + 103}" text-anchor="middle" fill="${scorePalette.text}" class="cellScore">${escapeXml(scoreText)}${scoreKindLabel ? `<tspan dx="6" class="cellScoreKind">${escapeXml(scoreKindLabel)}</tspan>` : ''}</text>`}`;
 }
 
 function renderTableGridLines({
@@ -806,6 +913,29 @@ function formatPerformanceScoreText(value) {
   }
 
   return `${trimmed}%`;
+}
+
+function buildPerformanceScoreDisplay(cell) {
+  const text = formatPerformanceScoreText(cell?.scoreText);
+  return {
+    text,
+    kindLabel: text !== '-' && cell?.scoreKind === 'maxcombo'
+      ? 'MAX'
+      : '',
+  };
+}
+
+function estimatePerformanceBadgeWidth(scoreText, kindLabel = '') {
+  const safeScoreText = String(scoreText ?? '').trim();
+  const safeKindLabel = String(kindLabel ?? '').trim();
+
+  if (!safeScoreText || safeScoreText === '-') {
+    return 0;
+  }
+
+  const scoreWidth = safeScoreText.length * 14;
+  const labelWidth = safeKindLabel ? safeKindLabel.length * 12 + 10 : 0;
+  return Math.max(86, 30 + scoreWidth + labelWidth);
 }
 
 function formatGeneratedAt(value) {

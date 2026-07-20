@@ -24,7 +24,6 @@ const assetCacheDir = join(dataDir, 'tetolb-assets');
 const tetrioGameBaseUrl = 'https://tetr.io';
 const tetrioContentBaseUrl = 'https://tetr.io/user-content';
 const defaultAvatarUrl = `${tetrioGameBaseUrl}/res/avatar.png`;
-const localUnknownRankIconPath = fileURLToPath(new URL('../assets/tetrio-ranks/z.png', import.meta.url));
 const imageCacheTtlMs = 24 * 60 * 60 * 1000;
 const imageFetchTimeoutMs = 8_000;
 const imageFetchConcurrency = 5;
@@ -356,7 +355,20 @@ function xpToLevel(xp) {
 }
 
 function getCompactLevelTag(xp) {
-  const rawLevel = xpToLevel(Number(xp));
+  const numericXp = xp == null ? Number.NaN : Number(xp);
+  if (!Number.isFinite(numericXp) || numericXp < 0) {
+    return {
+      text: '',
+      width: 0,
+      shape: 0,
+      shapeColor: 0,
+      badgeColor: 0,
+      golden: false,
+      hidden: true,
+    };
+  }
+
+  const rawLevel = xpToLevel(numericXp);
   const displayValue = Number.isFinite(rawLevel) ? Math.max(0, Math.floor(rawLevel)) : 0;
   const text = String(displayValue);
   const width = text.length * 9 + 34;
@@ -368,7 +380,7 @@ function getCompactLevelTag(xp) {
     shapeColor: Math.floor(displayValue / 10) % 10,
     badgeColor: Math.floor(displayValue / 500) % 10,
     golden: displayValue >= 5000,
-    nullTag: !Number.isFinite(Number(xp)) || Number(xp) < 0,
+    hidden: false,
   };
 }
 
@@ -468,20 +480,24 @@ function getLevelTagItemPoints(shape, x, height, unit) {
 }
 
 function renderCompactLevelBadge(tag, x, y, height = 18) {
+  if (!tag || tag.hidden || tag.width <= 0) {
+    return '';
+  }
+
   const unit = height * 0.75;
   const bodyWidth = tag.width - unit;
   const itemX = bodyWidth - unit * 0.5;
-  const fill = tag.golden ? 'url(#tetolbLevelBadgeGolden)' : (tag.nullTag ? '#111111' : `url(#tetolbLevelBadge${tag.badgeColor})`);
-  const itemFill = tag.golden ? 'url(#tetolbLevelShapeGolden)' : (tag.nullTag ? '#111111' : `url(#tetolbLevelShape${tag.shapeColor})`);
-  const textFill = tag.golden || tag.nullTag || [1, 7, 8, 9].includes(tag.badgeColor) ? '#ffffff' : '#111111';
+  const fill = tag.golden ? 'url(#tetolbLevelBadgeGolden)' : `url(#tetolbLevelBadge${tag.badgeColor})`;
+  const itemFill = tag.golden ? 'url(#tetolbLevelShapeGolden)' : `url(#tetolbLevelShape${tag.shapeColor})`;
+  const textFill = tag.golden || [1, 7, 8, 9].includes(tag.badgeColor) ? '#ffffff' : '#111111';
   const textX = roundSvgNumber(6.5);
   const textY = roundSvgNumber(height * 0.78);
   const fontSize = roundSvgNumber(height * 0.77);
 
   return `
   <g transform="translate(${roundSvgNumber(x)} ${roundSvgNumber(y)})">
-    <polygon points="${getLevelTagBodyPoints(tag.golden ? 'golden' : tag.shape, bodyWidth, height, unit)}" fill="${fill}" opacity="${tag.nullTag ? 0.65 : 1}"/>
-    <polygon points="${getLevelTagItemPoints(tag.golden ? 'golden' : tag.shape, itemX, height, unit)}" fill="${itemFill}" opacity="${tag.nullTag ? 0.65 : 1}"/>
+    <polygon points="${getLevelTagBodyPoints(tag.golden ? 'golden' : tag.shape, bodyWidth, height, unit)}" fill="${fill}"/>
+    <polygon points="${getLevelTagItemPoints(tag.golden ? 'golden' : tag.shape, itemX, height, unit)}" fill="${itemFill}"/>
     <text
       x="${textX}"
       y="${textY}"
@@ -747,13 +763,7 @@ async function buildAssetMap(entries) {
     [...urls].map(async (url) => [url, await fetchImageDataUri(url)])
   );
 
-  const assetMap = new Map(assetEntries);
-
-  if (entries.some((entry) => !String(entry?.league?.rank ?? '').trim())) {
-    assetMap.set(localUnknownRankIconPath, await readLocalImageDataUri(localUnknownRankIconPath));
-  }
-
-  return assetMap;
+  return new Map(assetEntries);
 }
 
 function renderLeaderboardRow({
@@ -777,8 +787,8 @@ function renderLeaderboardRow({
   const cardId = `tetolb-${columnIndex}-${rowIndex}-${place}`;
   const flagWidth = 21;
   const usernameText = usernameLayout?.text ?? truncateName(entry.username, 32);
-  const rank = String(entry?.league?.rank ?? '').toLowerCase() || 'z';
-  const rankLabel = String(entry?.league?.rank ?? 'z').toUpperCase();
+  const rankValue = String(entry?.league?.rank ?? '').trim();
+  const rankLabel = rankValue.toUpperCase();
   const levelBadge = getCompactLevelTag(entry?.xp);
   const metricText = mode === '40l'
     ? (entry?.tetolbMetric?.text ?? '-')
@@ -793,30 +803,28 @@ function renderLeaderboardRow({
   const avatarDataUri = assets.get(getAvatarUrl(entry)) ?? null;
   const bannerDataUri = assets.get(getBannerUrl(entry)) ?? null;
   const flagDataUri = assets.get(getFlagUrl(entry.country)) ?? null;
-  const rankIconKey = String(entry?.league?.rank ?? '').trim()
-    ? getRankIconUrl(entry?.league?.rank)
-    : localUnknownRankIconPath;
-  const rankIconDataUri = assets.get(rankIconKey) ?? null;
-const cardBaseFill = rowIndex % 2 === 0 ? panelBg : panelBgAlt;
-const bannerOverlayOpacity = bannerDataUri ? 0.34 : 0.08;
-const usernameStyle = bannerDataUri ? 'fill:#ffffff;' : '';
-const trValueStyle = bannerDataUri ? 'fill:#ffffff;' : '';
+  const rankIconKey = rankValue ? getRankIconUrl(rankValue) : null;
+  const rankIconDataUri = rankIconKey ? assets.get(rankIconKey) ?? null : null;
+  const hasRank = Boolean(rankIconDataUri || rankLabel);
+  const cardBaseFill = rowIndex % 2 === 0 ? panelBg : panelBgAlt;
+  const bannerOverlayOpacity = bannerDataUri ? 0.34 : 0.08;
+  const usernameStyle = bannerDataUri ? 'fill:#ffffff;' : '';
+  const trValueStyle = bannerDataUri ? 'fill:#ffffff;' : '';
   const usernameX = cardX + 60;
   const usernameY = cardY + 19;
   const badgeX = cardX + 60;
   const badgeY = cardY + 27;
   const badgeHeight = 18;
-const usernameWidth = usernameLayout?.width ?? estimateUsernameWidth(usernameText);
-const supporterExtraWidth = entry.supporter ? 16 : 0;
-const nameFlagGap = 18;
-
-const flagX = Math.round(usernameX + usernameWidth + supporterExtraWidth + nameFlagGap);
-const flagY = cardY + 5;
-  const rankX = badgeX + levelBadge.width + 7;
+  const usernameWidth = usernameLayout?.width ?? estimateUsernameWidth(usernameText);
+  const supporterExtraWidth = entry.supporter ? 16 : 0;
+  const nameFlagGap = 18;
+  const flagX = Math.round(usernameX + usernameWidth + supporterExtraWidth + nameFlagGap);
+  const flagY = cardY + 5;
+  const rankX = badgeX + levelBadge.width + (levelBadge.width > 0 ? 7 : 0);
   const rankY = cardY + 25;
-  const rankWidth = 20;
+  const rankWidth = hasRank ? 20 : 0;
   const rankHeight = 20;
-  const trX = rankX + rankWidth + 2;
+  const trX = rankX + rankWidth + (hasRank ? 2 : 0);
   const trY = cardY + 41;
   const trWidth = estimateMetricWidth(metricText);
   const trSuffixX = trX + trWidth + 2;
@@ -848,10 +856,12 @@ const flagMarkup = flagDataUri
     <rect x="${avatarX}" y="${avatarY}" width="${avatarSize}" height="${avatarSize}" rx="4" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
     <text x="${usernameX}" y="${usernameY}" class="username"${usernameStyle ? ` style="${usernameStyle}"` : ''} xml:space="preserve">${renderTetolbUsernameMarkup(usernameText)}${entry.supporter ? `<tspan dx="3.5" fill="#ff9f2e">★</tspan>` : ''}</text>
     ${flagMarkup}
-    ${renderCompactLevelBadge(levelBadge, badgeX, badgeY, badgeHeight)}
+    ${levelBadge.width > 0 ? renderCompactLevelBadge(levelBadge, badgeX, badgeY, badgeHeight) : ''}
     ${rankIconDataUri
       ? `<image href="${rankIconDataUri}" x="${rankX}" y="${rankY}" width="${rankWidth}" height="${rankHeight}" preserveAspectRatio="xMidYMid meet"/>`
-      : `<text x="${rankX + rankWidth / 2}" y="${trY}" text-anchor="middle" class="rankLabel">${renderTetrioTextMarkup(rankLabel)}</text>`}
+      : rankLabel
+        ? `<text x="${rankX + rankWidth / 2}" y="${trY}" text-anchor="middle" class="rankLabel">${renderTetrioTextMarkup(rankLabel)}</text>`
+        : ''}
     <text x="${trX}" y="${trY}" class="trValue"${trValueStyle ? ` style="${trValueStyle}"` : ''}>${renderTetolbDecimalNumberMarkup(metricText)}</text>
     <text x="${trSuffixX}" y="${trY}" class="trSuffix">${renderTetrioTextMarkup(metricSuffix)}</text>
   </g>`;
