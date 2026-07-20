@@ -71,7 +71,6 @@ const scorePaletteByKind = {
 
 const assetDataUrlCache = new Map();
 const boardPageHtmlCache = new Map();
-const tierBoardApiCache = new Map();
 
 export async function createVArchivePerformanceCard(nickname, song, options = {}) {
   const normalizedNickname = normalizeVArchiveNickname(nickname);
@@ -114,34 +113,30 @@ export async function fetchVArchiveSongPerformance(nickname, song, options = {})
     throw error;
   }
 
-  const cells = {};
   const patternGroups = groupSongPatternsByButton(song);
+  const cells = Object.fromEntries(
+    await Promise.all(
+      varchiveKeyOrder.map(async (key) => {
+        const button = Number(key.replace('B', ''));
+        const patterns = patternGroups.get(button) ?? [];
+        const resolvedEntries = patterns.length > 0
+          ? await resolveVArchiveBoardEntriesForButton(normalizedNickname, titleId, button, patterns, { fetchImpl })
+          : {};
+        const buttonCells = Object.fromEntries(
+          varchiveDifficultyOrder.map((difficulty) => {
+            const pattern = song?.patterns?.[key]?.[difficulty] ?? null;
+            const entry = resolvedEntries[difficulty] ?? null;
+            return [
+              difficulty,
+              buildPerformanceCell(pattern, entry),
+            ];
+          })
+        );
 
-  for (const key of varchiveKeyOrder) {
-    const button = Number(key.replace('B', ''));
-    const patterns = patternGroups.get(button) ?? [];
-    const resolvedEntries = patterns.length > 0
-      ? await resolveVArchiveBoardEntriesForButton(normalizedNickname, titleId, button, patterns, { fetchImpl })
-      : {};
-    const buttonCells = Object.fromEntries(
-      varchiveDifficultyOrder.map((difficulty) => {
-        const pattern = song?.patterns?.[key]?.[difficulty] ?? null;
-        const entry = resolvedEntries[difficulty] ?? null;
-        return [
-          difficulty,
-          buildPerformanceCell(pattern, entry),
-        ];
+        return [key, buttonCells];
       })
-    );
-    await applyTierMaxComboFlags({
-      nickname: normalizedNickname,
-      titleId,
-      button,
-      buttonCells,
-      fetchImpl,
-    });
-    cells[key] = buttonCells;
-  }
+    )
+  );
 
   return {
     nickname: normalizedNickname,
@@ -437,106 +432,13 @@ async function fetchVArchiveBoardPageHtml(nickname, button, boardNo, options = {
   return promise;
 }
 
-async function fetchVArchiveTierBoardEntries(nickname, button, options = {}) {
-  const fetchImpl = resolveFetch(options.fetchImpl);
-  const normalizedNickname = normalizeVArchiveNickname(nickname);
-  const normalizedButton = Number(button);
-  const cacheKey = `${normalizedNickname}:${normalizedButton}`;
-  const cached = tierBoardApiCache.get(cacheKey);
-  const now = Date.now();
-
-  if (cached && cached.expiresAt > now) {
-    return cached.promise;
-  }
-
-  const promise = (async () => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), varchiveRequestTimeoutMs);
-    const url = `${varchiveBaseUrl}/api/v3/archive/${encodeURIComponent(normalizedNickname)}/tier/${normalizedButton}`;
-
-    try {
-      const response = await fetchImpl(url, {
-        signal: controller.signal,
-        headers: {
-          accept: 'application/json',
-          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
-        },
-      });
-      const payload = await response.json().catch(() => null);
-
-      if (!response.ok || payload?.success === false) {
-        return [];
-      }
-
-      return Array.isArray(payload?.tierBoard?.userRatingList)
-        ? payload.tierBoard.userRatingList
-        : [];
-    } catch (error) {
-      if (error?.name === 'AbortError') {
-        return [];
-      }
-
-      return [];
-    } finally {
-      clearTimeout(timeout);
-    }
-  })();
-
-  tierBoardApiCache.set(cacheKey, {
-    expiresAt: now + varchiveBoardPageCacheTtlMs,
-    promise,
-  });
-
-  return promise;
-}
-
-async function applyTierMaxComboFlags({ nickname, titleId, button, buttonCells, fetchImpl }) {
-  const playedDifficulties = varchiveDifficultyOrder.filter((difficulty) => {
-    const cell = buttonCells?.[difficulty];
-    return cell?.scoreText && cell.scoreText !== '-';
-  });
-
-  if (playedDifficulties.length === 0) {
-    return;
-  }
-
-  const tierEntries = await fetchVArchiveTierBoardEntries(nickname, button, { fetchImpl });
-  if (!Array.isArray(tierEntries) || tierEntries.length === 0) {
-    return;
-  }
-
-  const tierEntryMap = new Map(
-    tierEntries.map((entry) => [buildTierPerformanceEntryKey(entry), entry])
-  );
-
-  for (const difficulty of playedDifficulties) {
-    const cell = buttonCells[difficulty];
-    const tierEntry = tierEntryMap.get(buildTierPerformanceEntryKey({
-      title: titleId,
-      pattern: difficulty,
-      boardNo: cell?.boardNo,
-    }));
-
-    if (tierEntry?.maxCombo === true) {
-      cell.scoreKind = 'maxcombo';
-    }
-  }
-}
-
-function buildTierPerformanceEntryKey(entry) {
-  const title = String(entry?.title ?? '').trim();
-  const pattern = String(entry?.pattern ?? '').trim().toUpperCase();
-  const boardNo = Number(entry?.boardNo);
-  return `${title}:${pattern}:${Number.isFinite(boardNo) ? boardNo : '-'}`;
-}
-
 function looksLikeNotFoundHtml(html) {
   const text = String(html ?? '');
   return text.includes('페이지를 찾을 수 없습니다')
     && !text.includes('님의 성과표');
 }
 
-function parseBoardPageEntry(html, button, titleId, difficulty) {
+export function parseBoardPageEntry(html, button, titleId, difficulty) {
   const targetId = `${button}-${titleId}-${difficulty}`;
   const startIndex = String(html ?? '').indexOf(`id="${targetId}"`);
 
@@ -545,16 +447,17 @@ function parseBoardPageEntry(html, button, titleId, difficulty) {
   }
 
   const snippet = html.slice(startIndex, startIndex + 1500);
-  const scoreMatch = snippet.match(/<div class="text-center[^"]*?(?:bg-\[color:var\(--([^)]+)\)\][^"]*)?[^"]*">([^<]+)<\/div>/i);
+  const scoreMatch = snippet.match(/<div class="([^"]*text-center[^"]*)">([^<]+)<\/div>/i);
 
   if (!scoreMatch) {
     return null;
   }
 
+  const scoreClassName = scoreMatch[1];
   const scoreText = decodeHtmlEntities(scoreMatch[2]).trim();
   const scoreKind = scoreText === '-'
     ? 'none'
-    : normalizeScoreKind(scoreMatch[1]);
+    : normalizeScoreKind(scoreClassName.match(/bg-\[color:var\(--([^)]+)\)\]/i)?.[1]);
 
   return {
     scoreText,
