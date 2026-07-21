@@ -2,8 +2,8 @@ import { JSDOM } from 'jsdom';
 
 const duckDuckGoHtmlOrigin = 'https://html.duckduckgo.com';
 const duckDuckGoHtmlUrl = `${duckDuckGoHtmlOrigin}/html/`;
-const defaultSearchTimeoutMs = 12_000;
-const defaultMaxResults = 5;
+const defaultSearchTimeoutMs = 20_000;
+const defaultMaxResults = 12;
 const pyhokSearchUrl = 'https://pyhok.com/Search';
 const defaultPyhokSearchTimeoutMs = 8_000;
 const explicitSearchPattern = /(검색|찾아봐|찾아보|찾아줘|찾아 줘|알아봐|알아봐줘|알아봐 줘|\bsearch\b)/i;
@@ -18,7 +18,7 @@ export async function searchWeb(query, options = {}) {
     return { query: '', results: [] };
   }
 
-  const maxResults = clampInteger(options.maxResults, 1, 8, defaultMaxResults);
+  const maxResults = clampInteger(options.maxResults, 1, 20, defaultMaxResults);
   const timeoutMs = clampInteger(options.timeoutMs, 1_000, 60_000, defaultSearchTimeoutMs);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -60,7 +60,7 @@ export async function searchPyhok(query, options = {}) {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return { query: '', results: [] };
 
-  const maxResults = clampInteger(options.maxResults, 1, 8, defaultMaxResults);
+  const maxResults = clampInteger(options.maxResults, 1, 20, defaultMaxResults);
   const timeoutMs = clampInteger(options.timeoutMs, 1_000, 60_000, defaultPyhokSearchTimeoutMs);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -199,12 +199,12 @@ export function formatWebSearchContext(query, results, options = {}) {
     '최신 정보가 필요한 질문이면 아래 결과를 우선 참고하고, 검색 결과에 없는 내용은 추측하지 않는다.',
     ...normalizedResults.map((result, index) => {
       const lines = [
-        `[${index + 1}] 제목: ${truncateText(result.title, 180)}`,
+        `[${index + 1}] 제목: ${truncateText(result.title, 320)}`,
         `URL: ${result.url}`,
       ];
 
       if (result.snippet) {
-        lines.push(`요약: ${truncateText(result.snippet, 220)}`);
+        lines.push(`요약: ${truncateText(result.snippet, 1200)}`);
       }
 
       return lines.join('\n');

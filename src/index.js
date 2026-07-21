@@ -213,8 +213,8 @@ const geminiVisionModels = getUniqueValues([
   geminiVisionModel,
   ...geminiVisionFallbackModels,
 ]);
-const geminiRequestTimeoutMs = Number(process.env.GEMINI_TIMEOUT_MS) || 20_000;
-const geminiMaxOutputTokens = Number(process.env.GEMINI_MAX_OUTPUT_TOKENS) || 1024;
+const geminiRequestTimeoutMs = Number(process.env.GEMINI_TIMEOUT_MS) || 45_000;
+const geminiMaxOutputTokens = Number(process.env.GEMINI_MAX_OUTPUT_TOKENS) || 4096;
 const geminiMaxAttemptsPerModel = Number(process.env.GEMINI_MAX_ATTEMPTS_PER_MODEL) || 3;
 const geminiTimingLogsEnabled = String(process.env.GEMINI_TIMING_LOGS ?? 'true').trim().toLowerCase() !== 'false';
 const geminiRetryStatusCodes = new Set([429, 500, 503, 504]);
@@ -227,9 +227,9 @@ const geminiMemoryResetAdminUserId = '635107514471415808';
 const blacklistAdminUserId = '635107514471415808';
 const geminiMemoryRetentionDays = Number(process.env.GEMINI_MEMORY_DAYS) || 45;
 const geminiMemoryRetentionMs = geminiMemoryRetentionDays * 24 * 60 * 60 * 1000;
-const geminiMemoryMaxMessagesPerSession = Number(process.env.GEMINI_MEMORY_MAX_MESSAGES_PER_SESSION) || 30;
-const geminiMemoryMaxEntryLength = Number(process.env.GEMINI_MEMORY_MAX_ENTRY_LENGTH) || 1800;
-const geminiMemoryMaxContextLength = Number(process.env.GEMINI_MEMORY_MAX_CONTEXT_LENGTH) || 12000;
+const geminiMemoryMaxMessagesPerSession = Number(process.env.GEMINI_MEMORY_MAX_MESSAGES_PER_SESSION) || 50;
+const geminiMemoryMaxEntryLength = Number(process.env.GEMINI_MEMORY_MAX_ENTRY_LENGTH) || 4000;
+const geminiMemoryMaxContextLength = Number(process.env.GEMINI_MEMORY_MAX_CONTEXT_LENGTH) || 32000;
 const geminiImageMaxBytes = Number(process.env.GEMINI_IMAGE_MAX_BYTES) || 8 * 1024 * 1024;
 const minomuncherReplayMaxBytes = Number(process.env.MINOMUNCHER_REPLAY_MAX_BYTES) || 25 * 1024 * 1024;
 const vmStatusChannelId = process.env.VM_STATUS_CHANNEL_ID?.trim() ?? '';
@@ -400,8 +400,8 @@ let unlinkedTetrioImageBufferPromise = null;
 const ambiguousNumericNicknameMinLength = 3;
 const trollingNumericInputMaxLength = 5;
 const quickPlayPersonalLeaderboards = new Set(['top', 'recent']);
-const webSearchMaxResults = 5;
-const webSearchSourceCount = 3;
+const webSearchMaxResults = Math.min(20, Math.max(1, Number(process.env.WEB_SEARCH_MAX_RESULTS) || 12));
+const webSearchSourceCount = Math.min(webSearchMaxResults, Math.max(1, Number(process.env.WEB_SEARCH_SOURCE_COUNT) || 12));
 const percentCommandAliases = {
   help: ['help', '도움말'],
   webSearch: ['검색', 'search'],
@@ -7165,11 +7165,31 @@ async function handleGeminiFallbackMessage(message, options = {}) {
 async function handleWebSearchMessage(message, input) {
   try {
     await safeSendTyping(message.channel, 'handleWebSearchMessage');
+    await ensureGeminiMemoryLoaded();
+    const sessionKey = getGeminiSessionKey(message);
+    const history = getGeminiSessionHistory(sessionKey);
     const responseText = await createWebSearchResponse(String(input ?? '').trim(), {
+      history,
       mentionContext: getGeminiMentionContext(message),
       currentUserContext: getGeminiCurrentUserContext(message),
       preferPyhok: true,
     });
+
+    // `%검색`도 일반 Gemini 대화와 같은 세션에 남겨 후속 질문이 검색 결과를 이어받게 한다.
+    appendGeminiMemoryEntry(sessionKey, {
+      role: 'user',
+      authorName: getMessageAuthorName(message),
+      text: `[웹 검색 요청] ${String(input ?? '').trim()}`,
+      timestamp: Date.now(),
+    });
+    appendGeminiMemoryEntry(sessionKey, {
+      role: 'model',
+      authorName: message.client.user?.username ?? 'Bot',
+      text: `[웹 검색 답변]\n${responseText}`,
+      timestamp: Date.now(),
+    });
+    await saveGeminiMemory();
+
     const chunks = splitDiscordMessage(responseText, 1900);
     const [firstChunk, ...remainingChunks] = chunks;
 
