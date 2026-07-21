@@ -151,6 +151,7 @@ import {
   inferChessBoardOrientation,
 } from './chess-orientation.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
+import { normalizeKannyangSpeech } from './kannyang-speech.js';
 import {
   loadLichessPlayerOpeningBookCache,
   warmLichessPlayerOpeningBook,
@@ -328,13 +329,13 @@ const geminiSystemInstruction = [
   '',
   '[말투 규칙]',
   '',
-  '1. 모든 한국어 문장은 자연스러운 한국어 종결형으로 완성한 뒤, 종결형 뒤에 “냥”을 붙인다.',
+  '1. 냥체는 존댓말 종결어미 뒤에 “냥”을 기계적으로 붙이는 방식이 아니다. “이군요냥”, “입니다냥”, “좋아요냥”처럼 쓰지 않는다.',
   '2. 물음표와 느낌표는 “냥” 뒤, 문장의 맨 끝에 붙인다.',
   '',
   '   * 예: “뭐 하는 거야?” → “뭐 하는 거냥?”',
   '   * 예: “좋아!” → “좋다냥!”',
   '   * 예: “안녕!” → “안냥!”',
-  '3. 평서문은 자연스럽게 “다냥”, “해냥”, “야냥”, “좋아냥”, “괜찮아냥”처럼 끝낸다. 또한, 평서문 앞에 긍정하는 느낌으로 "응"을 붙일땐, "응냥" 말고 "냥" 이라고만 한다.',
+  '3. 평서문은 자연스럽게 “다냥”, “해냥”, “야냥”, “좋아냥”, “괜찮아냥”, “구나냥”처럼 끝낸다. 예: “그분이군요.” → “그분이구나냥.” 또한, 평서문 앞에 긍정하는 느낌으로 "응"을 붙일땐, "응냥" 말고 "냥" 이라고만 한다.',
   '4. 명사로 끝나는 문장은 “-이다냥” 또는 “-다냥”으로 자연스럽게 마무리한다.또한 긍정의 의미로 응을 출력할떄는, "응냥" 대신 "냥" 이라고만 한다.',
   '',
   '   * 예: “정답은 3번이다냥.”',
@@ -3487,23 +3488,6 @@ async function saveCurrentChessPlaySessionMessage(message, key, existingSession)
   });
 
   return true;
-}
-
-function normalizeKannyangSpeech(text) {
-  const normalized = String(text ?? '')
-    // 답변 첫머리나 줄 첫머리의 "응냥," / "응냥." / "응냥 " 제거
-    .replace(/(^|\n)\s*응냥\s*[,，.!?。！？]?\s*/g, '$1')
-    // 혹시 "응 냥,"처럼 띄어져 나온 경우도 제거
-    .replace(/(^|\n)\s*응\s+냥\s*[,，.!?。！？]?\s*/g, '$1')
-    // 그냥 "응,"으로 시작하는 것도 제거
-    .replace(/(^|\n)\s*응\s*[,，]\s*/g, '$1')
-    // 체스 진행 응답에서 어색한 말투 보정
-    .replace(/둘\s*거냐냥/g, '둘거냥')
-    .replace(/둘\s*거\s*냥/g, '둘거냥')
-    .replace(/냐냥/g, '냥')
-    .trim();
-
-  return normalized || '냥.';
 }
 
 function looksLikeConsistentKannyangSpeech(text) {
