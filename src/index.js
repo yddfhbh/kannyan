@@ -7005,6 +7005,10 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       ? getRecentChessAnalysis(message)
       : null;
     const includeWebSearchSources = shouldIncludeWebSearchSources(rawPrompt);
+    const previousWebSearchQuery = getImmediatePreviousWebSearchQuery(history);
+    const followupWebSearchQuery = previousWebSearchQuery
+      ? `${previousWebSearchQuery} ${rawPrompt}`.trim()
+      : '';
 
     if (recentChessContext?.fen) {
       const stockfishReply = await createRecentChessConversationReply(
@@ -7038,12 +7042,19 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       detectedChessboard: chessAnalysis.detectedChessboard,
       prioritizeChessImageAnalysis,
     });
+    const shouldSearchPreviousWebContext = Boolean(followupWebSearchQuery)
+      && imageParts.length === 0
+      && !prioritizeChessImageAnalysis;
     let webSearchData = null;
     if ((imageParts.length === 0 && !prioritizeChessImageAnalysis) || shouldForceChessWebSearch) {
       try {
-        webSearchData = await tryBuildWebSearchData(rawPrompt, {
-          force: shouldForceChessWebSearch,
-        });
+        webSearchData = await tryBuildWebSearchData(
+          shouldSearchPreviousWebContext ? followupWebSearchQuery : rawPrompt,
+          {
+          force: shouldForceChessWebSearch || shouldSearchPreviousWebContext,
+          preferPyhok: shouldSearchPreviousWebContext,
+          }
+        );
       } catch (error) {
         console.error(`Failed to fetch web search results for Gemini prompt ${JSON.stringify(rawPrompt)}:`);
         console.error(error);
@@ -7120,7 +7131,9 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     appendGeminiMemoryEntry(sessionKey, {
       role: 'user',
       authorName: getMessageAuthorName(message),
-      text: replyContext
+      text: shouldSearchPreviousWebContext
+        ? `[웹 검색 후속 요청] ${followupWebSearchQuery}`
+        : replyContext
         ? `[답장 원본: ${replyContext.authorName}] ${replyContext.text}\n\n[첨부 이미지: ${imageParts.length}개]\n\n[현재 질문] ${prompt}`
         : `[첨부 이미지: ${imageParts.length}개]\n\n${prompt}`,
       timestamp: Date.now(),
@@ -7129,7 +7142,9 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     appendGeminiMemoryEntry(sessionKey, {
       role: 'model',
       authorName: message.client.user?.username ?? 'Bot',
-      text: answer || '답변을 만들지 못했다냥.',
+      text: shouldSearchPreviousWebContext
+        ? `[웹 검색 답변]\n${answer || '답변을 만들지 못했다냥.'}`
+        : answer || '답변을 만들지 못했다냥.',
       timestamp: Date.now(),
     });
 
@@ -8241,6 +8256,21 @@ function formatGeminiHistory(history) {
       return `${roleLabel}${authorName}: ${entry.text}`;
     })
     .join('\n');
+}
+
+function getImmediatePreviousWebSearchQuery(history) {
+  if (!Array.isArray(history) || history.length < 2) {
+    return '';
+  }
+
+  const lastEntry = history.at(-1);
+  const previousEntry = history.at(-2);
+  if (lastEntry?.role !== 'model' || !String(lastEntry.text ?? '').startsWith('[웹 검색 답변]')) {
+    return '';
+  }
+
+  const match = String(previousEntry?.text ?? '').match(/^\[웹 검색 (?:요청|후속 요청)\]\s*(.+)$/);
+  return match?.[1]?.trim() ?? '';
 }
 
 function truncateMemoryText(value, maxLength) {
