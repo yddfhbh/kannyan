@@ -4,6 +4,8 @@ const duckDuckGoHtmlOrigin = 'https://html.duckduckgo.com';
 const duckDuckGoHtmlUrl = `${duckDuckGoHtmlOrigin}/html/`;
 const defaultSearchTimeoutMs = 12_000;
 const defaultMaxResults = 5;
+const pyhokSearchUrl = 'https://pyhok.com/Search';
+const defaultPyhokSearchTimeoutMs = 8_000;
 const explicitSearchPattern = /(검색|찾아봐|찾아보|찾아줘|찾아 줘|알아봐|알아봐줘|알아봐 줘|\bsearch\b)/i;
 const strongTimeSensitivePattern = /(최신|실시간|뉴스|속보|업데이트|환율|주가|시세|날씨|기온|영업시간|운영시간|업무시간)/i;
 const relativeTimePattern = /(오늘|지금|현재|최근|이번 주|이번주|이번 달|이번달|올해|어제|내일)/i;
@@ -51,6 +53,46 @@ export async function searchWeb(query, options = {}) {
     };
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+export async function searchPyhok(query, options = {}) {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return { query: '', results: [] };
+
+  const maxResults = clampInteger(options.maxResults, 1, 8, defaultMaxResults);
+  const timeoutMs = clampInteger(options.timeoutMs, 1_000, 60_000, defaultPyhokSearchTimeoutMs);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const url = new URL(pyhokSearchUrl);
+    url.searchParams.set('q', normalizedQuery);
+
+    const response = await fetch(url, {
+      headers: { 'user-agent': 'KannyaDiscordBot/1.0', accept: 'text/html' },
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`pyhok search failed with ${response.status}`);
+    return { query: normalizedQuery, results: parsePyhokSearchResults(await response.text()).slice(0, maxResults) };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export function parsePyhokSearchResults(html) {
+  const dom = new JSDOM(String(html ?? ''));
+  try {
+    const results = [];
+    for (const anchor of dom.window.document.querySelectorAll('.liberty-content-main h4 a[href^="/w/"]')) {
+      const title = normalizeSearchText(anchor.textContent);
+      const container = anchor.closest('h4')?.parentElement;
+      const snippet = normalizeSearchText(container?.querySelector(':scope > div')?.textContent ?? '');
+      const url = new URL(anchor.getAttribute('href'), 'https://pyhok.com').toString();
+      if (title && !results.some((item) => item.url === url)) results.push({ title, url, snippet });
+    }
+    return results;
+  } finally {
+    dom.window.close();
   }
 }
 

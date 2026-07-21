@@ -117,10 +117,12 @@ import {
 import {
   deriveWebSearchQuery,
   formatWebSearchContext,
+  searchPyhok,
   searchWeb,
   shouldIncludeWebSearchSources,
   shouldUseWebSearch,
 } from './web-search.js';
+import { buildWebPageReferenceContext } from './web-page-content.js';
 import {
   findSemanticReactionEmojiEntry,
   isPreviousReactionLikeText,
@@ -7063,6 +7065,8 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       }
     }
 
+    const webPageData = await buildWebPageReferenceContext(rawPrompt);
+
     const requireStockfishForChess = shouldRequireStockfishForChessPrompt(rawPrompt, {
       detectedChessboard: chessAnalysis.detectedChessboard,
     });
@@ -7099,7 +7103,11 @@ async function handleGeminiFallbackMessage(message, options = {}) {
             ].join('\n')
           : prompt;
 
-    const answerResult = await generateGeminiAnswer(answerPrompt, {
+    const promptWithWebPages = webPageData.context
+      ? `${answerPrompt}\n\n${webPageData.context}`
+      : answerPrompt;
+
+    const answerResult = await generateGeminiAnswer(promptWithWebPages, {
       history,
       replyContext,
       mentionContext,
@@ -7175,6 +7183,7 @@ async function handleWebSearchMessage(message, input) {
     const responseText = await createWebSearchResponse(String(input ?? '').trim(), {
       mentionContext: getGeminiMentionContext(message),
       currentUserContext: getGeminiCurrentUserContext(message),
+      preferPyhok: true,
     });
     const chunks = splitDiscordMessage(responseText, 1900);
     const [firstChunk, ...remainingChunks] = chunks;
@@ -7399,7 +7408,10 @@ async function createWebSearchResponse(prompt, options = {}) {
   } = options;
   const resolvedIncludeSources = includeSources || shouldIncludeWebSearchSources(prompt);
 
-  const webSearchData = await tryBuildWebSearchData(prompt, { force: true });
+  const webSearchData = await tryBuildWebSearchData(prompt, {
+    force: true,
+    preferPyhok: Boolean(options.preferPyhok),
+  });
   if (!webSearchData || webSearchData.results.length === 0) {
     return '검색 결과를 찾지 못했다냥.';
   }
@@ -7439,6 +7451,30 @@ async function tryBuildWebSearchData(prompt, options = {}) {
   const query = deriveWebSearchQuery(normalizedPrompt);
   if (!query) {
     return null;
+  }
+
+  if (options.preferPyhok) {
+    try {
+      const pyhokSearch = await searchPyhok(query, {
+        maxResults: webSearchMaxResults,
+      });
+      const pyhokResults = pyhokSearch.results;
+
+      if (pyhokResults.length > 0) {
+        return {
+          query,
+          results: pyhokResults,
+          context: [
+            '[Priority search source: pyhok.com]',
+            formatWebSearchContext(query, pyhokResults, {
+              searchedAtText: formatKstTime(new Date()),
+            }),
+          ].join('\n'),
+        };
+      }
+    } catch (error) {
+      console.warn(`pyhok priority search failed; falling back to web search: ${error.message}`);
+    }
   }
 
   const searchResult = await searchWeb(query, {
