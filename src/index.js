@@ -117,6 +117,7 @@ import {
 import {
   deriveWebSearchQuery,
   formatWebSearchContext,
+  isRelevantPyhokSearchResult,
   searchPyhok,
   searchWeb,
   shouldIncludeWebSearchSources,
@@ -7442,7 +7443,7 @@ async function tryBuildWebSearchData(prompt, options = {}) {
       const pyhokSearch = await searchPyhok(query, {
         maxResults: webSearchMaxResults,
       });
-      const pyhokResults = pyhokSearch.results;
+      const pyhokResults = pyhokSearch.results.filter((result) => isRelevantPyhokSearchResult(query, result));
 
       if (pyhokResults.length > 0) {
         return {

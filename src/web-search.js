@@ -96,6 +96,26 @@ export function parsePyhokSearchResults(html) {
   }
 }
 
+export function isRelevantPyhokSearchResult(query, result) {
+  const keywords = getSearchKeywords(query);
+  if (keywords.length === 0) return false;
+
+  const title = normalizeSearchText(result?.title).toLowerCase();
+  const searchableText = normalizeSearchText(`${title} ${result?.snippet ?? ''}`).toLowerCase();
+  return keywords.every((keyword) => (
+    keyword.length === 1 ? title.includes(keyword) : searchableText.includes(keyword)
+  ));
+}
+
+function getSearchKeywords(query) {
+  const stopWords = new Set(['검색', '찾아줘', '찾아', '알려줘', '알려', '정보', '대해', '관련', '무엇', '뭐야']);
+  return normalizeSearchText(query)
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => word.replace(/(으로|에서|에게|은|는|이|가|을|를|에|의|와|과|도|로)$/u, ''))
+    .filter((word) => word.length >= 1 && !stopWords.has(word));
+}
+
 export function parseDuckDuckGoHtmlResults(html) {
   const dom = new JSDOM(String(html ?? ''));
   const document = dom.window.document;
