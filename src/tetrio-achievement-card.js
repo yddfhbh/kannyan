@@ -692,20 +692,22 @@ async function renderAchievementCardSvg({ achievement, username }) {
       opacity: 0.9;
     }
   </style>
-  <rect x="${cardX}" y="${cardY}" width="${width}" height="${height}" rx="0" fill="#0a100d"/>
+  <rect x="${cardX}" y="${cardY}" width="${width}" height="${height}" rx="0" fill="#07100d"/>
   <rect x="${cardX}" y="${cardY}" width="${width}" height="${height}" fill="url(#backTint)"/>
   <defs>
     <linearGradient id="backTint" x1="0" y1="0" x2="${width}" y2="${height}" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#09110d"/>
-      <stop offset="0.55" stop-color="#0f1714"/>
-      <stop offset="1" stop-color="#121c17"/>
+      <stop offset="0" stop-color="#060f0c"/>
+      <stop offset="0.42" stop-color="#101914"/>
+      <stop offset="0.72" stop-color="#18211c"/>
+      <stop offset="1" stop-color="#203029"/>
     </linearGradient>
     <linearGradient id="accentBand" x1="${contentX}" y1="${height}" x2="${width}" y2="0" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="${palette.glow}"/>
+      <stop offset="0.48" stop-color="${palette.secondary}33"/>
       <stop offset="1" stop-color="rgba(255,255,255,0)"/>
     </linearGradient>
   </defs>
-  <rect x="${contentX - 24}" y="0" width="${width - contentX + 24}" height="${height}" fill="url(#accentBand)"/>
+  <rect x="${contentX - 15}" y="0" width="${width - contentX + 15}" height="${height}" fill="url(#accentBand)" opacity="0.96"/>
   <rect x="0" y="0" width="8" height="${height}" fill="${palette.primary}" opacity="0.55"/>
   <rect x="1" y="1" width="${width - 2}" height="${height - 2}" fill="none" stroke="#1d2a23" stroke-width="2"/>
   <rect x="${iconX - 8}" y="${iconY - 8}" width="${iconSize + 16}" height="${iconSize + 16}" rx="22" fill="${palette.glow}" filter="url(#cardGlow)" opacity="0.7"/>
@@ -799,12 +801,22 @@ function formatAchievementMeta(achievement) {
     parts.push(`(#${(position + 1).toLocaleString('en-US')})`);
   }
 
-  const dateText = formatAchievementDate(achievement?.t);
+  const dateText = formatAchievementDateWithRelative(achievement?.t);
   if (dateText) {
     parts.push(dateText);
   }
 
   return parts.join('  ');
+}
+
+export function formatAchievementDateWithRelative(value, now = Date.now()) {
+  const dateText = formatAchievementDate(value);
+  if (!dateText) {
+    return '';
+  }
+
+  const daysAgoText = formatAchievementDaysAgo(value, now);
+  return daysAgoText ? `${dateText} (${daysAgoText})` : dateText;
 }
 
 function buildAchievementObjectText(achievement) {
@@ -827,6 +839,32 @@ function formatAchievementDate(value) {
   }
 
   return `${date.getUTCFullYear()}. ${date.getUTCMonth() + 1}. ${date.getUTCDate()}.`;
+}
+
+function formatAchievementDaysAgo(value, now = Date.now()) {
+  if (!value) {
+    return '';
+  }
+
+  const date = new Date(value);
+  const current = new Date(now);
+  if (Number.isNaN(date.getTime()) || Number.isNaN(current.getTime())) {
+    return '';
+  }
+
+  const dayMs = 86_400_000;
+  const achievementDayUtc = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+  );
+  const currentDayUtc = Date.UTC(
+    current.getUTCFullYear(),
+    current.getUTCMonth(),
+    current.getUTCDate(),
+  );
+  const diffDays = Math.max(0, Math.floor((currentDayUtc - achievementDayUtc) / dayMs));
+  return `${diffDays} days ago`;
 }
 
 function wrapAchievementText(text, maxLength, maxLines) {
