@@ -4941,7 +4941,7 @@ candidateContext,
 async function handleGeminiMemoryResetMessage(message) {
   const content = String(message.content ?? '').trim();
 
-  if (content !== '%리셋') {
+  if (!['%리셋', '%기억리셋'].includes(content)) {
     return false;
   }
 
