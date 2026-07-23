@@ -372,9 +372,10 @@ async function fetchTetrioAssets(user, summaries) {
   const avatarUrl = user.avatar_revision
     ? `${tetrioContentBaseUrl}/avatars/${user._id}.jpg?rv=${user.avatar_revision}`
     : tetrioDefaultAvatarUrl;
-  const bannerUrl = user.supporter && user.banner_revision
-    ? `${tetrioContentBaseUrl}/banners/${user._id}.jpg?rv=${user.banner_revision}`
-    : null;
+ const bannerRevision = user.banner_revision;
+const bannerUrl = bannerRevision !== null && bannerRevision !== undefined
+  ? `${tetrioContentBaseUrl}/banners/${user._id}.jpg?rv=${bannerRevision}`
+  : null;
   const countryCode = normalizeCountryCode(user.country);
   const flagUrl = countryCode
     ? `https://flagcdn.com/h40/${countryCode.toLowerCase()}.png`
