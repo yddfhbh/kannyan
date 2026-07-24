@@ -9,6 +9,9 @@ const previewStats = {
   apm: 114.21,
   pps: 2.51,
   vs: 226.35,
+  apl: 1.4334,
+  dspm: 21.6000,
+  lpm: 79.6800,
   dsPiece: 0.1434,
   app: 0.7584,
   appDsPiece: 0.9018,
@@ -52,12 +55,12 @@ function renderTetrioStatsCardSvg(username, stats) {
   const nicknameBoxHeight = 50;
   const gap = 7;
   const statsBoxY = contentY + nicknameBoxHeight + gap;
-  const statsBoxHeight = 261;
+  const statsBoxHeight = 309;
   const viewBoxHeight = statsBoxY + statsBoxHeight + outerPadding;
   const width = Math.round(viewBoxWidth * statsCardRenderScale);
   const height = Math.round(viewBoxHeight * statsCardRenderScale);
   const nicknameTextX = contentX + 3;
-  const lowerSectionY = statsBoxY + 150;
+  const lowerSectionY = statsBoxY + 198;
   const lowerSectionXs = [2, 166, 342].map((x) => contentX + x);
   const normalizedUsername = String(username ?? '').trim() || 'NICKNAME';
   const values = normalizeStats(stats);
@@ -71,6 +74,11 @@ function renderTetrioStatsCardSvg(username, stats) {
       { label: 'DS/Piece', value: formatDecimal(values.dsPiece, 4) },
       { label: 'APP', value: formatDecimal(values.app, 4) },
       { label: 'APP+DS/Piece', value: formatDecimal(values.appDsPiece, 4) },
+    ],
+    [
+      { label: 'APL', value: formatDecimal(values.apl, 4) },
+      { label: 'LPM', value: formatDecimal(values.lpm, 4) },
+      null,
     ],
     [
       { label: 'Rank', value: values.rank },
@@ -175,7 +183,7 @@ function renderTetrioStatsCardSvg(username, stats) {
 
 function renderTopRows(rows, yOffset, xOffset = 0) {
   const columns = [3, 171, 347].map((x) => xOffset + x);
-  const rowYs = [8, 56, 104];
+  const rowYs = [8, 56, 104, 152];
 
   return rows.map((row, rowIndex) =>
     row.map((item, columnIndex) => {
@@ -243,6 +251,9 @@ function normalizeStats(stats) {
     apm: toFiniteNumber(stats.apm),
     pps: toFiniteNumber(stats.pps),
     vs: toFiniteNumber(stats.vs),
+    apl: toFiniteNumber(stats.apl),
+    lpm: toFiniteNumber(stats.lpm),
+    dspm: toFiniteNumber(stats.dspm),
     dsPiece: firstFiniteNumber(stats.dsPiece, stats.dspiece),
     app: toFiniteNumber(stats.app),
     appDsPiece: firstFiniteNumber(stats.appDsPiece, stats.appdspiece),

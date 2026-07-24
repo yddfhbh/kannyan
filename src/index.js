@@ -9943,7 +9943,7 @@ function parseTetrioLeagueMatchMessageInput(input) {
   if (!trimmed) {
     return { targetText: null, matchIndex: 1 };
   }
-
+                                              
   const tokens = trimmed.split(/\s+/).filter(Boolean);
 
   if (tokens.length === 1) {

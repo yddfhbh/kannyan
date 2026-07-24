@@ -2,6 +2,9 @@ export function calculateTetrioStats(input = {}) {
   const apm = toFiniteNumber(input.apm);
   const pps = toFiniteNumber(input.pps);
   const vs = toFiniteNumber(input.vs);
+  const apl = firstFiniteNumber(input.apl, calculateApl(apm, pps, vs));
+  const dspm = firstFiniteNumber(input.dspm, calculateDspm(apm, vs));
+  const lpm = firstFiniteNumber(input.lpm, calculateLpm(pps, dspm));
   const app = firstFiniteNumber(input.app, calculateApp(apm, pps));
   const dsSecond = firstFiniteNumber(input.dsSecond, input.dssecond, calculateDsSecond(apm, vs));
   const dsPiece = firstFiniteNumber(input.dsPiece, input.dspiece, calculateDsPiece(dsSecond, pps));
@@ -73,6 +76,9 @@ export function calculateTetrioStats(input = {}) {
     apm,
     pps,
     vs,
+    apl,
+    dspm,
+    lpm,
     app,
     dsSecond,
     dsPiece,
@@ -91,6 +97,31 @@ export function calculateTetrioStats(input = {}) {
     normalized,
     playstyle,
   };
+}
+
+export function calculateApl(apm, pps, vs) {
+  return safeDivide(
+    toFiniteNumber(apm),
+    sumFinite(
+      multiplyFinite(24, toFiniteNumber(pps)),
+      multiplyFinite(0.54, toFiniteNumber(vs)),
+      multiplyFinite(-0.9, toFiniteNumber(apm)),
+    ),
+  );
+}
+
+export function calculateDspm(apm, vs) {
+  return sumFinite(
+    multiplyFinite(toFiniteNumber(vs), 0.6),
+    multiplyFinite(toFiniteNumber(apm), -1),
+  );
+}
+
+export function calculateLpm(pps, dspm) {
+  return sumFinite(
+    multiplyFinite(toFiniteNumber(pps), 24),
+    multiplyFinite(toFiniteNumber(dspm), 0.9),
+  );
 }
 
 export function calculateApp(apm, pps) {
