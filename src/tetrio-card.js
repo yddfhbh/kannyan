@@ -976,6 +976,7 @@ const bannerRightEdgeCoverY = bannerEdgeCoverY ;
   const zenith = summaries.zenith;
   const zenithEx = summaries.zenithex;
   const badges = user.badges ?? [];
+  const isBotAccount = isBotTetrioUser(user);
   const levelTag = getLevelTag(user.xp);
   const badgeLayout = getBadgeLayout(badges, assets.badgeIcons, contentWidth);
   const levelTagY = bannerY + bannerHeight + 8;
@@ -1031,8 +1032,15 @@ const bioHeight = getBioHeight(bioLines);
 const bioY = badgeBoxY + badgeBoxHeight + 8;
 const topStatY = bioY + (hasBio ? bioHeight + 8 : 0);
 const bottomStatY = topStatY + 100;
-const svgHeight = bottomStatY + 126;
+const standardSvgHeight = bottomStatY + 126;
+const botPanelY = badgeBoxY;
+const botPanelHeight = 244;
+const botSvgBottomPadding = 32;
+const svgHeight = isBotAccount
+  ? botPanelY + botPanelHeight + botSvgBottomPadding
+  : standardSvgHeight;
 const cardHeight = svgHeight - 32;
+  const botMaster = formatBotMasterName(user.botmaster);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${layoutWidth} ${svgHeight}">
@@ -1272,10 +1280,12 @@ ${renderHeaderFlag(flag, headerFlagX, headerFlagY)}
 
   ${noticeMarkup.join('\n')}
 
-  ${renderBadgeRow(badges, assets.badgeIcons, badgeY, contentX, contentWidth, badgeLayout)}
-
-  ${renderBio(bioLines, bioEmojiAssets, bioY, bioHeight, contentX, contentWidth)}
-  ${renderStatCard(topLeagueStatX, topStatY, topLeagueStatWidth, 'TETRA LEAGUE', `#${formatRank(league?.standing)}`, `${formatTrNumber(league?.tr)}TR`, `${formatDecimal(league?.apm, 2)} APM   ${formatDecimal(league?.pps, 2)} PPS   ${formatDecimal(league?.vs, 2)} VS`, {
+  ${isBotAccount
+    ? renderBotAccountPanel(botPanelY, contentX, contentWidth, botPanelHeight, botMaster)
+    : [
+      renderBadgeRow(badges, assets.badgeIcons, badgeY, contentX, contentWidth, badgeLayout),
+      renderBio(bioLines, bioEmojiAssets, bioY, bioHeight, contentX, contentWidth),
+      renderStatCard(topLeagueStatX, topStatY, topLeagueStatWidth, 'TETRA LEAGUE', `#${formatRank(league?.standing)}`, `${formatTrNumber(league?.tr)}TR`, `${formatDecimal(league?.apm, 2)} APM   ${formatDecimal(league?.pps, 2)} PPS   ${formatDecimal(league?.vs, 2)} VS`, {
     valueIcon: assets.leagueRankIcon?.image,
     valueIconHeight: assets.leagueRankIcon?.height,
     valueFontSize: 34.2,
@@ -1290,19 +1300,68 @@ ${renderHeaderFlag(flag, headerFlagX, headerFlagY)}
     localRank: league?.standing_local,
     worldRank: league?.standing,
     subtextMarkup: renderLeagueMetricsSubtext(topLeagueStatX, topStatY, topLeagueStatWidth, league),
-  })}
-  ${renderStatCard(topFortyLinesStatX, topStatY, topSecondaryStatWidth, '40 LINES', `#${formatRank(fortyLines?.rank)}`, formatTime(fortyLines?.record?.results?.stats?.finaltime), formatAgo(fortyLines?.record?.ts), {
+  }),
+      renderStatCard(topFortyLinesStatX, topStatY, topSecondaryStatWidth, '40 LINES', `#${formatRank(fortyLines?.rank)}`, formatTime(fortyLines?.record?.results?.stats?.finaltime), formatAgo(fortyLines?.record?.ts), {
     valueFontSize: 34.2,
     valueFormat: 'timeSplitDecimal',
     flag,
     localRank: fortyLines?.rank_local,
     worldRank: fortyLines?.rank,
-  })}
-  ${renderStatCard(topBlitzStatX, topStatY, topSecondaryStatWidth, 'BLITZ', `#${formatRank(blitz?.rank)}`, formatNumber(blitz?.record?.results?.stats?.score), formatAgo(blitz?.record?.ts), { valueFontSize: 34.2, flag, localRank: blitz?.rank_local, worldRank: blitz?.rank })}
-  ${renderStatCard(bottomQuickPlayStatX, bottomStatY, bottomStatWidth, 'QUICK PLAY', `#${formatRank(zenith?.rank)}`, `${formatAltitude(zenith?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenith?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenith?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 27.8, valueFormat: 'altitudeWithUnit', flag, localRank: zenith?.rank_local, worldRank: zenith?.rank })}
-  ${renderStatCard(bottomExpertQuickPlayStatX, bottomStatY, bottomStatWidth, 'EXPERT QUICK PLAY', `#${formatRank(zenithEx?.rank)}`, `${formatAltitude(zenithEx?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenithEx?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenithEx?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 27.8, valueFormat: 'altitudeWithUnit', flag, localRank: zenithEx?.rank_local, worldRank: zenithEx?.rank })}
+  }),
+      renderStatCard(topBlitzStatX, topStatY, topSecondaryStatWidth, 'BLITZ', `#${formatRank(blitz?.rank)}`, formatNumber(blitz?.record?.results?.stats?.score), formatAgo(blitz?.record?.ts), { valueFontSize: 34.2, flag, localRank: blitz?.rank_local, worldRank: blitz?.rank }),
+      renderStatCard(bottomQuickPlayStatX, bottomStatY, bottomStatWidth, 'QUICK PLAY', `#${formatRank(zenith?.rank)}`, `${formatAltitude(zenith?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenith?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenith?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 27.8, valueFormat: 'altitudeWithUnit', flag, localRank: zenith?.rank_local, worldRank: zenith?.rank }),
+      renderStatCard(bottomExpertQuickPlayStatX, bottomStatY, bottomStatWidth, 'EXPERT QUICK PLAY', `#${formatRank(zenithEx?.rank)}`, `${formatAltitude(zenithEx?.record?.results?.stats?.zenith?.altitude)}M`, `CAREER BEST ${formatAltitude(zenithEx?.best?.record?.results?.stats?.zenith?.altitude)}M (#${formatRank(zenithEx?.best?.rank)})`, { valueFontSize: 35.6, unitFontSize: 27.8, valueFormat: 'altitudeWithUnit', flag, localRank: zenithEx?.rank_local, worldRank: zenithEx?.rank }),
+    ].join('\n')}
 
 </svg>`;
+}
+
+function isBotTetrioUser(user) {
+  return String(user?.role ?? '').trim().toLowerCase() === 'bot';
+}
+
+function formatBotMasterName(value) {
+  const text = String(value ?? '').trim();
+  return text ? text.toUpperCase() : 'UNKNOWN';
+}
+
+function renderBotAccountPanel(y, x = 36, width = 888, height = 244, botMaster = 'UNKNOWN') {
+  const innerX = x + 16;
+  const innerY = y + 16;
+  const innerWidth = width - 32;
+  const innerHeight = height - 32;
+  const centerX = x + width / 2;
+  const titleY = innerY + 52;
+  const bodyY = innerY + 104;
+  const footerY = innerY + innerHeight - 26;
+  const bodyLines = splitBotNoticeLines('THIS IS A KNOWN BOT. ALL BOTS MUST HAVE THIS TAG OR IT AND ITS OWNERS WILL BE PERMANENTLY BANNED.');
+
+  return `
+  <g>
+    <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${tetrioPalette.panelBg}"/>
+    <rect x="${x + 1}" y="${y + 1}" width="${width - 2}" height="${height - 2}" fill="none" stroke="${tetrioPalette.panelBorder}" stroke-width="2"/>
+    <rect x="${innerX}" y="${innerY}" width="${innerWidth}" height="${innerHeight}" fill="none" stroke="${tetrioPalette.panelBorder}" stroke-width="2" opacity="0.88"/>
+    <text x="${centerX}" y="${titleY}" text-anchor="middle" font-size="50" font-weight="900" fill="#c9ffc8">BOT</text>
+    ${bodyLines.map((line, index) => `<text x="${centerX}" y="${bodyY + index * 30}" text-anchor="middle" class="sub" font-size="21.5">${renderTetrioTextMarkup(line)}</text>`).join('\n    ')}
+    <text x="${centerX}" y="${footerY}" text-anchor="middle" class="sub" font-size="25.5">THIS BOT IS OPERATED BY <tspan class="white">${escapeXml(botMaster)}</tspan></text>
+  </g>`;
+}
+
+function splitBotNoticeLines(text) {
+  const words = String(text ?? '').trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) {
+    return [];
+  }
+
+  const midpoint = Math.ceil(words.length / 2);
+  const firstLine = words.slice(0, midpoint).join(' ');
+  const secondLine = words.slice(midpoint).join(' ');
+
+  if (!secondLine) {
+    return [firstLine];
+  }
+
+  return [firstLine, secondLine];
 }
 
 function getSupporterBadgeLayout(tier, rightEdge = 920, y = 160) {
