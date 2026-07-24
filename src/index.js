@@ -225,6 +225,7 @@ const geminiPermanentMemoryPath = fileURLToPath(new URL('../data/gemini-permanen
 const geminiPermanentMemoryAdminUserId = '635107514471415808';
 const geminiMemoryResetAdminUserId = '635107514471415808';
 const blacklistAdminUserId = '635107514471415808';
+const deleteMessagesAdminUserId = '635107514471415808';
 const geminiMemoryRetentionDays = Number(process.env.GEMINI_MEMORY_DAYS) || 45;
 const geminiMemoryRetentionMs = geminiMemoryRetentionDays * 24 * 60 * 60 * 1000;
 const geminiMemoryMaxMessagesPerSession = Number(process.env.GEMINI_MEMORY_MAX_MESSAGES_PER_SESSION) || 50;
@@ -5205,6 +5206,11 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
+    if (interaction.commandName === '삭제') {
+      await handleDeleteMessagesInteraction(interaction);
+      return;
+    }
+
     if (interaction.commandName === '도움말') {
   await interaction.reply('아직은 안 알려줄 거다냥.');
   await wait(5_000);
@@ -6272,6 +6278,195 @@ async function handleDiscordBlacklistInteraction(interaction) {
     content: '무슨 작업을 할지 모르겠다냥.',
     flags: MessageFlags.Ephemeral,
   });
+  return true;
+}
+
+function canUseDeleteMessagesCommand(interaction) {
+  return interaction.inGuild() && (
+    interaction.user.id === deleteMessagesAdminUserId
+    || interaction.memberPermissions?.has(PermissionsBitField.Flags.Administrator)
+  );
+}
+
+function isBulkDeletableMessage(message) {
+  if (!message?.deletable || message?.system) {
+    return false;
+  }
+
+  const createdTimestamp = Number(message.createdTimestamp);
+  if (!Number.isFinite(createdTimestamp)) {
+    return false;
+  }
+
+  return Date.now() - createdTimestamp < 14 * 24 * 60 * 60 * 1000;
+}
+
+function getDeleteMessagePredicate({ keyword, targetUserId }) {
+  return (message) => {
+    if (!message || message.system || !message.deletable) {
+      return false;
+    }
+
+    if (targetUserId && message.author?.id !== targetUserId) {
+      return false;
+    }
+
+    if (keyword && !String(message.content ?? '').includes(keyword)) {
+      return false;
+    }
+
+    return true;
+  };
+}
+
+async function deleteMatchingMessagesFromChannel(channel, predicate) {
+  if (!channel?.isTextBased?.() || typeof channel.messages?.fetch !== 'function') {
+    return {
+      scanned: 0,
+      matched: 0,
+      deleted: 0,
+      skippedOld: 0,
+      failed: 0,
+    };
+  }
+
+  let before;
+  let scanned = 0;
+  let matched = 0;
+  let deleted = 0;
+  let skippedOld = 0;
+  let failed = 0;
+
+  while (true) {
+    const batch = await channel.messages.fetch({ limit: 100, before }).catch((error) => {
+      console.warn(`Failed to fetch messages from channel ${channel.id}:`, error);
+      return null;
+    });
+
+    if (!batch || batch.size === 0) {
+      break;
+    }
+
+    scanned += batch.size;
+    before = batch.last()?.id;
+
+    const matchedMessages = Array.from(batch.values()).filter(predicate);
+    matched += matchedMessages.length;
+
+    const bulkDeletableMessages = matchedMessages.filter(isBulkDeletableMessage);
+    if (bulkDeletableMessages.length > 0) {
+      const deletedBatch = await channel.bulkDelete(bulkDeletableMessages, true).catch((error) => {
+        console.warn(`Failed to bulk delete messages from channel ${channel.id}:`, error);
+        failed += bulkDeletableMessages.length;
+        return null;
+      });
+
+      if (deletedBatch) {
+        deleted += deletedBatch.size;
+      }
+    }
+
+    const individuallyDeletableMessages = matchedMessages.filter((message) => !isBulkDeletableMessage(message));
+    skippedOld += individuallyDeletableMessages.length;
+
+    for (const message of individuallyDeletableMessages) {
+      try {
+        await message.delete();
+        deleted += 1;
+        skippedOld -= 1;
+      } catch (error) {
+        console.warn(`Failed to delete message ${message.id} from channel ${channel.id}:`, error);
+        failed += 1;
+      }
+    }
+  }
+
+  return {
+    scanned,
+    matched,
+    deleted,
+    skippedOld,
+    failed,
+  };
+}
+
+async function handleDeleteMessagesInteraction(interaction) {
+  if (interaction.commandName !== '삭제') {
+    return false;
+  }
+
+  if (!canUseDeleteMessagesCommand(interaction)) {
+    await interaction.reply({
+      content: '이 명령어는 서버 관리자이거나 지정된 관리자만 쓸 수 있다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
+  const keywordRaw = interaction.options.getString('단어');
+  const targetUser = interaction.options.getUser('유저');
+  const keyword = keywordRaw?.trim() ?? '';
+
+  if (!keyword && !targetUser) {
+    await interaction.reply({
+      content: '삭제할 조건이 없다냥. `단어`나 `유저` 중 하나는 넣어달라냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return true;
+  }
+
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  const predicate = getDeleteMessagePredicate({
+    keyword: keyword || null,
+    targetUserId: targetUser?.id ?? null,
+  });
+
+  let scannedChannels = 0;
+  let scannedMessages = 0;
+  let matchedMessages = 0;
+  let deletedMessages = 0;
+  let skippedOldMessages = 0;
+  let failedMessages = 0;
+
+  for (const channel of interaction.guild.channels.cache.values()) {
+    if (!channel?.isTextBased?.() || typeof channel.messages?.fetch !== 'function') {
+      continue;
+    }
+
+    scannedChannels += 1;
+
+    const result = await deleteMatchingMessagesFromChannel(channel, predicate);
+    scannedMessages += result.scanned;
+    matchedMessages += result.matched;
+    deletedMessages += result.deleted;
+    skippedOldMessages += result.skippedOld;
+    failedMessages += result.failed;
+  }
+
+  const conditions = [];
+  if (keyword) {
+    conditions.push(`단어: \`${keyword}\``);
+  }
+  if (targetUser) {
+    conditions.push(`유저: <@${targetUser.id}>`);
+  }
+
+  await interaction.editReply({
+    content: [
+      `삭제 조건은 ${conditions.join(', ')} 다냥.`,
+      `확인한 채널 ${scannedChannels}개, 스캔한 메시지 ${scannedMessages}개다냥.`,
+      `조건에 맞는 메시지 ${matchedMessages}개 중 ${deletedMessages}개를 삭제했다냥.`,
+      skippedOldMessages > 0
+        ? `${skippedOldMessages}개는 오래된 메시지거나 삭제 권한 문제로 바로 지우지 못했을 수 있다냥.`
+        : null,
+      failedMessages > 0
+        ? `${failedMessages}개는 삭제 중 오류가 나서 남았을 수 있다냥.`
+        : null,
+    ].filter(Boolean).join('\n'),
+    allowedMentions: { parse: [] },
+  });
+
   return true;
 }
 

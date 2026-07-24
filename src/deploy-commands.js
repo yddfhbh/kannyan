@@ -75,6 +75,23 @@ const commands = [
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('삭제')
+    .setDescription('조건에 맞는 메시지를 서버 전체에서 삭제합니다.')
+    .addStringOption((option) =>
+      option
+        .setName('단어')
+        .setDescription('이 단어가 포함된 메시지를 삭제합니다.')
+        .setRequired(false)
+        .setMaxLength(100)
+    )
+    .addUserOption((option) =>
+      option
+        .setName('유저')
+        .setDescription('이 유저가 보낸 메시지를 삭제합니다.')
+        .setRequired(false)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
   .setName('일일퍼즐지정')
   .setDescription('이 채널을 매일 일일 체스 퍼즐 알림 채널로 지정합니다.')
   .toJSON(),
