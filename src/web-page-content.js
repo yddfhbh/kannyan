@@ -7,7 +7,7 @@ const defaultMaxHtmlBytes = 1_500_000;
 const defaultMaxTextLength = 8_000;
 const userAgent = 'Mozilla/5.0 (compatible; KannyaDiscordBot/1.0; +https://discord.com)';
 const urlPattern = /https?:\/\/[^\s<>\]\["')]+/gi;
-const trustedSourceDomains = new Set(['pyhok.com']);
+const trustedSourceDomains = new Set();
 
 export function extractHttpUrls(text, maxUrls = defaultMaxUrls) {
   const urls = [];

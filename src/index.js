@@ -117,8 +117,6 @@ import {
 import {
   deriveWebSearchQuery,
   formatWebSearchContext,
-  isRelevantPyhokSearchResult,
-  searchPyhok,
   searchWeb,
   shouldIncludeWebSearchSources,
   shouldUseWebSearch,
@@ -233,6 +231,7 @@ const geminiMemoryMaxEntryLength = Number(process.env.GEMINI_MEMORY_MAX_ENTRY_LE
 const geminiMemoryMaxContextLength = Number(process.env.GEMINI_MEMORY_MAX_CONTEXT_LENGTH) || 32000;
 const geminiImageMaxBytes = Number(process.env.GEMINI_IMAGE_MAX_BYTES) || 8 * 1024 * 1024;
 const minomuncherReplayMaxBytes = Number(process.env.MINOMUNCHER_REPLAY_MAX_BYTES) || 25 * 1024 * 1024;
+const deleteMessagesLookbackMs = 14 * 24 * 60 * 60 * 1000;
 const vmStatusChannelId = process.env.VM_STATUS_CHANNEL_ID?.trim() ?? '';
 const vmStatusMessageId = process.env.VM_STATUS_MESSAGE_ID?.trim() ?? '';
 const vmStatusIntervalMs = Math.max(5000, Number(process.env.VM_STATUS_INTERVAL_MS) || 5000);
@@ -6298,7 +6297,7 @@ function isBulkDeletableMessage(message) {
     return false;
   }
 
-  return Date.now() - createdTimestamp < 14 * 24 * 60 * 60 * 1000;
+  return Date.now() - createdTimestamp < deleteMessagesLookbackMs;
 }
 
 function getDeleteMessagePredicate({ keyword, targetUserId }) {
@@ -6336,6 +6335,7 @@ async function deleteMatchingMessagesFromChannel(channel, predicate) {
   let deleted = 0;
   let skippedOld = 0;
   let failed = 0;
+  const cutoffTimestamp = Date.now() - deleteMessagesLookbackMs;
 
   while (true) {
     const batch = await channel.messages.fetch({ limit: 100, before }).catch((error) => {
@@ -6349,6 +6349,32 @@ async function deleteMatchingMessagesFromChannel(channel, predicate) {
 
     scanned += batch.size;
     before = batch.last()?.id;
+
+     const oldestMessageTimestamp = Number(batch.last()?.createdTimestamp);
+     if (Number.isFinite(oldestMessageTimestamp) && oldestMessageTimestamp < cutoffTimestamp) {
+      const recentMessages = Array.from(batch.values()).filter((message) => {
+        const createdTimestamp = Number(message.createdTimestamp);
+        return Number.isFinite(createdTimestamp) && createdTimestamp >= cutoffTimestamp;
+      });
+
+      const matchedMessages = recentMessages.filter(predicate);
+      matched += matchedMessages.length;
+
+      const bulkDeletableMessages = matchedMessages.filter(isBulkDeletableMessage);
+      if (bulkDeletableMessages.length > 0) {
+        const deletedBatch = await channel.bulkDelete(bulkDeletableMessages, true).catch((error) => {
+          console.warn(`Failed to bulk delete messages from channel ${channel.id}:`, error);
+          failed += bulkDeletableMessages.length;
+          return null;
+        });
+
+        if (deletedBatch) {
+          deleted += deletedBatch.size;
+        }
+      }
+
+      break;
+    }
 
     const matchedMessages = Array.from(batch.values()).filter(predicate);
     matched += matchedMessages.length;
@@ -6390,6 +6416,26 @@ async function deleteMatchingMessagesFromChannel(channel, predicate) {
   };
 }
 
+function buildDeleteMessagesProgressText({
+  conditions,
+  scannedChannels,
+  totalChannels,
+  scannedMessages,
+  matchedMessages,
+  deletedMessages,
+  failedMessages,
+}) {
+  return [
+    `삭제 조건은 ${conditions.join(', ')} 다냥.`,
+    `최근 14일 안쪽 메시지만 확인 중이다냥.`,
+    `진행 상황: 채널 ${scannedChannels}/${totalChannels}, 메시지 ${scannedMessages}개 스캔했다냥.`,
+    `현재까지 조건 일치 ${matchedMessages}개, 삭제 ${deletedMessages}개다냥.`,
+    failedMessages > 0
+      ? `삭제 실패 ${failedMessages}개가 있다냥.`
+      : null,
+  ].filter(Boolean).join('\n');
+}
+
 async function handleDeleteMessagesInteraction(interaction) {
   if (interaction.commandName !== '삭제') {
     return false;
@@ -6428,21 +6474,9 @@ async function handleDeleteMessagesInteraction(interaction) {
   let deletedMessages = 0;
   let skippedOldMessages = 0;
   let failedMessages = 0;
-
-  for (const channel of interaction.guild.channels.cache.values()) {
-    if (!channel?.isTextBased?.() || typeof channel.messages?.fetch !== 'function') {
-      continue;
-    }
-
-    scannedChannels += 1;
-
-    const result = await deleteMatchingMessagesFromChannel(channel, predicate);
-    scannedMessages += result.scanned;
-    matchedMessages += result.matched;
-    deletedMessages += result.deleted;
-    skippedOldMessages += result.skippedOld;
-    failedMessages += result.failed;
-  }
+  const channels = Array.from(interaction.guild.channels.cache.values()).filter(
+    (channel) => channel?.isTextBased?.() && typeof channel.messages?.fetch === 'function'
+  );
 
   const conditions = [];
   if (keyword) {
@@ -6453,9 +6487,47 @@ async function handleDeleteMessagesInteraction(interaction) {
   }
 
   await interaction.editReply({
+    content: buildDeleteMessagesProgressText({
+      conditions,
+      scannedChannels,
+      totalChannels: channels.length,
+      scannedMessages,
+      matchedMessages,
+      deletedMessages,
+      failedMessages,
+    }),
+    allowedMentions: { parse: [] },
+  });
+
+  for (const channel of channels) {
+    const result = await deleteMatchingMessagesFromChannel(channel, predicate);
+    scannedChannels += 1;
+    scannedMessages += result.scanned;
+    matchedMessages += result.matched;
+    deletedMessages += result.deleted;
+    skippedOldMessages += result.skippedOld;
+    failedMessages += result.failed;
+
+    if (scannedChannels === channels.length || scannedChannels % 3 === 0) {
+      await interaction.editReply({
+        content: buildDeleteMessagesProgressText({
+          conditions,
+          scannedChannels,
+          totalChannels: channels.length,
+          scannedMessages,
+          matchedMessages,
+          deletedMessages,
+          failedMessages,
+        }),
+        allowedMentions: { parse: [] },
+      });
+    }
+  }
+
+  await interaction.editReply({
     content: [
       `삭제 조건은 ${conditions.join(', ')} 다냥.`,
-      `확인한 채널 ${scannedChannels}개, 스캔한 메시지 ${scannedMessages}개다냥.`,
+      `최근 14일 안쪽 기준으로 채널 ${scannedChannels}개, 메시지 ${scannedMessages}개를 확인했다냥.`,
       `조건에 맞는 메시지 ${matchedMessages}개 중 ${deletedMessages}개를 삭제했다냥.`,
       skippedOldMessages > 0
         ? `${skippedOldMessages}개는 오래된 메시지거나 삭제 권한 문제로 바로 지우지 못했을 수 있다냥.`
@@ -7247,7 +7319,6 @@ async function handleGeminiFallbackMessage(message, options = {}) {
           shouldSearchPreviousWebContext ? followupWebSearchQuery : rawPrompt,
           {
           force: shouldForceChessWebSearch || shouldSearchPreviousWebContext,
-          preferPyhok: shouldSearchPreviousWebContext,
           }
         );
       } catch (error) {
@@ -7382,7 +7453,6 @@ async function handleWebSearchMessage(message, input) {
       history,
       mentionContext: getGeminiMentionContext(message),
       currentUserContext: getGeminiCurrentUserContext(message),
-      preferPyhok: true,
     });
 
     // `%검색`도 일반 Gemini 대화와 같은 세션에 남겨 후속 질문이 검색 결과를 이어받게 한다.
@@ -7625,7 +7695,6 @@ async function createWebSearchResponse(prompt, options = {}) {
 
   const webSearchData = await tryBuildWebSearchData(prompt, {
     force: true,
-    preferPyhok: Boolean(options.preferPyhok),
   });
   if (!webSearchData || webSearchData.results.length === 0) {
     return '검색 결과를 찾지 못했다냥.';
@@ -7666,30 +7735,6 @@ async function tryBuildWebSearchData(prompt, options = {}) {
   const query = deriveWebSearchQuery(normalizedPrompt);
   if (!query) {
     return null;
-  }
-
-  if (options.preferPyhok) {
-    try {
-      const pyhokSearch = await searchPyhok(query, {
-        maxResults: webSearchMaxResults,
-      });
-      const pyhokResults = pyhokSearch.results.filter((result) => isRelevantPyhokSearchResult(query, result));
-
-      if (pyhokResults.length > 0) {
-        return {
-          query,
-          results: pyhokResults,
-          context: [
-            '[Priority search source: pyhok.com]',
-            formatWebSearchContext(query, pyhokResults, {
-              searchedAtText: formatKstTime(new Date()),
-            }),
-          ].join('\n'),
-        };
-      }
-    } catch (error) {
-      console.warn(`pyhok priority search failed; falling back to web search: ${error.message}`);
-    }
   }
 
   const searchResult = await searchWeb(query, {

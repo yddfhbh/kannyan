@@ -4,13 +4,11 @@ const duckDuckGoHtmlOrigin = 'https://html.duckduckgo.com';
 const duckDuckGoHtmlUrl = `${duckDuckGoHtmlOrigin}/html/`;
 const defaultSearchTimeoutMs = 20_000;
 const defaultMaxResults = 12;
-const pyhokSearchUrl = 'https://pyhok.com/Search';
-const defaultPyhokSearchTimeoutMs = 8_000;
-const explicitSearchPattern = /(검색|찾아봐|찾아보|찾아줘|찾아 줘|알아봐|알아봐줘|알아봐 줘|\bsearch\b)/i;
-const strongTimeSensitivePattern = /(최신|실시간|뉴스|속보|업데이트|환율|주가|시세|날씨|기온|영업시간|운영시간|업무시간)/i;
-const relativeTimePattern = /(오늘|지금|현재|최근|이번 주|이번주|이번 달|이번달|올해|어제|내일)/i;
-const timelyTopicPattern = /(날씨|기온|환율|주가|시세|가격|뉴스|일정|결과|스코어|순위|랭킹|업데이트|발표|출시|발매|영업시간|운영시간|업무시간)/i;
-const sourceRequestPattern = /(출처|링크|원문|근거|참고자료|레퍼런스|reference|references|source|sources|link|links|url)/i;
+const explicitSearchPattern = /(검색|찾아봐|찾아보|찾아줘|알아봐|알아보|search)\b/i;
+const strongTimeSensitivePattern = /(최신|실시간|뉴스|업데이트|시세|주가|가격|기온|영업시간|운영시간|발표|출시)/i;
+const relativeTimePattern = /(오늘|지금|현재|최근|이번 주|이번주|이번 달|이번달|어제|내일)/i;
+const timelyTopicPattern = /(뉴스|기온|날씨|시세|주가|가격|일정|결과|순위|환율|업데이트|발표|출시|영업시간|운영시간)/i;
+const sourceRequestPattern = /(출처|링크|원문|참고자료|reference|references|source|sources|link|links|url)/i;
 
 export async function searchWeb(query, options = {}) {
   const normalizedQuery = normalizeSearchText(query);
@@ -54,67 +52,6 @@ export async function searchWeb(query, options = {}) {
   } finally {
     clearTimeout(timeout);
   }
-}
-
-export async function searchPyhok(query, options = {}) {
-  const normalizedQuery = normalizeSearchText(query);
-  if (!normalizedQuery) return { query: '', results: [] };
-
-  const maxResults = clampInteger(options.maxResults, 1, 20, defaultMaxResults);
-  const timeoutMs = clampInteger(options.timeoutMs, 1_000, 60_000, defaultPyhokSearchTimeoutMs);
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const url = new URL(pyhokSearchUrl);
-    url.searchParams.set('q', normalizedQuery);
-
-    const response = await fetch(url, {
-      headers: { 'user-agent': 'KannyaDiscordBot/1.0', accept: 'text/html' },
-      signal: controller.signal,
-    });
-    if (!response.ok) throw new Error(`pyhok search failed with ${response.status}`);
-    return { query: normalizedQuery, results: parsePyhokSearchResults(await response.text()).slice(0, maxResults) };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-export function parsePyhokSearchResults(html) {
-  const dom = new JSDOM(String(html ?? ''));
-  try {
-    const results = [];
-    for (const anchor of dom.window.document.querySelectorAll('.liberty-content-main h4 a[href^="/w/"]')) {
-      const title = normalizeSearchText(anchor.textContent);
-      const container = anchor.closest('h4')?.parentElement;
-      const snippet = normalizeSearchText(container?.querySelector(':scope > div')?.textContent ?? '');
-      const url = new URL(anchor.getAttribute('href'), 'https://pyhok.com').toString();
-      if (title && !results.some((item) => item.url === url)) results.push({ title, url, snippet });
-    }
-    return results;
-  } finally {
-    dom.window.close();
-  }
-}
-
-export function isRelevantPyhokSearchResult(query, result) {
-  const keywords = getSearchKeywords(query);
-  if (keywords.length === 0) return false;
-
-  const title = normalizeSearchText(result?.title).toLowerCase();
-  const searchableText = normalizeSearchText(`${title} ${result?.snippet ?? ''}`).toLowerCase();
-  return keywords.every((keyword) => (
-    keyword.length === 1 ? title.includes(keyword) : searchableText.includes(keyword)
-  ));
-}
-
-function getSearchKeywords(query) {
-  const stopWords = new Set(['검색', '찾아줘', '찾아', '알려줘', '알려', '정보', '대해', '관련', '무엇', '뭐야', '하는', '즐기는', '대한', '있는', '있어', '더', '좀']);
-  return normalizeSearchText(query)
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((word) => !stopWords.has(word))
-    .map((word) => word.replace(/(으로|에서|에게|은|는|이|가|을|를|에|의|와|과|도|로)$/u, ''))
-    .filter((word) => word.length >= 1);
 }
 
 export function parseDuckDuckGoHtmlResults(html) {

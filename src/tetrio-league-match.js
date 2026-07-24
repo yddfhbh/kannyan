@@ -844,8 +844,7 @@ function renderLeagueUsernameLabel(text, x, y, anchor = 'start') {
   for (const char of raw) {
     if (char === '_') {
       const metrics = getLeagueUsernameUnderscoreMetrics(fontSize);
-
-      markup += `<text x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" class="username" style="font-family: Arial !important;" font-size="15">${escapeXml(char)}</text>`;
+      markup += `<rect x="${roundSvgNumber(cursorX + metrics.beforeGap)}" y="${roundSvgNumber(y + metrics.yOffset)}" width="${roundSvgNumber(metrics.width)}" height="${roundSvgNumber(metrics.height)}" rx="${roundSvgNumber(metrics.height / 2)}" fill="currentColor" />`;
       cursorX += metrics.advance;
       continue;
     }
@@ -876,17 +875,17 @@ function measureLeagueUsernameRenderedWidth(text, fontSize = 17) {
 }
 
 function getLeagueUsernameUnderscoreMetrics(fontSize = 17) {
-  const beforeGap = fontSize * 0.18;
-  const width = fontSize * 0.58;
-  const afterGap = fontSize * 0.16;
+  const beforeGap = fontSize * 0.20;
+  const width = fontSize * 0.60;
+  const afterGap = fontSize * 0.18;
 
   return {
     beforeGap,
     width,
     afterGap,
     advance: beforeGap + width + afterGap,
-    height: 2.0,
-    yOffset: -0.12,
+    height: 2.25,
+    yOffset: 5.3,
   };
 }
 
@@ -916,7 +915,7 @@ function renderRecentLeagueHeaderTitleMarkup(username) {
   const raw = String(username ?? '').toUpperCase();
   const headerWordGap = 22;
   const headerDotGap = 14;
-  const headerUnderscoreOffsetEm = -0.03;
+  const headerUnderscoreOffsetEm = 0.17;
   if (!raw) {
     return `<tspan class="headerWord">LEAGUE</tspan><tspan dx="${headerWordGap}" class="headerWord">RECENT</tspan>`;
   }
