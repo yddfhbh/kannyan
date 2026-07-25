@@ -152,6 +152,82 @@ export async function createTetrioLeagueRecentListCard(username, recentCount = 1
   };
 }
 
+export async function fetchTetrioRecentLeagueStats(username, recentCount = 10) {
+  const normalizedUsername = normalizeTetrioUsername(username);
+  const normalizedRecentCount = normalizeRecentRecordCount(recentCount);
+  const sessionId = createTetrioApiSessionId('league-recent-stats');
+
+  if (!normalizedUsername) {
+    const error = new Error('TETR.IO username is required');
+    error.status = 400;
+    throw error;
+  }
+
+  const records = await fetchRecentLeagueRecords(normalizedUsername, normalizedRecentCount, sessionId);
+  const samples = records
+    .map((record) => getRecentLeagueStatsSample(record, normalizedUsername))
+    .filter(Boolean);
+
+  if (samples.length === 0) {
+    const error = new Error('No recent TETRA LEAGUE stats found for the requested user');
+    error.code = 'NO_RECENT_LEAGUE_STATS';
+    error.status = 404;
+    throw error;
+  }
+
+  return {
+    apm: averageFiniteValues(samples.map((sample) => sample.apm)),
+    pps: averageFiniteValues(samples.map((sample) => sample.pps)),
+    vs: averageFiniteValues(samples.map((sample) => sample.vs)),
+    username: samples[0].username ?? normalizedUsername,
+    requestedCount: normalizedRecentCount,
+    sampleCount: samples.length,
+  };
+}
+
+function getRecentLeagueStatsSample(record, requestedUsername) {
+  const leaderboard = Array.isArray(record?.results?.leaderboard)
+    ? record.results.leaderboard
+    : [];
+
+  if (leaderboard.length < 2) {
+    return null;
+  }
+
+  const requestedUsernameLower = String(requestedUsername ?? '').toLowerCase();
+  const otherUserIds = new Set(
+    (Array.isArray(record?.otherusers) ? record.otherusers : [])
+      .map((user) => user?.id)
+      .filter(Boolean)
+  );
+  const player = leaderboard.find((entry) => String(entry?.username ?? '').toLowerCase() === requestedUsernameLower)
+    ?? leaderboard.find((entry) => entry?.id && !otherUserIds.has(entry.id))
+    ?? leaderboard[0];
+  const apm = Number(player?.stats?.apm);
+  const pps = Number(player?.stats?.pps);
+  const vs = Number(player?.stats?.vsscore);
+
+  if (![apm, pps, vs].every(Number.isFinite)) {
+    return null;
+  }
+
+  return {
+    apm,
+    pps,
+    vs,
+    username: String(player?.username ?? requestedUsername).trim(),
+  };
+}
+
+function averageFiniteValues(values) {
+  const finiteValues = values.filter(Number.isFinite);
+  if (finiteValues.length === 0) {
+    return null;
+  }
+
+  return finiteValues.reduce((total, value) => total + value, 0) / finiteValues.length;
+}
+
 async function fetchNthLeagueRecord(username, recordIndex, sessionId) {
   let remaining = recordIndex;
   let after = null;

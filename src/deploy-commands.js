@@ -178,11 +178,37 @@ new SlashCommandBuilder()
     .toJSON(),
   new SlashCommandBuilder()
     .setName('스탯')
-    .setDescription('TETR.IO 스탯 카드 형식을 보여줍니다.')
+    .setDescription('TETR.IO 스탯 카드 또는 최근 전적 평균 스탯 카드를 보여줍니다.')
     .addStringOption((option) =>
       option
         .setName('닉네임')
         .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('숫자')
+        .setDescription('최근 전적 개수 (1~20)')
+        .setMinValue(1)
+        .setMaxValue(20)
+        .setRequired(false)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('ts')
+    .setDescription('TETR.IO 스탯 카드 또는 최근 전적 평균 스탯 카드를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('숫자')
+        .setDescription('최근 전적 개수 (1~20)')
+        .setMinValue(1)
+        .setMaxValue(20)
         .setRequired(false)
     )
     .toJSON(),

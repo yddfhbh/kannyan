@@ -21,7 +21,8 @@ const defaultDataDir = fileURLToPath(new URL('../data/', import.meta.url));
 const dataDir = resolve(process.env.TETRIO_ACHIEVEMENT_AVERAGE_DATA_DIR?.trim() || defaultDataDir);
 const DATA_FILE = join(dataDir, 'tetrio-achievement-average.json');
 const TEMP_FILE = join(dataDir, 'tetrio-achievement-average.tmp.json');
-const SAMPLE_SIZE = Math.max(1, Number(process.env.TETRIO_ACHIEVEMENT_AVERAGE_SAMPLE_SIZE) || 700);
+const SAMPLE_SIZE = Math.max(1, Number(process.env.TETRIO_ACHIEVEMENT_AVERAGE_SAMPLE_SIZE) || 800);
+const SNAPSHOT_ROLLOVER_HOUR_KST = 4;
 const CHECK_INTERVAL_MS = Math.max(
   30_000,
   Number(process.env.TETRIO_ACHIEVEMENT_AVERAGE_CHECK_INTERVAL_MS) || 60_000
@@ -94,6 +95,7 @@ let stateSaveQueue = Promise.resolve();
 let snapshotBuildPromise = null;
 let lastBuildStartedAt = 0;
 let trackerTimer = null;
+let lastPreRolloverWaitLogKey = null;
 
 export function initTetrioAchievementAverageTracker() {
   if (trackerTimer) {
@@ -189,12 +191,27 @@ export async function createTetrioAchievementAveragePreviewCard({ achievement, s
 }
 
 async function ensureTodaySnapshot({ onProgress } = {}) {
-  const { dateKey } = getKstDateInfo();
+  const currentKst = getKstDateInfo();
+  const dateKey = getAchievementSnapshotDateInfo().dateKey;
   const state = await loadState();
 
-  if (state.snapshots?.[dateKey]) {
-    return state.snapshots[dateKey];
+  const existingSnapshot = state.snapshots?.[dateKey];
+  if (existingSnapshot) {
+    return existingSnapshot;
   }
+
+  if (currentKst.hour < SNAPSHOT_ROLLOVER_HOUR_KST) {
+    const waitLogKey = `${currentKst.dateKey}:${dateKey}`;
+    if (lastPreRolloverWaitLogKey !== waitLogKey) {
+      lastPreRolloverWaitLogKey = waitLogKey;
+      console.log(
+        `[TETR.IO ACH AVG] waiting for ${String(SNAPSHOT_ROLLOVER_HOUR_KST).padStart(2, '0')}:00 KST rollover target=${dateKey}`
+      );
+    }
+    return null;
+  }
+
+  lastPreRolloverWaitLogKey = null;
 
   return refreshTetrioAchievementAverageSnapshot({
     force: true,
@@ -216,7 +233,7 @@ async function refreshTetrioAchievementAverageSnapshot({ force = false, dateKey 
   }
 
   lastBuildStartedAt = now;
-  snapshotBuildPromise = buildAndPersistSnapshot(dateKey ?? getKstDateInfo().dateKey, onProgress)
+  snapshotBuildPromise = buildAndPersistSnapshot(dateKey ?? getAchievementSnapshotDateInfo().dateKey, onProgress)
     .finally(() => {
       snapshotBuildPromise = null;
     });
@@ -816,6 +833,21 @@ function getKstDateInfo(date = new Date()) {
     dateKey: kst.toISOString().slice(0, 10),
     hour: kst.getUTCHours(),
     minute: kst.getUTCMinutes(),
+  };
+}
+
+function getAchievementSnapshotDateInfo(date = new Date()) {
+  const current = getKstDateInfo(date);
+  if (current.hour >= SNAPSHOT_ROLLOVER_HOUR_KST) {
+    return current;
+  }
+
+  const previousDate = new Date(`${current.dateKey}T00:00:00.000Z`);
+  previousDate.setUTCDate(previousDate.getUTCDate() - 1);
+
+  return {
+    ...current,
+    dateKey: previousDate.toISOString().slice(0, 10),
   };
 }
 

@@ -44,6 +44,7 @@ import {
 import {
   createTetrioLeagueMatchCard,
   createTetrioLeagueRecentListCard,
+  fetchTetrioRecentLeagueStats,
 } from './tetrio-league-match.js';
 import { createTetrioRankCutImage } from './tetrio-rankcut.js';
 import { fetchTetrioStatsCardData } from './tetrio-stats.js';
@@ -5263,7 +5264,7 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
-    if (interaction.commandName === '스탯') {
+    if (interaction.commandName === '스탯' || interaction.commandName === 'ts') {
       await showTetrioStats(interaction);
       return;
     }
@@ -8806,7 +8807,7 @@ function getHelpMessage() {
     '`/체닷 닉네임:<Chess.com 닉네임>` 또는 `%체닷 닉네임` - Chess.com 래피드, 블리츠, 불렛, 퍼즐 레이팅을 보여준다냥.',
     '`/리체스 멤버이름:<Lichess 멤버 이름>` 또는 `%리체스 멤버이름` - Lichess 래피드, 블리츠, 불렛 레이팅을 보여준다냥.',
     '`/테토 닉네임:[TETR.IO 닉네임]` 또는 `%teto 닉네임` - TETR.IO 프로필 카드를 보여준다냥.',
-    '`/스탯 닉네임:[TETR.IO 닉네임]` 또는 `%ts 닉네임` - TETR.IO 스탯 카드를 보여준다냥.',
+    '`/ts 닉네임:[TETR.IO 닉네임] 숫자:[1~20]` 또는 `%ts 닉네임 [1~20]` - TETR.IO 전체 스탯 카드 또는 최근 N경기 평균 스탯 카드를 보여준다냥. 닉네임을 생략하면 디코 연동 계정을 사용한다냥.',
     '`/그래프 닉네임:[TETR.IO 닉네임]` 또는 `%psq 닉네임` - Opener/Plonk/Stride/Inf DS 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그린다냥. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있다냥.',
     '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시한다냥.',
     '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석한다냥.',
@@ -9094,7 +9095,6 @@ async function showTetrioAchievementAverage(interaction) {
     });
 
     await interaction.editReply({
-      content: `리그 유저 표본 기준 KST ${card.snapshotDateKey} 스냅샷이다냥.`,
       files: [attachment],
     });
   } catch (error) {
@@ -9117,31 +9117,48 @@ async function showTetrioAchievementAverage(interaction) {
 
 async function showTetrioStats(interaction) {
   const input = interaction.options.getString('닉네임')?.trim();
+  const explicitRecentCount = interaction.options.getInteger('숫자');
+  const recentRequest = parseTetrioStatsRecentInput(input, explicitRecentCount);
 
+  if (recentRequest.invalid) {
+    await interaction.reply({
+      content: '최근 전적 숫자는 1~20만 입력해달라냥. 101 이상 숫자는 닉네임으로 인식한다냥.',
+      allowedMentions: { parse: [] },
+    });
+    return;
+  }
+
+  const target = recentRequest.targetText;
   await interaction.deferReply();
 
   try {
-    const username = input
-      ? await findTetrioUsername(input)
+    const username = target
+      ? await findTetrioUsername(target)
       : await findTetrioUsernameByDiscordId(interaction.user.id);
 
     if (!username) {
-      await interaction.editReply(input
+      await interaction.editReply(target
         ? '그런 유저는 없다냥.'
         : 'TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.'
       );
       return;
     }
 
-    const card = await fetchTetrioStatsCardData(username);
+    const recentCardData = recentRequest.recentCount
+      ? await createRecentTetrioStatsCardData(username, recentRequest.recentCount)
+      : null;
+    const card = recentCardData ?? await fetchTetrioStatsCardData(username);
     const image = await createTetrioStatsCard(card);
     const attachment = new AttachmentBuilder(image, {
-      name: `tetrio-stats-${formatAttachmentSafeName(card.username)}.png`,
+      name: `tetrio-stats-${formatAttachmentSafeName(card.username)}${recentCardData ? `-recent-${recentCardData.recentCount}` : ''}.png`,
     });
 
-    await interaction.editReply({
-      files: [attachment],
-    });
+    const replyPayload = { files: [attachment] };
+    if (recentCardData) {
+      replyPayload.content = `최근 ${recentCardData.sampleCount}/${recentCardData.recentCount}경기 평균 스탯 카드다냥.`;
+    }
+
+    await interaction.editReply(replyPayload);
   } catch (error) {
     console.error('Failed to render TETR.IO stats card:');
     console.error(error);
@@ -9156,8 +9173,13 @@ async function showTetrioStats(interaction) {
       return;
     }
 
+    if (error.code === 'NO_RECENT_LEAGUE_STATS') {
+      await interaction.editReply('최근 전적에서 사용할 스탯을 찾지 못했다냥.');
+      return;
+    }
+
     if (error.status === 404) {
-      await interaction.editReply('그런 유저는 없다냥.');
+      await interaction.editReply(target ? '그런 유저는 없다냥.' : '최근 전적을 찾지 못했다냥.');
       return;
     }
 
@@ -10495,8 +10517,8 @@ async function handleTetolbMessage(message, input) {
 async function showTetrioStatsMessage(message, input) {
   try {
     await safeSendTyping(message.channel, 'showTetrioStatsMessage');
-    const target = String(input ?? '').trim();
-    const metricInput = parseTetrioStatsMetricInput(target);
+    const rawInput = String(input ?? '').trim();
+    const metricInput = parseTetrioStatsMetricInput(rawInput);
 
     if (metricInput) {
       if (!isValidTetrioStatsMetricInput(metricInput)) {
@@ -10520,13 +10542,16 @@ async function showTetrioStatsMessage(message, input) {
       return;
     }
 
-    if (hasMultipleTetrioStatsTargets(target)) {
+    const recentRequest = parseTetrioStatsRecentInput(rawInput);
+    if (recentRequest.invalid) {
       await message.reply({
-        content: '닉네임은 하나만 입력해달라냥.',
+        content: '최근 전적 숫자는 1~20만 입력해달라냥. 101 이상 숫자는 닉네임으로 인식한다냥.',
         allowedMentions: { repliedUser: false },
       });
       return;
     }
+
+    const target = recentRequest.targetText;
 
     const linkedUser = target
       ? getSingleMentionedUserFromTetrioInput(message, target)
@@ -10550,16 +10575,24 @@ async function showTetrioStatsMessage(message, input) {
       return;
     }
 
-    const card = await fetchTetrioStatsCardData(username);
+    const recentCardData = recentRequest.recentCount
+      ? await createRecentTetrioStatsCardData(username, recentRequest.recentCount)
+      : null;
+    const card = recentCardData ?? await fetchTetrioStatsCardData(username);
     const image = await createTetrioStatsCard(card);
     const attachment = new AttachmentBuilder(image, {
-      name: `tetrio-stats-${formatAttachmentSafeName(card.username)}.png`,
+      name: `tetrio-stats-${formatAttachmentSafeName(card.username)}${recentCardData ? `-recent-${recentCardData.recentCount}` : ''}.png`,
     });
 
-    await message.reply({
+    const replyPayload = {
       files: [attachment],
       allowedMentions: { repliedUser: false },
-    });
+    };
+    if (recentCardData) {
+      replyPayload.content = `최근 ${recentCardData.sampleCount}/${recentCardData.recentCount}경기 평균 스탯 카드다냥.`;
+    }
+
+    await message.reply(replyPayload);
   } catch (error) {
     console.error('Failed to render TETR.IO stats card:');
     console.error(error);
@@ -10575,6 +10608,14 @@ async function showTetrioStatsMessage(message, input) {
     if (error.code === 'NO_LEAGUE_STATS') {
       await message.reply({
         content: 'TETRA LEAGUE 스탯이 아직 없다냥.',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (error.code === 'NO_RECENT_LEAGUE_STATS') {
+      await message.reply({
+        content: '최근 전적에서 사용할 스탯을 찾지 못했다냥.',
         allowedMentions: { repliedUser: false },
       });
       return;
@@ -10608,6 +10649,93 @@ function parseTetrioStatsMetricInput(input) {
 
   const [apm, pps, vs] = tokens.map(Number);
   return { apm, pps, vs };
+}
+
+function parseTetrioStatsRecentInput(input, explicitRecentCount = null) {
+  const trimmed = String(input ?? '').trim();
+  const hasExplicitCount = explicitRecentCount !== null && explicitRecentCount !== undefined;
+
+  if (hasExplicitCount) {
+    const count = Number(explicitRecentCount);
+    return {
+      invalid: !Number.isInteger(count) || count < 1 || count > 20,
+      recentCount: count,
+      targetText: trimmed || null,
+    };
+  }
+
+  if (!trimmed) {
+    return {
+      invalid: false,
+      recentCount: null,
+      targetText: null,
+    };
+  }
+
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
+  if (tokens.length > 2) {
+    return { invalid: true, recentCount: null, targetText: null };
+  }
+
+  if (tokens.length === 2) {
+    const recentCount = parsePositiveIntegerToken(tokens[1]);
+    return {
+      invalid: !recentCount || recentCount > 20,
+      recentCount: recentCount && recentCount <= 20 ? recentCount : null,
+      targetText: tokens[0],
+    };
+  }
+
+  const numericInput = parsePositiveIntegerToken(tokens[0]);
+  if (!numericInput) {
+    return {
+      invalid: false,
+      recentCount: null,
+      targetText: tokens[0],
+    };
+  }
+
+  if (numericInput <= 20) {
+    return {
+      invalid: false,
+      recentCount: numericInput,
+      targetText: null,
+    };
+  }
+
+  if (numericInput > 100) {
+    return {
+      invalid: false,
+      recentCount: null,
+      targetText: tokens[0],
+    };
+  }
+
+  return { invalid: true, recentCount: null, targetText: null };
+}
+
+async function createRecentTetrioStatsCardData(username, recentCount) {
+  const recent = await fetchTetrioRecentLeagueStats(username, recentCount);
+  const calculatedStats = calculateTetrioStats({
+    apm: recent.apm,
+    pps: recent.pps,
+    vs: recent.vs,
+    rd: 60,
+    wins: 18,
+  });
+
+  return {
+    username: recent.username,
+    recentCount: recent.requestedCount,
+    sampleCount: recent.sampleCount,
+    stats: {
+      ...calculatedStats,
+      rank: 'RECENT',
+      tr: null,
+      glicko: null,
+      rd: null,
+    },
+  };
 }
 
 function parseTetrioGraphInput(input) {
