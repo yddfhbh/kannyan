@@ -535,6 +535,16 @@ new SlashCommandBuilder()
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('퀵플기록')
+    .setDescription('TETR.IO 퀵플레이 기록 그래프 카드를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('익스퀵플')
     .setDescription('TETR.IO 익스퍼트 퀵플레이 top 또는 recent 기록의 고도를 이미지로 보여줍니다.')
     .addStringOption((option) =>
@@ -556,6 +566,16 @@ new SlashCommandBuilder()
         .setDescription('생략하면 top, recent를 고르면 최근 기록 기준으로 가져옵니다.')
         .setRequired(false)
         .addChoices(...quickPlayRecordChoices)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('익스퀵플기록')
+    .setDescription('TETR.IO 익스퍼트 퀵플레이 기록 그래프 카드를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
     )
     .toJSON(),
   new SlashCommandBuilder()
@@ -583,6 +603,16 @@ new SlashCommandBuilder()
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('40l기록')
+    .setDescription('TETR.IO 40 LINES 기록 그래프 카드를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('블리츠')
     .setDescription('TETR.IO BLITZ top 또는 recent 기록의 점수를 이미지로 보여줍니다.')
     .addStringOption((option) =>
@@ -604,6 +634,16 @@ new SlashCommandBuilder()
         .setDescription('생략하면 top, recent를 고르면 최근 기록 기준으로 가져옵니다.')
         .setRequired(false)
         .addChoices(...quickPlayRecordChoices)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('블리츠기록')
+    .setDescription('TETR.IO BLITZ 기록 그래프 카드를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
+        .setRequired(false)
     )
     .toJSON(),
   new SlashCommandBuilder()

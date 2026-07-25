@@ -41,6 +41,7 @@ import {
   createQuickPlayAltitudeCard,
   createQuickPlayRecentAltitudeCard,
 } from './tetrio-quickplay.js';
+import { createTetrioRecordHistoryCard } from './tetrio-record-history.js';
 import {
   createTetrioLeagueMatchCard,
   createTetrioLeagueRecentListCard,
@@ -431,6 +432,10 @@ const percentCommandAliases = {
   expertQuickplay: ['exqp'],
   fortyLines: ['40l'],
   blitz: ['blitz'],
+  quickplayHistory: ['qphistory'],
+  expertQuickplayHistory: ['exqphistory'],
+  fortyLinesHistory: ['40lhistory'],
+  blitzHistory: ['blitzhistory'],
 };
 const liveRatingTypes = {
   classical: {
@@ -5349,8 +5354,18 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
+    if (interaction.commandName === '퀵플기록') {
+      await showTetrioSoloRecordHistory(interaction, 'zenith');
+      return;
+    }
+
     if (interaction.commandName === '익스퀵플') {
       await showExpertQuickPlayAltitude(interaction);
+      return;
+    }
+
+    if (interaction.commandName === '익스퀵플기록') {
+      await showTetrioSoloRecordHistory(interaction, 'zenithex');
       return;
     }
 
@@ -5359,8 +5374,18 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
+    if (interaction.commandName === '40l기록') {
+      await showTetrioSoloRecordHistory(interaction, '40l');
+      return;
+    }
+
     if (interaction.commandName === '블리츠') {
       await showBlitzScore(interaction);
+      return;
+    }
+
+    if (interaction.commandName === '블리츠기록') {
+      await showTetrioSoloRecordHistory(interaction, 'blitz');
       return;
     }
 
@@ -6115,8 +6140,18 @@ async function handlePercentMessageCommand(message) {
     return true;
   }
 
+  if (command === 'quickplayHistory') {
+    await handleTetrioRecordHistoryMessage(message, input, 'zenith');
+    return true;
+  }
+
   if (command === 'expertQuickplay') {
     await handleQuickPlayAltitudeMessage(message, input, 'zenithex');
+    return true;
+  }
+
+  if (command === 'expertQuickplayHistory') {
+    await handleTetrioRecordHistoryMessage(message, input, 'zenithex');
     return true;
   }
 
@@ -6125,8 +6160,18 @@ async function handlePercentMessageCommand(message) {
     return true;
   }
 
+  if (command === 'fortyLinesHistory') {
+    await handleTetrioRecordHistoryMessage(message, input, '40l');
+    return true;
+  }
+
   if (command === 'blitz') {
     await handleQuickPlayAltitudeMessage(message, input, 'blitz');
+    return true;
+  }
+
+  if (command === 'blitzHistory') {
+    await handleTetrioRecordHistoryMessage(message, input, 'blitz');
     return true;
   }
 
@@ -8827,9 +8872,13 @@ function getHelpMessage() {
     '`%fen 추출해줘` - 체스판 이미지에서 FEN을 읽어서 그대로 알려준다냥.',
     '팁: 슬래시 명령어는 옵션 선택이 편하고, `%...` 명령어는 채팅에 바로 입력해서 빠르게 쓸 수 있다냥.',
     '`/퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%qp 닉네임 [기록 번호]` - QUICK PLAY 고도 카드를 보여준다냥.',
+    '`/퀵플기록 닉네임:[TETR.IO 닉네임]` 또는 `%qphistory 닉네임` - QUICK PLAY 기록 그래프 카드를 보여준다냥.',
     '`/익스퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%exqp 닉네임 [기록 번호]` - EXPERT QUICK PLAY 고도 카드를 보여준다냥.',
+    '`/익스퀵플기록 닉네임:[TETR.IO 닉네임]` 또는 `%exqphistory 닉네임` - EXPERT QUICK PLAY 기록 그래프 카드를 보여준다냥.',
     '`/40라인 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%40L 닉네임 [기록 번호] [top|recent]` - 40 LINES top 또는 recent 기록의 시간 카드를 보여준다냥.',
+    '`/40l기록 닉네임:[TETR.IO 닉네임]` 또는 `%40lhistory 닉네임` - 40 LINES 기록 그래프 카드를 보여준다냥.',
     '`/블리츠 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%blitz 닉네임 [기록 번호] [top|recent]` - BLITZ top 또는 recent 기록의 점수 카드를 보여준다냥.',
+    '`/블리츠기록 닉네임:[TETR.IO 닉네임]` 또는 `%blitzhistory 닉네임` - BLITZ 기록 그래프 카드를 보여준다냥.',
     '`/일일퍼즐`, `%일일퍼즐`, `/일일퍼즐지정` - 퍼즐을 DM으로 풀며, 첫 오답이나 `포기`는 즉시 퍼즐 레이팅 패배로 반영되고 같은 날 다시 도전할 수 있다냥.',
     '`/퍼즐러쉬`, `%퍼즐러쉬` - DM으로 이어푸는 퍼즐러쉬를 시작한다냥. 목숨은 3개고, `포기`, `그만`, `중단`, `gg`로 종료할 수 있다냥.',
     '`/퍼즐레이팅`, `%퍼즐레이팅` - 내 퍼즐 레이팅 카드와 현재 등수를 보여준다냥.',
@@ -9685,6 +9734,33 @@ async function showBlitzScore(interaction) {
   }
 }
 
+async function showTetrioSoloRecordHistory(interaction, mode = '40l') {
+  const input = interaction.options.getString('닉네임')?.trim();
+
+  await interaction.deferReply();
+
+  try {
+    const username = input
+      ? input
+      : await findTetrioUsernameByDiscordId(interaction.user.id);
+
+    if (!username) {
+      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.');
+      return;
+    }
+
+    const replyData = await createTetrioRecordHistoryReplyData(username, mode);
+    await interaction.editReply(replyData);
+  } catch (error) {
+    console.error(`Failed to fetch ${mode} record history for ${input ?? 'linked account'}:`);
+    console.error(error);
+
+    const content = (await getQuickPlayKnownErrorMessage(error, input, !input))
+      ?? getTetrioRecordHistoryErrorMessage(mode);
+    await interaction.editReply(content);
+  }
+}
+
 function applyCustomEmojiAliases(answer, prompt) {
   let text = String(answer ?? '');
 
@@ -10437,6 +10513,184 @@ async function showQuickPlayAltitudeMessage(
       allowedMentions: { repliedUser: false },
     });
   }
+}
+
+async function handleTetrioRecordHistoryMessage(message, input, mode = '40l') {
+  const trimmedInput = String(input ?? '').trim();
+  if (!trimmedInput) {
+    const repliedUser = await getRepliedUserFromTetrioMessage(message);
+    if (repliedUser) {
+      await showLinkedTetrioRecordHistoryMessage(message, repliedUser, mode);
+      return;
+    }
+
+    await showLinkedTetrioRecordHistoryMessage(message, message.author, mode);
+    return;
+  }
+
+  const repliedUser = await getRepliedUserFromTetrioMessage(message);
+  if (repliedUser) {
+    await showLinkedTetrioRecordHistoryMessage(message, repliedUser, mode);
+    return;
+  }
+
+  const mentionedUser = getSingleMentionedUserFromTetrioInput(message, trimmedInput);
+  if (mentionedUser) {
+    await showLinkedTetrioRecordHistoryMessage(message, mentionedUser, mode);
+    return;
+  }
+
+  if (isAmbiguousNumericTetrioInput(trimmedInput)) {
+    await handleAmbiguousNumericTetrioRecordHistoryMessage(message, trimmedInput, mode);
+    return;
+  }
+
+  const tetrioValidationResult = validateTetrioMessageInput(trimmedInput);
+  if (tetrioValidationResult === 'too_long') {
+    await message.reply({
+      content: '닉네임이 너무 길다냥.',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  if (tetrioValidationResult === 'ignore') {
+    return;
+  }
+
+  await showTetrioRecordHistoryMessage(message, trimmedInput, mode);
+}
+
+async function handleAmbiguousNumericTetrioRecordHistoryMessage(message, input, mode = '40l') {
+  try {
+    const username = await findTetrioUsername(input);
+
+    if (username) {
+      await safeSendTyping(message.channel, 'handleAmbiguousNumericTetrioRecordHistoryMessage');
+      try {
+        const replyData = await createTetrioRecordHistoryReplyData(username, mode);
+        await message.reply({
+          ...replyData,
+          allowedMentions: { repliedUser: false },
+        });
+        return;
+      } catch (error) {
+        console.error(`Failed to fetch ambiguous numeric ${mode} history for ${username}:`);
+        console.error(error);
+
+        const content = (await getQuickPlayKnownErrorMessage(error, username, true))
+          ?? getTetrioRecordHistoryErrorMessage(mode);
+        await message.reply({
+          content,
+          allowedMentions: { repliedUser: false },
+        });
+        return;
+      }
+    }
+
+    if (isTrollingNumericInput(input)) {
+      await message.reply({
+        content: '분탕치지 말라냥!',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    await showLinkedTetrioRecordHistoryMessage(message, message.author, mode);
+  } catch (error) {
+    console.error(`Failed to resolve numeric ${mode} history input ${input}:`);
+    console.error(error);
+
+    await message.reply({
+      content: getTetrioRecordHistoryErrorMessage(mode),
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+
+async function showLinkedTetrioRecordHistoryMessage(message, user, mode = '40l') {
+  try {
+    const username = await findTetrioUsernameByDiscordId(user.id);
+
+    if (!username) {
+      await sendUnlinkedTetrioImage(message);
+      return;
+    }
+
+    await showTetrioRecordHistoryMessage(message, username, mode, true);
+  } catch (error) {
+    console.error(`Failed to find linked TETR.IO profile for Discord user ${user.id}:`);
+    console.error(error);
+
+    await message.reply({
+      content: 'TETR.IO 연동 정보를 확인하지 못했다냥. 잠시 후 다시 시도해달라냥.',
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+
+async function createTetrioRecordHistoryReplyData(username, mode = '40l') {
+  const card = await createTetrioRecordHistoryCard(username, mode);
+  const attachment = new AttachmentBuilder(card.image, {
+    name: getTetrioRecordHistoryAttachmentName(card.username, mode),
+  });
+
+  return {
+    files: [attachment],
+  };
+}
+
+async function showTetrioRecordHistoryMessage(message, username, mode = '40l', assumeExistingUser = false) {
+  try {
+    await safeSendTyping(message.channel, 'showTetrioRecordHistoryMessage');
+    const replyData = await createTetrioRecordHistoryReplyData(username, mode);
+    await message.reply({
+      ...replyData,
+      allowedMentions: { repliedUser: false },
+    });
+  } catch (error) {
+    console.error(`Failed to fetch ${mode} history for ${username}:`);
+    console.error(error);
+
+    const content = (await getQuickPlayKnownErrorMessage(error, username, assumeExistingUser))
+      ?? getTetrioRecordHistoryErrorMessage(mode);
+    await message.reply({
+      content,
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+
+function getTetrioRecordHistoryAttachmentName(username, mode = '40l') {
+  if (mode === 'zenithex') {
+    return `tetrio-expert-quickplay-history-${formatAttachmentSafeName(username)}.png`;
+  }
+
+  if (mode === 'zenith') {
+    return `tetrio-quickplay-history-${formatAttachmentSafeName(username)}.png`;
+  }
+
+  if (mode === 'blitz') {
+    return `tetrio-blitz-history-${formatAttachmentSafeName(username)}.png`;
+  }
+
+  return `tetrio-40l-history-${formatAttachmentSafeName(username)}.png`;
+}
+
+function getTetrioRecordHistoryErrorMessage(mode = '40l') {
+  if (mode === 'zenithex') {
+    return '익스퍼트 퀵플레이 기록 그래프를 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
+  }
+
+  if (mode === 'zenith') {
+    return '퀵플레이 기록 그래프를 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
+  }
+
+  if (mode === 'blitz') {
+    return '블리츠 기록 그래프를 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
+  }
+
+  return '40라인 기록 그래프를 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.';
 }
 
 async function showTetrioProfileMessage(message, input) {
