@@ -215,6 +215,10 @@ async function fetchRankIconDataUri(rank) {
   return dataUri;
 }
 
+export function fetchTetrioLeagueRankIconDataUri(rank) {
+  return fetchRankIconDataUri(String(rank ?? '').trim().toLowerCase());
+}
+
 function renderTetrioRankCutSvg(cards, assets, hunFontDataUri, asOf) {
   const columns = 7;
   const cardWidth = 188;

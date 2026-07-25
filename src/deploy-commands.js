@@ -166,6 +166,17 @@ new SlashCommandBuilder()
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('업적평균')
+    .setDescription('TETR.IO 업적 티어별 평균 기록 카드를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('업적')
+        .setDescription('평균을 볼 업적 이름')
+        .setRequired(true)
+        .setAutocomplete(true)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('스탯')
     .setDescription('TETR.IO 스탯 카드 형식을 보여줍니다.')
     .addStringOption((option) =>

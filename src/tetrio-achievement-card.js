@@ -101,7 +101,7 @@ export async function createTetrioAchievementCard(username, achievementQuery) {
   };
 }
 
-async function fetchTetrioAchievementCatalog() {
+export async function fetchTetrioAchievementCatalog() {
   if (achievementCatalogCache && achievementCatalogCache.expiresAt > Date.now()) {
     return achievementCatalogCache.value;
   }

@@ -386,6 +386,10 @@ export function getTetrioLeagueRefreshStatus() {
   };
 }
 
+export function getTetrioLeagueUsers() {
+  return activeData.users.slice();
+}
+
 export async function refreshTetrioLeagueCache({ force = false, onProgress } = {}) {
   if (refreshPromise) {
     return refreshPromise;
