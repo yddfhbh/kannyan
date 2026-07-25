@@ -5,6 +5,7 @@ const duckDuckGoHtmlUrl = `${duckDuckGoHtmlOrigin}/html/`;
 const defaultSearchTimeoutMs = 20_000;
 const defaultMaxResults = 12;
 const defaultPreferredDomains = ['pyhok.com'];
+const pyhokWikiPageBaseUrl = 'https://pyhok.com/w/';
 const explicitSearchPattern = /(검색|찾아봐|찾아보|찾아줘|알아봐|알아보|search)\b/i;
 const strongTimeSensitivePattern = /(최신|실시간|뉴스|업데이트|시세|주가|가격|기온|영업시간|운영시간|발표|출시)/i;
 const relativeTimePattern = /(오늘|지금|현재|최근|이번 주|이번주|이번 달|이번달|어제|내일)/i;
@@ -24,6 +25,17 @@ export async function searchWeb(query, options = {}) {
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    const directPreferredResult = await fetchPreferredDirectResult(preferredDomains, normalizedQuery, {
+      signal: controller.signal,
+    });
+
+    if (directPreferredResult) {
+      return {
+        query: normalizedQuery,
+        results: [directPreferredResult],
+      };
+    }
+
     const queryVariants = buildSearchQueryVariants(normalizedQuery, preferredDomains);
     const queryResults = [];
 
@@ -32,10 +44,11 @@ export async function searchWeb(query, options = {}) {
         region: options.region,
         signal: controller.signal,
       });
+
       queryResults.push(results);
     }
 
-    const mergedResults = mergeAndRankSearchResults(queryResults.flat(), preferredDomains)
+    const mergedResults = mergeAndRankSearchResults(queryResults.flat(), normalizedQuery, preferredDomains)
       .slice(0, maxResults);
 
     return {
@@ -205,15 +218,70 @@ function buildSearchQueryVariants(query, preferredDomains) {
     return [];
   }
 
-  if (preferredDomains.length === 0 || /\bsite:/i.test(normalizedQuery)) {
-    return [normalizedQuery];
-  }
-
-  const preferredQuery = `${normalizedQuery} site:${preferredDomains[0]}`;
-  return [preferredQuery, normalizedQuery];
+  return [normalizedQuery];
 }
 
-function mergeAndRankSearchResults(results, preferredDomains) {
+async function fetchPreferredDirectResult(preferredDomains, query, options = {}) {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) {
+    return null;
+  }
+
+  for (const domain of Array.isArray(preferredDomains) ? preferredDomains : []) {
+    if (domain !== 'pyhok.com') {
+      continue;
+    }
+
+    const result = await fetchPyhokDirectResult(normalizedQuery, options).catch(() => null);
+    if (result) {
+      return result;
+    }
+  }
+
+  return null;
+}
+
+async function fetchPyhokDirectResult(query, options = {}) {
+  const pageUrl = new URL(encodeURIComponent(query), pyhokWikiPageBaseUrl);
+  const response = await fetch(pageUrl, {
+    headers: {
+      'accept-language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+      'user-agent': [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'AppleWebKit/537.36 (KHTML, like Gecko)',
+        'Chrome/137.0.0.0 Safari/537.36',
+      ].join(' '),
+    },
+    redirect: 'manual',
+    signal: options.signal,
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (![200, 301, 302, 303, 307, 308].includes(response.status)) {
+    return null;
+  }
+
+  const location = response.headers.get('location');
+  const resolvedUrl = location
+    ? new URL(location, pageUrl).toString()
+    : pageUrl.toString();
+  const html = await response.text();
+  const parsed = parsePyhokDirectPage(html, {
+    fallbackTitle: query,
+    fallbackUrl: resolvedUrl,
+  });
+
+  if (!parsed?.title || !parsed?.url) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function mergeAndRankSearchResults(results, query, preferredDomains) {
   const deduped = [];
   const seenUrls = new Set();
 
@@ -227,12 +295,12 @@ function mergeAndRankSearchResults(results, preferredDomains) {
     deduped.push(result);
   }
 
-  return deduped.sort((left, right) => compareSearchResults(left, right, preferredDomains));
+  return deduped.sort((left, right) => compareSearchResults(left, right, query, preferredDomains));
 }
 
-function compareSearchResults(left, right, preferredDomains) {
-  const scoreDifference = getSearchResultPriorityScore(right, preferredDomains)
-    - getSearchResultPriorityScore(left, preferredDomains);
+function compareSearchResults(left, right, query, preferredDomains) {
+  const scoreDifference = getSearchResultPriorityScore(right, query, preferredDomains)
+    - getSearchResultPriorityScore(left, query, preferredDomains);
   if (scoreDifference !== 0) {
     return scoreDifference;
   }
@@ -240,13 +308,26 @@ function compareSearchResults(left, right, preferredDomains) {
   return 0;
 }
 
-function getSearchResultPriorityScore(result, preferredDomains) {
+function getSearchResultPriorityScore(result, query, preferredDomains) {
   const url = normalizeSearchText(result?.url);
   const title = normalizeSearchText(result?.title).toLowerCase();
   const snippet = normalizeSearchText(result?.snippet).toLowerCase();
   const hostname = getHostname(url);
   const pathname = getPathname(url).toLowerCase();
+  const queryTokens = tokenizeSearchQuery(query);
   let score = 0;
+
+  for (const token of queryTokens) {
+    if (title.includes(token)) {
+      score += 80;
+    }
+    if (snippet.includes(token)) {
+      score += 45;
+    }
+    if (pathname.includes(encodeURIComponent(token).toLowerCase()) || pathname.includes(token)) {
+      score += 30;
+    }
+  }
 
   preferredDomains.forEach((domain, index) => {
     if (!hostname) {
@@ -254,7 +335,9 @@ function getSearchResultPriorityScore(result, preferredDomains) {
     }
 
     if (hostname === domain || hostname.endsWith(`.${domain}`)) {
-      score += 1_000 - index * 50;
+      score += isPreferredDomainResultRelevant(result, queryTokens)
+        ? 1_000 - index * 50
+        : -200;
       if (pathname.includes('/wiki')) {
         score += 250;
       }
@@ -266,6 +349,30 @@ function getSearchResultPriorityScore(result, preferredDomains) {
   }
 
   return score;
+}
+
+function parsePyhokDirectPage(html, options = {}) {
+  const dom = new JSDOM(String(html ?? ''));
+  const document = dom.window.document;
+  const title = normalizeSearchText(
+    document.querySelector('meta[property="og:title"]')?.getAttribute('content')
+      ?? document.querySelector('title')?.textContent
+      ?? options.fallbackTitle
+  );
+  const snippet = normalizeSearchText(
+    document.querySelector('meta[name="description"]')?.getAttribute('content')
+      ?? document.querySelector('meta[property="og:description"]')?.getAttribute('content')
+      ?? document.querySelector('article p')?.textContent
+      ?? document.querySelector('main p')?.textContent
+      ?? document.querySelector('p')?.textContent
+      ?? ''
+  );
+
+  return {
+    title,
+    url: options.fallbackUrl,
+    snippet,
+  };
 }
 
 function normalizePreferredDomains(domains) {
@@ -295,6 +402,32 @@ function getPathname(rawUrl) {
   } catch {
     return '';
   }
+}
+
+function tokenizeSearchQuery(query) {
+  return normalizeSearchText(query)
+    .toLowerCase()
+    .replace(/\bsite:[^\s]+/g, ' ')
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+}
+
+function isPreferredDomainResultRelevant(result, queryTokens) {
+  if (!Array.isArray(queryTokens) || queryTokens.length === 0) {
+    return true;
+  }
+
+  const title = normalizeSearchText(result?.title).toLowerCase();
+  const snippet = normalizeSearchText(result?.snippet).toLowerCase();
+  const pathname = getPathname(result?.url ?? '').toLowerCase();
+
+  return queryTokens.some((token) => (
+    title.includes(token)
+      || snippet.includes(token)
+      || pathname.includes(token)
+      || pathname.includes(encodeURIComponent(token).toLowerCase())
+  ));
 }
 
 function normalizeSearchText(value) {
