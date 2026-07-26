@@ -479,18 +479,13 @@ function renderStatsGrid(rows, config, layout = {}) {
     const y = rowTop + rowHeight * rowIndex + rowHeight / 2;
     const valueX = x + columnWidth;
     const valueWidth = estimateStatWidth(row.value);
-    const useFixedStartAnchor = column === 0;
-    const valueTextX = useFixedStartAnchor ? valueX - valueWidth : valueX;
-    const valueTextAnchor = useFixedStartAnchor ? 'start' : 'end';
     const lineStartX = x + 144;
-    const lineEndX = useFixedStartAnchor
-      ? valueTextX - 18
-      : valueX - valueWidth;
+    const lineEndX = valueX - valueWidth;
 
     return `
   <text x="${x}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="statsLabel">${escapeXml(row.label)}</text>
   <line x1="${roundSvgNumber(lineStartX)}" y1="${roundSvgNumber(y)}" x2="${roundSvgNumber(Math.max(lineStartX + 18, lineEndX - 16))}" y2="${roundSvgNumber(y)}" stroke="${config.accentSoft}" stroke-opacity="0.20" stroke-width="1.6" stroke-dasharray="2 4"/>
-  <text x="${roundSvgNumber(valueTextX)}" y="${roundSvgNumber(y)}" text-anchor="${valueTextAnchor}" dominant-baseline="middle" class="statsValue">${renderHistoryStatsValueMarkup(row.value)}</text>`;
+  <text x="${roundSvgNumber(valueX)}" y="${roundSvgNumber(y)}" text-anchor="end" dominant-baseline="middle" class="statsValue">${renderHistoryStatsValueMarkup(row.value)}</text>`;
   }).join('');
 
   return `${horizontalLinesMarkup}${verticalDividerMarkup}${rowsMarkup}`;
