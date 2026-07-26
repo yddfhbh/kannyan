@@ -3,6 +3,7 @@
   renderTetrioHunDinFontFace,
   renderTetrioNumericTextMarkup,
   renderTetrioSvgToPng,
+  renderTetrioTextMarkup,
   renderTetrioTextWeightCss,
   shouldUseArialFallbackForHunDin,
   tetrioFontFamily,
@@ -420,7 +421,7 @@ function renderTetrioRecordHistorySvg(data, config) {
   <rect x="26" y="${topPanelY}" width="${chartWidth - 52}" height="${topPanelHeight}" rx="6" fill="url(#panelBg)" stroke="${config.accentDim}" stroke-width="4"/>
   <path d="M 26 ${topPanelY} L 320 ${topPanelY} L 358 70 L 26 70 Z" fill="${config.accent}"/>
   <text x="48" y="62" class="modeTag">${escapeXml(data.modeLabel)}</text>
-  <text x="${chartWidth - 54}" y="76" text-anchor="end" class="username">${escapeXml(data.username)}</text>
+  <text x="${chartWidth - 54}" y="76" text-anchor="end" class="username">${renderTetrioTextMarkup(String(data.username ?? '').toUpperCase())}</text>
 
   <text x="58" y="138" class="eyebrow">PERSONAL BEST</text>
   <text x="58" y="222" class="mainValue" filter="url(#mainGlow)">${mainValueMarkup}</text>
@@ -429,11 +430,11 @@ function renderTetrioRecordHistorySvg(data, config) {
 
   <rect x="${chartWidth - 424}" y="112" width="176" height="124" fill="#0c120c" stroke="${config.accentDim}" stroke-width="3"/>
   <text x="${chartWidth - 336}" y="153" text-anchor="middle" class="boxLabel">GLOBAL</text>
-  <text x="${chartWidth - 336}" y="208" text-anchor="middle" class="boxValue">${escapeXml(globalRankText)}</text>
+  <text x="${chartWidth - 336}" y="208" text-anchor="middle" class="boxValue">${renderTetrioNumericTextMarkup(globalRankText)}</text>
 
   <rect x="${chartWidth - 232}" y="112" width="176" height="124" fill="#151b15" stroke="${config.accentSoft}" stroke-width="4"/>
   <text x="${chartWidth - 144}" y="153" text-anchor="middle" class="boxLabel">COUNTRY</text>
-  <text x="${chartWidth - 144}" y="208" text-anchor="middle" class="boxValue">${escapeXml(countryRankText)}</text>
+  <text x="${chartWidth - 144}" y="208" text-anchor="middle" class="boxValue">${renderTetrioNumericTextMarkup(countryRankText)}</text>
 
   ${statsMarkup}
 
@@ -477,13 +478,19 @@ function renderStatsGrid(rows, config, layout = {}) {
     const x = column === 0 ? leftX : rightX;
     const y = rowTop + rowHeight * rowIndex + rowHeight / 2;
     const valueX = x + columnWidth;
+    const valueWidth = estimateStatWidth(row.value);
+    const useFixedStartAnchor = column === 0;
+    const valueTextX = useFixedStartAnchor ? valueX - valueWidth : valueX;
+    const valueTextAnchor = useFixedStartAnchor ? 'start' : 'end';
     const lineStartX = x + 144;
-    const lineEndX = valueX - estimateStatWidth(row.value);
+    const lineEndX = useFixedStartAnchor
+      ? valueTextX - 18
+      : valueX - valueWidth;
 
     return `
   <text x="${x}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="statsLabel">${escapeXml(row.label)}</text>
   <line x1="${roundSvgNumber(lineStartX)}" y1="${roundSvgNumber(y)}" x2="${roundSvgNumber(Math.max(lineStartX + 18, lineEndX - 16))}" y2="${roundSvgNumber(y)}" stroke="${config.accentSoft}" stroke-opacity="0.20" stroke-width="1.6" stroke-dasharray="2 4"/>
-  <text x="${valueX}" y="${roundSvgNumber(y)}" text-anchor="end" dominant-baseline="middle" class="statsValue">${renderHistoryStatsValueMarkup(row.value)}</text>`;
+  <text x="${roundSvgNumber(valueTextX)}" y="${roundSvgNumber(y)}" text-anchor="${valueTextAnchor}" dominant-baseline="middle" class="statsValue">${renderHistoryStatsValueMarkup(row.value)}</text>`;
   }).join('');
 
   return `${horizontalLinesMarkup}${verticalDividerMarkup}${rowsMarkup}`;
