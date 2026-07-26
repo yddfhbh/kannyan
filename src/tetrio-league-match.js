@@ -873,9 +873,10 @@ return `<text x="${blockX + column.separatorX}" y="${separatorY}" text-anchor="m
 }
 
 function renderFooterTextMarkup(text) {
+  const footerUnderscoreOffsetEm = -0.16;
   const match = String(text ?? '').match(/^(.+?) VERSUS (.+?) PLAYED ON (.+)$/);
   if (!match) {
-    return `<tspan class="footerName">${renderLeagueUsernameMarkup(text)}</tspan>`;
+    return `<tspan class="footerName">${renderLeagueUsernameMarkup(text, { underscoreOffsetEm: footerUnderscoreOffsetEm })}</tspan>`;
   }
 
   const dateMatch = match[3].match(/^(\d{1,2}\/\d{1,2}\/\d{4})(,)?\s+(.+?)\s+(AM|PM)$/i);
@@ -883,7 +884,7 @@ function renderFooterTextMarkup(text) {
     ? `<tspan dx="7" class="footerDate">${escapeXml(`${dateMatch[1]}${dateMatch[2] ?? ''}`)}</tspan><tspan dx="7" class="footerTime">${escapeXml(dateMatch[3])}</tspan><tspan dx="5" class="footerDate">${escapeXml(dateMatch[4].toUpperCase())}</tspan>`
     : `<tspan dx="7" class="footerDate">${escapeXml(match[3])}</tspan>`;
 
-  return `<tspan class="footerName">${renderLeagueUsernameMarkup(match[1])}</tspan><tspan dx="8" class="footerKeyword">VERSUS</tspan><tspan dx="8" class="footerName">${renderLeagueUsernameMarkup(match[2])}</tspan><tspan dx="8" class="footerKeyword">PLAYED</tspan><tspan dx="5" class="footerKeyword">ON</tspan>${dateMarkup}`;}
+  return `<tspan class="footerName">${renderLeagueUsernameMarkup(match[1], { underscoreOffsetEm: footerUnderscoreOffsetEm })}</tspan><tspan dx="8" class="footerKeyword">VERSUS</tspan><tspan dx="8" class="footerName">${renderLeagueUsernameMarkup(match[2], { underscoreOffsetEm: footerUnderscoreOffsetEm })}</tspan><tspan dx="8" class="footerKeyword">PLAYED</tspan><tspan dx="5" class="footerKeyword">ON</tspan>${dateMarkup}`;}
 
 
 function renderFooterLineMarkup(text, x, y) {
@@ -961,7 +962,7 @@ function getLeagueUsernameUnderscoreMetrics(fontSize = 17) {
     afterGap,
     advance: beforeGap + width + afterGap,
     height: 2.0,
-    yOffset: 1.4,
+    yOffset: -1.2,
   };
 }
 
