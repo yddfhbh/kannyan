@@ -721,17 +721,19 @@ new SlashCommandBuilder()
         .setMinValue(1)
         .setMaxValue(100)
     )
-    .addChannelOption((option) =>
+    .addStringOption((option) =>
       option
         .setName('제외채널')
-        .setDescription('이 채널의 메시지는 무시')
+        .setDescription('쉼표로 구분한 제외 채널 멘션 또는 ID')
         .setRequired(false)
+        .setMaxLength(500)
     )
-    .addChannelOption((option) =>
+    .addStringOption((option) =>
       option
         .setName('제외카테고리')
-        .setDescription('이 카테고리 아래 메시지는 무시')
+        .setDescription('쉼표로 구분한 제외 카테고리 ID')
         .setRequired(false)
+        .setMaxLength(500)
     )
     .toJSON(),
   new SlashCommandBuilder()
@@ -759,17 +761,19 @@ new SlashCommandBuilder()
         .setMinValue(1)
         .setMaxValue(100)
     )
-    .addChannelOption((option) =>
+    .addStringOption((option) =>
       option
         .setName('제외채널')
-        .setDescription('이 채널의 메시지는 무시')
+        .setDescription('쉼표로 구분한 제외 채널 멘션 또는 ID')
         .setRequired(false)
+        .setMaxLength(500)
     )
-    .addChannelOption((option) =>
+    .addStringOption((option) =>
       option
         .setName('제외카테고리')
-        .setDescription('이 카테고리 아래 메시지는 무시')
+        .setDescription('쉼표로 구분한 제외 카테고리 ID')
         .setRequired(false)
+        .setMaxLength(500)
     )
     .toJSON(),
   new SlashCommandBuilder()
@@ -809,11 +813,12 @@ new SlashCommandBuilder()
         .setMinValue(1)
         .setMaxValue(100)
     )
-    .addChannelOption((option) =>
+    .addStringOption((option) =>
       option
         .setName('제외채널')
-        .setDescription('변경할 제외 채널')
+        .setDescription('변경할 제외 채널 멘션 또는 ID 목록')
         .setRequired(false)
+        .setMaxLength(500)
     )
     .addBooleanOption((option) =>
       option
@@ -821,11 +826,12 @@ new SlashCommandBuilder()
         .setDescription('현재 제외 채널을 비움')
         .setRequired(false)
     )
-    .addChannelOption((option) =>
+    .addStringOption((option) =>
       option
         .setName('제외카테고리')
-        .setDescription('변경할 제외 카테고리')
+        .setDescription('변경할 제외 카테고리 ID 목록')
         .setRequired(false)
+        .setMaxLength(500)
     )
     .addBooleanOption((option) =>
       option

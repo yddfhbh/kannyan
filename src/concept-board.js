@@ -84,6 +84,14 @@ function normalizeStateShape(rawState) {
       delete nextGuildState.threshold;
     }
 
+    for (const config of Object.values(nextGuildState.configs)) {
+      if (!config || typeof config !== 'object') {
+        continue;
+      }
+
+      syncLegacyExcludedFields(config);
+    }
+
     normalized.guilds[guildId] = nextGuildState;
   }
 
@@ -315,15 +323,123 @@ function getNextAvailableConfigId(guildState) {
   return String(candidate);
 }
 
-function formatConfigSummary(config) {
-  const excludedParts = [];
-
-  if (config.excludedChannelId) {
-    excludedParts.push(`제외채널 <#${config.excludedChannelId}>`);
+function normalizeIdList(values) {
+  if (!Array.isArray(values)) {
+    return [];
   }
 
-  if (config.excludedCategoryId) {
-    excludedParts.push(`제외카테고리 <#${config.excludedCategoryId}>`);
+  const uniqueIds = new Set();
+
+  for (const value of values) {
+    const id = String(value ?? '').trim();
+
+    if (id) {
+      uniqueIds.add(id);
+    }
+  }
+
+  return [...uniqueIds];
+}
+
+function getExcludedChannelIds(config) {
+  return normalizeIdList([
+    ...(Array.isArray(config?.excludedChannelIds) ? config.excludedChannelIds : []),
+    config?.excludedChannelId,
+  ]);
+}
+
+function getExcludedCategoryIds(config) {
+  return normalizeIdList([
+    ...(Array.isArray(config?.excludedCategoryIds) ? config.excludedCategoryIds : []),
+    config?.excludedCategoryId,
+  ]);
+}
+
+function syncLegacyExcludedFields(config) {
+  const excludedChannelIds = getExcludedChannelIds(config);
+  const excludedCategoryIds = getExcludedCategoryIds(config);
+
+  config.excludedChannelIds = excludedChannelIds;
+  config.excludedCategoryIds = excludedCategoryIds;
+  config.excludedChannelId = excludedChannelIds[0] ?? null;
+  config.excludedCategoryId = excludedCategoryIds[0] ?? null;
+
+  return config;
+}
+
+function parseExcludedTargetIds(value) {
+  const parts = String(value ?? '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length === 0) {
+    return [];
+  }
+
+  const uniqueIds = new Set();
+
+  for (const part of parts) {
+    const match = part.match(/^<#(\d+)>$/);
+    const id = match ? match[1] : part;
+
+    if (!/^\d+$/.test(id)) {
+      return null;
+    }
+
+    uniqueIds.add(id);
+  }
+
+  return [...uniqueIds];
+}
+
+async function resolveExcludedChannels(guild, rawValue) {
+  const ids = parseExcludedTargetIds(rawValue);
+
+  if (ids == null) {
+    return { error: 'invalid_format' };
+  }
+
+  for (const id of ids) {
+    const channel = await guild.channels.fetch(id).catch(() => null);
+
+    if (!channel || typeof channel.isTextBased !== 'function' || !channel.isTextBased()) {
+      return { error: 'invalid_channel' };
+    }
+  }
+
+  return { ids };
+}
+
+async function resolveExcludedCategories(guild, rawValue) {
+  const ids = parseExcludedTargetIds(rawValue);
+
+  if (ids == null) {
+    return { error: 'invalid_format' };
+  }
+
+  for (const id of ids) {
+    const channel = await guild.channels.fetch(id).catch(() => null);
+
+    if (!channel || channel.type !== ChannelType.GuildCategory) {
+      return { error: 'invalid_category' };
+    }
+  }
+
+  return { ids };
+}
+
+function formatConfigSummary(config) {
+  const excludedParts = [];
+  const excludedChannelIds = getExcludedChannelIds(config);
+  const excludedCategoryIds = getExcludedCategoryIds(config);
+
+  if (excludedChannelIds.length > 0) {
+    excludedParts.push(`제외채널 ${excludedChannelIds.map((id) => `<#${id}>`).join(', ')}`);
+  }
+
+  if (excludedCategoryIds.length > 0) {
+    excludedParts.push(`제외카테고리 ${excludedCategoryIds.map((id) => `<#${id}>`).join(', ')}`);
   }
 
   return [
@@ -402,11 +518,11 @@ function isExcludedByConfig(message, config) {
     return false;
   }
 
-  if (config.excludedChannelId && String(message.channelId) === String(config.excludedChannelId)) {
+  if (getExcludedChannelIds(config).includes(String(message.channelId))) {
     return true;
   }
 
-  if (config.excludedCategoryId && String(message.channel?.parentId ?? '') === String(config.excludedCategoryId)) {
+  if (getExcludedCategoryIds(config).includes(String(message.channel?.parentId ?? ''))) {
     return true;
   }
 
@@ -590,8 +706,8 @@ export async function handleConceptBoardAddInteraction(interaction) {
   const outputChannel = interaction.options.getChannel('채널', true);
   const emojiInput = interaction.options.getString('이모지', true);
   const threshold = interaction.options.getInteger('개수', true);
-  const excludedChannel = interaction.options.getChannel('제외채널');
-  const excludedCategory = interaction.options.getChannel('제외카테고리');
+  const excludedChannelsInput = interaction.options.getString('제외채널');
+  const excludedCategoriesInput = interaction.options.getString('제외카테고리');
   const parsedEmoji = parseEmojiInput(emojiInput);
 
   if (!outputChannel.isTextBased()) {
@@ -610,17 +726,40 @@ export async function handleConceptBoardAddInteraction(interaction) {
     return;
   }
 
-  if (excludedChannel && !excludedChannel.isTextBased()) {
+  const excludedChannelsResult = excludedChannelsInput == null
+    ? { ids: [] }
+    : await resolveExcludedChannels(interaction.guild, excludedChannelsInput);
+  const excludedCategoriesResult = excludedCategoriesInput == null
+    ? { ids: [] }
+    : await resolveExcludedCategories(interaction.guild, excludedCategoriesInput);
+
+  if (excludedChannelsResult.error === 'invalid_format') {
     await interaction.reply({
-      content: '제외채널은 텍스트 채널로 넣어달라냥.',
+      content: '제외채널은 `<#123>, <#456>` 또는 채널 ID를 `,`로 구분해서 넣어달라냥.',
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
-  if (excludedCategory && excludedCategory.type !== ChannelType.GuildCategory) {
+  if (excludedChannelsResult.error === 'invalid_channel') {
     await interaction.reply({
-      content: '제외카테고리는 카테고리만 넣을 수 있다냥.',
+      content: '제외채널에는 텍스트 채널만 넣을 수 있다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (excludedCategoriesResult.error === 'invalid_format') {
+    await interaction.reply({
+      content: '제외카테고리는 카테고리 ID를 `,`로 구분해서 넣어달라냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (excludedCategoriesResult.error === 'invalid_category') {
+    await interaction.reply({
+      content: '제외카테고리에는 카테고리만 넣을 수 있다냥.',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -630,18 +769,18 @@ export async function handleConceptBoardAddInteraction(interaction) {
   const guildState = getGuildConfigState(loadedState, interaction.guildId);
   const configId = getNextAvailableConfigId(guildState);
 
-  guildState.configs[configId] = {
+  guildState.configs[configId] = syncLegacyExcludedFields({
     id: configId,
     outputChannelId: outputChannel.id,
     emojiKey: parsedEmoji.emojiKey,
     emojiDisplay: parsedEmoji.emojiDisplay,
     threshold,
-    excludedChannelId: excludedChannel?.id ?? null,
-    excludedCategoryId: excludedCategory?.id ?? null,
+    excludedChannelIds: excludedChannelsResult.ids,
+    excludedCategoryIds: excludedCategoriesResult.ids,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     updatedBy: interaction.user.id,
-  };
+  });
   getNextAvailableConfigId(guildState);
 
   await saveState();
@@ -651,6 +790,7 @@ export async function handleConceptBoardAddInteraction(interaction) {
     flags: MessageFlags.Ephemeral,
   });
 }
+
 
 export async function handleConceptBoardListInteraction(interaction) {
   if (!await ensureManager(interaction)) {
@@ -689,8 +829,8 @@ export async function handleConceptBoardUpdateInteraction(interaction) {
   const outputChannel = interaction.options.getChannel('채널');
   const emojiInput = interaction.options.getString('이모지');
   const threshold = interaction.options.getInteger('개수');
-  const excludedChannel = interaction.options.getChannel('제외채널');
-  const excludedCategory = interaction.options.getChannel('제외카테고리');
+  const excludedChannelsInput = interaction.options.getString('제외채널');
+  const excludedCategoriesInput = interaction.options.getString('제외카테고리');
   const clearExcludedChannel = interaction.options.getBoolean('제외채널초기화') === true;
   const clearExcludedCategory = interaction.options.getBoolean('제외카테고리초기화') === true;
   const loadedState = await loadState();
@@ -709,8 +849,8 @@ export async function handleConceptBoardUpdateInteraction(interaction) {
     !outputChannel
     && emojiInput == null
     && threshold == null
-    && !excludedChannel
-    && !excludedCategory
+    && excludedChannelsInput == null
+    && excludedCategoriesInput == null
     && !clearExcludedChannel
     && !clearExcludedCategory
   ) {
@@ -733,31 +873,53 @@ export async function handleConceptBoardUpdateInteraction(interaction) {
     config.outputChannelId = outputChannel.id;
   }
 
-  if (excludedChannel) {
-    if (!excludedChannel.isTextBased()) {
+  if (excludedChannelsInput != null) {
+    const excludedChannelsResult = await resolveExcludedChannels(interaction.guild, excludedChannelsInput);
+
+    if (excludedChannelsResult.error === 'invalid_format') {
       await interaction.reply({
-        content: '제외채널은 텍스트 채널로 넣어달라냥.',
+        content: '제외채널은 `<#123>, <#456>` 또는 채널 ID를 `,`로 구분해서 넣어달라냥.',
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
 
-    config.excludedChannelId = excludedChannel.id;
+    if (excludedChannelsResult.error === 'invalid_channel') {
+      await interaction.reply({
+        content: '제외채널에는 텍스트 채널만 넣을 수 있다냥.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    config.excludedChannelIds = excludedChannelsResult.ids;
   } else if (clearExcludedChannel) {
+    config.excludedChannelIds = [];
     config.excludedChannelId = null;
   }
 
-  if (excludedCategory) {
-    if (excludedCategory.type !== ChannelType.GuildCategory) {
+  if (excludedCategoriesInput != null) {
+    const excludedCategoriesResult = await resolveExcludedCategories(interaction.guild, excludedCategoriesInput);
+
+    if (excludedCategoriesResult.error === 'invalid_format') {
       await interaction.reply({
-        content: '제외카테고리는 카테고리만 넣을 수 있다냥.',
+        content: '제외카테고리는 카테고리 ID를 `,`로 구분해서 넣어달라냥.',
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
 
-    config.excludedCategoryId = excludedCategory.id;
+    if (excludedCategoriesResult.error === 'invalid_category') {
+      await interaction.reply({
+        content: '제외카테고리에는 카테고리만 넣을 수 있다냥.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    config.excludedCategoryIds = excludedCategoriesResult.ids;
   } else if (clearExcludedCategory) {
+    config.excludedCategoryIds = [];
     config.excludedCategoryId = null;
   }
 
@@ -780,6 +942,7 @@ export async function handleConceptBoardUpdateInteraction(interaction) {
     config.threshold = threshold;
   }
 
+  syncLegacyExcludedFields(config);
   config.updatedAt = new Date().toISOString();
   config.updatedBy = interaction.user.id;
   await saveState();
@@ -789,6 +952,7 @@ export async function handleConceptBoardUpdateInteraction(interaction) {
     flags: MessageFlags.Ephemeral,
   });
 }
+
 
 export async function handleConceptBoardDeleteInteraction(interaction) {
   if (!await ensureManager(interaction)) {
