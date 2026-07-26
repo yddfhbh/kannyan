@@ -1,8 +1,10 @@
-import {
+﻿import {
   getTetrioHunDinFontDataUri,
   renderTetrioHunDinFontFace,
+  renderTetrioNumericTextMarkup,
   renderTetrioSvgToPng,
   renderTetrioTextWeightCss,
+  shouldUseArialFallbackForHunDin,
   tetrioFontFamily,
   tetrioPhraseWordSpacing,
 } from './tetrio-font.js';
@@ -306,13 +308,28 @@ function normalizeTetrioUsername(input) {
 
 function renderTetrioRecordHistorySvg(data, config) {
   const topPanelY = 24;
-  const topPanelHeight = 430;
-  const graphPanelY = 486;
-  const graphTitleY = 472;
-  const graphLeft = graphMargin.left;
-  const graphTop = graphMargin.top;
-  const graphRight = chartWidth - graphMargin.right;
-  const graphBottom = chartHeight - graphMargin.bottom;
+  const topPanelHeight = 464;
+  const topStatsLayout = {
+    leftX: 58,
+    rightX: 820,
+    rowTop: 338,
+    columnWidth: 642,
+    rowHeight: 34,
+    separatorLeft: 54,
+    separatorRight: chartWidth - 54,
+    dividerX: 794,
+  };
+  const graphPanelX = 26;
+  const graphPanelY = 508;
+  const graphPanelWidth = chartWidth - 52;
+  const graphPanelHeight = chartHeight - graphPanelY - 28;
+  const graphPanelBottom = graphPanelY + graphPanelHeight;
+  const graphTitleX = 58;
+  const graphTitleY = graphPanelY + 38;
+  const graphLeft = 110;
+  const graphTop = graphPanelY + 72;
+  const graphRight = chartWidth - 50;
+  const graphBottom = graphPanelBottom - 88;
   const graphInnerWidth = graphRight - graphLeft;
   const graphInnerHeight = graphBottom - graphTop;
   const allGraphPoints = data.allPoints.length > 0
@@ -326,12 +343,16 @@ function renderTetrioRecordHistorySvg(data, config) {
   const xLabelsMarkup = renderXAxisLabels(graphDomain, graphLeft, graphTop, graphInnerWidth, graphInnerHeight);
   const yLabelsMarkup = renderYAxisLabels(graphDomain, config, graphLeft, graphTop, graphInnerWidth, graphInnerHeight);
   const mainValue = config.formatMainValue(config.getMetricValue(data.bestRecord) || data.latestPoint?.metricValue || 0);
+  const mainValueMarkup = renderHistoryNumberMarkup(mainValue, {
+    dotFontSize: '1.22em',
+    dotDyEm: 0.02,
+    commaDxEm: -0.4,
+  });
   const bestTs = data.bestRecord?.ts ?? (data.pbPoints.at(-1)?.ts ? new Date(data.pbPoints.at(-1).ts).toISOString() : null);
   const lastPlayedText = data.latestPoint?.ts
     ? formatKstDateTime(data.latestPoint.ts)
     : '-';
-  const runCountText = `${formatInteger(allGraphPoints.length)} RUNS`;
-  const pbCountText = `${formatInteger(data.pbPoints.length)} PBS`;
+  const footerMarkup = renderHistoryFooterMarkup(allGraphPoints.length, data.pbPoints.length);
   const summaryText = bestTs
     ? `PB ACHIEVED ${formatKstDateTime(bestTs)}`
     : 'PB ACHIEVED -';
@@ -341,7 +362,7 @@ function renderTetrioRecordHistorySvg(data, config) {
   const countryRankText = Number.isFinite(data.countryRank) && data.countryRank > 0
     ? `#${formatInteger(data.countryRank)}`
     : '-';
-  const statsMarkup = renderStatsGrid(data.statsRows, config);
+  const statsMarkup = renderStatsGrid(data.statsRows, config, topStatsLayout);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${chartWidth}" height="${chartHeight}" viewBox="0 0 ${chartWidth} ${chartHeight}">
@@ -382,14 +403,13 @@ function renderTetrioRecordHistorySvg(data, config) {
       }
       .eyebrow { fill: ${config.accentSoft}; font-size: 26px; font-weight: 700; letter-spacing: 2px; word-spacing: ${tetrioPhraseWordSpacing}; }
       .modeTag { fill: #fff4e4; font-size: 48px; font-weight: 900; letter-spacing: 1px; }
-      .title { fill: #f0f4ea; font-size: 44px; font-weight: 800; letter-spacing: 1px; word-spacing: ${tetrioPhraseWordSpacing}; }
-      .username { fill: #e7ffe4; font-size: 42px; font-weight: 850; }
+      .username { fill: #e7ffe4; font-size: 48px; font-weight: 850; }
       .mainValue { fill: #e7ffe1; font-size: 86px; font-weight: 950; stroke: rgba(235, 255, 230, 0.55); stroke-width: 1.05px; paint-order: stroke fill; }
       .summary { fill: #c8d9c2; font-size: 27px; font-weight: 650; letter-spacing: 1px; word-spacing: ${tetrioPhraseWordSpacing}; }
       .boxLabel { fill: #b7c5b2; font-size: 22px; font-weight: 700; letter-spacing: 1.5px; }
       .boxValue { fill: #f6fff0; font-size: 48px; font-weight: 900; }
       .statsLabel { fill: #8eaf88; font-size: 24px; font-weight: 650; letter-spacing: 1.5px; word-spacing: ${tetrioPhraseWordSpacing}; }
-      .statsValue { fill: #eef7ea; font-size: 31px; font-weight: 750; }
+      .statsValue { fill: #eef7ea; font-size: 29px; font-weight: 750; }
       .graphTitle { fill: #cbe3c6; font-size: 28px; font-weight: 760; letter-spacing: 1.8px; word-spacing: ${tetrioPhraseWordSpacing}; }
       .axisLabel { fill: ${config.accentSoft}; font-size: 22px; font-weight: 700; }
       .footer { fill: #9bb395; font-size: 22px; font-weight: 650; letter-spacing: 1px; }
@@ -400,28 +420,26 @@ function renderTetrioRecordHistorySvg(data, config) {
   <rect x="26" y="${topPanelY}" width="${chartWidth - 52}" height="${topPanelHeight}" rx="6" fill="url(#panelBg)" stroke="${config.accentDim}" stroke-width="4"/>
   <path d="M 26 ${topPanelY} L 320 ${topPanelY} L 358 70 L 26 70 Z" fill="${config.accent}"/>
   <text x="48" y="62" class="modeTag">${escapeXml(data.modeLabel)}</text>
-  <text x="384" y="64" class="title">${escapeXml(data.modeTitle)}</text>
-  <text x="${chartWidth - 54}" y="64" text-anchor="end" class="username">${escapeXml(data.username)}</text>
+  <text x="${chartWidth - 54}" y="76" text-anchor="end" class="username">${escapeXml(data.username)}</text>
 
-  <text x="58" y="134" class="eyebrow">PERSONAL BEST</text>
-  <text x="58" y="214" class="mainValue" filter="url(#mainGlow)">${escapeXml(mainValue)}</text>
-  <text x="58" y="262" class="summary">${escapeXml(summaryText)}</text>
-  <text x="58" y="301" class="summary">LAST PLAYED ${escapeXml(lastPlayedText)}</text>
+  <text x="58" y="138" class="eyebrow">PERSONAL BEST</text>
+  <text x="58" y="222" class="mainValue" filter="url(#mainGlow)">${mainValueMarkup}</text>
+  <text x="58" y="276" class="summary">${escapeXml(summaryText)}</text>
+  <text x="58" y="316" class="summary">LAST PLAYED ${escapeXml(lastPlayedText)}</text>
 
-  <rect x="${chartWidth - 418}" y="106" width="168" height="116" fill="#0c120c" stroke="${config.accentDim}" stroke-width="3"/>
-  <text x="${chartWidth - 334}" y="145" text-anchor="middle" class="boxLabel">GLOBAL</text>
-  <text x="${chartWidth - 334}" y="197" text-anchor="middle" class="boxValue">${escapeXml(globalRankText)}</text>
+  <rect x="${chartWidth - 424}" y="112" width="176" height="124" fill="#0c120c" stroke="${config.accentDim}" stroke-width="3"/>
+  <text x="${chartWidth - 336}" y="153" text-anchor="middle" class="boxLabel">GLOBAL</text>
+  <text x="${chartWidth - 336}" y="208" text-anchor="middle" class="boxValue">${escapeXml(globalRankText)}</text>
 
-  <rect x="${chartWidth - 228}" y="106" width="168" height="116" fill="#151b15" stroke="${config.accentSoft}" stroke-width="4"/>
-  <text x="${chartWidth - 144}" y="145" text-anchor="middle" class="boxLabel">COUNTRY</text>
-  <text x="${chartWidth - 144}" y="197" text-anchor="middle" class="boxValue">${escapeXml(countryRankText)}</text>
+  <rect x="${chartWidth - 232}" y="112" width="176" height="124" fill="#151b15" stroke="${config.accentSoft}" stroke-width="4"/>
+  <text x="${chartWidth - 144}" y="153" text-anchor="middle" class="boxLabel">COUNTRY</text>
+  <text x="${chartWidth - 144}" y="208" text-anchor="middle" class="boxValue">${escapeXml(countryRankText)}</text>
 
-  <line x1="54" y1="328" x2="${chartWidth - 54}" y2="328" stroke="#c3d4bf" stroke-opacity="0.18" stroke-width="2"/>
   ${statsMarkup}
 
-  <rect x="26" y="${graphPanelY}" width="${chartWidth - 52}" height="${chartHeight - graphPanelY - 76}" rx="6" fill="#0c110c" stroke="${config.accentDim}" stroke-width="4"/>
-  <rect x="48" y="${graphTop}" width="${chartWidth - 96}" height="${graphBottom - graphTop}" fill="url(#chartGlow)" opacity="0.45"/>
-  <text x="54" y="${graphTitleY}" class="graphTitle">${escapeXml(`${data.modeTitle} HISTORY`)}</text>
+  <rect x="${graphPanelX}" y="${graphPanelY}" width="${graphPanelWidth}" height="${graphPanelHeight}" rx="6" fill="#0c110c" stroke="${config.accentDim}" stroke-width="4"/>
+  <rect x="${graphLeft}" y="${graphTop}" width="${graphInnerWidth}" height="${graphInnerHeight}" fill="url(#chartGlow)" opacity="0.45"/>
+  <text x="${graphTitleX}" y="${graphTitleY}" class="graphTitle">${escapeXml(`${data.modeTitle} HISTORY`)}</text>
   ${gridMarkup}
   ${scatterMarkup}
   ${pbPathMarkup}
@@ -429,32 +447,114 @@ function renderTetrioRecordHistorySvg(data, config) {
   ${xLabelsMarkup}
   ${yLabelsMarkup}
 
-  <text x="34" y="${chartHeight - 28}" class="footer">${escapeXml(`${runCountText}  ·  ${pbCountText}`)}</text>
+  <text x="${graphTitleX}" y="${graphPanelBottom - 18}" class="footer">${footerMarkup}</text>
 </svg>`;
 }
 
-function renderStatsGrid(rows, config) {
+function renderStatsGrid(rows, config, layout = {}) {
   const visibleRows = rows.slice(0, 8);
-  const leftX = 58;
-  const rightX = 814;
-  const startY = 348;
-  const columnWidth = 660;
-  const rowHeight = 34;
+  const leftX = layout.leftX ?? 58;
+  const rightX = layout.rightX ?? 814;
+  const rowTop = layout.rowTop ?? 338;
+  const columnWidth = layout.columnWidth ?? 660;
+  const rowHeight = layout.rowHeight ?? 34;
+  const separatorLeft = layout.separatorLeft ?? leftX;
+  const separatorRight = layout.separatorRight ?? (rightX + columnWidth);
+  const dividerX = layout.dividerX ?? 794;
+  const rowCount = Math.ceil(visibleRows.length / 2);
+  const horizontalLinesMarkup = Array.from({ length: rowCount + 1 }, (_, index) => {
+    const lineY = rowTop + rowHeight * index;
+    const isEdge = index === 0 || index === rowCount;
+    return `
+  <line x1="${separatorLeft}" y1="${roundSvgNumber(lineY)}" x2="${separatorRight}" y2="${roundSvgNumber(lineY)}" stroke="${isEdge ? '#d0e4cc' : config.accentSoft}" stroke-opacity="${isEdge ? '0.48' : '0.24'}" stroke-width="${isEdge ? '2.2' : '1.8'}"/>`;
+  }).join('');
+  const verticalDividerMarkup = `
+  <line x1="${dividerX}" y1="${roundSvgNumber(rowTop + 8)}" x2="${dividerX}" y2="${roundSvgNumber(rowTop + rowHeight * rowCount - 8)}" stroke="${config.accentSoft}" stroke-opacity="0.14" stroke-width="1.6"/>`;
 
-  return visibleRows.map((row, index) => {
+  const rowsMarkup = visibleRows.map((row, index) => {
     const column = index % 2;
     const rowIndex = Math.floor(index / 2);
     const x = column === 0 ? leftX : rightX;
-    const y = startY + rowIndex * rowHeight;
+    const y = rowTop + rowHeight * rowIndex + rowHeight / 2;
     const valueX = x + columnWidth;
     const lineStartX = x + 144;
     const lineEndX = valueX - estimateStatWidth(row.value);
 
     return `
-  <text x="${x}" y="${y}" class="statsLabel">${escapeXml(row.label)}</text>
-  <line x1="${roundSvgNumber(lineStartX)}" y1="${y - 7}" x2="${roundSvgNumber(Math.max(lineStartX + 18, lineEndX - 16))}" y2="${y - 7}" stroke="${config.accentSoft}" stroke-opacity="0.20" stroke-width="1.6" stroke-dasharray="2 4"/>
-  <text x="${valueX}" y="${y}" text-anchor="end" class="statsValue">${escapeXml(row.value)}</text>`;
+  <text x="${x}" y="${roundSvgNumber(y)}" dominant-baseline="middle" class="statsLabel">${escapeXml(row.label)}</text>
+  <line x1="${roundSvgNumber(lineStartX)}" y1="${roundSvgNumber(y)}" x2="${roundSvgNumber(Math.max(lineStartX + 18, lineEndX - 16))}" y2="${roundSvgNumber(y)}" stroke="${config.accentSoft}" stroke-opacity="0.20" stroke-width="1.6" stroke-dasharray="2 4"/>
+  <text x="${valueX}" y="${roundSvgNumber(y)}" text-anchor="end" dominant-baseline="middle" class="statsValue">${renderHistoryStatsValueMarkup(row.value)}</text>`;
   }).join('');
+
+  return `${horizontalLinesMarkup}${verticalDividerMarkup}${rowsMarkup}`;
+}
+
+function renderHistoryStatsValueMarkup(value) {
+  const text = String(value ?? '');
+  return /[.,]/.test(text)
+    ? renderHistoryNumberMarkup(text, {
+      dotFontSize: '1.08em',
+      dotDyEm: 0.01,
+      commaDxEm: -0.4,
+    })
+    : renderTetrioNumericTextMarkup(text);
+}
+
+function renderHistoryFooterMarkup(runCount, pbCount) {
+  return `${renderTetrioNumericTextMarkup(formatInteger(runCount))} RUNS / ${renderTetrioNumericTextMarkup(formatInteger(pbCount))} PBS`;
+}
+
+function renderHistoryAxisLabelMarkup(value) {
+  const text = String(value ?? '');
+  return /[.,]/.test(text)
+    ? renderHistoryNumberMarkup(text, {
+      dotFontSize: '1.06em',
+      dotDyEm: 0.01,
+      commaDxEm: -0.4,
+    })
+    : escapeXml(text);
+}
+
+function renderHistoryNumberMarkup(value, options = {}) {
+  const text = String(value ?? '');
+  const dotFontSize = options.dotFontSize ?? '1.12em';
+  const dotDyEm = Number(options.dotDyEm) || 0;
+  const commaDxEm = Number(options.commaDxEm) || -0.4;
+  let markup = '';
+  let tightenNext = false;
+  let resetDyEm = 0;
+
+  for (const char of text) {
+    if (char === '.') {
+      const dy = dotDyEm ? ` dy="${dotDyEm}em"` : '';
+      markup += `<tspan${dy} font-family="Arial" font-size="${dotFontSize}" stroke="none">.</tspan>`;
+      tightenNext = false;
+      resetDyEm = dotDyEm;
+      continue;
+    }
+
+    const dx = tightenNext && /\d/.test(char)
+      ? ` dx="${roundSvgNumber(commaDxEm)}em"`
+      : '';
+    const dy = resetDyEm
+      ? ` dy="${roundSvgNumber(-resetDyEm)}em"`
+      : '';
+    const fontFamilyAttr = shouldUseArialFallbackForHunDin(char)
+      ? ' font-family="Arial"'
+      : '';
+    const escaped = escapeXml(char);
+
+    if (dx || dy || fontFamilyAttr) {
+      markup += `<tspan${fontFamilyAttr}${dx}${dy}>${escaped}</tspan>`;
+    } else {
+      markup += escaped;
+    }
+
+    tightenNext = char === ',';
+    resetDyEm = 0;
+  }
+
+  return markup;
 }
 
 function getGraphDomain(points, pbPoints, bestRecord, config) {
@@ -476,12 +576,12 @@ function getGraphDomain(points, pbPoints, bestRecord, config) {
   const maxTs = Math.max(...timestamps);
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
-  const tsPadding = Math.max(86_400_000, (maxTs - minTs) * 0.02);
   const valuePadding = Math.max(0.1, (maxValue - minValue) * 0.08, maxValue * 0.02);
+  const safeMaxTs = maxTs > minTs ? maxTs : minTs + 86_400_000;
 
   return {
-    minTs: minTs - tsPadding,
-    maxTs: maxTs + tsPadding,
+    minTs,
+    maxTs: safeMaxTs,
     minValue: Math.max(0.1, minValue - valuePadding),
     maxValue: maxValue + valuePadding,
   };
@@ -588,8 +688,9 @@ function renderYAxisLabels(domain, config, x, y, width, height) {
     const t = index / 5;
     const value = domain.maxValue - (domain.maxValue - domain.minValue) * t;
     const labelY = y + height * t + 8;
+    const labelText = config.formatAxisValue(value);
     labels.push(
-      `<text x="${x - 14}" y="${roundSvgNumber(labelY)}" text-anchor="end" class="axisLabel">${escapeXml(config.formatAxisValue(value))}</text>`
+      `<text x="${x - 14}" y="${roundSvgNumber(labelY)}" text-anchor="end" class="axisLabel">${renderHistoryAxisLabelMarkup(labelText)}</text>`
     );
   }
   return labels.join('');
@@ -814,7 +915,7 @@ function formatKstDateTime(value) {
 
 function estimateStatWidth(value) {
   const text = String(value ?? '');
-  return text.length * 15.4;
+  return text.length * 14.4;
 }
 
 function roundSvgNumber(value) {
@@ -829,3 +930,4 @@ function escapeXml(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+

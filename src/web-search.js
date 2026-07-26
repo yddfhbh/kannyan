@@ -2,6 +2,7 @@ import { JSDOM } from 'jsdom';
 
 const duckDuckGoHtmlOrigin = 'https://html.duckduckgo.com';
 const duckDuckGoHtmlUrl = `${duckDuckGoHtmlOrigin}/html/`;
+const naverSearchUrl = 'https://search.naver.com/search.naver';
 const defaultSearchTimeoutMs = 20_000;
 const defaultMaxResults = 12;
 const defaultPreferredDomains = ['pyhok.com'];
@@ -40,10 +41,16 @@ export async function searchWeb(query, options = {}) {
     const queryResults = [];
 
     for (const searchQuery of queryVariants) {
-      const results = await performDuckDuckGoHtmlSearch(searchQuery, {
+      let results = await performDuckDuckGoHtmlSearch(searchQuery, {
         region: options.region,
         signal: controller.signal,
       });
+
+      if (results.length === 0) {
+        results = await performNaverSearch(searchQuery, {
+          signal: controller.signal,
+        }).catch(() => []);
+      }
 
       queryResults.push(results);
     }
@@ -279,6 +286,89 @@ async function fetchPyhokDirectResult(query, options = {}) {
   }
 
   return parsed;
+}
+
+async function performNaverSearch(query, options = {}) {
+  const url = new URL(naverSearchUrl);
+  url.searchParams.set('where', 'nexearch');
+  url.searchParams.set('query', normalizeSearchText(query));
+
+  const response = await fetch(url, {
+    headers: {
+      'accept-language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+      'user-agent': [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'AppleWebKit/537.36 (KHTML, like Gecko)',
+        'Chrome/137.0.0.0 Safari/537.36',
+      ].join(' '),
+    },
+    signal: options.signal,
+  });
+
+  const html = await response.text();
+  if (!response.ok) {
+    const error = new Error(`Naver search failed with ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  return parseNaverSearchResults(html);
+}
+
+function parseNaverSearchResults(html) {
+  const dom = new JSDOM(String(html ?? ''));
+  const document = dom.window.document;
+  const anchors = [...document.querySelectorAll('a[href]')];
+  const results = [];
+  const seenUrls = new Set();
+
+  for (const anchor of anchors) {
+    const rawUrl = String(anchor.href ?? '').trim();
+    if (!/^https?:\/\//i.test(rawUrl)) {
+      continue;
+    }
+
+    const hostname = getHostname(rawUrl);
+    if (!hostname || hostname.endsWith('naver.com') || hostname.endsWith('pstatic.net')) {
+      continue;
+    }
+
+    const text = normalizeSearchText(anchor.textContent ?? '');
+    if (!text || text === '새 창 열림' || text.length < 6) {
+      continue;
+    }
+
+    const className = String(anchor.className ?? '');
+    const parentClassName = String(anchor.parentElement?.className ?? '');
+    const isStructuredResult = className.includes('fender-ui_')
+      || className.includes('_cav_trigger')
+      || parentClassName.includes('sds-comps-')
+      || parentClassName.includes('type_height_');
+
+    if (!isStructuredResult) {
+      continue;
+    }
+
+    const snippetNode = anchor.closest('[class*="sds-comps-"], [class*="type_height_"], [class*="area_video"], [class*="area_dsc"]')
+      ?? anchor.parentElement;
+    const snippet = normalizeSearchText(snippetNode?.textContent ?? '')
+      .replace(/\s*새 창 열림/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (seenUrls.has(rawUrl)) {
+      continue;
+    }
+
+    seenUrls.add(rawUrl);
+    results.push({
+      title: text,
+      url: rawUrl,
+      snippet: snippet && snippet !== text ? snippet : '',
+    });
+  }
+
+  return results;
 }
 
 function mergeAndRankSearchResults(results, query, preferredDomains) {
