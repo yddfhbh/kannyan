@@ -428,13 +428,13 @@ function renderTetrioRecordHistorySvg(data, config) {
   <text x="58" y="276" class="summary">${escapeXml(summaryText)}</text>
   <text x="58" y="316" class="summary">LAST PLAYED ${escapeXml(lastPlayedText)}</text>
 
-  <rect x="${chartWidth - 424}" y="112" width="176" height="124" fill="#0c120c" stroke="${config.accentDim}" stroke-width="3"/>
-  <text x="${chartWidth - 336}" y="153" text-anchor="middle" class="boxLabel">GLOBAL</text>
-  <text x="${chartWidth - 336}" y="208" text-anchor="middle" class="boxValue">${renderTetrioNumericTextMarkup(globalRankText)}</text>
+  <rect x="${chartWidth - 444}" y="112" width="196" height="124" fill="#0c120c" stroke="${config.accentDim}" stroke-width="3"/>
+  <text x="${chartWidth - 346}" y="153" text-anchor="middle" class="boxLabel">GLOBAL</text>
+  <text x="${chartWidth - 346}" y="208" text-anchor="middle" class="boxValue">${renderTetrioNumericTextMarkup(globalRankText)}</text>
 
-  <rect x="${chartWidth - 232}" y="112" width="176" height="124" fill="#151b15" stroke="${config.accentSoft}" stroke-width="4"/>
-  <text x="${chartWidth - 144}" y="153" text-anchor="middle" class="boxLabel">COUNTRY</text>
-  <text x="${chartWidth - 144}" y="208" text-anchor="middle" class="boxValue">${renderTetrioNumericTextMarkup(countryRankText)}</text>
+  <rect x="${chartWidth - 252}" y="112" width="196" height="124" fill="#151b15" stroke="${config.accentSoft}" stroke-width="4"/>
+  <text x="${chartWidth - 154}" y="153" text-anchor="middle" class="boxLabel">COUNTRY</text>
+  <text x="${chartWidth - 154}" y="208" text-anchor="middle" class="boxValue">${renderTetrioNumericTextMarkup(countryRankText)}</text>
 
   ${statsMarkup}
 
