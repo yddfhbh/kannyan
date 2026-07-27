@@ -1,14 +1,11 @@
 import 'dotenv/config';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { PermissionsBitField, REST, Routes, SlashCommandBuilder } from 'discord.js';
 
 const { DISCORD_TOKEN, CLIENT_ID } = process.env;
 const guildId = process.env.GUILD_ID?.trim();
 const dailyPuzzleAnnouncementGuildId = '1219197226572840990';
-
-if (!DISCORD_TOKEN || !CLIENT_ID) {
-  console.error('DISCORD_TOKEN and CLIENT_ID must be set in .env');
-  process.exit(1);
-}
 
 const quickPlayRecordChoices = [
   { name: 'top', value: 'top' },
@@ -16,7 +13,8 @@ const quickPlayRecordChoices = [
 ];
 const adminOnlyPermission = PermissionsBitField.Flags.Administrator;
 
-const commands = [
+function buildSlashCommands() {
+  return [
   new SlashCommandBuilder()
     .setName('도움말')
     .setDescription('사용 가능한 명령어를 보여줍니다.')
@@ -215,6 +213,16 @@ new SlashCommandBuilder()
   new SlashCommandBuilder()
     .setName('그래프')
     .setDescription('TETR.IO Opener/Plonk/Stride/Inf DS 그래프를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('TETR.IO 닉네임 여러 개 또는 APM PPS VS 숫자 3개, 생략하면 연동된 계정')
+        .setRequired(false)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('스타일')
+    .setDescription('TETR.IO 공격/속도/수비/치즈 스타일 그래프를 보여줍니다.')
     .addStringOption((option) =>
       option
         .setName('닉네임')
@@ -864,7 +872,8 @@ new SlashCommandBuilder()
         .setMinValue(1)
     )
     .toJSON(),
-];
+  ];
+}
 
 const dailyPuzzleAnnouncementCommand = new SlashCommandBuilder()
   .setName('일일퍼즐공지')
@@ -878,9 +887,15 @@ const dailyPuzzleAnnouncementCommand = new SlashCommandBuilder()
   )
   .toJSON();
 
-const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+const commands = buildSlashCommands();
 
-try {
+async function registerSlashCommands() {
+  if (!DISCORD_TOKEN || !CLIENT_ID) {
+    throw new Error('DISCORD_TOKEN and CLIENT_ID must be set in .env');
+  }
+
+  const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+
   console.log(`Registering ${commands.length} global slash command(s)...`);
 
   await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
@@ -900,8 +915,24 @@ try {
     await rest.put(Routes.applicationGuildCommands(CLIENT_ID, targetGuildId), { body });
     console.log(`Guild slash commands registered for ${targetGuildId}.`);
   }
-} catch (error) {
-  console.error('Failed to register slash commands:');
-  console.error(error);
-  process.exit(1);
 }
+
+const isMainModule = process.argv[1]
+  && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMainModule) {
+  try {
+    await registerSlashCommands();
+  } catch (error) {
+    console.error('Failed to register slash commands:');
+    console.error(error);
+    process.exit(1);
+  }
+}
+
+export {
+  buildSlashCommands,
+  commands,
+  dailyPuzzleAnnouncementCommand,
+  registerSlashCommands,
+};

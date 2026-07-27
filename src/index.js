@@ -51,7 +51,13 @@ import { createTetrioRankCutImage } from './tetrio-rankcut.js';
 import { fetchTetrioStatsCardData } from './tetrio-stats.js';
 import { createTetrioStatsCard } from './tetrio-stats-card.js';
 import { createTetrioPlaystyleGraph } from './tetrio-playstyle-graph.js';
+import { createTetrioStyleGraph } from './tetrio-style-graph.js';
 import { createTetrioVersusGraph } from './tetrio-versus-graph.js';
+import {
+  isValidTetrioStatsMetricInput,
+  parseDiscordMentionUserId,
+  parseTetrioGraphInput,
+} from './tetrio-graph-input.js';
 import { createMinomuncherAnalysis } from './minomuncher-analysis.js';
 import {
   handleDailyPuzzleAnnouncementInteraction,
@@ -423,6 +429,7 @@ const percentCommandAliases = {
   teto: ['teto'],
   tetrioStats: ['ts'],
   tetrioPlaystyleGraph: ['psq'],
+  tetrioStyleGraph: ['sq'],
   tetrioVersusGraph: ['vs'],
   minomuncher: ['munch'],
   tetr: ['tetr', 'tetoranks'],
@@ -5279,6 +5286,11 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
+    if (interaction.commandName === '스타일') {
+      await showTetrioStyleGraph(interaction);
+      return;
+    }
+
     if (interaction.commandName === '비교') {
       await showTetrioVersusGraph(interaction);
       return;
@@ -6099,6 +6111,11 @@ async function handlePercentMessageCommand(message) {
 
   if (command === 'tetrioPlaystyleGraph') {
     await showTetrioPlaystyleGraphMessage(message, input);
+    return true;
+  }
+
+  if (command === 'tetrioStyleGraph') {
+    await showTetrioStyleGraphMessage(message, input);
     return true;
   }
 
@@ -8855,6 +8872,7 @@ function getHelpMessage() {
     '`/테토 닉네임:[TETR.IO 닉네임]` 또는 `%teto 닉네임` - TETR.IO 프로필 카드를 보여준다냥.',
     '`/ts 닉네임:[TETR.IO 닉네임] 숫자:[1~20]` 또는 `%ts 닉네임 [1~20]` - TETR.IO 전체 스탯 카드 또는 최근 N경기 평균 스탯 카드를 보여준다냥. 닉네임을 생략하면 디코 연동 계정을 사용한다냥.',
     '`/그래프 닉네임:[TETR.IO 닉네임]` 또는 `%psq 닉네임` - Opener/Plonk/Stride/Inf DS 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그린다냥. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있다냥.',
+    '`/스타일 닉네임:[입력]` 또는 `%sq 입력` - ATTACK/SPEED/DEFENSE/CHEESE 스타일 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그린다냥. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있다냥.',
     '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시한다냥.',
     '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석한다냥.',
     '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여준다냥.',
@@ -9300,6 +9318,72 @@ async function showTetrioPlaystyleGraph(interaction) {
     }
 
     await interaction.editReply('그래프를 렌더링하지 못했다냥. 잠시 후 다시 시도해달라냥.');
+  }
+}
+
+async function showTetrioStyleGraph(interaction) {
+  const input = interaction.options.getString('닉네임')?.trim();
+
+  await interaction.deferReply();
+
+  try {
+    const parsedInput = parseTetrioGraphInput(input);
+    if (parsedInput.kind === 'invalid') {
+      await interaction.editReply('분탕치지 말라냥!');
+      return;
+    }
+
+    const metricInput = parsedInput.kind === 'metric' ? parsedInput.metricInput : null;
+    if (metricInput && !isValidTetrioStatsMetricInput(metricInput)) {
+      await interaction.editReply('APM, PPS, VS는 양수로 입력해달라냥.\n예: `/스타일 닉네임:60 2.0 120`');
+      return;
+    }
+
+    const graphData = metricInput
+      ? { cards: [createCustomTetrioStatsCardData(metricInput)], missingTargets: [] }
+      : await fetchTetrioStatsCardDataForInteraction(interaction, parsedInput.targets);
+    const cards = graphData?.cards ?? [];
+    const missingTargets = graphData?.missingTargets ?? [];
+    const unavailableTargets = graphData?.unavailableTargets ?? [];
+    const bannedTargets = graphData?.bannedTargets ?? [];
+
+    if (cards.length === 0) {
+      await interaction.editReply(parsedInput.targets?.length
+        ? formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없다냥.'
+        : 'TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.'
+      );
+      return;
+    }
+
+    const image = await createTetrioStyleGraph({ players: cards });
+    const attachment = new AttachmentBuilder(image, {
+      name: `tetrio-sq-${formatTetrioGraphAttachmentName(cards)}.png`,
+    });
+
+    await interaction.editReply({
+      files: [attachment],
+    });
+    await sendSkippedTetrioGraphUsersForInteraction(interaction, { missingTargets, unavailableTargets, bannedTargets });
+  } catch (error) {
+    console.error('Failed to render TETR.IO style graph:');
+    console.error(error);
+
+    if (error.code === 'NO_LEAGUE_STATS') {
+      await interaction.editReply('리그를 더 하고 오라냥!');
+      return;
+    }
+
+    if (isBannedTetrioStatsUserError(error)) {
+      await interaction.editReply(formatBannedTetrioGraphUsersMessage([error.username ?? input]));
+      return;
+    }
+
+    if (error.status === 404) {
+      await interaction.editReply('그런 유저는 없다냥.');
+      return;
+    }
+
+    await interaction.editReply('스타일 그래프를 렌더링하지 못했다냥.\n잠시 후 다시 시도해달라냥.');
   }
 }
 
@@ -10993,46 +11077,6 @@ async function createRecentTetrioStatsCardData(username, recentCount) {
   };
 }
 
-function parseTetrioGraphInput(input) {
-  const trimmed = String(input ?? '').trim();
-  if (!trimmed) {
-    return { kind: 'empty', targets: null };
-  }
-
-  const tokens = trimmed.split(/\s+/).filter(Boolean);
-  if (tokens.every(isDecimalNumberToken)) {
-    if (tokens.length === 3) {
-      const [apm, pps, vs] = tokens.map(Number);
-      return {
-        kind: 'metric',
-        metricInput: { apm, pps, vs },
-        target: null,
-      };
-    }
-
-    if (tokens.length >= 4) {
-      return { kind: 'invalid' };
-    }
-
-    return { kind: 'targets', targets: tokens };
-  }
-
-  if (tokens.every(isTetrioGraphTargetToken)) {
-    if (tokens.length >= 16) {
-      return { kind: 'invalid' };
-    }
-
-    return { kind: 'targets', targets: tokens };
-  }
-
-  return { kind: 'invalid' };
-}
-
-function isTetrioGraphTargetToken(token) {
-  return /^[A-Za-z0-9_-]+$/.test(String(token ?? ''))
-    || Boolean(parseDiscordMentionUserId(token));
-}
-
 function hasMultipleTetrioStatsTargets(input) {
   const trimmed = String(input ?? '').trim();
   if (!trimmed) {
@@ -11041,14 +11085,6 @@ function hasMultipleTetrioStatsTargets(input) {
 
   const tokens = trimmed.split(/[\s,]+/).filter(Boolean);
   return tokens.length >= 2;
-}
-
-function isDecimalNumberToken(token) {
-  return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(token);
-}
-
-function isValidTetrioStatsMetricInput({ apm, pps, vs }) {
-  return [apm, pps, vs].every((value) => Number.isFinite(value) && value > 0);
 }
 
 function createCustomTetrioStatsCardData({ apm, pps, vs }) {
@@ -11160,6 +11196,99 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
 
     await message.reply({
       content: '그래프를 렌더링하지 못했다냥. 잠시 후 다시 시도해달라냥.',
+      allowedMentions: { repliedUser: false },
+    });
+  }
+}
+
+async function showTetrioStyleGraphMessage(message, input) {
+  try {
+    await safeSendTyping(message.channel, 'showTetrioStyleGraphMessage');
+    const target = String(input ?? '').trim();
+
+    const parsedInput = parseTetrioGraphInput(target);
+    if (parsedInput.kind === 'invalid') {
+      await message.reply({
+        content: '분탕치지 말라냥!',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    const metricInput = parsedInput.kind === 'metric' ? parsedInput.metricInput : null;
+    if (metricInput && !isValidTetrioStatsMetricInput(metricInput)) {
+      await message.reply({
+        content: 'APM, PPS, VS는 양수로 입력해달라냥.\n예: `%sq 60 2.0 120`',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    const graphData = metricInput
+      ? { cards: [createCustomTetrioStatsCardData(metricInput)], missingTargets: [] }
+      : await fetchTetrioStatsCardDataForMessage(message, parsedInput.targets);
+    const cards = graphData?.cards ?? [];
+    const missingTargets = graphData?.missingTargets ?? [];
+    const unavailableTargets = graphData?.unavailableTargets ?? [];
+    const bannedTargets = graphData?.bannedTargets ?? [];
+
+    if (cards.length === 0) {
+      const linkedUser = parsedInput.targets?.length === 1
+        ? getSingleMentionedUserFromTetrioInput(message, parsedInput.targets[0])
+        : await getRepliedUserFromTetrioMessage(message);
+
+      if (!parsedInput.targets?.length || (linkedUser && unavailableTargets.length === 0 && bannedTargets.length === 0)) {
+        await sendUnlinkedTetrioImage(message);
+        return;
+      }
+
+      await message.reply({
+        content: formatSkippedTetrioGraphUsersMessage({ missingTargets, unavailableTargets, bannedTargets }) ?? '그런 유저는 없다냥.',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    const image = await createTetrioStyleGraph({ players: cards });
+    const attachment = new AttachmentBuilder(image, {
+      name: `tetrio-sq-${formatTetrioGraphAttachmentName(cards)}.png`,
+    });
+
+    await message.reply({
+      files: [attachment],
+      allowedMentions: { repliedUser: false },
+    });
+    await sendSkippedTetrioGraphUsersForMessage(message, { missingTargets, unavailableTargets, bannedTargets });
+  } catch (error) {
+    console.error('Failed to render TETR.IO style graph:');
+    console.error(error);
+
+    if (error.code === 'NO_LEAGUE_STATS') {
+      await message.reply({
+        content: '리그를 더 하고 오라냥!',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (isBannedTetrioStatsUserError(error)) {
+      await message.reply({
+        content: formatBannedTetrioGraphUsersMessage([error.username ?? input]),
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (error.status === 404) {
+      await message.reply({
+        content: '그런 유저는 없다냥.',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    await message.reply({
+      content: '스타일 그래프를 렌더링하지 못했다냥.\n잠시 후 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
   }
@@ -11338,11 +11467,6 @@ async function resolveTetrioGraphTarget(target) {
   return discordUserId
     ? findTetrioUsernameByDiscordId(discordUserId)
     : findTetrioUsername(target);
-}
-
-function parseDiscordMentionUserId(value) {
-  const match = String(value ?? '').trim().match(/^<@!?(\d{17,20})>$/);
-  return match?.[1] ?? null;
 }
 
 function formatTetrioGraphAttachmentName(cards) {
