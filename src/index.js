@@ -8466,6 +8466,7 @@ function getGeminiCurrentUserContext(message) {
     `작성자 표시 이름: ${getMessageAuthorName(message)}`,
     `작성자 계정명: ${message.author?.username ?? 'Unknown'}`,
     `작성자 Discord ID: ${message.author?.id ?? 'Unknown'}`,
+    `현재 발화자는 위 사용자 한 명이다. 최근 대화 기록에 다른 사용자가 섞여 있어도, 이번 질문 자체는 이 사용자가 한 말로 해석한다.`,
   ].join('\n');
 }
 
@@ -8548,8 +8549,8 @@ function formatGeminiHistory(history) {
   return history
     .map((entry) => {
       const roleLabel = entry.role === 'model' ? '챗봇' : '사용자';
-      const authorName = entry.authorName ? `/${entry.authorName}` : '';
-      return `${roleLabel}${authorName}: ${entry.text}`;
+      const authorName = String(entry.authorName ?? '').trim() || 'Unknown';
+      return `[화자=${roleLabel} | 이름=${authorName}]\n${entry.text}`;
     })
     .join('\n');
 }
