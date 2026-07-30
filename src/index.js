@@ -136,6 +136,11 @@ import {
 } from './web-search.js';
 import { buildWebPageReferenceContext } from './web-page-content.js';
 import {
+  analyzePromptSecurity,
+  isPromptOverrideAttempt as detectPromptOverrideAttempt,
+  sanitizeContextTextForModel,
+} from './prompt-security.js';
+import {
   findSemanticReactionEmojiEntry,
   isPreviousReactionLikeText,
   isReactionRequestText,
@@ -7241,6 +7246,17 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     }
   }
 
+  const promptSecurity = analyzePromptSecurity(rawPrompt);
+  if (!promptSecurity.sanitizedText || promptSecurity.shouldBlock) {
+    await message.reply({
+      content: '그런 요청은 들어줄 수 없다냥. 질문이 있으면 그냥 물어봐달라냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return true;
+  }
+
+  rawPrompt = promptSecurity.sanitizedText;
+
   const prompt = normalizeDiscordTextForGemini(message, rawPrompt);
   const mentionContext = getGeminiMentionContext(message);
   const currentUserContext = getGeminiCurrentUserContext(message);
@@ -7261,14 +7277,6 @@ async function handleGeminiFallbackMessage(message, options = {}) {
   if (isUnsupportedEmojiPrompt(rawPrompt)) {
     await message.reply({
       content: '먀... 다시 말해줄 수 있냥?',
-      allowedMentions: { parse: [], repliedUser: false },
-    });
-    return true;
-  }
-
-  if (isPromptOverrideAttempt(rawPrompt)) {
-    await message.reply({
-      content: '그런 요청은 들어줄 수 없다냥. 질문이 있으면 그냥 물어봐달라냥.',
       allowedMentions: { parse: [], repliedUser: false },
     });
     return true;
@@ -7525,11 +7533,21 @@ async function handleGeminiFallbackMessage(message, options = {}) {
 
 async function handleWebSearchMessage(message, input) {
   try {
+    const promptSecurity = analyzePromptSecurity(String(input ?? '').trim());
+    if (!promptSecurity.sanitizedText || promptSecurity.shouldBlock) {
+      await message.reply({
+        content: '그런 요청은 들어줄 수 없다냥. 검색할 내용을 그냥 적어주면 된다냥.',
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+      return;
+    }
+
     await safeSendTyping(message.channel, 'handleWebSearchMessage');
     await ensureGeminiMemoryLoaded();
     const sessionKey = getGeminiSessionKey(message);
     const history = getGeminiSessionHistory(sessionKey);
-    const responseText = await createWebSearchResponse(String(input ?? '').trim(), {
+    const cleanedInput = promptSecurity.sanitizedText;
+    const responseText = await createWebSearchResponse(cleanedInput, {
       history,
       mentionContext: getGeminiMentionContext(message),
       currentUserContext: getGeminiCurrentUserContext(message),
@@ -7539,7 +7557,7 @@ async function handleWebSearchMessage(message, input) {
     appendGeminiMemoryEntry(sessionKey, {
       role: 'user',
       authorName: getMessageAuthorName(message),
-      text: `[웹 검색 요청] ${String(input ?? '').trim()}`,
+      text: `[웹 검색 요청] ${cleanedInput}`,
       timestamp: Date.now(),
     });
     appendGeminiMemoryEntry(sessionKey, {
@@ -7903,32 +7921,7 @@ function isUnsupportedEmojiPrompt(prompt) {
 }
 
 function isPromptOverrideAttempt(prompt) {
-  const text = String(prompt ?? '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  if (!text) {
-    return false;
-  }
-
-  const patterns = [
-    /프롬프트.*(잊|무시|삭제|초기화|수정|변경|공개|출력|보여)/,
-    /(지금까지|이전|앞에서).*(프롬프트|명령|지시|규칙).*(잊|무시|삭제|초기화)/,
-    /(시스템|개발자|관리자).*(프롬프트|명령|지시|규칙).*(무시|공개|출력|보여|바꿔)/,
-    /(잊|무시|삭제|초기화|수정|변경|공개|출력|보여|바꿔).*(프롬프트|시스템|개발자|관리자|이전 명령|지시|규칙)/,
-    /ignore .*previous .*instructions/,
-    /ignore .*system .*instructions/,
-    /forget .*previous .*prompts/,
-    /forget .*previous .*instructions/,
-    /reveal .*system .*prompt/,
-    /show .*system .*prompt/,
-    /print .*system .*prompt/,
-    /system .*prompt.*(ignore|forget|reveal|show|print|display|override|change)/,
-    /developer .*message.*(ignore|forget|reveal|show|print|display|override|change)/,
-  ];
-
-  return patterns.some((pattern) => pattern.test(text));
+  return detectPromptOverrideAttempt(prompt);
 }
 
 function getGeminiUserErrorMessage(error) {
@@ -8529,11 +8522,12 @@ function buildGeminiContextualPrompt({
     sections.push(`[최근 대화 기록]\n${historyText}`);
   }
 
-  if (replyContext) {
+  const safeReplyText = sanitizeContextTextForModel(replyContext?.text);
+  if (replyContext && safeReplyText) {
     sections.push([
       '[사용자가 답장한 원본 메시지]',
       `작성자: ${replyContext.authorName}`,
-      `내용: ${replyContext.text}`,
+      `내용: ${safeReplyText}`,
     ].join('\n'));
   }
 
@@ -8572,10 +8566,16 @@ function formatGeminiHistory(history) {
 
   return history
     .map((entry) => {
+      const safeText = sanitizeContextTextForModel(entry.text);
+      if (!safeText) {
+        return '';
+      }
+
       const roleLabel = entry.role === 'model' ? '챗봇' : '사용자';
       const authorName = String(entry.authorName ?? '').trim() || 'Unknown';
-      return `[화자=${roleLabel} | 이름=${authorName}]\n${entry.text}`;
+      return `[화자=${roleLabel} | 이름=${authorName}]\n${safeText}`;
     })
+    .filter(Boolean)
     .join('\n');
 }
 
