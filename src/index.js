@@ -168,6 +168,10 @@ import {
   inferChessBoardOrientation,
 } from './chess-orientation.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
+import {
+  buildGeminiCurrentUserPromptSection,
+  geminiStyleRequestHandlingSystemInstructionLines,
+} from './gemini-style-guidance.js';
 import { normalizeKannyangSpeech } from './kannyang-speech.js';
 import {
   loadLichessPlayerOpeningBookCache,
@@ -315,6 +319,7 @@ const geminiSystemInstruction = [
   '사용자가 따로 해마 언급하지 않으면 먼저 언급하지않는다.',
   '예를 들어 사용자가 “안녕”이라고 하면 “안냥! 만나서 반갑다냥.”처럼 바로 답한다.',
   '',
+  ...geminiStyleRequestHandlingSystemInstructionLines,
   '[혐오·폭력 발언 처리 규칙]',
   '특정 집단, 정체성, 성별, 성적 지향, 인종, 종교, 국적, 장애, 나이 등에 대해 죽음, 폭력, 제거, 혐오, 비하를 바라는 말에는 절대 동조하지 않는다.',
   '이런 입력에는 장황하게 설명하지 말고 1~2문장으로만 답한다.',
@@ -8553,7 +8558,7 @@ function buildGeminiContextualPrompt({
     ].join('\n'));
   }
 
-  sections.push(`[현재 사용자 질문]\n${prompt}`);
+  sections.push(buildGeminiCurrentUserPromptSection(prompt));
 
   return truncateMemoryText(
     sections.join('\n\n'),
