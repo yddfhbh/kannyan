@@ -4,17 +4,17 @@ function parseTetrioGraphInput(input) {
     return { kind: 'empty', targets: null };
   }
 
+  const metricInput = parseTetrioStatsMetricInput(trimmed);
+  if (metricInput) {
+    return {
+      kind: 'metric',
+      metricInput,
+      target: null,
+    };
+  }
+
   const tokens = trimmed.split(/\s+/).filter(Boolean);
   if (tokens.every(isDecimalNumberToken)) {
-    if (tokens.length === 3) {
-      const [apm, pps, vs] = tokens.map(Number);
-      return {
-        kind: 'metric',
-        metricInput: { apm, pps, vs },
-        target: null,
-      };
-    }
-
     if (tokens.length >= 4) {
       return { kind: 'invalid' };
     }
@@ -42,6 +42,48 @@ function isDecimalNumberToken(token) {
   return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(token);
 }
 
+function parseTetrioStatsMetricInput(input) {
+  const trimmed = String(input ?? '').trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const tokens = trimmed.split(/[\s,]+/).filter(Boolean);
+  if (tokens.length !== 3) {
+    return null;
+  }
+
+  if (tokens.every(isDecimalNumberToken)) {
+    const [apm, pps, vs] = tokens.map(Number);
+    return { apm, pps, vs };
+  }
+
+  const labeledStats = {};
+  for (const token of tokens) {
+    const labeledMatch = String(token).match(/^(apm|pps|vs)(?:[:=]?)([+-]?(?:\d+(?:\.\d*)?|\.\d+))$/i);
+    if (!labeledMatch) {
+      return null;
+    }
+
+    const key = labeledMatch[1].toLowerCase();
+    if (Object.hasOwn(labeledStats, key)) {
+      return null;
+    }
+
+    labeledStats[key] = Number(labeledMatch[2]);
+  }
+
+  if (!Object.hasOwn(labeledStats, 'apm') || !Object.hasOwn(labeledStats, 'pps') || !Object.hasOwn(labeledStats, 'vs')) {
+    return null;
+  }
+
+  return {
+    apm: labeledStats.apm,
+    pps: labeledStats.pps,
+    vs: labeledStats.vs,
+  };
+}
+
 function isValidTetrioStatsMetricInput({ apm, pps, vs }) {
   return [apm, pps, vs].every((value) => Number.isFinite(value) && value > 0);
 }
@@ -57,4 +99,5 @@ export {
   isValidTetrioStatsMetricInput,
   parseDiscordMentionUserId,
   parseTetrioGraphInput,
+  parseTetrioStatsMetricInput,
 };

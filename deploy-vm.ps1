@@ -238,7 +238,29 @@ fi
 
 cp .env "$ENV_BACKUP"
 
+disable_broken_nodesource_repo() {
+  local changed=0
+  local source
+
+  for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
+    if [ ! -f "$source" ]; then
+      continue
+    fi
+
+    if grep -Eq '^[[:space:]]*deb .*deb\.nodesource\.com/node_[^[:space:]]+[[:space:]]+nodistro[[:space:]]' "$source"; then
+      echo "Disabling broken NodeSource nodistro entry in $source"
+      sudo sed -i.bak -E '/^[[:space:]]*deb .*deb\.nodesource\.com\/node_[^[:space:]]+[[:space:]]+nodistro[[:space:]]/ s/^/# disabled by discord-bot deploy: /' "$source"
+      changed=1
+    fi
+  done
+
+  if [ "$changed" -eq 1 ]; then
+    echo "Disabled one or more invalid NodeSource apt entries."
+  fi
+}
+
 echo "[9/12] Installing system packages..."
+disable_broken_nodesource_repo
 sudo apt update
 sudo apt install -y \
   curl \

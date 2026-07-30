@@ -57,6 +57,7 @@ import {
   isValidTetrioStatsMetricInput,
   parseDiscordMentionUserId,
   parseTetrioGraphInput,
+  parseTetrioStatsMetricInput,
 } from './tetrio-graph-input.js';
 import { createMinomuncherAnalysis } from './minomuncher-analysis.js';
 import {
@@ -10869,15 +10870,24 @@ async function showTetrioStatsMessage(message, input) {
       }
 
       const card = createCustomTetrioStatsCardData(metricInput);
-      const image = await createTetrioStatsCard(card);
-      const attachment = new AttachmentBuilder(image, {
-        name: 'tetrio-stats-custom.png',
-      });
+      try {
+        const image = await createTetrioStatsCard(card);
+        const attachment = new AttachmentBuilder(image, {
+          name: 'tetrio-stats-custom.png',
+        });
 
-      await message.reply({
-        files: [attachment],
-        allowedMentions: { repliedUser: false },
-      });
+        await message.reply({
+          files: [attachment],
+          allowedMentions: { repliedUser: false },
+        });
+      } catch (metricError) {
+        console.error(`Failed to render custom TETR.IO stats card for input="${rawInput}":`);
+        console.error(metricError);
+        await message.reply({
+          content: formatCustomTetrioStatsText(card.stats),
+          allowedMentions: { repliedUser: false },
+        });
+      }
       return;
     }
 
@@ -10973,21 +10983,6 @@ async function showTetrioStatsMessage(message, input) {
       allowedMentions: { repliedUser: false },
     });
   }
-}
-
-function parseTetrioStatsMetricInput(input) {
-  const trimmed = String(input ?? '').trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  const tokens = trimmed.split(/[\s,]+/).filter(Boolean);
-  if (tokens.length !== 3 || !tokens.every(isDecimalNumberToken)) {
-    return null;
-  }
-
-  const [apm, pps, vs] = tokens.map(Number);
-  return { apm, pps, vs };
 }
 
 function parseTetrioStatsRecentInput(input, explicitRecentCount = null) {
@@ -11106,6 +11101,28 @@ function createCustomTetrioStatsCardData({ apm, pps, vs }) {
       rd: 60,
     },
   };
+}
+
+function formatCustomTetrioStatsText(stats = {}) {
+  return [
+    '커스텀 스탯 카드 렌더링에 실패해서 텍스트로 보여준다냥.',
+    `APM: ${formatTetrioMetricDecimal(stats.apm, 2)}`,
+    `PPS: ${formatTetrioMetricDecimal(stats.pps, 2)}`,
+    `VS: ${formatTetrioMetricDecimal(stats.vs, 2)}`,
+    `APP: ${formatTetrioMetricDecimal(stats.app, 4)}`,
+    `DS/Piece: ${formatTetrioMetricDecimal(stats.dsPiece, 4)}`,
+    `APP+DS/Piece: ${formatTetrioMetricDecimal(stats.appDsPiece, 4)}`,
+    `DS/Second: ${formatTetrioMetricDecimal(stats.dsSecond, 4)}`,
+    `VS/APM: ${formatTetrioMetricDecimal(stats.vsApm, 4)}`,
+    `Cheese Index: ${formatTetrioMetricDecimal(stats.cheeseIndex, 4)}`,
+    `Garbage Effi.: ${formatTetrioMetricDecimal(stats.garbageEffi, 4)}`,
+    `Est. TR: ${formatTetrioMetricDecimal(stats.estimatedTr, 2)}`,
+  ].join('\n');
+}
+
+function formatTetrioMetricDecimal(value, digits = 2) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toFixed(digits) : '-';
 }
 
 async function showTetrioPlaystyleGraphMessage(message, input) {
