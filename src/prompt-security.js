@@ -43,6 +43,34 @@ const structuredPayloadLinePatterns = [
 
 const controlPayloadKeywordPattern = /add-tools|reset-context|legacy prompt|clear all prompt|retry automatically/i;
 
+const choiceCandidatePattern = /^\s*([A-Z]|[1-9]\d?)\s*[.)]\s+.+$/gim;
+const quotedCandidatePattern = /"[^"\n]{2,200}"|“[^”\n]{2,200}”|「[^」\n]{2,200}」|『[^』\n]{2,200}』/;
+
+const forcedVerbatimOutputPatterns = [
+  /한 글자도 수정하지 말(?:고|고서)?(?: [^.\n]{0,40})?그대로 (?:출력|답(?:해|하라)|써)/,
+  /선택한 문장(?:을|만)?(?: [^.\n]{0,40})?그대로 (?:출력|답(?:해|하라)|써)/,
+  /원문(?:대로)? 복사/,
+  /원문(?:대로)?(?: [^.\n]{0,40})?(?:출력|답(?:해|하라)|써)/,
+  /\boutput exactly\b/,
+  /\bprint verbatim\b/,
+  /\b(?:reply|respond) with\b[\s\S]{0,80}\bunchanged\b/,
+  /\b(?:reply|respond|output|print)\b[\s\S]{0,40}\bverbatim\b/,
+  /\b(?:reply|respond|output|print)\b[\s\S]{0,40}\bexactly\b/,
+];
+
+const noExtraOutputPatterns = [
+  /선택 이유.*(?:출력하지 않|쓰지 않)/,
+  /이유(?:를)? (?:출력하지 않|쓰지 않|적지 않)/,
+  /번호.*따옴표.*추가 설명.*(?:출력하지 않|쓰지 않)/,
+  /추가 설명 없이/,
+  /추가 설명은 (?:출력하지 않|쓰지 않)/,
+  /아무 설명(?:도)? 없이/,
+  /\bnothing else\b/,
+  /\bno explanation\b/,
+  /\bno extra(?: text)?\b/,
+  /\bwithout (?:any )?(?:explanation|extra text|additional commentary)\b/,
+];
+
 function normalizePromptInspectionText(value) {
   return String(value ?? '')
     .toLowerCase()
@@ -62,6 +90,31 @@ function isStructuredPayloadLine(line) {
   return structuredPayloadLinePatterns.some((pattern) => pattern.test(line));
 }
 
+function hasMultipleChoiceCandidates(prompt) {
+  const labels = new Set();
+
+  for (const match of String(prompt ?? '').matchAll(choiceCandidatePattern)) {
+    const label = String(match[1] ?? '').trim().toUpperCase();
+    if (label) {
+      labels.add(label);
+    }
+  }
+
+  return labels.size >= 2;
+}
+
+function hasQuotedCandidate(prompt) {
+  return quotedCandidatePattern.test(String(prompt ?? ''));
+}
+
+function hasForcedVerbatimDirective(text) {
+  return forcedVerbatimOutputPatterns.some((pattern) => pattern.test(text));
+}
+
+function forbidsNaturalExtraOutput(text) {
+  return noExtraOutputPatterns.some((pattern) => pattern.test(text));
+}
+
 export function isPromptOverrideAttempt(prompt) {
   const text = normalizePromptInspectionText(prompt);
   if (!text) {
@@ -69,6 +122,22 @@ export function isPromptOverrideAttempt(prompt) {
   }
 
   return promptOverridePatterns.some((pattern) => pattern.test(text));
+}
+
+export function isForcedVerbatimOutputAttempt(prompt) {
+  const originalText = String(prompt ?? '');
+  const normalizedText = normalizePromptInspectionText(originalText);
+
+  if (!normalizedText) {
+    return false;
+  }
+
+  const hasCandidateProvided = hasMultipleChoiceCandidates(originalText) || hasQuotedCandidate(originalText);
+  if (!hasCandidateProvided) {
+    return false;
+  }
+
+  return hasForcedVerbatimDirective(normalizedText) && forbidsNaturalExtraOutput(normalizedText);
 }
 
 export function sanitizePromptInjectionText(value) {
@@ -120,13 +189,22 @@ export function sanitizePromptInjectionText(value) {
 export function analyzePromptSecurity(value) {
   const originalText = String(value ?? '').trim();
   const sanitizedText = sanitizePromptInjectionText(originalText);
+  const directPromptOverride = sanitizedText
+    ? isPromptOverrideAttempt(sanitizedText)
+    : originalText.length > 0;
+  const forcedVerbatimOutput = sanitizedText
+    ? isForcedVerbatimOutputAttempt(sanitizedText)
+    : false;
 
   return {
     sanitizedText,
     removedMetaPayload: sanitizedText !== originalText,
-    shouldBlock: sanitizedText
-      ? isPromptOverrideAttempt(sanitizedText)
-      : originalText.length > 0,
+    shouldBlock: directPromptOverride || forcedVerbatimOutput,
+    reason: directPromptOverride
+      ? 'direct_prompt_override'
+      : forcedVerbatimOutput
+        ? 'forced_verbatim_output'
+        : null,
   };
 }
 
