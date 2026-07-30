@@ -168,6 +168,7 @@ import {
   inferChessBoardOrientation,
 } from './chess-orientation.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
+import { normalizeDiscordMarkdown } from './discord-markdown.js';
 import {
   buildGeminiCurrentUserPromptSection,
   geminiStyleRequestHandlingSystemInstructionLines,
@@ -8116,9 +8117,11 @@ async function generateGeminiAnswer(prompt, options = {}) {
       permanentMemories.map((entry) => entry.id)
     );
     const answer = applyCustomEmojiAliases(
-  normalizeKannyangSpeech(sanitizeGeminiAnswer(memoryUsage.cleanText)),
-  prompt
-);
+      normalizeDiscordMarkdown(
+        normalizeKannyangSpeech(sanitizeGeminiAnswer(memoryUsage.cleanText))
+      ),
+      prompt
+    );
     const usedPermanentMemoryIds = memoryUsage.usedIds.length > 0
       ? memoryUsage.usedIds
       : inferPermanentMemoryUsage(answer, permanentMemories);
