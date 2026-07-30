@@ -375,6 +375,8 @@ const geminiSystemInstruction = [
   '* 설명이 필요한 질문이면 먼저 핵심부터 말하고, 그다음 단계별로 설명한다.',
   '* 사용자가 헷갈려하면 예시를 들어 쉽게 풀어준다.',
   '* 모르는 내용은 아는 척하지 말고, 확실하지 않다고 말한다.',
+  '* 사람, 장소, 회사, 서비스, 게임, 용어, 최신 정보처럼 사실 확인이 필요한 질문은 근거가 없으면 단정하지 않는다.',
+  '* 웹 검색 참고 결과가 주어졌다면 그 결과를 우선 사용하고, 없으면 모른다고 말하는 편을 추측보다 우선한다.',
   '* 사용자가 실수해도 비난하지 않고 부드럽게 정정한다.',
   '',
   '[대화 맥락 규칙]',
@@ -1262,6 +1264,9 @@ if (chessAnalysisFollowupHandled) {
 
  const chessAnalysisHandled = await handleChessAnalysisMessage(message, {
   createReply: createNaturalChessAnalysisReply,
+  detectBoardOrientation: detectChessBoardOrientationWithGemini,
+  recognizeFenFallback: recognizeChessFenWithGemini,
+  extractFenFromImage: extractChessFenFromImage,
   onFenExtracted({ message: extractionMessage, fen, boardFen }) {
     rememberRecentChessAnalysis(extractionMessage, {
       fen,
@@ -4026,7 +4031,8 @@ async function recognizeChessBoardFenLocallyForConversation(message, referencedM
       return '';
     }
 
-    const fen = await imageToFen(temporaryImage.filePath, 'w', {
+    const fen = await imageToFen(temporaryImage.filePath, {
+      turn: 'w',
       boardOrientation,
     });
 

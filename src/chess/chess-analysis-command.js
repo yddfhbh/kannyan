@@ -124,6 +124,14 @@ function forceFenTurn(fen, turn) {
   return output.join(' ');
 }
 
+export function resolveBoardOrientationForRecognition(detectedBoardOrientation) {
+  if (detectedBoardOrientation === 'w' || detectedBoardOrientation === 'b') {
+    return detectedBoardOrientation;
+  }
+
+  return null;
+}
+
 export async function handleChessAnalysisMessage(message, options = {}) {
   const directFenMatch = String(message.content ?? '').trim().match(/^%fen(?:\s+(.+))?$/i);
   if (directFenMatch) {
@@ -199,12 +207,11 @@ if (typeof options.detectBoardOrientation === 'function') {
   }
 }
 
-const boardOrientation =
-  detectedBoardOrientation === 'b'
-    ? 'b'
-    : detectedBoardOrientation === 'w'
-      ? 'w'
-      : prompt.turn;
+const boardOrientation = resolveBoardOrientationForRecognition(detectedBoardOrientation);
+
+if (!boardOrientation) {
+  throw new Error('Chess board orientation is unreadable');
+}
 
 console.log(
   `[CHESS IMAGE] turn=${prompt.turn} boardOrientation=${boardOrientation}`
@@ -338,12 +345,11 @@ async function extractFenFromImage(message, imagePath, prompt, options = {}) {
     }
   }
 
-  const boardOrientation =
-  detectedBoardOrientation === 'b'
-    ? 'b'
-    : detectedBoardOrientation === 'w'
-      ? 'w'
-      : prompt.turn;
+const boardOrientation = resolveBoardOrientationForRecognition(detectedBoardOrientation);
+
+if (!boardOrientation) {
+  throw new Error('Chess board orientation is unreadable');
+}
 
 const recognizedFen = await (options.imageToFen ?? imageToFen)(
   imagePath,
