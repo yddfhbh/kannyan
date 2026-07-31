@@ -157,7 +157,11 @@ export function derivePyhokWikiSearchQuery(prompt) {
     .trim();
 
   for (const phrase of queryNoisePhrases.slice().sort((left, right) => right.length - left.length)) {
-    normalized = normalized.replace(new RegExp(escapeRegExp(phrase), 'gi'), ' ');
+    const phrasePattern = new RegExp(
+      `(^|\\s)${escapeRegExp(phrase)}(?=\\s|$)`,
+      'gi'
+    );
+    normalized = normalized.replace(phrasePattern, '$1');
   }
 
   const tokens = normalized
