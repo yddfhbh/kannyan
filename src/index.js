@@ -1,4 +1,4 @@
-﻿﻿import 'dotenv/config';
+﻿import 'dotenv/config';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
 import http from 'node:http';
@@ -8146,6 +8146,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     mentionContext = '',
     currentUserContext = '',
     permanentMemories = [],
+    wikiSearchContext = '',
     webSearchContext = '',
     imageParts = [],
   } = options;
@@ -8157,6 +8158,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     mentionContext,
     currentUserContext,
     permanentMemories,
+    wikiSearchContext,
     webSearchContext,
   });
 
