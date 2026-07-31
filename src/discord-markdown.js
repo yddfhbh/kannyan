@@ -54,18 +54,53 @@ export function normalizeDiscordMarkdown(text) {
 
 function splitInlineListMarkers(line) {
   return String(line ?? '')
-    .replace(/\s+([*-])\s+(?=[^\n*]{0,80}:\s+)/gu, '\n$1 ')
-    .replace(/\s+(\d+\.)\s+(?=[^\n]{0,80}:\s+)/gu, '\n$1 ');
+    // "* 입력:", "- 입력:", "• 입력:", "* **테스트 1:" 등을 줄바꿈
+    .replace(
+      /\s+([*\-•])\s+(?=(?:\*\*)?[^:\n]{1,100}:)/gu,
+      '\n$1 '
+    )
+    .replace(
+      /\s+(\d+\.)\s+(?=(?:\*\*)?[^:\n]{1,100}:)/gu,
+      '\n$1 '
+    );
 }
 
 function emphasizeListLead(line) {
-  const match = String(line ?? '').match(/^(\s*(?:[-*]|\d+\.)\s+)([^:\n]{2,80}):\s+(.+)$/u);
-  if (!match) {
-    return line;
+  const normalizedLine = String(line ?? '')
+    // 별표·가운뎃점 불릿을 하이픈으로 통일
+    .replace(/^(\s*)[*•]\s+/u, '$1- ');
+
+  /*
+   * "- **테스트 1: 시스템 지시 무시 및 공개 요구"
+   * 처럼 테스트 제목의 닫는 **가 빠진 경우만 복구
+   */
+  const malformedBoldTitleMatch = normalizedLine.match(
+    /^(\s*(?:-|\d+\.)\s+)\*\*((?:테스트|단계|항목)\s*\d*[^*\n]*)$/u
+  );
+
+  if (malformedBoldTitleMatch) {
+    const [, marker, title] = malformedBoldTitleMatch;
+    return `${marker}**${title.trim()}**`;
   }
 
-  const [, marker, label, rest] = match;
-  return `${marker}**${label.trim()}**: ${rest.trim()}`;
+  // 이미 정상적인 굵은 제목이면 그대로 유지
+  if (/^\s*(?:-|\d+\.)\s+\*\*.+\*\*\s*$/u.test(normalizedLine)) {
+    return normalizedLine;
+  }
+
+  // "- 입력: 내용" → "- **입력**: 내용"
+  const match = normalizedLine.match(
+    /^(\s*(?:-|\d+\.)\s+)([^:\n*]{2,80}):\s+(.+)$/u
+  );
+
+  if (!match) {
+    return normalizedLine;
+  }
+
+  const [, marker, rawLabel, rest] = match;
+  const label = rawLabel.trim();
+
+  return `${marker}**${label}**: ${rest.trim()}`;
 }
 
 function insertDiscordBlockSpacing(lines) {
