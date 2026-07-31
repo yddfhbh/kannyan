@@ -5,17 +5,18 @@ const duckDuckGoHtmlUrl = `${duckDuckGoHtmlOrigin}/html/`;
 const naverSearchUrl = 'https://search.naver.com/search.naver';
 const defaultSearchTimeoutMs = 20_000;
 const defaultMaxResults = 12;
-const defaultPreferredDomains = ['pyhok.com'];
-const pyhokWikiPageBaseUrl = 'https://pyhok.com/w/';
+const defaultPreferredDomains = [];
 
-const explicitSearchPattern = /(검색|search|찾아줘|찾아 줘|찾아봐|찾아 봐|검색해|검색 해)/i;
+const explicitSearchPattern = /(검색|search|검색해|찾아|찾아봐|찾아줘|lookup|look up)/i;
+const explicitSearchIntentPattern = /(검색해봐|검색해 줘|검색해줘|찾아봐|찾아 봐|찾아줘|찾아 줘|최신 정보|최근 정보|최신 소식|최근 소식|실시간 정보|지금 정보)/i;
 const strongTimeSensitivePattern = /(최신|실시간|업데이트|시세|주가|가격|기온|날씨|영업시간|운영시간|발표|출시|일정|결과|순위|뉴스)/i;
 const relativeTimePattern = /(오늘|지금|현재|최근|이번 주|이번주|이번 달|이번달|어제|내일)/i;
-const timelyTopicPattern = /(날씨|기온|뉴스|시세|주가|가격|일정|결과|순위|업데이트|발표|출시|영업시간|운영시간)/i;
+const timelyTopicPattern = /(뉴스|기온|날씨|시세|주가|가격|일정|결과|순위|업데이트|발표|출시|영업시간|운영시간)/i;
 const sourceRequestPattern = /(출처|링크|원문|참고자료|reference|references|source|sources|link|links|url)/i;
-const factualQuestionPattern = /(누구|뭐야|무엇|어디|언제|몇|뜻|의미|정의|설명|소개|정체|어떤|왜|어떻게|알려줘|알려 줘|찾아줘|찾아 줘|검색해|search)/i;
-const questionEndingPattern = /(\?|까\??|인가요\??|이야\??|임\??|뭐야\??|뭔가요\??|뜻이야\??)$/i;
-const factualTopicPattern = /(게임|인물|회사|브랜드|사이트|서비스|앱|api|라이브러리|모델|용어|밈|위키|문서|규칙|설정|기능|스펙|버전|에러|오류|공식|링크|주소|프로필|랭크|티어|날씨|뉴스|가격|일정)/i;
+const factualQuestionPattern = /(누구|뭐야|무엇|어디|언제|몇|설명|정의|소개|정체|어떤|어떻게|알려줘|알려 줘|찾아줘|찾아 줘|검색해|search)/i;
+const questionEndingPattern = /(\?|까\??|가\??|야\??|요\??|냐\??|임\??|인가\??)$/i;
+const factualTopicPattern = /(게임|인물|회사|브랜드|서비스|api|라이브러리|모델|용어|맵|위키|문서|규칙|설정|기능|스펙|버전|에러|오류|공식|링크|주소|프로젝트|단어|뉴스|날씨|가격|일정)/i;
+const searchTailCleanupPattern = /\s*(검색해봐|검색해 줘|검색해줘|찾아봐|찾아 봐|찾아줘|찾아 줘|알려줘|알려 줘|정리해줘|정리해 줘)\s*$/i;
 
 const browserHeaders = {
   'accept-language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
@@ -39,12 +40,8 @@ export async function searchWeb(query, options = {}) {
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const directPreferredResult = await fetchPreferredDirectResult(preferredDomains, normalizedQuery, {
-      signal: controller.signal,
-    });
-
     const queryVariants = buildSearchQueryVariants(normalizedQuery, preferredDomains);
-    const queryResults = directPreferredResult ? [[directPreferredResult]] : [];
+    const queryResults = [];
 
     for (const searchQuery of queryVariants) {
       let results = await performDuckDuckGoHtmlSearch(searchQuery, {
@@ -107,6 +104,7 @@ export function shouldUseWebSearch(prompt) {
   }
 
   return explicitSearchPattern.test(text)
+    || explicitSearchIntentPattern.test(text)
     || strongTimeSensitivePattern.test(text)
     || (relativeTimePattern.test(text) && timelyTopicPattern.test(text))
     || looksLikeFactualLookupPrompt(text);
@@ -121,7 +119,8 @@ export function deriveWebSearchQuery(prompt) {
   let query = original
     .replace(/^(검색|search)\s*[:\-]?\s*/i, '')
     .replace(/\s+(검색|search)$/i, '')
-    .replace(/\s*(검색해줘|검색해 줘|검색해|찾아줘|찾아 줘|찾아봐|찾아 봐|알려줘|알려 줘)\s*$/i, '')
+    .replace(/\s*(검색해줘|검색해 줘|검색해봐|찾아줘|찾아 줘|찾아봐|알려줘|알려 줘)\s*$/i, '')
+    .replace(searchTailCleanupPattern, '')
     .replace(/\s*(좀|한번|한 번)\s*$/i, '')
     .trim();
 
@@ -168,30 +167,6 @@ export function formatWebSearchContext(query, results, options = {}) {
       return lines.join('\n');
     }),
   ].filter(Boolean).join('\n');
-}
-
-export function parsePyhokDirectPage(html, options = {}) {
-  const dom = new JSDOM(String(html ?? ''));
-  const document = dom.window.document;
-  const title = normalizeSearchText(
-    document.querySelector('meta[property="og:title"], meta[name="og:title"]')?.getAttribute('content')
-      ?? document.querySelector('title')?.textContent
-      ?? options.fallbackTitle
-  );
-  const snippet = normalizeSearchText(
-    document.querySelector('meta[name="description"]')?.getAttribute('content')
-      ?? document.querySelector('meta[property="og:description"], meta[name="og:description"]')?.getAttribute('content')
-      ?? document.querySelector('article p')?.textContent
-      ?? document.querySelector('main p')?.textContent
-      ?? document.querySelector('p')?.textContent
-      ?? ''
-  );
-
-  return {
-    title,
-    url: options.fallbackUrl,
-    snippet,
-  };
 }
 
 function unwrapDuckDuckGoResultUrl(rawUrl) {
@@ -260,54 +235,6 @@ function buildSearchQueryVariants(query, preferredDomains) {
   return [...new Set(variants)];
 }
 
-async function fetchPreferredDirectResult(preferredDomains, query, options = {}) {
-  const normalizedQuery = normalizeSearchText(query);
-  if (!normalizedQuery) {
-    return null;
-  }
-
-  for (const domain of Array.isArray(preferredDomains) ? preferredDomains : []) {
-    if (domain !== 'pyhok.com') {
-      continue;
-    }
-
-    const result = await fetchPyhokDirectResult(normalizedQuery, options).catch(() => null);
-    if (result) {
-      return result;
-    }
-  }
-
-  return null;
-}
-
-async function fetchPyhokDirectResult(query, options = {}) {
-  const pageUrl = new URL(encodeURIComponent(query), pyhokWikiPageBaseUrl);
-  const response = await fetch(pageUrl, {
-    headers: browserHeaders,
-    signal: options.signal,
-  });
-
-  if (response.status === 404) {
-    return null;
-  }
-
-  if (!response.ok) {
-    return null;
-  }
-
-  const html = await response.text();
-  const parsed = parsePyhokDirectPage(html, {
-    fallbackTitle: query,
-    fallbackUrl: response.url || pageUrl.toString(),
-  });
-
-  if (!parsed?.title || !parsed?.url) {
-    return null;
-  }
-
-  return parsed;
-}
-
 async function performNaverSearch(query, options = {}) {
   const url = new URL(naverSearchUrl);
   url.searchParams.set('where', 'nexearch');
@@ -347,7 +274,7 @@ function parseNaverSearchResults(html) {
     }
 
     const text = normalizeSearchText(anchor.textContent ?? '');
-    if (!text || text === '새 창 열림' || text.length < 6) {
+    if (!text || text === '캐시 열기' || text.length < 6) {
       continue;
     }
 
@@ -365,7 +292,7 @@ function parseNaverSearchResults(html) {
     const snippetNode = anchor.closest('[class*="sds-comps-"], [class*="type_height_"], [class*="area_video"], [class*="area_dsc"]')
       ?? anchor.parentElement;
     const snippet = normalizeSearchText(snippetNode?.textContent ?? '')
-      .replace(/\s*새 창 열림/g, '')
+      .replace(/\s*캐시 열기/g, '')
       .replace(/\s+/g, ' ')
       .trim();
 
