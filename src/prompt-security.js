@@ -3,6 +3,10 @@ const promptOverridePatterns = [
   /(지금까지|이전|앞에서).*(프롬프트|명령|지시|규칙).*(잊|무시|삭제|초기화)/,
   /(시스템|개발자|관리자).*(프롬프트|명령|지시|규칙).*(무시|공개|출력|보여|바꿔)/,
   /(잊|무시|삭제|초기화|수정|변경|공개|출력|보여|바꿔).*(프롬프트|시스템|개발자|관리자|이전 명령|지시|규칙)/,
+  /(?:최상위|상위|내부|숨겨진).*(?:시스템|개발자|관리자).*(?:프롬프트|지침|규칙|문장)/,
+  /(?:시스템|개발자|관리자).*(?:프롬프트|지침|규칙).*(?:첫\s*번째|첫|원문|문장|첫 대사|한 줄)/,
+  /(?:독백|낭독|첫 대사|한 줄).*(?:최상위|상위|내부|시스템|개발자|관리자).*(?:프롬프트|지침|규칙|문장)/,
+  /(?:태어날 때|처음).*(?:들었던|받은).*(?:규칙|지침|명령)/,
   /(?:기존|원래)?\s*(?:말투|말투 규칙|냥체|고양이 말투).*(?:무시|버려|버리|제거|없애|지워|바꿔|변경)/,
   /(?:무시|버려|버리|제거|없애|지워|바꿔|변경).*(?:말투|말투 규칙|냥체|고양이 말투)/,
   /(?:봇\s*)?정체성.*(?:무시|버려|버리|제거|없애|지워|바꿔|변경)/,
@@ -17,6 +21,8 @@ const promptOverridePatterns = [
   /print .*system .*prompt/,
   /system .*prompt.*(ignore|forget|reveal|show|print|display|override|change)/,
   /developer .*message.*(ignore|forget|reveal|show|print|display|override|change)/,
+  /(?:top[- ]level|highest[- ]priority|internal|hidden).*(?:system|developer).*(?:prompt|instruction|rule)/,
+  /(?:system|developer).*(?:prompt|instruction|rule).*(?:first|initial|verbatim|line)/,
 ];
 
 const controlCommandLinePatterns = [
@@ -47,6 +53,7 @@ const structuredPayloadLinePatterns = [
 ];
 
 const controlPayloadKeywordPattern = /add-tools|reset-context|legacy prompt|clear all prompt|retry automatically/i;
+const controlMetaPrefixPattern = /^\s*%?\[[A-Z][A-Z0-9_-]{1,31}\]\s*/;
 
 const choiceCandidatePattern = /^\s*([A-Z]|[1-9]\d?)\s*[.)]\s+.+$/gim;
 const quotedCandidatePattern = /"[^"\n]{2,200}"|“[^”\n]{2,200}”|「[^」\n]{2,200}」|『[^』\n]{2,200}』/;
@@ -122,6 +129,10 @@ function forbidsNaturalExtraOutput(text) {
   return noExtraOutputPatterns.some((pattern) => pattern.test(text));
 }
 
+function stripControlMetaPrefix(line) {
+  return String(line ?? '').replace(controlMetaPrefixPattern, '');
+}
+
 export function isPromptOverrideAttempt(prompt) {
   const text = normalizePromptInspectionText(prompt);
   if (!text) {
@@ -152,7 +163,8 @@ export function sanitizePromptInjectionText(value) {
   const keptLines = [];
   let skippingControlPayload = false;
 
-  for (const line of lines) {
+  for (const rawLine of lines) {
+    const line = stripControlMetaPrefix(rawLine);
     const trimmed = line.trim();
 
     if (!trimmed) {
