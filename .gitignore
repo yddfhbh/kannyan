@@ -25,3 +25,4 @@ data/lichess-player-opening-manual-book.json
 data/starforce-statistics/
 data/tetolb-cache.json
 data/tetolb-user-cache.json
+*.bak-*
