@@ -93,6 +93,10 @@ function buildSlashCommands() {
   .setName('일일퍼즐지정')
   .setDescription('이 채널을 매일 일일 체스 퍼즐 알림 채널로 지정합니다.')
   .toJSON(),
+  new SlashCommandBuilder()
+  .setName('일일퍼즐해제')
+  .setDescription('이 서버의 일일 체스 퍼즐 알림 채널 지정을 해제합니다.')
+  .toJSON(),
 
 new SlashCommandBuilder()
   .setName('일일퍼즐')

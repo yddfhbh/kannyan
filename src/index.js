@@ -61,6 +61,7 @@ import {
 } from './tetrio-graph-input.js';
 import { createMinomuncherAnalysis } from './minomuncher-analysis.js';
 import {
+  handleDailyPuzzleClearInteraction,
   handleDailyPuzzleAnnouncementInteraction,
   handleDailyPuzzleLeaderboardInteraction,
   handleDailyPuzzleMessage,
@@ -5179,6 +5180,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (interaction.commandName === '일일퍼즐지정') {
   await handleDailyPuzzleSetInteraction(interaction);
+  return;
+}
+
+if (interaction.commandName === '일일퍼즐해제') {
+  await handleDailyPuzzleClearInteraction(interaction);
   return;
 }
 

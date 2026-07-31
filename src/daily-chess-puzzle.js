@@ -161,25 +161,33 @@ return true;
 export async function handleDailyPuzzleSetInteraction(interaction) {
   if (!interaction.guildId || !interaction.channelId) {
     await interaction.reply({
-      content: '서버 채널에서만 지정할 수 있다냥.',
+      content: '서버 채널에서만 지정하거나 해제할 수 있다냥.',
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
-  const canSet =
-    dailyPuzzleAdminIds.has(interaction.user.id) ||
-    interaction.memberPermissions?.has(PermissionFlagsBits.Administrator);
-
-  if (!canSet) {
+  if (!canManageDailyPuzzleChannel(interaction)) {
     await interaction.reply({
-      content: '관리자만 일일퍼즐 채널을 지정할 수 있다냥.',
+      content: '관리자만 일일퍼즐 채널을 지정하거나 해제할 수 있다냥.',
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
   const loadedState = await loadState();
+  const existingConfig = getDailyPuzzleGuildConfig(loadedState, interaction.guildId);
+
+  if (existingConfig?.channelId === interaction.channelId) {
+    delete loadedState.settings.guilds[interaction.guildId];
+    await saveState();
+
+    await interaction.reply({
+      content: '이 채널의 일일 체스 퍼즐 알림 지정을 해제했다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
 
   loadedState.settings.guilds[interaction.guildId] = {
     channelId: interaction.channelId,
@@ -190,7 +198,46 @@ export async function handleDailyPuzzleSetInteraction(interaction) {
   await saveState();
 
   await interaction.reply({
-    content: `이 채널을 일일 체스 퍼즐 알림 채널로 지정했다냥.\n매일 KST ${String(dailyPuzzlePostHour).padStart(2, '0')}:00 이후에 퍼즐을 올린다냥.`,
+    content: existingConfig?.channelId
+      ? `일일 체스 퍼즐 알림 채널을 <#${existingConfig.channelId}>에서 이 채널로 변경했다냥.\n매일 KST ${String(dailyPuzzlePostHour).padStart(2, '0')}:00 이후에 퍼즐을 올린다냥.`
+      : `이 채널을 일일 체스 퍼즐 알림 채널로 지정했다냥.\n매일 KST ${String(dailyPuzzlePostHour).padStart(2, '0')}:00 이후에 퍼즐을 올린다냥.`,
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+export async function handleDailyPuzzleClearInteraction(interaction) {
+  if (!interaction.guildId) {
+    await interaction.reply({
+      content: '서버 채널에서만 해제할 수 있다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (!canManageDailyPuzzleChannel(interaction)) {
+    await interaction.reply({
+      content: '관리자만 일일퍼즐 채널을 해제할 수 있다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const loadedState = await loadState();
+  const existingConfig = getDailyPuzzleGuildConfig(loadedState, interaction.guildId);
+
+  if (!existingConfig) {
+    await interaction.reply({
+      content: '아직 이 서버에는 `/일일퍼즐지정`된 채널이 없다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  delete loadedState.settings.guilds[interaction.guildId];
+  await saveState();
+
+  await interaction.reply({
+    content: `일일 체스 퍼즐 알림 채널 지정(<#${existingConfig.channelId}>)을 해제했다냥.`,
     flags: MessageFlags.Ephemeral,
   });
 }
@@ -1414,6 +1461,22 @@ async function loadState() {
   delete state.failed;
 
   return state;
+}
+
+function canManageDailyPuzzleChannel(interaction) {
+  return (
+    dailyPuzzleAdminIds.has(interaction.user.id) ||
+    interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)
+  );
+}
+
+function getDailyPuzzleGuildConfig(loadedState, guildId) {
+  if (!guildId) {
+    return null;
+  }
+
+  const config = loadedState.settings.guilds?.[guildId];
+  return typeof config?.channelId === 'string' && config.channelId ? config : null;
 }
 
 async function saveState() {
