@@ -202,11 +202,31 @@ if [ -r "$ENV_BACKUP" ]; then
   cp "$ENV_BACKUP" .env
 fi
 
+read_secret_from_env_or_tty() {
+  local env_name="$1"
+  local prompt="$2"
+  local value="${!env_name:-}"
+
+  if [ -n "$value" ]; then
+    printf '%s' "$value"
+    return 0
+  fi
+
+  if [ -r /dev/tty ]; then
+    read -r -s -p "$prompt" value </dev/tty
+    echo
+    printf '%s' "$value"
+    return 0
+  fi
+
+  echo "Missing required $env_name and no interactive TTY is available." >&2
+  echo "Export $env_name before running this deploy script, or make sure .env already contains it." >&2
+  return 1
+}
+
 if [ ! -f .env ]; then
   echo ".env is missing, so a new one will be created now."
-  echo "Input stays hidden. Paste the value and press Enter."
-  read -r -s -p "Enter DISCORD_TOKEN: " DISCORD_TOKEN_VALUE </dev/tty
-  echo
+  DISCORD_TOKEN_VALUE="$(read_secret_from_env_or_tty DISCORD_TOKEN "Enter DISCORD_TOKEN: ")" || exit 1
   cat > .env <<ENV_EOF
 DISCORD_TOKEN=$DISCORD_TOKEN_VALUE
 CLIENT_ID=1502588698246778960
@@ -218,9 +238,10 @@ if ! grep -E '^(GEMINI_API_KEYS|GEMMA_API_KEYS|GEMINI_API_KEY|GEMMA_API_KEY)=' .
   echo "Gemma/Gemini API keys are missing from .env, so they will be added now."
   echo "If you want fallback keys too, separate them with commas."
   echo "Example: primary-key,fallback-key-1,fallback-key-2"
-  echo "Input stays hidden. Paste the value and press Enter."
-  read -r -s -p "Enter GEMINI_API_KEYS: " GEMINI_API_KEYS_VALUE </dev/tty
-  echo
+  GEMINI_API_KEYS_VALUE="${GEMINI_API_KEYS:-${GEMMA_API_KEYS:-${GEMINI_API_KEY:-${GEMMA_API_KEY:-}}}}"
+  if [ -z "$GEMINI_API_KEYS_VALUE" ]; then
+    GEMINI_API_KEYS_VALUE="$(read_secret_from_env_or_tty GEMINI_API_KEYS "Enter GEMINI_API_KEYS: ")" || exit 1
+  fi
   printf '\nGEMINI_API_KEYS=%s\n' "$GEMINI_API_KEYS_VALUE" >> .env
 fi
 
