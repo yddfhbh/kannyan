@@ -509,10 +509,10 @@ const percentCommandAliases = {
   expertQuickplay: ['exqp'],
   fortyLines: ['40l'],
   blitz: ['blitz'],
-  quickplayHistory: ['qphistory'],
-  expertQuickplayHistory: ['exqphistory'],
-  fortyLinesHistory: ['40lhistory'],
-  blitzHistory: ['blitzhistory'],
+  quickplayHistory: ['qphistory', 'qph'],
+  expertQuickplayHistory: ['exqphistory', 'exqph'],
+  fortyLinesHistory: ['40lhistory', '40lh'],
+  blitzHistory: ['blitzhistory', 'blitzh'],
 };
 const liveRatingTypes = {
   classical: {
@@ -9059,13 +9059,13 @@ function getHelpMessage() {
     '`%fen 추출해줘` - 체스판 이미지에서 FEN을 읽어서 그대로 알려준다냥.',
     '팁: 슬래시 명령어는 옵션 선택이 편하고, `%...` 명령어는 채팅에 바로 입력해서 빠르게 쓸 수 있다냥.',
     '`/퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%qp 닉네임 [기록 번호]` - QUICK PLAY 고도 카드를 보여준다냥.',
-    '`/퀵플기록 닉네임:[TETR.IO 닉네임]` 또는 `%qphistory 닉네임` - QUICK PLAY 기록 그래프 카드를 보여준다냥.',
+    '`/퀵플기록 닉네임:[TETR.IO 닉네임] 표시:[전부]` 또는 `%qphistory`/`%qph [닉네임] [all|전부]` - QUICK PLAY 기록 그래프 카드를 보여준다냥. 표시를 생략하면 PB 최대값의 110%를 넘는 점은 숨긴다냥.',
     '`/익스퀵플 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호]` 또는 `%exqp 닉네임 [기록 번호]` - EXPERT QUICK PLAY 고도 카드를 보여준다냥.',
-    '`/익스퀵플기록 닉네임:[TETR.IO 닉네임]` 또는 `%exqphistory 닉네임` - EXPERT QUICK PLAY 기록 그래프 카드를 보여준다냥.',
+    '`/익스퀵플기록 닉네임:[TETR.IO 닉네임] 표시:[전부]` 또는 `%exqphistory`/`%exqph [닉네임] [all|전부]` - EXPERT QUICK PLAY 기록 그래프 카드를 보여준다냥. 표시를 생략하면 PB 최대값의 110%를 넘는 점은 숨긴다냥.',
     '`/40라인 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%40L 닉네임 [기록 번호] [top|recent]` - 40 LINES top 또는 recent 기록의 시간 카드를 보여준다냥.',
-    '`/40l기록 닉네임:[TETR.IO 닉네임]` 또는 `%40lhistory 닉네임` - 40 LINES 기록 그래프 카드를 보여준다냥.',
+    '`/40l기록 닉네임:[TETR.IO 닉네임] 표시:[전부]` 또는 `%40lhistory`/`%40lh [닉네임] [all|전부]` - 40 LINES 기록 그래프 카드를 보여준다냥. 표시를 생략하면 PB 최대값의 110%를 넘는 점은 숨긴다냥.',
     '`/블리츠 닉네임:[TETR.IO 닉네임] 숫자:[기록 번호] recent:[top|recent]` 또는 `%blitz 닉네임 [기록 번호] [top|recent]` - BLITZ top 또는 recent 기록의 점수 카드를 보여준다냥.',
-    '`/블리츠기록 닉네임:[TETR.IO 닉네임]` 또는 `%blitzhistory 닉네임` - BLITZ 기록 그래프 카드를 보여준다냥.',
+    '`/블리츠기록 닉네임:[TETR.IO 닉네임] 표시:[전부]` 또는 `%blitzhistory`/`%blitzh [닉네임] [all|전부]` - BLITZ 기록 그래프 카드를 보여준다냥. 표시를 생략하면 PB 최대값의 110%를 넘는 점은 숨긴다냥.',
     '`/일일퍼즐`, `%일일퍼즐`, `/일일퍼즐지정` - 퍼즐을 DM으로 풀며, 첫 오답이나 `포기`는 즉시 퍼즐 레이팅 패배로 반영되고 같은 날 다시 도전할 수 있다냥.',
     '`/퍼즐러쉬`, `%퍼즐러쉬` - DM으로 이어푸는 퍼즐러쉬를 시작한다냥. 목숨은 3개고, `포기`, `그만`, `중단`, `gg`로 종료할 수 있다냥.',
     '`/퍼즐레이팅`, `%퍼즐레이팅` - 내 퍼즐 레이팅 카드와 현재 등수를 보여준다냥.',
@@ -9989,6 +9989,7 @@ async function showBlitzScore(interaction) {
 
 async function showTetrioSoloRecordHistory(interaction, mode = '40l') {
   const input = interaction.options.getString('닉네임')?.trim();
+  const displayMode = normalizeTetrioRecordHistoryDisplayMode(interaction.options.getString('표시'));
 
   await interaction.deferReply();
 
@@ -10002,7 +10003,7 @@ async function showTetrioSoloRecordHistory(interaction, mode = '40l') {
       return;
     }
 
-    const replyData = await createTetrioRecordHistoryReplyData(username, mode);
+    const replyData = await createTetrioRecordHistoryReplyData(username, mode, displayMode);
     await interaction.editReply(replyData);
   } catch (error) {
     console.error(`Failed to fetch ${mode} record history for ${input ?? 'linked account'}:`);
@@ -10044,6 +10045,38 @@ function normalizeQuickPlayLeaderboard(value) {
   return quickPlayPersonalLeaderboards.has(normalizedValue)
     ? normalizedValue
     : null;
+}
+
+function normalizeTetrioRecordHistoryDisplayMode(value) {
+  const normalizedValue = String(value ?? '').trim().toLowerCase();
+  return normalizedValue === 'all' || normalizedValue === '전부'
+    ? 'all'
+    : 'clipped';
+}
+
+function parseTetrioRecordHistoryMessageInput(input) {
+  const trimmed = String(input ?? '').trim();
+  if (!trimmed) {
+    return {
+      usernameInput: '',
+      displayMode: 'clipped',
+    };
+  }
+
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  const lastToken = parts.at(-1)?.toLowerCase();
+  if (lastToken === 'all' || lastToken === '전부') {
+    parts.pop();
+    return {
+      usernameInput: parts.join(' ').trim(),
+      displayMode: 'all',
+    };
+  }
+
+  return {
+    usernameInput: trimmed,
+    displayMode: 'clipped',
+  };
 }
 
 async function createQuickPlayAltitudeCardForLeaderboard(username, recordIndex, mode, leaderboard = 'top') {
@@ -10769,32 +10802,35 @@ async function showQuickPlayAltitudeMessage(
 }
 
 async function handleTetrioRecordHistoryMessage(message, input, mode = '40l') {
-  const trimmedInput = String(input ?? '').trim();
+  const parsedInput = parseTetrioRecordHistoryMessageInput(input);
+  const trimmedInput = parsedInput.usernameInput;
+  const displayMode = parsedInput.displayMode;
+
   if (!trimmedInput) {
     const repliedUser = await getRepliedUserFromTetrioMessage(message);
     if (repliedUser) {
-      await showLinkedTetrioRecordHistoryMessage(message, repliedUser, mode);
+      await showLinkedTetrioRecordHistoryMessage(message, repliedUser, mode, displayMode);
       return;
     }
 
-    await showLinkedTetrioRecordHistoryMessage(message, message.author, mode);
+    await showLinkedTetrioRecordHistoryMessage(message, message.author, mode, displayMode);
     return;
   }
 
   const repliedUser = await getRepliedUserFromTetrioMessage(message);
   if (repliedUser) {
-    await showLinkedTetrioRecordHistoryMessage(message, repliedUser, mode);
+    await showLinkedTetrioRecordHistoryMessage(message, repliedUser, mode, displayMode);
     return;
   }
 
   const mentionedUser = getSingleMentionedUserFromTetrioInput(message, trimmedInput);
   if (mentionedUser) {
-    await showLinkedTetrioRecordHistoryMessage(message, mentionedUser, mode);
+    await showLinkedTetrioRecordHistoryMessage(message, mentionedUser, mode, displayMode);
     return;
   }
 
   if (isAmbiguousNumericTetrioInput(trimmedInput)) {
-    await handleAmbiguousNumericTetrioRecordHistoryMessage(message, trimmedInput, mode);
+    await handleAmbiguousNumericTetrioRecordHistoryMessage(message, trimmedInput, mode, displayMode);
     return;
   }
 
@@ -10811,17 +10847,17 @@ async function handleTetrioRecordHistoryMessage(message, input, mode = '40l') {
     return;
   }
 
-  await showTetrioRecordHistoryMessage(message, trimmedInput, mode);
+  await showTetrioRecordHistoryMessage(message, trimmedInput, mode, false, displayMode);
 }
 
-async function handleAmbiguousNumericTetrioRecordHistoryMessage(message, input, mode = '40l') {
+async function handleAmbiguousNumericTetrioRecordHistoryMessage(message, input, mode = '40l', displayMode = 'clipped') {
   try {
     const username = await findTetrioUsername(input);
 
     if (username) {
       await safeSendTyping(message.channel, 'handleAmbiguousNumericTetrioRecordHistoryMessage');
       try {
-        const replyData = await createTetrioRecordHistoryReplyData(username, mode);
+        const replyData = await createTetrioRecordHistoryReplyData(username, mode, displayMode);
         await message.reply({
           ...replyData,
           allowedMentions: { repliedUser: false },
@@ -10849,7 +10885,7 @@ async function handleAmbiguousNumericTetrioRecordHistoryMessage(message, input, 
       return;
     }
 
-    await showLinkedTetrioRecordHistoryMessage(message, message.author, mode);
+    await showLinkedTetrioRecordHistoryMessage(message, message.author, mode, displayMode);
   } catch (error) {
     console.error(`Failed to resolve numeric ${mode} history input ${input}:`);
     console.error(error);
@@ -10861,7 +10897,7 @@ async function handleAmbiguousNumericTetrioRecordHistoryMessage(message, input, 
   }
 }
 
-async function showLinkedTetrioRecordHistoryMessage(message, user, mode = '40l') {
+async function showLinkedTetrioRecordHistoryMessage(message, user, mode = '40l', displayMode = 'clipped') {
   try {
     const username = await findTetrioUsernameByDiscordId(user.id);
 
@@ -10870,7 +10906,7 @@ async function showLinkedTetrioRecordHistoryMessage(message, user, mode = '40l')
       return;
     }
 
-    await showTetrioRecordHistoryMessage(message, username, mode, true);
+    await showTetrioRecordHistoryMessage(message, username, mode, true, displayMode);
   } catch (error) {
     console.error(`Failed to find linked TETR.IO profile for Discord user ${user.id}:`);
     console.error(error);
@@ -10882,8 +10918,8 @@ async function showLinkedTetrioRecordHistoryMessage(message, user, mode = '40l')
   }
 }
 
-async function createTetrioRecordHistoryReplyData(username, mode = '40l') {
-  const card = await createTetrioRecordHistoryCard(username, mode);
+async function createTetrioRecordHistoryReplyData(username, mode = '40l', displayMode = 'clipped') {
+  const card = await createTetrioRecordHistoryCard(username, mode, { displayMode });
   const attachment = new AttachmentBuilder(card.image, {
     name: getTetrioRecordHistoryAttachmentName(card.username, mode),
   });
@@ -10893,10 +10929,10 @@ async function createTetrioRecordHistoryReplyData(username, mode = '40l') {
   };
 }
 
-async function showTetrioRecordHistoryMessage(message, username, mode = '40l', assumeExistingUser = false) {
+async function showTetrioRecordHistoryMessage(message, username, mode = '40l', assumeExistingUser = false, displayMode = 'clipped') {
   try {
     await safeSendTyping(message.channel, 'showTetrioRecordHistoryMessage');
-    const replyData = await createTetrioRecordHistoryReplyData(username, mode);
+    const replyData = await createTetrioRecordHistoryReplyData(username, mode, displayMode);
     await message.reply({
       ...replyData,
       allowedMentions: { repliedUser: false },

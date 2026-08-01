@@ -23,6 +23,10 @@ const graphMargin = {
   bottom: 132,
 };
 const historyFontFamily = tetrioFontFamily;
+const recordHistoryDisplayModes = {
+  clipped: 'clipped',
+  all: 'all',
+};
 const modeConfigs = {
   '40l': {
     code: '40l',
@@ -86,9 +90,10 @@ const modeConfigs = {
   },
 };
 
-export async function createTetrioRecordHistoryCard(username, mode = '40l') {
+export async function createTetrioRecordHistoryCard(username, mode = '40l', options = {}) {
   const normalizedUsername = normalizeTetrioUsername(username);
   const config = modeConfigs[mode] ?? modeConfigs['40l'];
+  const displayMode = normalizeRecordHistoryDisplayMode(options?.displayMode);
 
   if (!normalizedUsername) {
     const error = new Error('TETR.IO username is required');
@@ -97,13 +102,14 @@ export async function createTetrioRecordHistoryCard(username, mode = '40l') {
   }
 
   const data = await fetchTetrioRecordHistoryData(normalizedUsername, config);
-  const svg = renderTetrioRecordHistorySvg(data, config);
+  const svg = renderTetrioRecordHistorySvg(data, config, displayMode);
   const image = renderTetrioSvgToPng(svg);
 
   return {
     image,
     mode: config.code,
     username: data.username,
+    displayMode,
   };
 }
 
@@ -307,7 +313,13 @@ function normalizeTetrioUsername(input) {
   return trimmed.replace(/^@+/, '').toLowerCase();
 }
 
-function renderTetrioRecordHistorySvg(data, config) {
+function normalizeRecordHistoryDisplayMode(value) {
+  return String(value ?? '').trim().toLowerCase() === recordHistoryDisplayModes.all
+    ? recordHistoryDisplayModes.all
+    : recordHistoryDisplayModes.clipped;
+}
+
+function renderTetrioRecordHistorySvg(data, config, displayMode = recordHistoryDisplayModes.clipped) {
   const topPanelY = 24;
   const topPanelHeight = 464;
   const topStatsLayout = {
@@ -333,13 +345,41 @@ function renderTetrioRecordHistorySvg(data, config) {
   const graphBottom = graphPanelBottom - 88;
   const graphInnerWidth = graphRight - graphLeft;
   const graphInnerHeight = graphBottom - graphTop;
-  const allGraphPoints = data.allPoints.length > 0
-    ? data.allPoints
-    : data.pbPoints;
-  const graphDomain = getGraphDomain(allGraphPoints, data.pbPoints, data.bestRecord, config);
-  const scatterMarkup = renderScatterPoints(allGraphPoints, graphDomain, config, graphLeft, graphTop, graphInnerWidth, graphInnerHeight);
-  const pbPathMarkup = renderProgressionPath(data.pbPoints, graphDomain, config, graphLeft, graphTop, graphInnerWidth, graphInnerHeight);
-  const pbMarkersMarkup = renderPbMarkers(data.pbPoints, graphDomain, config, graphLeft, graphTop, graphInnerWidth, graphInnerHeight);
+  const displayedHistory = buildDisplayedHistoryData(data, config, displayMode);
+  const graphDomain = getGraphDomain(
+    displayedHistory.graphAllPoints,
+    displayedHistory.graphPbPoints,
+    data.bestRecord,
+    config,
+    { maxValueCap: displayedHistory.maxValueCap }
+  );
+  const scatterMarkup = renderScatterPoints(
+    displayedHistory.graphAllPoints,
+    graphDomain,
+    config,
+    graphLeft,
+    graphTop,
+    graphInnerWidth,
+    graphInnerHeight
+  );
+  const pbPathMarkup = renderProgressionPath(
+    displayedHistory.graphPbPoints,
+    graphDomain,
+    config,
+    graphLeft,
+    graphTop,
+    graphInnerWidth,
+    graphInnerHeight
+  );
+  const pbMarkersMarkup = renderPbMarkers(
+    displayedHistory.graphPbPoints,
+    graphDomain,
+    config,
+    graphLeft,
+    graphTop,
+    graphInnerWidth,
+    graphInnerHeight
+  );
   const gridMarkup = renderGrid(graphDomain, config, graphLeft, graphTop, graphInnerWidth, graphInnerHeight);
   const xLabelsMarkup = renderXAxisLabels(graphDomain, graphLeft, graphTop, graphInnerWidth, graphInnerHeight);
   const yLabelsMarkup = renderYAxisLabels(graphDomain, config, graphLeft, graphTop, graphInnerWidth, graphInnerHeight);
@@ -353,7 +393,12 @@ function renderTetrioRecordHistorySvg(data, config) {
   const lastPlayedText = data.latestPoint?.ts
     ? formatKstDateTime(data.latestPoint.ts)
     : '-';
-  const footerMarkup = renderHistoryFooterMarkup(allGraphPoints.length, data.pbPoints.length);
+  const footerMarkup = renderHistoryFooterMarkup(
+    displayedHistory.shownRunCount,
+    displayedHistory.totalRunCount,
+    displayedHistory.totalPbCount,
+    displayMode
+  );
   const summaryText = bestTs
     ? `PB ACHIEVED ${formatKstDateTime(bestTs)}`
     : 'PB ACHIEVED -';
@@ -491,6 +536,49 @@ function renderStatsGrid(rows, config, layout = {}) {
   return `${horizontalLinesMarkup}${verticalDividerMarkup}${rowsMarkup}`;
 }
 
+function buildDisplayedHistoryData(data, config, displayMode = recordHistoryDisplayModes.clipped) {
+  const sourceAllPoints = data.allPoints.length > 0
+    ? data.allPoints
+    : data.pbPoints;
+  const maxValueCap = displayMode === recordHistoryDisplayModes.all
+    ? null
+    : getPbUpperBound(data.pbPoints, data.bestRecord, config);
+  const graphAllPoints = filterPointsByUpperBound(sourceAllPoints, maxValueCap);
+  const graphPbPoints = filterPointsByUpperBound(data.pbPoints, maxValueCap);
+
+  return {
+    graphAllPoints: graphAllPoints.length > 0 ? graphAllPoints : graphPbPoints,
+    graphPbPoints: graphPbPoints.length > 0 ? graphPbPoints : graphAllPoints,
+    shownRunCount: graphAllPoints.length > 0 ? graphAllPoints.length : graphPbPoints.length,
+    totalRunCount: sourceAllPoints.length,
+    totalPbCount: data.pbPoints.length,
+    maxValueCap,
+  };
+}
+
+function getPbUpperBound(pbPoints, bestRecord, config) {
+  const pbValues = pbPoints
+    .map((point) => point.metricValue)
+    .filter((value) => Number.isFinite(value) && value > 0);
+
+  if (pbValues.length > 0) {
+    return Math.max(...pbValues) * 1.1;
+  }
+
+  const bestMetric = config.getMetricValue(bestRecord);
+  return Number.isFinite(bestMetric) && bestMetric > 0
+    ? bestMetric * 1.1
+    : null;
+}
+
+function filterPointsByUpperBound(points, upperBound) {
+  if (!Number.isFinite(upperBound) || upperBound <= 0) {
+    return points;
+  }
+
+  return points.filter((point) => point.metricValue <= upperBound);
+}
+
 function renderHistoryStatsValueMarkup(value) {
   const text = String(value ?? '');
   return /[.,]/.test(text)
@@ -502,8 +590,15 @@ function renderHistoryStatsValueMarkup(value) {
     : renderTetrioNumericTextMarkup(text);
 }
 
-function renderHistoryFooterMarkup(runCount, pbCount) {
-  return `${renderTetrioNumericTextMarkup(formatInteger(runCount))} RUNS / ${renderTetrioNumericTextMarkup(formatInteger(pbCount))} PBS`;
+function renderHistoryFooterMarkup(shownRunCount, totalRunCount, totalPbCount, displayMode) {
+  const totalRunsText = renderTetrioNumericTextMarkup(formatInteger(totalRunCount));
+  const pbText = renderTetrioNumericTextMarkup(formatInteger(totalPbCount));
+
+  if (displayMode === recordHistoryDisplayModes.all || shownRunCount >= totalRunCount) {
+    return `${totalRunsText} RUNS / ${pbText} PBS`;
+  }
+
+  return `${renderTetrioNumericTextMarkup(formatInteger(shownRunCount))} SHOWN / ${totalRunsText} RUNS / ${pbText} PBS`;
 }
 
 function renderHistoryAxisLabelMarkup(value) {
@@ -559,7 +654,8 @@ function renderHistoryNumberMarkup(value, options = {}) {
   return markup;
 }
 
-function getGraphDomain(points, pbPoints, bestRecord, config) {
+function getGraphDomain(points, pbPoints, bestRecord, config, options = {}) {
+  const maxValueCap = Number(options.maxValueCap);
   const allSeries = [...points, ...pbPoints];
   if (allSeries.length === 0) {
     const bestTs = Date.parse(bestRecord?.ts ?? '') || Date.now();
@@ -568,7 +664,9 @@ function getGraphDomain(points, pbPoints, bestRecord, config) {
       minTs: bestTs - 86_400_000,
       maxTs: bestTs + 86_400_000,
       minValue: Math.max(0.1, bestMetric * 0.96),
-      maxValue: bestMetric * 1.04,
+      maxValue: Number.isFinite(maxValueCap) && maxValueCap > 0
+        ? Math.max(bestMetric, maxValueCap)
+        : bestMetric * 1.04,
     };
   }
 
@@ -580,12 +678,18 @@ function getGraphDomain(points, pbPoints, bestRecord, config) {
   const maxValue = Math.max(...values);
   const valuePadding = Math.max(0.1, (maxValue - minValue) * 0.08, maxValue * 0.02);
   const safeMaxTs = maxTs > minTs ? maxTs : minTs + 86_400_000;
+  const domainMinValue = Math.max(0.1, minValue - valuePadding);
+  const cappedMaxValue = Number.isFinite(maxValueCap) && maxValueCap > 0
+    ? Math.max(maxValue, maxValueCap)
+    : maxValue + valuePadding;
 
   return {
     minTs,
     maxTs: safeMaxTs,
-    minValue: Math.max(0.1, minValue - valuePadding),
-    maxValue: maxValue + valuePadding,
+    minValue: domainMinValue,
+    maxValue: cappedMaxValue > domainMinValue
+      ? cappedMaxValue
+      : domainMinValue + Math.max(0.1, domainMinValue * 0.04),
   };
 }
 
