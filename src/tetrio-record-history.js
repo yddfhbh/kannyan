@@ -30,6 +30,7 @@ const recordHistoryDisplayModes = {
 const modeConfigs = {
   '40l': {
     code: '40l',
+    defaultHistoryDisplayMode: recordHistoryDisplayModes.clipped,
     shortLabel: '40L',
     title: '40 LINES',
     accent: '#ef8f2f',
@@ -45,6 +46,7 @@ const modeConfigs = {
   },
   blitz: {
     code: 'blitz',
+    defaultHistoryDisplayMode: recordHistoryDisplayModes.clipped,
     shortLabel: 'BLITZ',
     title: 'BLITZ',
     accent: '#f0b43a',
@@ -60,6 +62,7 @@ const modeConfigs = {
   },
   zenith: {
     code: 'zenith',
+    defaultHistoryDisplayMode: recordHistoryDisplayModes.all,
     shortLabel: 'QP',
     title: 'QUICK PLAY',
     accent: '#69db73',
@@ -75,6 +78,7 @@ const modeConfigs = {
   },
   zenithex: {
     code: 'zenithex',
+    defaultHistoryDisplayMode: recordHistoryDisplayModes.all,
     shortLabel: 'EXQP',
     title: 'EXPERT QUICK PLAY',
     accent: '#49d3ff',
@@ -93,7 +97,7 @@ const modeConfigs = {
 export async function createTetrioRecordHistoryCard(username, mode = '40l', options = {}) {
   const normalizedUsername = normalizeTetrioUsername(username);
   const config = modeConfigs[mode] ?? modeConfigs['40l'];
-  const displayMode = normalizeRecordHistoryDisplayMode(options?.displayMode);
+  const displayMode = resolveRecordHistoryDisplayMode(config, options?.displayMode);
 
   if (!normalizedUsername) {
     const error = new Error('TETR.IO username is required');
@@ -317,6 +321,15 @@ function normalizeRecordHistoryDisplayMode(value) {
   return String(value ?? '').trim().toLowerCase() === recordHistoryDisplayModes.all
     ? recordHistoryDisplayModes.all
     : recordHistoryDisplayModes.clipped;
+}
+
+function resolveRecordHistoryDisplayMode(config, value) {
+  const normalizedValue = String(value ?? '').trim().toLowerCase();
+  if (normalizedValue === recordHistoryDisplayModes.all) {
+    return recordHistoryDisplayModes.all;
+  }
+
+  return config?.defaultHistoryDisplayMode ?? recordHistoryDisplayModes.clipped;
 }
 
 function renderTetrioRecordHistorySvg(data, config, displayMode = recordHistoryDisplayModes.clipped) {

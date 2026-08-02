@@ -558,13 +558,6 @@ new SlashCommandBuilder()
         .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
         .setRequired(false)
     )
-    .addStringOption((option) =>
-      option
-        .setName('표시')
-        .setDescription('생략하면 PB 기준 110%까지만, 전부를 고르면 전체 기록을 표시합니다.')
-        .setRequired(false)
-        .addChoices(...tetrioRecordHistoryDisplayChoices)
-    )
     .toJSON(),
   new SlashCommandBuilder()
     .setName('익스퀵플')
@@ -598,13 +591,6 @@ new SlashCommandBuilder()
         .setName('닉네임')
         .setDescription('TETR.IO 닉네임 또는 프로필 주소, 생략하면 연동된 계정')
         .setRequired(false)
-    )
-    .addStringOption((option) =>
-      option
-        .setName('표시')
-        .setDescription('생략하면 PB 기준 110%까지만, 전부를 고르면 전체 기록을 표시합니다.')
-        .setRequired(false)
-        .addChoices(...tetrioRecordHistoryDisplayChoices)
     )
     .toJSON(),
   new SlashCommandBuilder()
