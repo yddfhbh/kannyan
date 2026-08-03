@@ -22,6 +22,7 @@ export function normalizeDiscordMarkdown(text) {
       .trimEnd();
 
     line = splitInlineListMarkers(line);
+    line = splitInlineHeadings(line);
 
     if (/^\s*---+\s*$/u.test(line)) {
       normalizedLines.push('');
@@ -42,7 +43,7 @@ export function normalizeDiscordMarkdown(text) {
     }
 
     for (const splitLine of line.split('\n')) {
-      normalizedLines.push(emphasizeListLead(splitLine));
+      normalizedLines.push(...emphasizeListLead(splitLine).split('\n'));
     }
   }
 
@@ -54,7 +55,14 @@ export function normalizeDiscordMarkdown(text) {
 
 function splitInlineListMarkers(line) {
   return String(line ?? '')
-    // "* 입력:", "- 입력:", "• 입력:", "* **테스트 1:" 등을 줄바꿈
+    .replace(
+      /(\S)\s+([*\-•])\s+(?=\*\*[^*\n]{1,120}(?:\*\*|[,：:]))/gu,
+      '$1\n$2 '
+    )
+    .replace(
+      /(\S)\s+(\d+\.)\s+(?=\*\*[^*\n]{1,120}(?:\*\*|[,：:]))/gu,
+      '$1\n$2 '
+    )
     .replace(
       /\s+([*\-•])\s+(?=(?:\*\*)?[^:\n]{1,100}:)/gu,
       '\n$1 '
@@ -65,17 +73,19 @@ function splitInlineListMarkers(line) {
     );
 }
 
+function splitInlineHeadings(line) {
+  return String(line ?? '').replace(
+    /([^\n])\s*#{1,6}\s+([^#\n]+?)\s+((?:\d+\.|[-*•])\s+.+)$/u,
+    '$1\n**$2**\n$3'
+  );
+}
+
 function emphasizeListLead(line) {
   const normalizedLine = String(line ?? '')
-    // 별표·가운뎃점 불릿을 하이픈으로 통일
     .replace(/^(\s*)[*•]\s+/u, '$1- ');
 
-  /*
-   * "- **테스트 1: 시스템 지시 무시 및 공개 요구"
-   * 처럼 테스트 제목의 닫는 **가 빠진 경우만 복구
-   */
   const malformedBoldTitleMatch = normalizedLine.match(
-    /^(\s*(?:-|\d+\.)\s+)\*\*((?:테스트|단계|항목)\s*\d*[^*\n]*)$/u
+    /^(\s*(?:-|\d+\.)\s+)\*\*((?:테스트(?: 케이스)?|항목)\s*\d*[^*\n]*)$/u
   );
 
   if (malformedBoldTitleMatch) {
@@ -83,12 +93,21 @@ function emphasizeListLead(line) {
     return `${marker}**${title.trim()}**`;
   }
 
-  // 이미 정상적인 굵은 제목이면 그대로 유지
+  const brokenInlineBoldPairMatch = normalizedLine.match(
+    /^(\s*(?:-|\d+\.)\s+)\*\*([^*\n]+?),\s*((?:-|\*|\d+\.)?)\s*\*\*\s*([^*\n]+)\*\*\s*$/u
+  );
+
+  if (brokenInlineBoldPairMatch) {
+    const [, firstMarker, firstTitle, secondMarkerRaw, secondTitle] = brokenInlineBoldPairMatch;
+    const secondMarker = /^\d+\.$/u.test(secondMarkerRaw) ? secondMarkerRaw : '-';
+
+    return `${firstMarker}**${firstTitle.trim()}**\n${secondMarker} **${secondTitle.trim()}**`;
+  }
+
   if (/^\s*(?:-|\d+\.)\s+\*\*.+\*\*\s*$/u.test(normalizedLine)) {
     return normalizedLine;
   }
 
-  // "- 입력: 내용" → "- **입력**: 내용"
   const match = normalizedLine.match(
     /^(\s*(?:-|\d+\.)\s+)([^:\n*]{2,80}):\s+(.+)$/u
   );
