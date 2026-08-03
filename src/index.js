@@ -48,6 +48,7 @@ import {
   fetchTetrioRecentLeagueStats,
 } from './tetrio-league-match.js';
 import { createTetrioRankCutImage } from './tetrio-rankcut.js';
+import { fetchCachedTetrioRankCutData } from './tetrio-rankcut-cache.js';
 import { fetchTetrioStatsCardData } from './tetrio-stats.js';
 import { createTetrioStatsCard } from './tetrio-stats-card.js';
 import { createTetrioPlaystyleGraph } from './tetrio-playstyle-graph.js';
@@ -55,6 +56,7 @@ import { createTetrioStyleGraph } from './tetrio-style-graph.js';
 import { createTetrioVersusGraph } from './tetrio-versus-graph.js';
 import {
   isValidTetrioStatsMetricInput,
+  parseTetrioAverageRankToken,
   parseDiscordMentionUserId,
   parseTetrioGraphInput,
   parseTetrioStatsMetricInput,
@@ -496,7 +498,7 @@ const percentCommandAliases = {
   varchiveTier10: ['b10'],
   varchiveTier30: ['b30'],
   varchiveTier50: ['b50'],
-  teto: ['teto'],
+  teto: ['teto', 'ㅅㄷ새'],
   tetrioStats: ['ts'],
   tetrioPlaystyleGraph: ['psq'],
   tetrioStyleGraph: ['sq'],
@@ -1364,12 +1366,13 @@ if (chessAnalysisFollowupHandled) {
     return;
   }
 
-  const match = message.content.trim().match(/^%(도움말|help|체닷|리체스|teto)(?:\s+(.+))?$/i);
+  const match = message.content.trim().match(/^%(도움말|help|체닷|리체스|teto|ㅅㄷ새)(?:\s+(.+))?$/i);
   if (!match) {
     return;
   }
 
-  const command = match[1].toLowerCase();
+  const rawCommand = match[1].toLowerCase();
+  const command = rawCommand === 'ㅅㄷ새' ? 'teto' : rawCommand;
   const input = match[2]?.trim();
   if (command === '도움말' || command === 'help') {
     const reply = await message.reply({
@@ -9368,6 +9371,25 @@ async function showTetrioStats(interaction) {
   await interaction.deferReply();
 
   try {
+    const averageRank = parseTetrioAverageRankToken(target);
+    if (averageRank) {
+      if (recentRequest.recentCount) {
+        await interaction.editReply('랭크 평균 타겟은 최근 전적 숫자와 같이 쓸 수 없다냥.');
+        return;
+      }
+
+      const card = await createAverageRankTetrioStatsCardData(target);
+      const image = await createTetrioStatsCard(card);
+      const attachment = new AttachmentBuilder(image, {
+        name: `tetrio-stats-avg-${averageRank}.png`,
+      });
+
+      await interaction.editReply({
+        files: [attachment],
+      });
+      return;
+    }
+
     const username = target
       ? await findTetrioUsername(target)
       : await findTetrioUsernameByDiscordId(interaction.user.id);
@@ -11104,6 +11126,28 @@ async function showTetrioStatsMessage(message, input) {
     }
 
     const target = recentRequest.targetText;
+    const averageRank = parseTetrioAverageRankToken(target);
+    if (averageRank) {
+      if (recentRequest.recentCount) {
+        await message.reply({
+          content: '랭크 평균 타겟은 최근 전적 숫자와 같이 쓸 수 없다냥.',
+          allowedMentions: { repliedUser: false },
+        });
+        return;
+      }
+
+      const card = await createAverageRankTetrioStatsCardData(target);
+      const image = await createTetrioStatsCard(card);
+      const attachment = new AttachmentBuilder(image, {
+        name: `tetrio-stats-avg-${averageRank}.png`,
+      });
+
+      await message.reply({
+        files: [attachment],
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
 
     const linkedUser = target
       ? getSingleMentionedUserFromTetrioInput(message, target)
@@ -11299,6 +11343,46 @@ function createCustomTetrioStatsCardData({ apm, pps, vs }) {
     stats: {
       ...calculatedStats,
       rank: '-',
+      tr: null,
+      glicko: null,
+      rd: 60,
+    },
+  };
+}
+
+async function createAverageRankTetrioStatsCardData(target) {
+  const rank = parseTetrioAverageRankToken(target);
+  if (!rank) {
+    return null;
+  }
+
+  const rankCutResponse = await fetchCachedTetrioRankCutData();
+  const rankData = rankCutResponse?.data?.data?.[rank];
+  const apm = Number(rankData?.apm);
+  const pps = Number(rankData?.pps);
+  const vs = Number(rankData?.vs);
+
+  if (![apm, pps, vs].every(Number.isFinite)) {
+    const error = new Error(`Average TETR.IO rank stats are unavailable for ${rank}`);
+    error.code = 'NO_RANK_AVERAGE_STATS';
+    error.status = 404;
+    error.rank = rank;
+    throw error;
+  }
+
+  const calculatedStats = calculateTetrioStats({
+    apm,
+    pps,
+    vs,
+    rd: 60,
+    wins: 18,
+  });
+
+  return {
+    username: `AVG ${rank.toUpperCase()}`,
+    stats: {
+      ...calculatedStats,
+      rank: rank.toUpperCase(),
       tr: null,
       glicko: null,
       rd: 60,
@@ -11655,6 +11739,14 @@ async function fetchTetrioStatsCardDataForTargets(targets) {
 }
 
 async function fetchTetrioStatsCardDataForTarget(target) {
+  const averageRankCard = await createAverageRankTetrioStatsCardData(target);
+  if (averageRankCard) {
+    return {
+      target,
+      card: averageRankCard,
+    };
+  }
+
   const username = await resolveTetrioGraphTarget(target);
   if (!username) {
     return { target, missing: true };

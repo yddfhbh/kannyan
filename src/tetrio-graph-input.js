@@ -1,3 +1,5 @@
+const tetrioAverageRankTokenPattern = /^\$avg(x\+|x|u|ss|s\+|s|s-|a\+|a|a-|b\+|b|b-|c\+|c|c-|d\+|d|tl)$/i;
+
 function parseTetrioGraphInput(input) {
   const trimmed = String(input ?? '').trim();
   if (!trimmed) {
@@ -35,6 +37,7 @@ function parseTetrioGraphInput(input) {
 
 function isTetrioGraphTargetToken(token) {
   return /^[A-Za-z0-9_-]+$/.test(String(token ?? ''))
+    || Boolean(parseTetrioAverageRankToken(token))
     || Boolean(parseDiscordMentionUserId(token));
 }
 
@@ -93,10 +96,16 @@ function parseDiscordMentionUserId(value) {
   return match?.[1] ?? null;
 }
 
+function parseTetrioAverageRankToken(value) {
+  const match = String(value ?? '').trim().match(tetrioAverageRankTokenPattern);
+  return match?.[1]?.toLowerCase() ?? null;
+}
+
 export {
   isDecimalNumberToken,
   isTetrioGraphTargetToken,
   isValidTetrioStatsMetricInput,
+  parseTetrioAverageRankToken,
   parseDiscordMentionUserId,
   parseTetrioGraphInput,
   parseTetrioStatsMetricInput,
