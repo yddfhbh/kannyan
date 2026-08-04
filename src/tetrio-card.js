@@ -3631,10 +3631,11 @@ function renderRankLabel(x, y, width, fallbackRank, options) {
     : rightX - estimateOrdinalRankWidth(worldText, plainRankFontSize);
   const localTextX = worldLeftX - 8;
   const flagX = localTextX - localWidth - plainFlagWidth - 4;
+  const localRankTextY = y + 19.1;
 
   return `
     <image href="${options.flag.image}" x="${flagX}" y="${y + 10}" width="${plainFlagWidth}" height="${plainFlagHeight}" preserveAspectRatio="xMidYMid meet"/>
-    ${renderOrdinalRankText(localTextX, y + 21, localText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize })}
+    ${renderOrdinalRankText(localTextX, localRankTextY, localText, { anchor: 'end', className: 'plainRank', fontSize: plainRankFontSize })}
     ${worldMarkup}`;
 }
 
