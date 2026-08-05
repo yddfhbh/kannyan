@@ -7782,73 +7782,14 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     await saveGeminiMemory();
 
     const chunks = chunkDiscordMessage(
-  responseText || '답변을 만들지 못했다냥.'
-);
-const [firstChunk, ...remainingChunks] = chunks;
+      responseText || '답변을 만들지 못했다냥.'
+    );
+    const [firstChunk, ...remainingChunks] = chunks;
 
-// 임시 디버그: 줄바꿈과 보이지 않는 문자를 로그에서 눈에 보이게 표시
-const visualizeDiscordWhitespace = (value) => String(value ?? '')
-  .replace(/\u2800/g, '<U+2800>')
-  .replace(/\u200B/g, '<U+200B>')
-  .replace(/\r/g, '<CR>')
-  .replace(/\n/g, '<LF>\n');
-
-const firstListIndex = firstChunk.search(
-  /(?:^|\n)(?:-|\d+\.)\s/u
-);
-
-const debugStart = firstListIndex >= 0
-  ? Math.max(0, firstListIndex - 100)
-  : 0;
-
-const debugEnd = firstListIndex >= 0
-  ? Math.min(firstChunk.length, firstListIndex + 150)
-  : Math.min(firstChunk.length, 250);
-
-const aroundFirstList = firstChunk.slice(
-  debugStart,
-  debugEnd
-);
-
-console.log(
-  '[MARKDOWN DEBUG] answer:',
-  visualizeDiscordWhitespace(answer)
-);
-
-console.log(
-  '[MARKDOWN DEBUG] responseText:',
-  visualizeDiscordWhitespace(responseText)
-);
-
-console.log(
-  '[MARKDOWN DEBUG] firstChunk:',
-  visualizeDiscordWhitespace(firstChunk)
-);
-
-console.log(
-  '[MARKDOWN DEBUG] aroundFirstList:',
-  visualizeDiscordWhitespace(aroundFirstList)
-);
-
-console.log(
-  '[MARKDOWN DEBUG] codePoints:',
-  [...aroundFirstList]
-    .map((character) => {
-      const codePoint = character
-        .codePointAt(0)
-        .toString(16)
-        .toUpperCase()
-        .padStart(4, '0');
-
-      return `${JSON.stringify(character)}=U+${codePoint}`;
-    })
-    .join(' ')
-);
-
-await message.reply({
-  content: firstChunk,
-  allowedMentions: { parse: [], repliedUser: false },
-});
+    await message.reply({
+      content: firstChunk,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
 
     for (const chunk of remainingChunks) {
       await message.channel.send({
