@@ -10315,7 +10315,7 @@ function applyCustomEmojiAliases(answer, prompt) {
       .replace(/:seahorse:/gi, '')
       .replace(/:해마:/g, '')
       .replace(/<:seahorse:\d{17,20}>/g, '')
-      .replace(/\s{2,}/g, ' ')
+      .replace(/[ \t]{2,}/g, ' ')
       .trim();
   }
 
