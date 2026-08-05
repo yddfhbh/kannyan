@@ -488,6 +488,8 @@ const geminiSystemInstruction = [
   '6. “냐하”, “헤헤”, “먀” 같은 감탄사는 가끔만 사용하고 남발하지 않는다.',
   '7. 이모티콘은 필요할 때만 가볍게 사용하며 한 답변에 너무 많이 쓰지 않는다.',
   '8. 사용자가 반말을 쓰면 친근한 반말로 답하고, 존댓말을 쓰면 부드러운 존댓말로 답한다.',
+  '9. 답변을 “어머나”, “어머”, “앗”, “헉”, “세상에”, “아이고” 같은 정형화된 감탄사로 시작하지 않는다.',
+  '10. 이모티콘은 기본적으로 사용하지 않고, 꼭 필요한 경우에도 한 답변당 최대 1개만 사용한다.',
   '',
 
   '[예외 규칙]',
@@ -7419,14 +7421,15 @@ function buildPercentOnlyStickerPrompt(message, referencedMessages = []) {
     : `스티커 이름들은 ${stickerNames.map((name) => `"${name}"`).join(', ')} 이다.`;
 
   return [
-    '사용자가 %만 입력했고 디스코드 스티커를 함께 보냈다.',
-    stickerLabel,
-    '스티커의 실제 이미지가 함께 제공될 수 있다.',
-    '스티커 이름은 보조 정보일 뿐이다.',
-    '이름과 실제 이미지의 분위기가 다르면 반드시 실제 이미지를 우선해서 판단해라.',
-    '표정, 자세, 행동과 전체적인 감정을 보고 짧고 자연스럽게 반응해라.',
-    '이미지를 못 읽겠다고 말하지 말고 가볍게 받아 줘.',
-  ].join(' ');
+  '사용자가 %만 입력했고 디스코드 스티커를 함께 보냈다.',
+  stickerLabel,
+  '스티커의 실제 이미지가 함께 제공될 수 있다.',
+  '스티커 이름은 보조 정보일 뿐이며 실제 이미지를 우선해서 판단해라.',
+  '답변은 한두 문장으로 짧게 작성하고 관찰한 내용부터 바로 말해라.',
+  '“어머나”, “어머”, “앗”, “헉”, “세상에”, “아이고” 같은 정형화된 감탄사로 시작하지 마라.',
+  '답변에 새 이모지나 이모티콘을 넣지 말고 사용자가 보낸 스티커를 문자로 되풀이하지 마라.',
+  '질문은 맥락상 정말 필요한 경우에만 한 번 사용해라.',
+].join(' ');
   }
 
 function buildEmojiOnlyReactionPrompt(details, introText) {
@@ -7436,14 +7439,15 @@ function buildEmojiOnlyReactionPrompt(details, introText) {
   }
 
   return [
-    introText,
-    emojiDetails,
-    '커스텀 이모지의 실제 이미지가 함께 제공될 수 있다.',
-    '이모지 이름은 보조 정보일 뿐이다.',
-    '이름과 실제 이미지의 분위기가 다르면 반드시 실제 이미지를 우선해서 판단해라.',
-    '표정, 자세, 행동과 전체적인 감정을 보고 짧고 자연스럽게 반응해라.',
-    '이모지를 못 읽겠다고 말하지 말고 가볍게 받아 줘.',
-  ].join(' ');
+  introText,
+  emojiDetails,
+  '커스텀 이모지의 실제 이미지가 함께 제공될 수 있다.',
+  '이모지 이름은 보조 정보일 뿐이며 실제 이미지를 우선해서 판단해라.',
+  '답변은 한두 문장으로 짧게 작성하고 관찰한 내용부터 바로 말해라.',
+  '“어머나”, “어머”, “앗”, “헉”, “세상에”, “아이고” 같은 정형화된 감탄사로 시작하지 마라.',
+  '답변에 새 이모지나 이모티콘을 넣지 말고 사용자가 보낸 이모지를 문자로 되풀이하지 마라.',
+  '질문은 맥락상 정말 필요한 경우에만 한 번 사용해라.',
+].join(' ');
 }
 
 function buildPercentOnlyEmojiPrompt(message, referencedMessages = []) {
@@ -7470,6 +7474,7 @@ async function handleGeminiFallbackMessage(message, options = {}) {
 
   let shouldIncludeStickerVisuals = false;
   let customEmojiVisualSourceTexts = [];
+  let shouldNormalizeVisualReaction = false;
 
   let referencedMessagesPromise;
   const getReferencedMessages = () => {
@@ -7527,6 +7532,7 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       rawPrompt = '이 사진을 보고 자연스럽게 설명해줘';
       prioritizeChessImageAnalysis = true;
     } else if (stickerPrompt || emojiPrompt) {
+      shouldNormalizeVisualReaction = true;
       shouldIncludeStickerVisuals = Boolean(stickerPrompt);
 
       if (emojiPrompt) {
@@ -7554,6 +7560,8 @@ const directEmojiDetails =
   ]);
 
 if (directEmojiDetails.matchedTextCount > 0) {
+  shouldNormalizeVisualReaction = true;
+
   if (
     directEmojiDetails.customEmojiNames.length > 0
   ) {
