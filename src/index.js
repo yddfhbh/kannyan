@@ -7751,17 +7751,13 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     const webSearchSources = includeWebSearchSources
       ? formatWebSearchSources(webSearchData?.results ?? [])
       : '';
-   const responseText = [
-  answer,
-  permanentMemoryAttribution,
-  webSearchSources,
-]
-  .filter(Boolean)
-  .join('\n\n')
-  .replace(
-    /\n\n(?=(?:-|\d+\.)\s)/g,
-    '\n\u200B\n'
-  );
+    const responseText = [
+      answer,
+      permanentMemoryAttribution,
+      webSearchSources,
+    ]
+      .filter(Boolean)
+      .join('\n\n');
 
     appendGeminiMemoryEntry(sessionKey, {
       role: 'user',

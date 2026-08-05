@@ -169,7 +169,9 @@ function insertDiscordBlockSpacing(lines) {
       && shouldInsertBlankLineBetween(previousTrimmed, trimmed)
       && previous !== ''
     ) {
-      result.push('');
+      // Discord가 순수 빈 줄이나 U+200B를 접는 경우가 있어서
+      // 실제 줄 높이를 차지하는 Braille Pattern Blank를 사용한다.
+      result.push('\u2800');
     }
 
     result.push(line);
