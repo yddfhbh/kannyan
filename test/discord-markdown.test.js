@@ -96,3 +96,18 @@ test('normalizeDiscordMarkdown splits prose from an inline malformed list marker
 - **마크다운 사용할 때 엔터를 안침**`
   );
 });
+test('normalizeDiscordMarkdown splits bold-wrapped inline list markers', () => {
+  const input =
+    '웹 검색을 통해 다시 확인해 보니, '
+    + '**Nordic Horizons**는 이미 출시된 DLC가 맞다냥. '
+    + '**- 출시일:**2025년 11월 27일에 정식으로 출시되었다냥.\n'
+    + '- **내용:** 스칸디나비아와 발트해 지역을 확장한다냥.';
+
+  assert.equal(
+    normalizeDiscordMarkdown(input),
+    `웹 검색을 통해 다시 확인해 보니, **Nordic Horizons**는 이미 출시된 DLC가 맞다냥.
+
+- **출시일**: 2025년 11월 27일에 정식으로 출시되었다냥.
+- **내용:** 스칸디나비아와 발트해 지역을 확장한다냥.`
+  );
+});
