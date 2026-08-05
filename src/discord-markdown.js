@@ -55,9 +55,15 @@ export function normalizeDiscordMarkdown(text) {
 
 function splitInlineListMarkers(line) {
   return String(line ?? '')
+    // "문장. - **장르**: 내용"을 반드시 새 줄로 분리
+    .replace(
+      /(\S)[ \t]+(?=[\-•–—−][ \t]*\*\*[^*\n]{1,120}\*\*[ \t]*[:：])/gu,
+      '$1\n'
+    )
+
     // "문장. **- 출시일:**2025"
     .replace(
-      /(\S)\s+\*\*\s*([\-•–—-−])\s*([^*\n:：]{1,100}?)([:：])\s*\*\*/gu,
+      /(\S)\s+\*\*\s*([\-•–—−])\s*([^*\n:：]{1,100}?)([:：])\s*\*\*/gu,
       '$1\n$2 **$3**$4 '
     )
 
