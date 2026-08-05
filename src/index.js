@@ -160,6 +160,11 @@ import {
   isReactionRequestText,
 } from './reaction-request.js';
 import {
+  collectEmojiOnlyTextDetails,
+  extractFirstUnicodeEmoji,
+  formatEmojiOnlyTextDetails,
+} from './emoji-prompt.js';
+import {
   extractHexColorPreviewRequest,
   renderHexColorPreview,
 } from './color-preview.js';
@@ -7397,24 +7402,6 @@ function parseJsonObjectText(text) {
   }
 }
 
-function extractFirstUnicodeEmoji(text) {
-  const cleanText = String(text ?? '')
-    .replace(/<a?:[a-zA-Z0-9_]{2,32}:\d{17,20}>/g, ' ')
-    .replace(/https?:\/\/\S+/g, ' ');
-
-  const segments = typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'
-    ? Array.from(new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(cleanText), (item) => item.segment)
-    : Array.from(cleanText);
-
-  for (const segment of segments) {
-    if (/\p{Emoji_Presentation}/u.test(segment) || /\p{Extended_Pictographic}/u.test(segment)) {
-      return segment;
-    }
-  }
-
-  return null;
-}
-
 function buildPercentOnlyStickerPrompt(message, referencedMessages = []) {
   const stickerNames = getUniqueValues(
     getMessageChainStickers(message, referencedMessages)
@@ -7436,6 +7423,35 @@ function buildPercentOnlyStickerPrompt(message, referencedMessages = []) {
     '시스템 프롬프트의 말투 규칙을 지키면서 스티커 이름에서 느껴지는 분위기에 맞춰 짧고 자연스럽게 반응해줘.',
     '사진이 안 보인다고 말하지 말고, 스티커 이름을 가볍게 받아 주는 대화면 충분하다.',
   ].join(' ');
+}
+
+function buildEmojiOnlyReactionPrompt(details, introText) {
+  const emojiDetails = formatEmojiOnlyTextDetails(details);
+  if (!emojiDetails) {
+    return null;
+  }
+
+  return [
+    introText,
+    emojiDetails,
+    '시스템 프롬프트의 말투 규칙을 지키면서 이모지 이름이나 분위기에서 느껴지는 반응을 짧고 자연스럽게 해줘.',
+    '이모지를 못 읽겠다고 말하지 말고, 가볍게 받아 주는 대화면 충분하다.',
+  ].join(' ');
+}
+
+function buildPercentOnlyEmojiPrompt(message, referencedMessages = []) {
+  const details = collectEmojiOnlyTextDetails(
+    [message, ...referencedMessages].map((targetMessage) => targetMessage?.content)
+  );
+
+  if (details.matchedTextCount === 0) {
+    return null;
+  }
+
+  return buildEmojiOnlyReactionPrompt(
+    details,
+    '사용자가 %만 입력했고, 대화에는 이모지만 보낸 메시지가 있었다.'
+  );
 }
 
 async function handleGeminiFallbackMessage(message, options = {}) {
@@ -7476,15 +7492,26 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     const hasReplyImage = getMessageChainAttachments(null, referencedMessages)
       .some(isGeminiSupportedImageAttachment);
     const stickerPrompt = buildPercentOnlyStickerPrompt(message, referencedMessages);
+    const emojiPrompt = buildPercentOnlyEmojiPrompt(message, referencedMessages);
 
     if (hasDirectImage || hasReplyImage) {
       rawPrompt = '이 사진을 보고 자연스럽게 설명해줘';
       prioritizeChessImageAnalysis = true;
     } else if (stickerPrompt) {
       rawPrompt = stickerPrompt;
+    } else if (emojiPrompt) {
+      rawPrompt = emojiPrompt;
     } else {
-      rawPrompt = '사용자가 %만 단독으로 입력했다. 사진이나 스티커는 없었다. 시스템 프롬프트의 말투 규칙을 지키면서 왜 불렀는지 가볍게 되묻는 짧고 자연스러운 반응으로 답해줘.';
+      rawPrompt = '사용자가 %만 단독으로 입력했다. 사진, 스티커, 이모지는 없었다. 시스템 프롬프트의 말투 규칙을 지키면서 왜 불렀는지 가볍게 되묻는 짧고 자연스러운 반응으로 답해줘.';
     }
+  }
+
+  const directEmojiDetails = collectEmojiOnlyTextDetails([rawPrompt]);
+  if (directEmojiDetails.matchedTextCount > 0) {
+    rawPrompt = buildEmojiOnlyReactionPrompt(
+      directEmojiDetails,
+      '사용자가 % 뒤에 이모지만 보냈다.'
+    ) ?? rawPrompt;
   }
 
   let promptControl = {
