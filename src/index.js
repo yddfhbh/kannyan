@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inspect, promisify } from 'node:util';
 import sharp from 'sharp';
+import { generateCloudflareImage } from './cloudflare-image.js';
 import {
   ActivityType,
   AttachmentBuilder,
@@ -597,6 +598,110 @@ const liveRatingTypes = {
 if (!DISCORD_TOKEN) {
   console.error('DISCORD_TOKEN must be set in .env');
   process.exit(1);
+}
+
+const imageGenerationCooldowns = new Map();
+const imageGenerationInFlight = new Set();
+
+const imageGenerationCooldownMs = 60_000;
+const percentImageRequestPattern =
+  /^(?<prompt>[\s\S]*?)\s*(?:그려\s*(?:줘(?:요)?|주세요|주라|줄래|봐(?:요)?)|그림(?:을|으로)?\s*(?:만들어|그려)\s*(?:줘(?:요)?|주세요|주라|줄래|봐(?:요)?)?|이미지(?:로|를)?\s*(?:만들어|생성해)\s*(?:줘(?:요)?|주세요|주라|줄래|봐(?:요)?)?)\s*[.!?~ㅋㅎ]*$/u;
+
+function parseImageGenerationRequest(message) {
+  const text = String(message?.content ?? '').trim();
+
+  // 반드시 %로 시작해야 이미지 생성 요청으로 처리
+  if (!text.startsWith('%')) {
+    return null;
+  }
+
+  // 맨 앞의 %만 제거
+  const body = text.slice(1).trim();
+
+  const match = body.match(percentImageRequestPattern);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    prompt: String(match.groups?.prompt ?? '').trim(),
+  };
+}
+
+async function handleImageGenerationMessage(message, rawPrompt) {
+  const userId = message.author.id;
+  const now = Date.now();
+  const cooldownUntil = imageGenerationCooldowns.get(userId) ?? 0;
+
+  if (cooldownUntil > now) {
+    const remainingSeconds = Math.ceil((cooldownUntil - now) / 1000);
+
+    await message.reply({
+      content: `이미지는 ${remainingSeconds}초 뒤에 다시 만들 수 있다냥.`,
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  if (imageGenerationInFlight.has(userId)) {
+    await message.reply({
+      content: '이미 깐냥이가 이미지를 그리고 있다냥. 잠시만 기다려달라냥.',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  const prompt = String(rawPrompt ?? '').trim();
+
+if (!prompt) {
+  await message.reply({
+    content:
+      '뭘 그릴지도 같이 말해달라냥. '
+      + '예: `%비 오는 부산의 네온 골목을 그려줘`',
+    allowedMentions: { repliedUser: false },
+  });
+  return;
+}
+
+  imageGenerationInFlight.add(userId);
+  imageGenerationCooldowns.set(
+    userId,
+    now + imageGenerationCooldownMs
+  );
+
+  try {
+    await message.channel.sendTyping();
+
+    const { buffer, contentType } =
+      await generateCloudflareImage(prompt);
+
+    const extension =
+      contentType.includes('png') ? 'png' : 'jpg';
+
+    const attachment = new AttachmentBuilder(buffer, {
+      name: `kannyan-image-${Date.now()}.${extension}`,
+    });
+
+    await message.reply({
+      content: '깐냥이가 그려봤다냥! 🎨',
+      files: [attachment],
+      allowedMentions: { repliedUser: false },
+    });
+  } catch (error) {
+    console.error('[Image generation] failed:', error);
+
+    const quotaExceeded =
+      /(?:quota|limit|exceed|429)/i.test(String(error?.message));
+
+    await message.reply({
+      content: quotaExceeded
+        ? '오늘 이미지 생성 무료 할당량을 다 사용한 것 같다냥.'
+        : '이미지를 만드는 중 오류가 발생했다냥. 잠시 후 다시 시도해달라냥.',
+      allowedMentions: { repliedUser: false },
+    });
+  } finally {
+    imageGenerationInFlight.delete(userId);
+  }
 }
 
 let discordReady = false;
@@ -1356,6 +1461,17 @@ client.on(Events.MessageCreate, async (message) => {
 
   const dailyPuzzleHandled = await handleDailyPuzzleMessage(message);
   if (dailyPuzzleHandled) {
+    return;
+  }
+
+  const imageGenerationRequest =
+    parseImageGenerationRequest(message);
+
+  if (imageGenerationRequest) {
+    await handleImageGenerationMessage(
+      message,
+      imageGenerationRequest.prompt
+    );
     return;
   }
 
