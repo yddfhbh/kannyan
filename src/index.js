@@ -161,6 +161,7 @@ import {
 } from './reaction-request.js';
 import {
   collectEmojiOnlyTextDetails,
+  extractDiscordCustomEmojis,
   extractFirstUnicodeEmoji,
   formatEmojiOnlyTextDetails,
 } from './emoji-prompt.js';
@@ -7420,10 +7421,13 @@ function buildPercentOnlyStickerPrompt(message, referencedMessages = []) {
   return [
     '사용자가 %만 입력했고 디스코드 스티커를 함께 보냈다.',
     stickerLabel,
-    '시스템 프롬프트의 말투 규칙을 지키면서 스티커 이름에서 느껴지는 분위기에 맞춰 짧고 자연스럽게 반응해줘.',
-    '사진이 안 보인다고 말하지 말고, 스티커 이름을 가볍게 받아 주는 대화면 충분하다.',
+    '스티커의 실제 이미지가 함께 제공될 수 있다.',
+    '스티커 이름은 보조 정보일 뿐이다.',
+    '이름과 실제 이미지의 분위기가 다르면 반드시 실제 이미지를 우선해서 판단해라.',
+    '표정, 자세, 행동과 전체적인 감정을 보고 짧고 자연스럽게 반응해라.',
+    '이미지를 못 읽겠다고 말하지 말고 가볍게 받아 줘.',
   ].join(' ');
-}
+  }
 
 function buildEmojiOnlyReactionPrompt(details, introText) {
   const emojiDetails = formatEmojiOnlyTextDetails(details);
@@ -7434,8 +7438,11 @@ function buildEmojiOnlyReactionPrompt(details, introText) {
   return [
     introText,
     emojiDetails,
-    '시스템 프롬프트의 말투 규칙을 지키면서 이모지 이름이나 분위기에서 느껴지는 반응을 짧고 자연스럽게 해줘.',
-    '이모지를 못 읽겠다고 말하지 말고, 가볍게 받아 주는 대화면 충분하다.',
+    '커스텀 이모지의 실제 이미지가 함께 제공될 수 있다.',
+    '이모지 이름은 보조 정보일 뿐이다.',
+    '이름과 실제 이미지의 분위기가 다르면 반드시 실제 이미지를 우선해서 판단해라.',
+    '표정, 자세, 행동과 전체적인 감정을 보고 짧고 자연스럽게 반응해라.',
+    '이모지를 못 읽겠다고 말하지 말고 가볍게 받아 줘.',
   ].join(' ');
 }
 
@@ -7460,6 +7467,10 @@ async function handleGeminiFallbackMessage(message, options = {}) {
   let prioritizeChessImageAnalysis = Boolean(
     parseChessImageAnalysisPrompt(message.content)
   );
+
+  let shouldIncludeStickerVisuals = false;
+  let customEmojiVisualSourceTexts = [];
+
   let referencedMessagesPromise;
   const getReferencedMessages = () => {
     if (!referencedMessagesPromise) {
@@ -7491,28 +7502,71 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     const referencedMessages = await getReferencedMessages();
     const hasReplyImage = getMessageChainAttachments(null, referencedMessages)
       .some(isGeminiSupportedImageAttachment);
-    const stickerPrompt = buildPercentOnlyStickerPrompt(message, referencedMessages);
-    const emojiPrompt = buildPercentOnlyEmojiPrompt(message, referencedMessages);
+    const emojiOnlySourceTexts = [
+      message,
+      ...referencedMessages,
+    ]
+      .map((targetMessage) => targetMessage?.content)
+      .filter((text) => (
+        collectEmojiOnlyTextDetails([text]).matchedTextCount > 0
+      ));
+
+    const stickerPrompt =
+      buildPercentOnlyStickerPrompt(
+        message,
+        referencedMessages
+      );
+
+    const emojiPrompt =
+      buildPercentOnlyEmojiPrompt(
+        message,
+        referencedMessages
+      );
 
     if (hasDirectImage || hasReplyImage) {
       rawPrompt = '이 사진을 보고 자연스럽게 설명해줘';
       prioritizeChessImageAnalysis = true;
-    } else if (stickerPrompt) {
-      rawPrompt = stickerPrompt;
-    } else if (emojiPrompt) {
-      rawPrompt = emojiPrompt;
+    } else if (stickerPrompt || emojiPrompt) {
+      shouldIncludeStickerVisuals = Boolean(stickerPrompt);
+
+      if (emojiPrompt) {
+        customEmojiVisualSourceTexts.push(
+          ...emojiOnlySourceTexts
+        );
+      }
+
+      rawPrompt = [
+        stickerPrompt,
+        emojiPrompt,
+      ]
+        .filter(Boolean)
+        .join(' ');
     } else {
       rawPrompt = '사용자가 %만 단독으로 입력했다. 사진, 스티커, 이모지는 없었다. 시스템 프롬프트의 말투 규칙을 지키면서 왜 불렀는지 가볍게 되묻는 짧고 자연스러운 반응으로 답해줘.';
     }
   }
 
-  const directEmojiDetails = collectEmojiOnlyTextDetails([rawPrompt]);
-  if (directEmojiDetails.matchedTextCount > 0) {
-    rawPrompt = buildEmojiOnlyReactionPrompt(
-      directEmojiDetails,
-      '사용자가 % 뒤에 이모지만 보냈다.'
-    ) ?? rawPrompt;
+  const directEmojiSourceText = rawPrompt;
+
+const directEmojiDetails =
+  collectEmojiOnlyTextDetails([
+    directEmojiSourceText,
+  ]);
+
+if (directEmojiDetails.matchedTextCount > 0) {
+  if (
+    directEmojiDetails.customEmojiNames.length > 0
+  ) {
+    customEmojiVisualSourceTexts.push(
+      directEmojiSourceText
+    );
   }
+
+  rawPrompt = buildEmojiOnlyReactionPrompt(
+    directEmojiDetails,
+    '사용자가 % 뒤에 이모지만 보냈다.'
+  ) ?? rawPrompt;
+}
 
   let promptControl = {
     blocked: false,
@@ -7606,16 +7660,56 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       { limit: 4 }
     );
 
-    // 여기 추가: 현재 메시지/답장한 메시지에 있는 이미지들을 Gemini에 보낼 준비
-    const imageParts = await getGeminiImageParts(message, referencedMessages, {
-      includeReferencedImages: shouldUseReplyImagesForGeminiPrompt(rawPrompt),
+    const [
+  attachmentImageParts,
+  stickerImageParts,
+  customEmojiImageParts,
+] = await Promise.all([
+  getGeminiImageParts(
+    message,
+    referencedMessages,
+    {
+      includeReferencedImages:
+        shouldUseReplyImagesForGeminiPrompt(rawPrompt),
       maxReferencedDepth: 2,
-    });
-    const chessAnalysis = await getChessImageAnalysisContext(imageParts, {
+    }
+  ),
+
+  shouldIncludeStickerVisuals
+    ? getGeminiStickerImageParts(
+        message,
+        referencedMessages
+      )
+    : Promise.resolve([]),
+
+  customEmojiVisualSourceTexts.length > 0
+    ? getGeminiCustomEmojiImageParts(
+        customEmojiVisualSourceTexts
+      )
+    : Promise.resolve([]),
+]);
+
+const reactionImageParts = [
+  ...stickerImageParts,
+  ...customEmojiImageParts,
+].slice(0, 4);
+
+const imageParts = [
+  ...reactionImageParts,
+  ...attachmentImageParts,
+].slice(0, 4);
+
+// 스티커와 이모지를 체스판으로 오인하지 않도록
+// 실제 첨부 이미지만 체스 분석기에 넘긴다.
+const chessAnalysis =
+  await getChessImageAnalysisContext(
+    attachmentImageParts,
+    {
       retry: prioritizeChessImageAnalysis,
       message,
       referencedMessages,
-    });
+    }
+  );
     if (chessAnalysis.details?.boardFen) {
       const analysesByTurn = Object.fromEntries(
         (Array.isArray(chessAnalysis.details.analyses) ? chessAnalysis.details.analyses : [])
@@ -7641,7 +7735,8 @@ async function handleGeminiFallbackMessage(message, options = {}) {
       });
     }
     const isChessPrompt = looksLikeChessTopicPrompt(rawPrompt);
-    const recentChessContext = isChessPrompt && imageParts.length === 0
+    const recentChessContext =
+    isChessPrompt && attachmentImageParts.length === 0
       ? getRecentChessAnalysis(message)
       : null;
     const includeWebSearchSources = shouldIncludeWebSearchSources(rawPrompt);
@@ -8767,6 +8862,173 @@ function bufferToGeminiImagePart(buffer, contentType) {
       data: Buffer.from(buffer).toString('base64'),
     },
   };
+}
+
+async function fetchDiscordVisualAsGeminiPart(url, label) {
+  const normalizedUrl = String(url ?? '').trim();
+
+  if (!normalizedUrl) {
+    return null;
+  }
+
+  const response = await fetch(normalizedUrl);
+
+  if (!response.ok) {
+    throw new Error(
+      `${label} fetch failed with ${response.status}`
+    );
+  }
+
+  const contentType = String(
+    response.headers.get('content-type') ?? ''
+  ).toLowerCase();
+
+  // Lottie 스티커는 JSON이므로 Sharp로 직접 읽을 수 없다.
+  if (contentType.includes('json')) {
+    return null;
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+
+  if (arrayBuffer.byteLength > geminiImageMaxBytes) {
+    throw new Error(
+      `${label} is too large: ${arrayBuffer.byteLength} bytes`
+    );
+  }
+
+  // 움직이는 이모지·스티커는 첫 프레임을 PNG로 변환한다.
+  const normalizedBuffer = await sharp(
+    Buffer.from(arrayBuffer),
+    {
+      page: 0,
+    }
+  )
+    .resize(320, 320, {
+      fit: 'contain',
+      background: {
+        r: 0,
+        g: 0,
+        b: 0,
+        alpha: 0,
+      },
+    })
+    .png()
+    .toBuffer();
+
+  return bufferToGeminiImagePart(
+    normalizedBuffer,
+    'image/png'
+  );
+}
+
+async function getGeminiCustomEmojiImageParts(texts) {
+  const emojisById = new Map();
+
+  for (const text of texts ?? []) {
+    for (const emoji of extractDiscordCustomEmojis(text)) {
+      if (!emojisById.has(emoji.id)) {
+        emojisById.set(emoji.id, emoji);
+      }
+    }
+  }
+
+  const imageParts = [];
+
+  for (const emoji of [...emojisById.values()].slice(0, 4)) {
+    try {
+      // Discord는 모든 커스텀 이모지를 WebP로 제공할 수 있다.
+      const url =
+        `https://cdn.discordapp.com/emojis/${emoji.id}.webp`
+        + '?size=256&animated=true';
+
+      const imagePart =
+        await fetchDiscordVisualAsGeminiPart(
+          url,
+          `Discord emoji ${emoji.name}`
+        );
+
+      if (imagePart) {
+        imageParts.push(imagePart);
+      }
+    } catch (error) {
+      console.error(
+        `[Emoji vision] failed `
+        + `name=${emoji.name} id=${emoji.id}:`
+      );
+      console.error(error);
+    }
+  }
+
+  return imageParts;
+}
+
+async function getGeminiStickerImageParts(
+  message,
+  referencedMessages = []
+) {
+  const stickersById = new Map();
+
+  for (
+    const sticker of getMessageChainStickers(
+      message,
+      referencedMessages
+    )
+  ) {
+    const stickerId = String(sticker?.id ?? '').trim();
+
+    if (stickerId && !stickersById.has(stickerId)) {
+      stickersById.set(stickerId, sticker);
+    }
+  }
+
+  const imageParts = [];
+
+  for (
+    const sticker of [...stickersById.values()].slice(0, 4)
+  ) {
+    const stickerName =
+      String(sticker?.name ?? 'unknown').trim();
+
+    const stickerUrl =
+      String(sticker?.url ?? '').trim();
+
+    const stickerFormat =
+      String(sticker?.format ?? '').toLowerCase();
+
+    const isLottie =
+      stickerFormat === 'lottie'
+      || Number(sticker?.format) === 3
+      || /\.json(?:\?|$)/i.test(stickerUrl);
+
+    // Lottie는 현재 별도 렌더러가 없으므로 이름 정보로 폴백한다.
+    if (isLottie) {
+      console.log(
+        `[Sticker vision] Lottie skipped `
+        + `name=${stickerName} id=${sticker.id}`
+      );
+      continue;
+    }
+
+    try {
+      const imagePart =
+        await fetchDiscordVisualAsGeminiPart(
+          stickerUrl,
+          `Discord sticker ${stickerName}`
+        );
+
+      if (imagePart) {
+        imageParts.push(imagePart);
+      }
+    } catch (error) {
+      console.error(
+        `[Sticker vision] failed `
+        + `name=${stickerName} id=${sticker.id}:`
+      );
+      console.error(error);
+    }
+  }
+
+  return imageParts;
 }
 
 function getMessageAuthorName(message) {

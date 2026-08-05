@@ -1,10 +1,20 @@
-const discordCustomEmojiPattern = /<a?:([A-Za-z0-9_]{2,32}):\d{17,20}>/g;
+const discordCustomEmojiPattern =
+  /<(a?):([A-Za-z0-9_]{2,32}):(\d{17,20})>/g;
 
-export function extractDiscordCustomEmojiNames(text) {
+export function extractDiscordCustomEmojis(text) {
   return Array.from(
     String(text ?? '').matchAll(discordCustomEmojiPattern),
-    (match) => String(match?.[1] ?? '').trim()
-  ).filter(Boolean);
+    (match) => ({
+      animated: match?.[1] === 'a',
+      name: String(match?.[2] ?? '').trim(),
+      id: String(match?.[3] ?? '').trim(),
+    })
+  ).filter((emoji) => emoji.name && emoji.id);
+}
+
+export function extractDiscordCustomEmojiNames(text) {
+  return extractDiscordCustomEmojis(text)
+    .map((emoji) => emoji.name);
 }
 
 export function extractFirstUnicodeEmoji(text) {

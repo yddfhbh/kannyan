@@ -5,6 +5,7 @@ import {
   extractDiscordCustomEmojiNames,
   extractFirstUnicodeEmoji,
   formatEmojiOnlyTextDetails,
+  extractDiscordCustomEmojis,
 } from '../src/emoji-prompt.js';
 
 test('extractDiscordCustomEmojiNames reads custom emoji names from discord syntax', () => {
@@ -52,3 +53,26 @@ test('formatEmojiOnlyTextDetails formats both custom and unicode emoji details',
     '커스텀 이모지 이름은 "kani"이다. 일반 이모지들은 😊, 😭 이다.'
   );
 });
+test(
+  'extractDiscordCustomEmojis reads names, ids, and animation state',
+  () => {
+    assert.deepEqual(
+      extractDiscordCustomEmojis(
+        '<:kani:123456789012345678> '
+        + '<a:wave:123456789012345679>'
+      ),
+      [
+        {
+          animated: false,
+          name: 'kani',
+          id: '123456789012345678',
+        },
+        {
+          animated: true,
+          name: 'wave',
+          id: '123456789012345679',
+        },
+      ]
+    );
+  }
+);
