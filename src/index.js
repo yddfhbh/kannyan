@@ -603,7 +603,7 @@ if (!DISCORD_TOKEN) {
 const imageGenerationCooldowns = new Map();
 const imageGenerationInFlight = new Set();
 
-const imageGenerationCooldownMs = 60_000;
+const imageGenerationCooldownMs = 15_000;
 const percentImageRequestPattern =
   /^(?<prompt>[\s\S]*?)\s*(?:그려\s*(?:줘(?:요)?|주세요|주라|줄래|봐(?:요)?)|그림(?:을|으로)?\s*(?:만들어|그려)\s*(?:줘(?:요)?|주세요|주라|줄래|봐(?:요)?)?|이미지(?:로|를)?\s*(?:만들어|생성해)\s*(?:줘(?:요)?|주세요|주라|줄래|봐(?:요)?)?)\s*[.!?~ㅋㅎ]*$/u;
 
@@ -7751,11 +7751,17 @@ async function handleGeminiFallbackMessage(message, options = {}) {
     const webSearchSources = includeWebSearchSources
       ? formatWebSearchSources(webSearchData?.results ?? [])
       : '';
-    const responseText = [
-      answer,
-      permanentMemoryAttribution,
-      webSearchSources,
-    ].filter(Boolean).join('\n\n');
+   const responseText = [
+  answer,
+  permanentMemoryAttribution,
+  webSearchSources,
+]
+  .filter(Boolean)
+  .join('\n\n')
+  .replace(
+    /\n\n(?=(?:-|\d+\.)\s)/g,
+    '\n\u200B\n'
+  );
 
     appendGeminiMemoryEntry(sessionKey, {
       role: 'user',
