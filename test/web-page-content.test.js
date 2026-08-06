@@ -28,7 +28,15 @@ test('no domains are treated as trusted sources by default', () => {
 });
 
 test('normalizeKannyangSpeech avoids unnatural polite-ending plus 냥 forms', () => {
-  assert.equal(normalizeKannyangSpeech('파이호크 서버의 주요 멤버 중 한 분이군요냥!'), '파이호크 서버의 주요 멤버 중 한 분이구나냥!');
+  assert.equal(normalizeKannyangSpeech('파이호크 서버의 주요 멤버 중 한 분이군요냥!'), '파이호크 서버의 주요 멤버 중 한 분이네냥!');
   assert.equal(normalizeKannyangSpeech('그렇네요냥.'), '그렇네냥.');
   assert.equal(normalizeKannyangSpeech('맞습니다냥.'), '맞다냥.');
+  assert.equal(
+    normalizeKannyangSpeech('이 이모지는 뭔가 불만이 있거나 삐진 듯한 표정을 짓고 있군요냥.'),
+    '이 이모지는 뭔가 불만이 있거나 삐진 듯한 표정을 짓고 있네냥.'
+  );
+  assert.equal(
+    normalizeKannyangSpeech('이 이모지는 화나 보이구나냥.'),
+    '이 이모지는 화나 보여냥.'
+  );
 });

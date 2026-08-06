@@ -9,6 +9,11 @@ import { inspect, promisify } from 'node:util';
 import sharp from 'sharp';
 import { generateCloudflareImage } from './cloudflare-image.js';
 import {
+  getGeminiEmotionAssetPath,
+  parseGeminiAnswerPayload,
+  supportedGeminiEmotionLabels,
+} from './gemini-answer.js';
+import {
   ActivityType,
   AttachmentBuilder,
   Client,
@@ -142,7 +147,10 @@ import {
 import {
   buildPyhokWikiSearchData,
   dedupeWebSearchResultsAgainstWikiResults,
+  extractPyhokWikiRelevantUrls,
   getPyhokWikiSearchConfig,
+  isExplicitPyhokWikiPrompt,
+  isPyhokWikiLinkRequest,
 } from './pyhok-wiki-search.js';
 import { buildWebPageReferenceContext } from './web-page-content.js';
 import {
@@ -474,8 +482,10 @@ const geminiSystemInstruction = [
   '  - 예: “좋아!” → “좋다냥!”',
   '  - 예: “안녕!” → “안냥!”',
   '',
-  '3. 평서문은 자연스럽게 “다냥”, “해냥”, “야냥”, “좋아냥”, “괜찮아냥”, “구나냥”처럼 끝낸다.',
-  '예를 들어 “그분이군요.”는 “그분이구나냥.”처럼 바꾼다.',
+  '3. 평서문은 자연스럽게 “다냥”, “해냥”, “야냥”, “좋아냥”, “괜찮아냥”, “네냥”처럼 끝낸다.',
+  '관찰이나 묘사 문장에서는 “~해 보여냥”, “~같아냥”, “~네냥”을 우선하고 “~구나냥”은 정말 잘 어울릴 때만 쓴다.',
+  '예를 들어 “그분이군요.”는 “그분이네냥.”처럼 바꾼다.',
+  '“표정을 짓고 있구나냥”, “화난 듯하구나냥”처럼 설명투에서 어색한 종결은 피한다.',
   '긍정하는 의미로 “응”을 붙일 때는 “응냥”이라고 하지 말고 “냥”이라고만 한다.',
   '',
   '4. 명사로 끝나는 문장은 “-이다냥” 또는 “-다냥”으로 자연스럽게 마무리한다.',
@@ -7405,6 +7415,11 @@ function parseJsonObjectText(text) {
   }
 }
 
+function getGeminiEmotionReplyFiles(emotion) {
+  const assetPath = getGeminiEmotionAssetPath(emotion);
+  return assetPath ? [assetPath] : [];
+}
+
 function buildPercentOnlyStickerPrompt(message, referencedMessages = []) {
   const stickerNames = getUniqueValues(
     getMessageChainStickers(message, referencedMessages)
@@ -7785,6 +7800,8 @@ const chessAnalysis =
       detectedChessboard: chessAnalysis.detectedChessboard,
       prioritizeChessImageAnalysis,
     });
+    const shouldRestrictToWikiSources = isExplicitPyhokWikiPrompt(rawPrompt);
+    const isWikiLinkRequest = isPyhokWikiLinkRequest(rawPrompt);
     const shouldSearchPreviousWebContext = Boolean(followupWebSearchQuery)
       && imageParts.length === 0
       && !prioritizeChessImageAnalysis;
@@ -7796,6 +7813,9 @@ const chessAnalysis =
     await Promise.all([
       ((shouldAttemptExternalSearch || shouldForceChessWebSearch)
         ? (async () => {
+            if (shouldRestrictToWikiSources) {
+              return;
+            }
             try {
               webSearchData = await tryBuildWebSearchData(webSearchPrompt, {
                 force: shouldForceChessWebSearch || shouldSearchPreviousWebContext,
@@ -7817,6 +7837,37 @@ const chessAnalysis =
       wikiSearchData,
       webSearchData,
     }));
+
+    if (shouldRestrictToWikiSources && (!Array.isArray(wikiSearchData?.results) || wikiSearchData.results.length === 0)) {
+      await message.reply({
+        content: '푝무위키에서 해당 내용을 찾지 못했다냥.',
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+      return true;
+    }
+
+    if (shouldRestrictToWikiSources && isWikiLinkRequest) {
+      const wikiUrls = extractPyhokWikiRelevantUrls(wikiSearchData?.results, rawPrompt);
+      if (wikiUrls.length === 0) {
+        await message.reply({
+          content: '푝무위키 검색 결과 안에서는 요청한 링크나 주소를 찾지 못했다냥.',
+          allowedMentions: { parse: [], repliedUser: false },
+        });
+        return true;
+      }
+
+      const replyLines = wikiUrls.length === 1
+        ? ['푝무위키 검색 결과에서 찾은 링크다냥.', wikiUrls[0]]
+        : [
+            '푝무위키 검색 결과에서 찾은 링크들이다냥.',
+            ...wikiUrls.slice(0, 5).map((url) => `- ${url}`),
+          ];
+      await message.reply({
+        content: replyLines.join('\n'),
+        allowedMentions: { parse: [], repliedUser: false },
+      });
+      return true;
+    }
 
     const webPageData = await buildWebPageReferenceContext(rawPrompt);
 
@@ -7874,6 +7925,7 @@ const chessAnalysis =
       imageParts,
     });
     const answer = answerResult.answer;
+    const replyFiles = getGeminiEmotionReplyFiles(answerResult.emotion);
     const permanentMemoryAttribution = formatPermanentMemoryAttribution(
       permanentMemories,
       answerResult.usedPermanentMemoryIds
@@ -7918,6 +7970,7 @@ const chessAnalysis =
 
     await message.reply({
       content: firstChunk,
+      ...(replyFiles.length > 0 ? { files: replyFiles } : {}),
       allowedMentions: { parse: [], repliedUser: false },
     });
 
@@ -7956,7 +8009,7 @@ async function handleWebSearchMessage(message, input) {
     const sessionKey = getGeminiSessionKey(message);
     const history = getGeminiSessionHistory(sessionKey);
     const cleanedInput = promptSecurity.sanitizedText;
-    const responseText = await createWebSearchResponse(cleanedInput, {
+    const response = await createWebSearchResponse(cleanedInput, {
       history,
       mentionContext: getGeminiMentionContext(message),
       currentUserContext: getGeminiCurrentUserContext(message),
@@ -7972,16 +8025,18 @@ async function handleWebSearchMessage(message, input) {
     appendGeminiMemoryEntry(sessionKey, {
       role: 'model',
       authorName: message.client.user?.username ?? 'Bot',
-      text: `[웹 검색 답변]\n${responseText}`,
+      text: `[웹 검색 답변]\n${response.text}`,
       timestamp: Date.now(),
     });
     await saveGeminiMemory();
 
-    const chunks = splitDiscordMessage(responseText, 1900);
+    const chunks = splitDiscordMessage(response.text, 1900);
     const [firstChunk, ...remainingChunks] = chunks;
+    const replyFiles = getGeminiEmotionReplyFiles(response.emotion);
 
     await message.reply({
       content: firstChunk,
+      ...(replyFiles.length > 0 ? { files: replyFiles } : {}),
       allowedMentions: { parse: [], repliedUser: false },
     });
 
@@ -8165,17 +8220,21 @@ async function showWebSearch(interaction) {
   await interaction.deferReply();
 
   try {
-    const responseText = await createWebSearchResponse(query, {
+    const response = await createWebSearchResponse(query, {
       currentUserContext: [
         `작성자 표시 이름: ${interaction.member?.displayName ?? interaction.user.globalName ?? interaction.user.username}`,
         `작성자 계정명: ${interaction.user.username}`,
         `작성자 Discord ID: ${interaction.user.id}`,
       ].join('\n'),
     });
-    const chunks = splitDiscordMessage(responseText, 1900);
+    const chunks = splitDiscordMessage(response.text, 1900);
     const [firstChunk, ...remainingChunks] = chunks;
+    const replyFiles = getGeminiEmotionReplyFiles(response.emotion);
 
-    await interaction.editReply(firstChunk);
+    await interaction.editReply({
+      content: firstChunk,
+      ...(replyFiles.length > 0 ? { files: replyFiles } : {}),
+    });
 
     for (const chunk of remainingChunks) {
       await interaction.followUp({
@@ -8214,21 +8273,30 @@ async function createWebSearchResponse(prompt, options = {}) {
   const hasWebResults = Array.isArray(webSearchData?.results) && webSearchData.results.length > 0;
 
   if (!hasWikiResults && !hasWebResults) {
-    return '검색 결과를 찾지 못했다냥.';
+    return {
+      text: '검색 결과를 찾지 못했다냥.',
+      emotion: 'neutral',
+    };
   }
 
   if (geminiApiKeys.length === 0) {
     if (!hasWebResults && hasWikiResults) {
-      return wikiSearchData.context || '검색 결과를 찾지 못했다냥.';
+      return {
+        text: wikiSearchData.context || '검색 결과를 찾지 못했다냥.',
+        emotion: 'neutral',
+      };
     }
 
-    return formatPlainWebSearchResults(
-      webSearchData?.query || wikiSearchData?.query || prompt,
-      webSearchData?.results ?? [],
-      {
-      includeSources: resolvedIncludeSources,
-      }
-    );
+    return {
+      text: formatPlainWebSearchResults(
+        webSearchData?.query || wikiSearchData?.query || prompt,
+        webSearchData?.results ?? [],
+        {
+          includeSources: resolvedIncludeSources,
+        }
+      ),
+      emotion: 'neutral',
+    };
   }
 
   const answerResult = await generateGeminiAnswer(prompt, {
@@ -8241,10 +8309,13 @@ async function createWebSearchResponse(prompt, options = {}) {
     webSearchContext: webSearchData?.context ?? '',
   });
 
-  return [
-    answerResult.answer,
-    resolvedIncludeSources ? formatWebSearchSources(webSearchData?.results ?? []) : '',
-  ].filter(Boolean).join('\n\n');
+  return {
+    text: [
+      answerResult.answer,
+      resolvedIncludeSources ? formatWebSearchSources(webSearchData?.results ?? []) : '',
+    ].filter(Boolean).join('\n\n'),
+    emotion: answerResult.emotion,
+  };
 }
 
 async function tryBuildPyhokWikiSearchData(prompt, options = {}) {
@@ -8539,6 +8610,15 @@ async function generateGeminiAnswer(prompt, options = {}) {
   const modelsToUse = imageParts.length > 0
     ? geminiVisionModels
     : geminiModels;
+  const geminiAnswerJsonInstruction = [
+    '[일반 답변 JSON 출력 형식]',
+    '최종 출력은 반드시 JSON 객체 하나만 써라.',
+    '형식: {"answer":"사용자에게 보낼 최종 답변","emotion":"happy"}',
+    `emotion은 다음 중 하나만 쓴다: ${supportedGeminiEmotionLabels.join(', ')}`,
+    'answer에는 사용자에게 실제로 보낼 최종 답변만 넣는다.',
+    'emotion에는 answer의 전체 분위기를 가장 잘 나타내는 감정 라벨 하나만 넣는다.',
+    'JSON 바깥의 설명, 코드 블록, 마크다운, 서문은 절대 출력하지 않는다.',
+  ].join('\n');
   const answerStartedAt = Date.now();
 
   logGeminiTiming(
@@ -8551,7 +8631,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
       system_instruction: {
         parts: [
           {
-            text: geminiSystemInstruction,
+            text: `${geminiSystemInstruction}\n\n${geminiAnswerJsonInstruction}`,
           },
         ],
       },
@@ -8568,6 +8648,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
         maxOutputTokens: geminiMaxOutputTokens,
         temperature: 0.55,
         topP: 0.9,
+        responseMimeType: 'application/json',
       },
     }, {
       models: modelsToUse,
@@ -8580,7 +8661,9 @@ async function generateGeminiAnswer(prompt, options = {}) {
   const text = extractGeminiResponseText(response);
 
   if (text) {
-    const responseGuard = classifyPromptControlResponse(text, {
+    const parsedAnswer = parseGeminiAnswerPayload(text);
+    const guardedText = parsedAnswer.answer || text;
+    const responseGuard = classifyPromptControlResponse(guardedText, {
       promptRiskScore: promptControl?.score ?? 0,
     });
     if (responseGuard.blocked) {
@@ -8589,12 +8672,13 @@ async function generateGeminiAnswer(prompt, options = {}) {
       );
       return {
         answer: '그런 요청은 들어줄 수 없다냥. 질문이 있으면 그냥 물어봐달라냥.',
+        emotion: 'neutral',
         usedPermanentMemoryIds: [],
       };
     }
 
     const memoryUsage = extractPermanentMemoryUsage(
-      text,
+      guardedText,
       permanentMemories.map((entry) => entry.id)
     );
     const answer = applyCustomEmojiAliases(
@@ -8609,6 +8693,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     logGeminiTiming(`answer ready total=${Date.now() - answerStartedAt}ms rawChars=${text.length} outputChars=${answer.length}`);
     return {
       answer,
+      emotion: parsedAnswer.emotion,
       usedPermanentMemoryIds,
     };
   }
@@ -8618,6 +8703,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     logGeminiTiming(`answer blocked total=${Date.now() - answerStartedAt}ms reason=${blockReason}`);
     return {
       answer: `안전 필터 때문에 답변하지 못했다냥. (${blockReason})`,
+      emotion: 'neutral',
       usedPermanentMemoryIds: [],
     };
   }
@@ -8625,6 +8711,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
   logGeminiTiming(`answer empty total=${Date.now() - answerStartedAt}ms`);
   return {
     answer: '답변을 만들지 못했다냥.',
+    emotion: 'neutral',
     usedPermanentMemoryIds: [],
   };
 }

@@ -16,6 +16,9 @@ const defaultMaxPrimaryContentLength = 12_000;
 const explicitWikiPattern = /(푝무위키|우리 위키|pyhok(?:\.com)?)/i;
 const wikiLookupPattern = /(위키|문서|항목|밈|설정|서술|세계관)/i;
 const wikiLookupVerbPattern = /(검색|찾아|알려|설명|정리|내용|뭐|누구|어디|왜|어떻게)/i;
+const wikiLinkRequestPattern = /(주소|링크|url|계정|sns|트위터|twitter|x\s*(주소|링크|계정)?|엑스\s*(주소|링크|계정)?)/i;
+const xLinkRequestPattern = /(?:^|\s)(?:x|x\.com|트위터|twitter|엑스)(?:\s*(?:주소|링크|계정))?/i;
+const urlPattern = /https?:\/\/[^\s<>"')\]]+/gi;
 const punctuationCleanupPattern = /[?!~,]+/g;
 const sentencePunctuationCleanupPattern = /[.](?=\s|$)/g;
 const tokenBoundaryPattern = /[\s/:\-_()[\]{}.,!?]+/g;
@@ -86,6 +89,18 @@ const queryNoiseTokens = new Set([
   '뭐야',
   '누구야',
 ]);
+const linkRequestNoiseTokens = new Set([
+  '주소',
+  '링크',
+  'url',
+  '계정',
+  'sns',
+  'x주소',
+  'x',
+  '트위터',
+  'twitter',
+  '엑스',
+]);
 const trailingParticleSuffixes = [
   '까지',
   '부터',
@@ -144,6 +159,14 @@ export function shouldUsePyhokWikiSearch(prompt, options = {}) {
   return Boolean(options.allowFactualLookup);
 }
 
+export function isExplicitPyhokWikiPrompt(prompt) {
+  return explicitWikiPattern.test(normalizeText(prompt));
+}
+
+export function isPyhokWikiLinkRequest(prompt) {
+  return wikiLinkRequestPattern.test(normalizeText(prompt));
+}
+
 export function derivePyhokWikiSearchQuery(prompt) {
   const originalPrompt = normalizeText(prompt);
   if (!originalPrompt) {
@@ -164,12 +187,14 @@ export function derivePyhokWikiSearchQuery(prompt) {
     normalized = normalized.replace(phrasePattern, '$1');
   }
 
+  const isLinkRequest = isPyhokWikiLinkRequest(originalPrompt);
   const tokens = normalized
     .split(/\s+/)
     .map((token) => stripTrailingParticle(token))
     .map((token) => token.trim())
     .filter(Boolean)
-    .filter((token) => !queryNoiseTokens.has(token.toLowerCase()));
+    .filter((token) => !queryNoiseTokens.has(token.toLowerCase()))
+    .filter((token) => !(isLinkRequest && linkRequestNoiseTokens.has(token.toLowerCase())));
 
   const query = normalizeText(tokens.join(' '));
   if (!query || query.length <= 1) {
@@ -528,6 +553,58 @@ export function dedupeWebSearchResultsAgainstWikiResults(webResults, wikiResults
   });
 }
 
+export function extractPyhokWikiRelevantUrls(results, prompt = '') {
+  const normalizedResults = Array.isArray(results) ? results.filter(Boolean) : [];
+  if (normalizedResults.length === 0) {
+    return [];
+  }
+
+  const wantsXLink = xLinkRequestPattern.test(normalizeText(prompt));
+  const urls = [];
+  const seen = new Set();
+
+  for (const result of normalizedResults) {
+    const candidateTexts = [
+      result?.primaryContent,
+      result?.content,
+      result?.raw,
+      result?.excerpt,
+    ];
+
+    for (const text of candidateTexts) {
+      for (const url of extractUrlsFromText(text)) {
+        if (wantsXLink && !isXLikeUrl(url)) {
+          continue;
+        }
+
+        const normalizedUrl = normalizeComparableUrl(url);
+        if (!normalizedUrl || seen.has(normalizedUrl)) {
+          continue;
+        }
+
+        seen.add(normalizedUrl);
+        urls.push(url);
+      }
+    }
+  }
+
+  if (wantsXLink) {
+    return urls;
+  }
+
+  for (const result of normalizedResults) {
+    const normalizedUrl = normalizeComparableUrl(result?.url);
+    if (!normalizedUrl || seen.has(normalizedUrl)) {
+      continue;
+    }
+
+    seen.add(normalizedUrl);
+    urls.push(result.url);
+  }
+
+  return urls;
+}
+
 function normalizePyhokWikiHit(hit, options = {}) {
   if (!hit || hit.anyoneReadable === false) {
     return null;
@@ -725,6 +802,26 @@ function extractRelevantExcerpt(text, query, maxLength) {
 
 function stripFormatting(value) {
   return normalizeText(String(value ?? '').replace(/<[^>]+>/g, ' '));
+}
+
+function extractUrlsFromText(value) {
+  const matches = String(value ?? '').match(urlPattern) ?? [];
+  return matches
+    .map((match) => match.replace(/[),.;!?]+$/g, ''))
+    .filter(Boolean);
+}
+
+function isXLikeUrl(value) {
+  try {
+    const url = new URL(String(value ?? '').trim());
+    const hostname = url.hostname.toLowerCase();
+    return hostname === 'x.com'
+      || hostname.endsWith('.x.com')
+      || hostname === 'twitter.com'
+      || hostname.endsWith('.twitter.com');
+  } catch {
+    return false;
+  }
 }
 
 function normalizeComparableUrl(value) {

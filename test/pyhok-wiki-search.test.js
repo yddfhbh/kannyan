@@ -6,7 +6,10 @@ import {
   buildPyhokWikiSearchData,
   dedupeWebSearchResultsAgainstWikiResults,
   derivePyhokWikiSearchQuery,
+  extractPyhokWikiRelevantUrls,
   formatPyhokWikiContext,
+  isExplicitPyhokWikiPrompt,
+  isPyhokWikiLinkRequest,
   parsePyhokWikiSearchResponse,
   rerankPyhokWikiResults,
   scorePyhokWikiTitleMatch,
@@ -39,6 +42,10 @@ test('derivePyhokWikiSearchQuery strips trailing particles token by token', () =
   assert.equal(
     derivePyhokWikiSearchQuery('테이크가 생활을 문서에서 설명해줘'),
     '테이크 생활'
+  );
+  assert.equal(
+    derivePyhokWikiSearchQuery('푝무위키 파이호크 x주소'),
+    '파이호크'
   );
 });
 
@@ -459,6 +466,12 @@ test('shouldUsePyhokWikiSearch skips simple chat and accepts explicit wiki promp
   assert.equal(shouldUsePyhokWikiSearch('우리 위키에서 pyhok 문서 찾아줘', { enabled: true }), true);
 });
 
+test('explicit wiki and link request detectors recognize wiki-only link lookups', () => {
+  assert.equal(isExplicitPyhokWikiPrompt('푝무위키 파이호크 x주소'), true);
+  assert.equal(isPyhokWikiLinkRequest('푝무위키 파이호크 x주소'), true);
+  assert.equal(isPyhokWikiLinkRequest('푝무위키 파이호크 설명해줘'), false);
+});
+
 test('dedupeWebSearchResultsAgainstWikiResults removes duplicate wiki URLs but keeps other web results', () => {
   const deduped = dedupeWebSearchResultsAgainstWikiResults(
     [
@@ -473,4 +486,32 @@ test('dedupeWebSearchResultsAgainstWikiResults removes duplicate wiki URLs but k
   assert.deepEqual(deduped, [
     { title: '날씨 기사', url: 'https://example.com/weather' },
   ]);
+});
+
+test('extractPyhokWikiRelevantUrls returns only X links for X-address prompts', () => {
+  const urls = extractPyhokWikiRelevantUrls([
+    {
+      url: 'https://pyhok.com/w/%ED%8C%8C%EC%9D%B4%ED%98%B8%ED%81%AC',
+      primaryContent: '공식 X는 https://x.com/pyhok_official 이고, 홈페이지는 https://example.com 이다.',
+      content: '',
+      raw: '',
+      excerpt: '',
+    },
+  ], '푝무위키 파이호크 x주소');
+
+  assert.deepEqual(urls, ['https://x.com/pyhok_official']);
+});
+
+test('extractPyhokWikiRelevantUrls falls back to document URLs for generic link prompts', () => {
+  const urls = extractPyhokWikiRelevantUrls([
+    {
+      url: 'https://pyhok.com/w/%ED%8C%8C%EC%9D%B4%ED%98%B8%ED%81%AC',
+      primaryContent: '소개 문서다.',
+      content: '',
+      raw: '',
+      excerpt: '',
+    },
+  ], '푝무위키 파이호크 링크');
+
+  assert.deepEqual(urls, ['https://pyhok.com/w/%ED%8C%8C%EC%9D%B4%ED%98%B8%ED%81%AC']);
 });
