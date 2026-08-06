@@ -740,6 +740,7 @@ let discordReady = false;
 let vmStatusMessage = null;
 let vmStatusTimer = null;
 let vmStatusUpdateInFlight = false;
+let vmStatusRetryNotBefore = 0;
 let guildListTimer = null;
 let chessPlayInactivityTimer = null;
 let chessPlayInactivitySweepInFlight = false;
@@ -5926,6 +5927,7 @@ function startVmStatusUpdater(readyClient) {
   }
 
   stopVmStatusUpdater();
+  vmStatusRetryNotBefore = 0;
   console.log(`VM status updater enabled for channel ${vmStatusChannelId} every ${vmStatusIntervalMs}ms.`);
   void updateVmStatusMessage(readyClient);
   vmStatusTimer = setInterval(() => {
@@ -5940,6 +5942,15 @@ function stopVmStatusUpdater() {
   }
 
   vmStatusUpdateInFlight = false;
+  vmStatusRetryNotBefore = 0;
+}
+
+function scheduleVmStatusRetry(reason, delayMs = 60_000) {
+  const retryAt = Date.now() + Math.max(5_000, delayMs);
+  vmStatusRetryNotBefore = Math.max(vmStatusRetryNotBefore, retryAt);
+  console.error(
+    `VM status updater will retry after ${formatDuration(Math.ceil((vmStatusRetryNotBefore - Date.now()) / 1000))}: ${reason}`
+  );
 }
 
 function startGuildListUpdater(readyClient) {
@@ -5977,6 +5988,10 @@ async function updateVmStatusMessage(readyClient) {
     return;
   }
 
+  if (vmStatusRetryNotBefore > Date.now()) {
+    return;
+  }
+
   vmStatusUpdateInFlight = true;
 
   try {
@@ -5990,17 +6005,21 @@ async function updateVmStatusMessage(readyClient) {
       content,
       allowedMentions: { parse: [] },
     });
+    vmStatusRetryNotBefore = 0;
   } catch (error) {
     console.error('Failed to update VM status message:');
     console.error(error);
 
-    if (isDiscordPermissionError(error)) {
-      console.error('VM status updater stopped. Give the bot View Channel, Send Messages, and Read Message History permissions, then restart it.');
-      stopVmStatusUpdater();
+    if (isDiscordPermissionError(error) || error?.code === 10008) {
+      vmStatusMessage = null;
     }
 
-    if (error?.code === 10008) {
-      vmStatusMessage = null;
+    if (isDiscordPermissionError(error)) {
+      scheduleVmStatusRetry(
+        'Discord 권한이 부족하거나 일시적으로 메시지 접근에 실패했다냥. 권한을 확인한 뒤 자동으로 다시 시도한다냥.'
+      );
+    } else if (error?.code === 10008) {
+      scheduleVmStatusRetry('기존 VM 상태 메시지를 찾지 못해서 새 메시지를 다시 찾는 중이다냥.', 5_000);
     }
   } finally {
     vmStatusUpdateInFlight = false;
@@ -6012,14 +6031,16 @@ async function resolveVmStatusMessage(readyClient) {
     console.error(`Failed to fetch VM status channel ${vmStatusChannelId}:`);
     console.error(error);
     if (isDiscordPermissionError(error)) {
-      console.error('VM status updater stopped because the bot cannot access the configured channel.');
-      stopVmStatusUpdater();
+      scheduleVmStatusRetry(
+        `봇이 VM 상태 채널 ${vmStatusChannelId}에 접근하지 못했다냥. 채널 권한이 돌아오면 자동으로 다시 붙는다냥.`
+      );
     }
     return null;
   });
 
   if (!channel?.isTextBased?.() || !channel.messages || typeof channel.send !== 'function') {
     console.error(`VM status channel ${vmStatusChannelId} is not a sendable text channel.`);
+    scheduleVmStatusRetry(`VM 상태 채널 ${vmStatusChannelId}이(가) 전송 가능한 텍스트 채널이 아니다냥.`);
     return null;
   }
 
@@ -6028,8 +6049,9 @@ async function resolveVmStatusMessage(readyClient) {
       console.error(`Failed to fetch VM status message ${vmStatusMessageId}:`);
       console.error(error);
       if (isDiscordPermissionError(error)) {
-        console.error('VM status updater stopped because the bot cannot read the configured status message.');
-        stopVmStatusUpdater();
+        scheduleVmStatusRetry(
+          `설정된 VM 상태 메시지 ${vmStatusMessageId}를 읽지 못했다냥. 잠시 뒤 다시 찾아볼게냥.`
+        );
       }
       return null;
     });
