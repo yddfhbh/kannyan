@@ -16,6 +16,16 @@ test('shouldUseWebSearch turns on for explicit search-like Gemini prompts withou
   assert.equal(deriveWebSearchQuery('TETR.IO 검색해봐'), 'TETR.IO');
 });
 
+test('shouldUseWebSearch turns on for short currency amount prompts and enriches them with latest exchange context', () => {
+  assert.equal(shouldUseWebSearch('3달러'), true);
+  assert.equal(deriveWebSearchQuery('3달러'), '3달러 원화 환율 최신');
+});
+
+test('deriveWebSearchQuery prefers latest market price context only when no date is specified', () => {
+  assert.equal(deriveWebSearchQuery('삼성전자 주가'), '삼성전자 주가 최신 시세');
+  assert.equal(deriveWebSearchQuery('2024년 1월 3일 삼성전자 주가'), '2024년 1월 3일 삼성전자 주가');
+});
+
 test('shouldUseWebSearch stays off for simple casual chat', () => {
   assert.equal(shouldUseWebSearch('안녕'), false);
   assert.equal(shouldUseWebSearch('오늘 좀 피곤하다'), false);

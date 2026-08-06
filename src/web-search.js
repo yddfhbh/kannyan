@@ -17,6 +17,13 @@ const factualQuestionPattern = /(누구|뭐야|무엇|어디|언제|몇|설명|�
 const questionEndingPattern = /(\?|까\??|가\??|야\??|요\??|냐\??|임\??|인가\??)$/i;
 const factualTopicPattern = /(게임|인물|회사|브랜드|서비스|api|라이브러리|모델|용어|맵|위키|문서|규칙|설정|기능|스펙|버전|에러|오류|공식|링크|주소|프로젝트|단어|뉴스|날씨|가격|일정)/i;
 const searchTailCleanupPattern = /\s*(검색해봐|검색해 줘|검색해줘|찾아봐|찾아 봐|찾아줘|찾아 줘|알려줘|알려 줘|정리해줘|정리해 줘)\s*$/i;
+const currentTimeReferencePattern = /(최신|현재|지금|실시간|최근|today|current|latest|live|real[- ]?time)/i;
+const explicitDatePattern = /(\d{4}[./-]\d{1,2}[./-]\d{1,2}|\d{4}년\s*\d{1,2}월(?:\s*\d{1,2}일)?|\d{1,2}월\s*\d{1,2}일|어제|그제|오늘|내일|모레|작년|재작년|올해|내년|지난달|저번달|이번달|다음달|지난주|저번주|이번주|다음주)/i;
+const currencyUnitPattern = /(달러|usd|원화|한화|원|krw|엔화|엔|jpy|유로|eur|위안|cny|파운드|gbp|홍콩달러|hkd|대만달러|twd)/i;
+const shortCurrencyAmountOnlyPattern = /^(?:약\s*)?(?:[$₩¥€£]\s*)?\d+(?:[.,]\d+)?\s*(달러|usd|원화|한화|원|krw|엔화|엔|jpy|유로|eur|위안|cny|파운드|gbp|홍콩달러|hkd|대만달러|twd)\s*$/i;
+const currencyConversionIntentPattern = /(환율|환전|환산|변환|원화|한화|달러로|원으로|얼마|가치|계산|바꿔|바꾸면|convert|conversion|exchange rate)/i;
+const marketAssetPattern = /(주가|주식|시세|코인|암호화폐|비트코인|이더리움|btc|eth|xrp|sol|doge|nasdaq|나스닥|kospi|코스피|kosdaq|코스닥|s&p|sp500|다우|gold|금값|은값|유가|원유)/i;
+const marketPriceIntentPattern = /(가격|얼마|시세|주가|종가|시가|고가|저가|quote|price)/i;
 
 const browserHeaders = {
   'accept-language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
@@ -107,6 +114,7 @@ export function shouldUseWebSearch(prompt) {
     || explicitSearchIntentPattern.test(text)
     || strongTimeSensitivePattern.test(text)
     || (relativeTimePattern.test(text) && timelyTopicPattern.test(text))
+    || shouldPreferFreshPriceData(text)
     || looksLikeFactualLookupPrompt(text);
 }
 
@@ -126,6 +134,10 @@ export function deriveWebSearchQuery(prompt) {
 
   if (!query) {
     query = original;
+  }
+
+  if (shouldPreferFreshPriceData(query) && !hasExplicitDateReference(query) && !currentTimeReferencePattern.test(query)) {
+    query = buildFreshPriceSearchQuery(query);
   }
 
   return normalizeSearchText(query);
@@ -402,6 +414,55 @@ function looksLikeFactualLookupPrompt(text) {
 
   return (questionEndingPattern.test(normalized) && factualQuestionPattern.test(normalized))
     || (factualTopicPattern.test(normalized) && factualQuestionPattern.test(normalized));
+}
+
+function shouldPreferFreshPriceData(text) {
+  return looksLikeCurrencyConversionPrompt(text) || looksLikeMarketPricePrompt(text);
+}
+
+function looksLikeCurrencyConversionPrompt(text) {
+  const normalized = normalizeSearchText(text);
+  if (!normalized) {
+    return false;
+  }
+
+  return shortCurrencyAmountOnlyPattern.test(normalized)
+    || (currencyUnitPattern.test(normalized) && currencyConversionIntentPattern.test(normalized));
+}
+
+function looksLikeMarketPricePrompt(text) {
+  const normalized = normalizeSearchText(text);
+  if (!normalized) {
+    return false;
+  }
+
+  return /(주가|주식\s*가격|주식가격|코인\s*가격|코인가격|암호화폐\s*가격|시세)/i.test(normalized)
+    || (marketAssetPattern.test(normalized) && marketPriceIntentPattern.test(normalized));
+}
+
+function hasExplicitDateReference(text) {
+  return explicitDatePattern.test(normalizeSearchText(text));
+}
+
+function buildFreshPriceSearchQuery(query) {
+  const normalized = normalizeSearchText(query);
+  if (!normalized) {
+    return '';
+  }
+
+  if (looksLikeCurrencyConversionPrompt(normalized)) {
+    if (shortCurrencyAmountOnlyPattern.test(normalized)) {
+      return `${normalized} 원화 환율 최신`;
+    }
+
+    return `${normalized} 최신 환율`;
+  }
+
+  if (looksLikeMarketPricePrompt(normalized)) {
+    return `${normalized} 최신 시세`;
+  }
+
+  return normalized;
 }
 
 function getHostname(rawUrl) {

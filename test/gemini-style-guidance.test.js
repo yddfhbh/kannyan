@@ -24,5 +24,7 @@ test('current user prompt section reinforces list-friendly Discord formatting fo
   assert.match(section, /\[현재 사용자 질문 적용 지침\]/);
   assert.match(section, /깐냥의 기본 정체성과 자연스러운 냥체를 유지한 상태로 결합/);
   assert.match(section, /정리, 비교, 요약을 원하면 디스코드에서 읽기 쉽게 줄바꿈과 목록을 적극 활용/);
+  assert.match(section, /환율, 주가, 코인 가격처럼 시점이 중요한 가격 정보는 사용자가 날짜를 따로 지정하지 않았다면 최신 기준으로 해석/);
+  assert.match(section, /기준 시점이나 검색 시점을 함께 밝혀 혼동을 줄인다/);
   assert.match(section, /\[현재 사용자 질문\]\n파이호크 생애를 시기별로 정리해줘/);
 });
