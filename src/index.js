@@ -297,7 +297,8 @@ const geminiMemoryMaxContextLength = Number(process.env.GEMINI_MEMORY_MAX_CONTEX
 const geminiImageMaxBytes = Number(process.env.GEMINI_IMAGE_MAX_BYTES) || 8 * 1024 * 1024;
 const minomuncherReplayMaxBytes = Number(process.env.MINOMUNCHER_REPLAY_MAX_BYTES) || 25 * 1024 * 1024;
 const deleteMessagesLookbackMs = 14 * 24 * 60 * 60 * 1000;
-const vmStatusChannelId = process.env.VM_STATUS_CHANNEL_ID?.trim() ?? '';
+const defaultVmStatusChannelId = '1511529579779588126';
+const vmStatusChannelId = process.env.VM_STATUS_CHANNEL_ID?.trim() || defaultVmStatusChannelId;
 const vmStatusMessageId = process.env.VM_STATUS_MESSAGE_ID?.trim() ?? '';
 const vmStatusIntervalMs = Math.max(5000, Number(process.env.VM_STATUS_INTERVAL_MS) || 5000);
 const guildListRefreshIntervalMs = Math.max(
@@ -5966,6 +5967,11 @@ function startVmStatusUpdater(readyClient) {
 
   stopVmStatusUpdater();
   vmStatusRetryNotBefore = 0;
+  if (!process.env.VM_STATUS_CHANNEL_ID?.trim()) {
+    console.log(
+      `VM status updater is using fallback channel ${vmStatusChannelId} because VM_STATUS_CHANNEL_ID is empty.`
+    );
+  }
   console.log(`VM status updater enabled for channel ${vmStatusChannelId} every ${vmStatusIntervalMs}ms.`);
   void updateVmStatusMessage(readyClient);
   vmStatusTimer = setInterval(() => {
