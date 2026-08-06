@@ -1235,6 +1235,110 @@ async function sendGuildLogMessage(client, content) {
   });
 }
 
+function summarizeGeminiUsageMetadata(usageMetadata) {
+  if (!usageMetadata || typeof usageMetadata !== 'object') {
+    return 'tokens=unknown';
+  }
+
+  const promptTokens = Number(usageMetadata.promptTokenCount);
+  const candidateTokens = Number(usageMetadata.candidatesTokenCount);
+  const totalTokens = Number(usageMetadata.totalTokenCount);
+  const cachedTokens = Number(usageMetadata.cachedContentTokenCount);
+
+  const parts = [];
+  if (Number.isFinite(promptTokens)) {
+    parts.push(`in=${promptTokens}`);
+  }
+  if (Number.isFinite(candidateTokens)) {
+    parts.push(`out=${candidateTokens}`);
+  }
+  if (Number.isFinite(totalTokens)) {
+    parts.push(`total=${totalTokens}`);
+  }
+  if (Number.isFinite(cachedTokens) && cachedTokens > 0) {
+    parts.push(`cached=${cachedTokens}`);
+  }
+
+  return parts.length > 0 ? `tokens(${parts.join('/')})` : 'tokens=unknown';
+}
+
+function extractGeminiQuotaSnapshot(headers) {
+  const headerMap = headers instanceof Headers
+    ? headers
+    : null;
+  if (!headerMap) {
+    return 'quota=unknown';
+  }
+
+  const remaining = getFirstGeminiHeaderValue(headerMap, [
+    'x-ratelimit-remaining',
+    'x-goog-ratelimit-remaining',
+    'x-goog-quota-remaining',
+    'ratelimit-remaining',
+  ]);
+  const limit = getFirstGeminiHeaderValue(headerMap, [
+    'x-ratelimit-limit',
+    'x-goog-ratelimit-limit',
+    'x-goog-quota-limit',
+    'ratelimit-limit',
+  ]);
+  const reset = getFirstGeminiHeaderValue(headerMap, [
+    'x-ratelimit-reset',
+    'x-goog-ratelimit-reset',
+    'ratelimit-reset',
+    'retry-after',
+  ]);
+
+  if (!remaining && !limit && !reset) {
+    return 'quota=unknown';
+  }
+
+  const parts = [];
+  if (remaining || limit) {
+    parts.push(`quota=${remaining || '?'}${limit ? `/${limit}` : ''}`);
+  } else {
+    parts.push('quota=unknown');
+  }
+  if (reset) {
+    parts.push(`reset=${reset}`);
+  }
+
+  return parts.join(' ');
+}
+
+function getFirstGeminiHeaderValue(headers, names) {
+  for (const name of names) {
+    const value = headers.get(name);
+    if (value) {
+      return String(value).trim();
+    }
+  }
+  return '';
+}
+
+async function sendGeminiChatUsageLog(message, answerResult, options = {}) {
+  if (!message?.client) {
+    return;
+  }
+
+  const requestMeta = answerResult?.requestMeta ?? null;
+  const model = requestMeta?.model || 'unknown';
+  const mode = options.hasImages ? 'vision' : 'text';
+  const quotaSnapshot = extractGeminiQuotaSnapshot(requestMeta?.headers);
+  const tokenSummary = summarizeGeminiUsageMetadata(requestMeta?.usageMetadata);
+  const statusSummary = requestMeta?.attempt
+    ? `attempt=${requestMeta.attempt}/${geminiMaxAttemptsPerModel}`
+    : 'attempt=?';
+  const sourceSummary = options.source ? `source=${options.source}` : 'source=chat';
+  const locationSummary = message.guildId ? `guild=${message.guildId}` : 'guild=dm';
+  const channelSummary = message.channelId ? `channel=${message.channelId}` : 'channel=unknown';
+
+  await sendGuildLogMessage(
+    message.client,
+    `[Gemini chat] mode=${mode} model=${model} ${statusSummary} ${tokenSummary} ${quotaSnapshot} ${sourceSummary} ${locationSummary} ${channelSummary}`
+  );
+}
+
 async function updateGuildListMessage(client, reason = 'unknown') {
   const state = await readGuildListState();
   const channel = await fetchTextChannel(client, GUILD_LIST_CHANNEL_ID, 'GUILD LIST');
@@ -7938,6 +8042,10 @@ const chessAnalysis =
       // 여기 추가: 이미지도 같이 넘김
       imageParts,
     });
+    await sendGeminiChatUsageLog(message, answerResult, {
+      hasImages: imageParts.length > 0,
+      source: shouldSearchPreviousWebContext ? 'web-followup-chat' : 'chat',
+    });
     const answer = answerResult.answer;
     const replyFiles = getGeminiEmotionReplyFiles(answerResult.emotion);
     const permanentMemoryAttribution = formatPermanentMemoryAttribution(
@@ -8704,6 +8812,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
   if (text) {
     const parsedAnswer = parseGeminiAnswerPayload(text);
     const guardedText = parsedAnswer.answer || text;
+    const requestMeta = response._requestMeta ?? null;
     const responseGuard = classifyPromptControlResponse(guardedText, {
       promptRiskScore: promptControl?.score ?? 0,
     });
@@ -8714,6 +8823,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
       return {
         answer: '그런 요청은 들어줄 수 없다냥. 질문이 있으면 그냥 물어봐달라냥.',
         emotion: 'neutral',
+        requestMeta,
         usedPermanentMemoryIds: [],
       };
     }
@@ -8735,6 +8845,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     return {
       answer,
       emotion: parsedAnswer.emotion,
+      requestMeta,
       usedPermanentMemoryIds,
     };
   }
@@ -8745,6 +8856,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     return {
       answer: `안전 필터 때문에 답변하지 못했다냥. (${blockReason})`,
       emotion: 'neutral',
+      requestMeta: response._requestMeta ?? null,
       usedPermanentMemoryIds: [],
     };
   }
@@ -8753,6 +8865,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
   return {
     answer: '답변을 만들지 못했다냥.',
     emotion: 'neutral',
+    requestMeta: response?._requestMeta ?? null,
     usedPermanentMemoryIds: [],
   };
 }
@@ -9524,6 +9637,12 @@ async function fetchGeminiGenerateContent(payload, options = {}) {
           logGeminiTiming(
             `request success model=${modelName} ${keyLabel} attempt=${attempt}/${geminiMaxAttemptsPerModel} duration=${Date.now() - requestStartedAt}ms`
           );
+          response._requestMeta = {
+            ...(response._requestMeta ?? {}),
+            model: modelName,
+            keyLabel,
+            attempt,
+          };
           return response;
         } catch (error) {
           lastError = error;
@@ -9603,6 +9722,14 @@ async function requestGeminiGenerateContent(modelName, payload, apiKey) {
       error.model = modelName;
       error.details = body?.error ?? body;
       throw error;
+    }
+
+    if (body && typeof body === 'object') {
+      body._requestMeta = {
+        model: normalizedModelName,
+        headers: response.headers,
+        usageMetadata: body.usageMetadata ?? null,
+      };
     }
 
     return body;
