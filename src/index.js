@@ -3405,6 +3405,44 @@ async function handleChessControlIntent(message, key, chess, existingSession, in
   return false;
 }
 
+function isDiscordMissingReplyReferenceError(error) {
+  const referenceErrors = error?.rawError?.errors?.message_reference;
+  return error?.code === 50035 && Boolean(referenceErrors);
+}
+
+function stripReplyOnlyAllowedMentions(allowedMentions) {
+  if (!allowedMentions || typeof allowedMentions !== 'object') {
+    return allowedMentions;
+  }
+
+  const { repliedUser, ...rest } = allowedMentions;
+  void repliedUser;
+  return rest;
+}
+
+async function sendReplyOrChannelMessage(message, payload, context = '') {
+  try {
+    return await message.reply(payload);
+  } catch (error) {
+    if (!isDiscordMissingReplyReferenceError(error) || !message?.channel || typeof message.channel.send !== 'function') {
+      throw error;
+    }
+
+    const normalizedContext = String(context ?? '').trim();
+    console.warn(
+      `[DISCORD] reply fallback to channel.send${normalizedContext ? ` context=${normalizedContext}` : ''}:`,
+      error?.message ?? error
+    );
+
+    const fallbackPayload = {
+      ...payload,
+      allowedMentions: stripReplyOnlyAllowedMentions(payload?.allowedMentions),
+    };
+
+    return message.channel.send(fallbackPayload);
+  }
+}
+
 async function createPendingChessStartChoice(message, key) {
   const startedAtMs = Date.now();
   chessPlaySessions.set(key, {
@@ -7740,19 +7778,19 @@ if (directEmojiDetails.matchedTextCount > 0) {
   if (!isInternalPrompt) {
     promptControl = classifyPromptControlAttempt(rawPrompt);
     if (promptControl.blocked) {
-      await message.reply({
+      await sendReplyOrChannelMessage(message, {
         content: '그런 요청은 들어줄 수 없다냥. 질문이 있으면 그냥 물어봐달라냥.',
         allowedMentions: { parse: [], repliedUser: false },
-      });
+      }, 'handleGeminiFallbackMessage:prompt-control');
       return true;
     }
 
     const promptSecurity = analyzePromptSecurity(rawPrompt);
     if (!promptSecurity.sanitizedText || promptSecurity.shouldBlock) {
-      await message.reply({
+      await sendReplyOrChannelMessage(message, {
         content: '그런 요청은 들어줄 수 없다냥. 질문이 있으면 그냥 물어봐달라냥.',
         allowedMentions: { parse: [], repliedUser: false },
-      });
+      }, 'handleGeminiFallbackMessage:prompt-security');
       return true;
     }
 
@@ -7777,18 +7815,18 @@ if (directEmojiDetails.matchedTextCount > 0) {
   }
 
   if (isUnsupportedEmojiPrompt(rawPrompt)) {
-    await message.reply({
+    await sendReplyOrChannelMessage(message, {
       content: '먀... 다시 말해줄 수 있냥?',
       allowedMentions: { parse: [], repliedUser: false },
-    });
+    }, 'handleGeminiFallbackMessage:unsupported-emoji');
     return true;
   }
 
   if (geminiApiKeys.length === 0) {
-    await message.reply({
+    await sendReplyOrChannelMessage(message, {
       content: 'Gemma API 키가 설정되어 있지 않다냥. `.env`에 `GEMINI_API_KEYS` 또는 `GEMINI_API_KEY`를 추가해달라냥.',
       allowedMentions: { parse: [], repliedUser: false },
-    });
+    }, 'handleGeminiFallbackMessage:missing-api-key');
     return true;
   }
 
@@ -7919,10 +7957,10 @@ const chessAnalysis =
         const chunks = chunkDiscordMessage(stockfishReply);
         const [firstChunk, ...remainingChunks] = chunks;
 
-        await message.reply({
+        await sendReplyOrChannelMessage(message, {
           content: firstChunk,
           allowedMentions: { parse: [], repliedUser: false },
-        });
+        }, 'handleGeminiFallbackMessage:recent-chess-context');
 
         for (const chunk of remainingChunks) {
           await message.channel.send({
@@ -7979,20 +8017,20 @@ const chessAnalysis =
     }));
 
     if (shouldRestrictToWikiSources && (!Array.isArray(wikiSearchData?.results) || wikiSearchData.results.length === 0)) {
-      await message.reply({
+      await sendReplyOrChannelMessage(message, {
         content: '푝무위키에서 해당 내용을 찾지 못했다냥.',
         allowedMentions: { parse: [], repliedUser: false },
-      });
+      }, 'handleGeminiFallbackMessage:wiki-empty');
       return true;
     }
 
     if (shouldRestrictToWikiSources && isWikiLinkRequest) {
       const wikiUrls = extractPyhokWikiRelevantUrls(wikiSearchData?.results, rawPrompt);
       if (wikiUrls.length === 0) {
-        await message.reply({
+        await sendReplyOrChannelMessage(message, {
           content: '푝무위키 검색 결과 안에서는 요청한 링크나 주소를 찾지 못했다냥.',
           allowedMentions: { parse: [], repliedUser: false },
-        });
+        }, 'handleGeminiFallbackMessage:wiki-link-empty');
         return true;
       }
 
@@ -8002,10 +8040,10 @@ const chessAnalysis =
             '푝무위키 검색 결과에서 찾은 링크들이다냥.',
             ...wikiUrls.slice(0, 5).map((url) => `- ${url}`),
           ];
-      await message.reply({
+      await sendReplyOrChannelMessage(message, {
         content: replyLines.join('\n'),
         allowedMentions: { parse: [], repliedUser: false },
-      });
+      }, 'handleGeminiFallbackMessage:wiki-links');
       return true;
     }
 
@@ -8018,13 +8056,13 @@ const chessAnalysis =
       || (isChessPrompt && Array.isArray(webSearchData?.results) && webSearchData.results.length > 0);
 
     if ((isChessPrompt || requireStockfishForChess) && !hasChessGrounding) {
-      await message.reply({
+      await sendReplyOrChannelMessage(message, {
         content: createUngroundedChessReply({
           needsBoardEvidence: requireStockfishForChess,
           webSearchAttempted: shouldForceChessWebSearch,
         }),
         allowedMentions: { parse: [], repliedUser: false },
-      });
+      }, 'handleGeminiFallbackMessage:ungrounded-chess');
       return true;
     }
 
@@ -8112,11 +8150,11 @@ const chessAnalysis =
     );
     const [firstChunk, ...remainingChunks] = chunks;
 
-    await message.reply({
+    await sendReplyOrChannelMessage(message, {
       content: firstChunk,
       ...(replyFiles.length > 0 ? { files: replyFiles } : {}),
       allowedMentions: { parse: [], repliedUser: false },
-    });
+    }, 'handleGeminiFallbackMessage:answer');
 
     for (const chunk of remainingChunks) {
       await message.channel.send({
@@ -8128,10 +8166,10 @@ const chessAnalysis =
     console.error('Failed to generate Gemini fallback response:');
     console.error(error);
 
-    await message.reply({
+    await sendReplyOrChannelMessage(message, {
       content: getGeminiUserErrorMessage(error),
       allowedMentions: { parse: [], repliedUser: false },
-    });
+    }, 'handleGeminiFallbackMessage:error');
   }
 
   return true;
@@ -8141,10 +8179,10 @@ async function handleWebSearchMessage(message, input) {
   try {
     const promptSecurity = analyzePromptSecurity(String(input ?? '').trim());
     if (!promptSecurity.sanitizedText || promptSecurity.shouldBlock) {
-      await message.reply({
+      await sendReplyOrChannelMessage(message, {
         content: '그런 요청은 들어줄 수 없다냥. 검색할 내용을 그냥 적어주면 된다냥.',
         allowedMentions: { parse: [], repliedUser: false },
-      });
+      }, 'handleWebSearchMessage:prompt-security');
       return;
     }
 
@@ -8178,11 +8216,11 @@ async function handleWebSearchMessage(message, input) {
     const [firstChunk, ...remainingChunks] = chunks;
     const replyFiles = getGeminiEmotionReplyFiles(response.emotion);
 
-    await message.reply({
+    await sendReplyOrChannelMessage(message, {
       content: firstChunk,
       ...(replyFiles.length > 0 ? { files: replyFiles } : {}),
       allowedMentions: { parse: [], repliedUser: false },
-    });
+    }, 'handleWebSearchMessage:answer');
 
     for (const chunk of remainingChunks) {
       await message.channel.send({
@@ -8193,10 +8231,10 @@ async function handleWebSearchMessage(message, input) {
   } catch (error) {
     console.error(`Failed to handle web search message ${JSON.stringify(input)}:`);
     console.error(error);
-    await message.reply({
+    await sendReplyOrChannelMessage(message, {
       content: '웹 검색을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.',
       allowedMentions: { parse: [], repliedUser: false },
-    });
+    }, 'handleWebSearchMessage:error');
   }
 }
 
