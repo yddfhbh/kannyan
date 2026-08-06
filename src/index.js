@@ -247,16 +247,30 @@ const chessComBaseUrl = 'https://api.chess.com/pub/player';
 const lichessBaseUrl = 'https://lichess.org/api/user';
 const liveRatingsBaseUrl = 'https://2700chess.live';
 const geminiApiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
-const geminiModel = process.env.GEMMA_MODEL?.trim() || process.env.GEMINI_MODEL?.trim() || 'gemma-4-26b-a4b-it';
-const geminiFallbackModels = parseCommaSeparatedValues(process.env.GEMMA_FALLBACK_MODELS ?? process.env.GEMINI_FALLBACK_MODELS)
-  ?? ['gemma-4-31b-it'];
+const geminiModel = getPreferredEnvValue(['GEMINI_MODEL', 'GEMMA_MODEL']) || 'gemini-3.6-flash';
+const geminiFallbackModels = getEnvModelList(
+  ['GEMINI_FALLBACK_MODELS', 'GEMMA_FALLBACK_MODELS'],
+  [
+    'gemini-3.5-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-2.5-flash',
+    'gemma-4-26b-a4b-it',
+    'gemma-4-31b-it',
+  ]
+);
 const geminiModels = getUniqueValues([geminiModel, ...geminiFallbackModels]);
-const geminiVisionModel =
-  process.env.GEMINI_VISION_MODEL?.trim() || 'gemini-2.5-flash-lite';
-
-const geminiVisionFallbackModels =
-  parseCommaSeparatedValues(process.env.GEMINI_VISION_FALLBACK_MODELS)
-  ?? ['gemini-2.5-flash'];
+const geminiVisionModel = getPreferredEnvValue(['GEMINI_VISION_MODEL']) || 'gemini-flash-latest';
+const geminiVisionFallbackModels = getEnvModelList(
+  ['GEMINI_VISION_FALLBACK_MODELS'],
+  [
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-2.5-flash',
+  ]
+);
 
 const geminiVisionModels = getUniqueValues([
   geminiVisionModel,
@@ -8577,6 +8591,33 @@ function parseCommaSeparatedValues(value) {
     .filter(Boolean);
 
   return values.length > 0 ? values : null;
+}
+
+function getPreferredEnvValue(keys) {
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
+      continue;
+    }
+
+    const value = process.env[key]?.trim();
+    if (value) {
+      return value;
+    }
+  }
+
+  return '';
+}
+
+function getEnvModelList(keys, fallback = []) {
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
+      continue;
+    }
+
+    return parseCommaSeparatedValues(process.env[key]) ?? [];
+  }
+
+  return [...fallback];
 }
 
 function getUniqueValues(values) {

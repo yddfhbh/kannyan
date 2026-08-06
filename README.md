@@ -53,8 +53,10 @@ DISCORD_TOKEN=your_bot_token_here
 CLIENT_ID=your_application_client_id_here
 
 GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL=gemma-4-26b-a4b-it
-GEMINI_FALLBACK_MODELS=gemma-4-31b-it
+GEMINI_MODEL=gemini-3.6-flash
+GEMINI_FALLBACK_MODELS=gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-2.5-flash,gemma-4-26b-a4b-it,gemma-4-31b-it
+GEMINI_VISION_MODEL=gemini-flash-latest
+GEMINI_VISION_FALLBACK_MODELS=gemini-3.6-flash,gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-2.5-flash
 
 GUILD_ID=
 PORT=8080
@@ -69,10 +71,10 @@ PORT=8080
 | `GEMINI_API_KEY` | `%질문` 채팅에 사용할 API 키입니다. |
 | `GEMINI_API_KEYS` | 여러 API 키를 쉼표로 넣을 수 있습니다. |
 | `GEMMA_API_KEY`, `GEMMA_API_KEYS` | `GEMINI_*`와 같은 용도의 별칭입니다. |
-| `GEMINI_MODEL`, `GEMMA_MODEL` | 기본 텍스트 모델입니다. 코드 기본값은 `gemma-4-26b-a4b-it`입니다. |
-| `GEMINI_FALLBACK_MODELS`, `GEMMA_FALLBACK_MODELS` | 기본 모델 실패 시 순서대로 시도할 모델 목록입니다. |
-| `GEMINI_VISION_MODEL` | 이미지 첨부가 있을 때 사용할 모델입니다. 기본값은 `gemini-2.5-flash-lite`입니다. |
-| `GEMINI_VISION_FALLBACK_MODELS` | 이미지 처리용 fallback 모델 목록입니다. |
+| `GEMINI_MODEL`, `GEMMA_MODEL` | 기본 텍스트 모델입니다. 코드 기본값은 `gemini-3.6-flash`입니다. `GEMINI_MODEL`이 우선입니다. |
+| `GEMINI_FALLBACK_MODELS`, `GEMMA_FALLBACK_MODELS` | 기본 텍스트 모델 실패 시 순서대로 시도할 fallback 목록입니다. 기본값은 `gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-2.5-flash,gemma-4-26b-a4b-it,gemma-4-31b-it`입니다. `GEMINI_FALLBACK_MODELS`가 우선입니다. 값을 빈 문자열로 두면 fallback을 끕니다. |
+| `GEMINI_VISION_MODEL` | 이미지 첨부가 있을 때 사용할 기본 모델입니다. 기본값은 `gemini-flash-latest`입니다. |
+| `GEMINI_VISION_FALLBACK_MODELS` | 이미지 처리용 fallback 모델 목록입니다. 기본값은 `gemini-3.6-flash,gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-2.5-flash`입니다. 값을 빈 문자열로 두면 fallback을 끕니다. |
 | `GEMINI_TIMEOUT_MS` | Gemini/Gemma 요청 타임아웃입니다. 기본값은 `20000`입니다. |
 | `GEMINI_MAX_OUTPUT_TOKENS` | 모델 답변 최대 토큰 수입니다. 기본값은 `1024`입니다. |
 | `GEMINI_MAX_ATTEMPTS_PER_MODEL` | 모델별 재시도 횟수입니다. 기본값은 `3`입니다. |
