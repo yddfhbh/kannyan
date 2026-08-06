@@ -7601,7 +7601,9 @@ function parseJsonObjectText(text) {
 
 function getGeminiEmotionReplyFiles(emotion) {
   const assetPath = getGeminiEmotionAssetPath(emotion);
-  return assetPath ? [assetPath] : [];
+  return assetPath
+    ? [new AttachmentBuilder(assetPath, { name: path.basename(assetPath) })]
+    : [];
 }
 
 function buildPercentOnlyStickerPrompt(message, referencedMessages = []) {
