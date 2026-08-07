@@ -1,8 +1,21 @@
 const imageGenerationRequestPattern =
-  /^(?<prompt>[\s\S]*?)\s*(?:(?:그려(?:줘(?:요)?|주(?:세(?:요)?)?)?|그림(?:을|으로)?\s*(?:만들어|그려)?\s*(?:줘(?:요)?|주(?:세(?:요)?)?)?|이미지(?:로|를)?\s*(?:만들어|생성해)?\s*(?:줘(?:요)?|주(?:세(?:요)?)?)?))\s*[.!?~ㅋㅎ\-]*$/u;
+  /^(?<prompt>[\s\S]*?)\s*(?:그려(?:줘|주라|줄래|주세요)?|그림(?:으로)?\s*(?:만들어|생성해)?(?:줘|주라|줄래|주세요)?|이미지(?:로)?\s*(?:만들어|생성해)?(?:줘|주라|줄래|주세요)?|이미지\s*생성(?:해)?(?:줘|해줘)?|그림\s*생성(?:해)?(?:줘|해줘)?)\s*[.!?~\-_]*$/u;
 
 const vagueImagePromptPattern =
-  /^(?:이거|그거|저거|이걸|그걸|저걸|이거로|그거로|저거로|이렇게|그렇게|저렇게|그림|이미지|짤)$/u;
+  /^(?:그거|그걸|그거로|그걸로|이거|이걸|이거로|이걸로|저거|저걸|저거로|저걸로|이렇게|저렇게|그렇게|그림|이미지|사진)$/u;
+
+const imagePromptContextLabelPatterns = [
+  /\[현재 질문\]\s*([\s\S]+)$/u,
+  /\[현재 요청\]\s*([\s\S]+)$/u,
+  /현재 요청:\s*([\s\S]+)$/u,
+  /\[latest request\]\s*([\s\S]+)$/iu,
+];
+
+const imagePromptNoisePattern =
+  /(?:ㅋㅋ+|ㅎㅎ+|하하+|헤헤+|호호+|lol+|lmao+|pls|please)/giu;
+
+const imagePromptFillerPattern =
+  /(?:그냥|바로|좀만|조금만|좀|제발|알아서|대충|일단|이제|이번엔|바로바로|그거|그걸로|그거로|이거|이걸로|이거로|이렇게|저렇게|그렇게|그려|그림|이미지|사진|생성|만들어|해줘|해주라|해줘봐|부탁|물어보지\s*말고|묻지\s*말고|말고|그대로|곧바로|냅다)/gu;
 
 function normalizeImageGenerationText(value) {
   return String(value ?? '').trim();
@@ -15,6 +28,54 @@ function truncateImageGenerationText(value, maxLength) {
   }
 
   return `${text.slice(0, Math.max(0, maxLength - 20)).trim()}... [truncated]`;
+}
+
+function extractStructuredImagePromptCandidate(value) {
+  const text = normalizeImageGenerationText(value);
+  if (!text) {
+    return '';
+  }
+
+  for (const pattern of imagePromptContextLabelPatterns) {
+    const match = text.match(pattern);
+    if (match?.[1]) {
+      return normalizeImageGenerationText(match[1]);
+    }
+  }
+
+  return text;
+}
+
+function isMeaningfulImagePromptText(value) {
+  const text = normalizeImageGenerationText(value);
+  if (!text) {
+    return false;
+  }
+
+  if (vagueImagePromptPattern.test(text) || text.length === 1) {
+    return false;
+  }
+
+  const deNoised = text
+    .replace(imagePromptNoisePattern, ' ')
+    .replace(imagePromptFillerPattern, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, '');
+
+  return deNoised.length >= 2;
+}
+
+function extractMeaningfulImagePromptCandidate(value) {
+  const structuredCandidate = extractStructuredImagePromptCandidate(value);
+  if (!structuredCandidate) {
+    return '';
+  }
+
+  const extractedPrompt = extractImageGenerationPromptText(structuredCandidate);
+  const candidate = extractedPrompt === null
+    ? structuredCandidate.replace(/^%+/, '').trim()
+    : extractedPrompt;
+
+  return isMeaningfulImagePromptText(candidate) ? candidate : '';
 }
 
 export function extractImageGenerationPromptText(content) {
@@ -62,7 +123,7 @@ export function shouldClarifyImageGenerationPrompt(prompt, options = {}) {
   const hasContext = Boolean(replyContext) || history.length > 0;
 
   if (!text) {
-    return true;
+    return !hasContext;
   }
 
   if (vagueImagePromptPattern.test(text)) {
@@ -74,6 +135,34 @@ export function shouldClarifyImageGenerationPrompt(prompt, options = {}) {
   }
 
   return false;
+}
+
+export function inferImageGenerationPromptFromContext(prompt, options = {}) {
+  if (isMeaningfulImagePromptText(prompt)) {
+    return normalizeImageGenerationText(prompt);
+  }
+
+  const replyCandidate = extractMeaningfulImagePromptCandidate(options.replyContext);
+  if (replyCandidate) {
+    return replyCandidate;
+  }
+
+  const history = Array.isArray(options.history)
+    ? [...options.history].reverse()
+    : [];
+
+  for (const entry of history) {
+    if (entry?.role === 'model') {
+      continue;
+    }
+
+    const candidate = extractMeaningfulImagePromptCandidate(entry?.text);
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  return '';
 }
 
 export function buildImageGenerationPrompt(prompt, options = {}) {

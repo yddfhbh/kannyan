@@ -200,6 +200,7 @@ import { isLikelyContextDependentPrompt } from './gemini-followup.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
 import {
   buildImageGenerationPrompt,
+  inferImageGenerationPromptFromContext,
   parseImageGenerationRequest,
   shouldClarifyImageGenerationPrompt,
 } from './image-generation-request.js';
@@ -688,8 +689,12 @@ async function handleImageGenerationMessage(message, rawPrompt) {
     message,
     referencedMessages[0] ?? null
   );
+  const resolvedPrompt = inferImageGenerationPromptFromContext(prompt, {
+    replyContext: replyContext?.text ?? '',
+    history,
+  });
 
-  if (!prompt) {
+  if (!resolvedPrompt) {
     await message.reply({
       content:
         '뭘 그릴지도 같이 말해달라냥. '
@@ -699,7 +704,7 @@ async function handleImageGenerationMessage(message, rawPrompt) {
     return;
   }
 
-  if (shouldClarifyImageGenerationPrompt(prompt, {
+  if (shouldClarifyImageGenerationPrompt(resolvedPrompt, {
     replyContext: replyContext?.text ?? '',
     history,
   })) {
@@ -721,17 +726,17 @@ async function handleImageGenerationMessage(message, rawPrompt) {
   try {
     await message.channel.sendTyping();
 
-    const composedPrompt = buildImageGenerationPrompt(prompt, {
+    const composedPrompt = buildImageGenerationPrompt(resolvedPrompt, {
       replyContext: replyContext?.text ?? '',
       history,
     });
-    const resolvedPrompt = await rewriteImageGenerationPromptWithGemini(prompt, {
+    const rewrittenPrompt = await rewriteImageGenerationPromptWithGemini(resolvedPrompt, {
       replyContext: replyContext?.text ?? '',
       history,
       fallbackPrompt: composedPrompt,
     });
     const { buffer, contentType } =
-      await generateCloudflareImage(resolvedPrompt);
+      await generateCloudflareImage(rewrittenPrompt);
 
     const extension =
       contentType.includes('png') ? 'png' : 'jpg';
@@ -750,14 +755,14 @@ async function handleImageGenerationMessage(message, rawPrompt) {
       role: 'user',
       authorName: getMessageAuthorName(message),
       text: replyContext?.text
-        ? `[이미지 생성 요청]\n답장 원본: ${replyContext.authorName}\n${replyContext.text}\n\n현재 요청: ${prompt}`
-        : `[이미지 생성 요청] ${prompt}`,
+        ? `[이미지 생성 요청]\n답장 원본: ${replyContext.authorName}\n${replyContext.text}\n\n현재 요청: ${resolvedPrompt}`
+        : `[이미지 생성 요청] ${resolvedPrompt}`,
       timestamp: Date.now(),
     });
     appendGeminiMemoryEntry(sessionKey, {
       role: 'model',
       authorName: message.client.user?.username ?? 'Bot',
-      text: `[이미지 생성 완료]\n요청: ${prompt}\n생성 프롬프트: ${resolvedPrompt}`,
+      text: `[이미지 생성 완료]\n요청: ${resolvedPrompt}\n생성 프롬프트: ${rewrittenPrompt}`,
       timestamp: Date.now(),
     });
     await saveGeminiMemory();
