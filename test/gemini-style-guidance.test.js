@@ -27,6 +27,8 @@ test('current user prompt section reinforces list-friendly Discord formatting fo
   assert.match(section, /깐냥의 기본 정체성과 자연스러운 냥체를 유지한 상태로 결합/);
   assert.match(section, /관찰형 설명에서는 “~해 보여냥”, “~같아냥”, “~네냥”을 우선하고 “~구나냥”은 꼭 어울릴 때만 쓴다/);
   assert.match(section, /정리, 비교, 요약을 원하면 디스코드에서 읽기 쉽게 줄바꿈과 목록을 적극 활용/);
+  assert.match(section, /사실 확인이 필요한 질문은 기억만 믿고 지어내지 말고, 가능하면 검색이나 참고 결과 확인을 먼저 우선한다/);
+  assert.match(section, /검색이나 참고 결과가 없어서 확신할 수 없으면 추측 대신 확인되지 않았다고 분명히 말한다/);
   assert.match(section, /환율, 주가, 코인 가격처럼 시점이 중요한 가격 정보는 사용자가 날짜를 따로 지정하지 않았다면 최신 기준으로 해석/);
   assert.match(section, /기준 시점이나 검색 시점을 함께 밝혀 혼동을 줄인다/);
   assert.match(section, /\[현재 사용자 질문\]\n파이호크 생애를 시기별로 정리해줘/);

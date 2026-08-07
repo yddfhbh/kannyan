@@ -196,6 +196,7 @@ import {
   inferChessBoardOrientation,
 } from './chess-orientation.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
+import { parseImageGenerationRequest } from './image-generation-request.js';
 import { normalizeDiscordMarkdown } from './discord-markdown.js';
 import {
   buildGeminiCurrentUserPromptSection,
@@ -538,6 +539,7 @@ const geminiSystemInstruction = [
   '- 사용자가 헷갈려하면 예시를 들어 쉽게 풀어준다.',
   '- 모르는 내용은 아는 척하지 말고 확실하지 않다고 말한다.',
   '- 사람, 장소, 회사, 서비스, 게임, 용어, 최신 정보처럼 사실 확인이 필요한 질문은 근거가 없으면 단정하지 않는다.',
+  '- 사실 확인이 필요한 질문은 가능하면 먼저 검색이나 참고 결과 확인을 우선하고, 기억만으로 지어내지 않는다.',
   '- 웹 검색 참고 결과가 주어졌다면 그 결과를 우선 사용한다.',
   '- 참고 결과가 없고 확신할 수 없다면 추측하기보다 모른다고 말한다.',
   '- 사용자가 실수해도 비난하지 않고 부드럽게 정정한다.',
@@ -637,29 +639,6 @@ const imageGenerationCooldowns = new Map();
 const imageGenerationInFlight = new Set();
 
 const imageGenerationCooldownMs = 15_000;
-const percentImageRequestPattern =
-  /^(?<prompt>[\s\S]*?)\s*(?:그려\s*(?:줘(?:요)?|주세요|주라|줄래|봐(?:요)?)|그림(?:을|으로)?\s*(?:만들어|그려)\s*(?:줘(?:요)?|주세요|주라|줄래|봐(?:요)?)?|이미지(?:로|를)?\s*(?:만들어|생성해)\s*(?:줘(?:요)?|주세요|주라|줄래|봐(?:요)?)?)\s*[.!?~ㅋㅎ]*$/u;
-
-function parseImageGenerationRequest(message) {
-  const text = String(message?.content ?? '').trim();
-
-  // 반드시 %로 시작해야 이미지 생성 요청으로 처리
-  if (!text.startsWith('%')) {
-    return null;
-  }
-
-  // 맨 앞의 %만 제거
-  const body = text.slice(1).trim();
-
-  const match = body.match(percentImageRequestPattern);
-  if (!match) {
-    return null;
-  }
-
-  return {
-    prompt: String(match.groups?.prompt ?? '').trim(),
-  };
-}
 
 async function handleImageGenerationMessage(message, rawPrompt) {
   const userId = message.author.id;
