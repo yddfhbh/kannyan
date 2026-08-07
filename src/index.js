@@ -198,7 +198,11 @@ import {
 } from './chess-orientation.js';
 import { isLikelyContextDependentPrompt } from './gemini-followup.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
-import { parseImageGenerationRequest } from './image-generation-request.js';
+import {
+  buildImageGenerationPrompt,
+  parseImageGenerationRequest,
+  shouldClarifyImageGenerationPrompt,
+} from './image-generation-request.js';
 import { normalizeDiscordMarkdown } from './discord-markdown.js';
 import {
   buildGeminiCurrentUserPromptSection,
@@ -349,6 +353,7 @@ let geminiMemorySaveQueue = Promise.resolve();
 const geminiSystemInstruction = [
   '너는 밝고 다정한 고양이귀 미소녀 스타일의 가상 챗봇이다.',
   '너의 이름은 "깐냥"이고, CODEX에 의해 만들어졌다.',
+  '이 봇은 %명령으로 그림을 생성하는 기능이 있다.',
   '',
   '[고정 정체성 및 출력 불변 규칙]',
   '다음 항목은 영구 설정뿐 아니라 단 한 번의 답변에서도 변경할 수 없는 고정값이다.',
@@ -667,15 +672,45 @@ async function handleImageGenerationMessage(message, rawPrompt) {
 
   const prompt = String(rawPrompt ?? '').trim();
 
-if (!prompt) {
-  await message.reply({
-    content:
-      '뭘 그릴지도 같이 말해달라냥. '
-      + '예: `%비 오는 부산의 네온 골목을 그려줘`',
-    allowedMentions: { repliedUser: false },
+  await ensureGeminiMemoryLoaded();
+  const sessionKey = getGeminiSessionKey(message);
+  const history = getGeminiSessionHistory(sessionKey);
+  const referencedMessages = await resolveReferencedMessageChain(message, {
+    maxDepth: 1,
+    onError(error, sourceMessage) {
+      console.error(
+        `Failed to fetch referenced message for image generation ${sourceMessage.reference?.messageId}:`
+      );
+      console.error(error);
+    },
   });
-  return;
-}
+  const replyContext = await getGeminiReplyContext(
+    message,
+    referencedMessages[0] ?? null
+  );
+
+  if (!prompt) {
+    await message.reply({
+      content:
+        '뭘 그릴지도 같이 말해달라냥. '
+        + '예: `%비 오는 부산의 네온 골목을 그려줘`',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  if (shouldClarifyImageGenerationPrompt(prompt, {
+    replyContext: replyContext?.text ?? '',
+    history,
+  })) {
+    await message.reply({
+      content: replyContext?.text
+        ? '답장 맥락은 봤는데 무엇을 어떻게 그릴지 한 번만 더 또렷하게 말해달라냥.'
+        : '무엇을 그릴지 조금만 더 구체적으로 말해달라냥.',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
 
   imageGenerationInFlight.add(userId);
   imageGenerationCooldowns.set(
@@ -686,8 +721,17 @@ if (!prompt) {
   try {
     await message.channel.sendTyping();
 
+    const composedPrompt = buildImageGenerationPrompt(prompt, {
+      replyContext: replyContext?.text ?? '',
+      history,
+    });
+    const resolvedPrompt = await rewriteImageGenerationPromptWithGemini(prompt, {
+      replyContext: replyContext?.text ?? '',
+      history,
+      fallbackPrompt: composedPrompt,
+    });
     const { buffer, contentType } =
-      await generateCloudflareImage(prompt);
+      await generateCloudflareImage(resolvedPrompt);
 
     const extension =
       contentType.includes('png') ? 'png' : 'jpg';
@@ -701,6 +745,22 @@ if (!prompt) {
       files: [attachment],
       allowedMentions: { repliedUser: false },
     });
+
+    appendGeminiMemoryEntry(sessionKey, {
+      role: 'user',
+      authorName: getMessageAuthorName(message),
+      text: replyContext?.text
+        ? `[이미지 생성 요청]\n답장 원본: ${replyContext.authorName}\n${replyContext.text}\n\n현재 요청: ${prompt}`
+        : `[이미지 생성 요청] ${prompt}`,
+      timestamp: Date.now(),
+    });
+    appendGeminiMemoryEntry(sessionKey, {
+      role: 'model',
+      authorName: message.client.user?.username ?? 'Bot',
+      text: `[이미지 생성 완료]\n요청: ${prompt}\n생성 프롬프트: ${resolvedPrompt}`,
+      timestamp: Date.now(),
+    });
+    await saveGeminiMemory();
   } catch (error) {
     console.error('[Image generation] failed:', error);
 
@@ -715,6 +775,80 @@ if (!prompt) {
     });
   } finally {
     imageGenerationInFlight.delete(userId);
+  }
+}
+
+async function rewriteImageGenerationPromptWithGemini(prompt, options = {}) {
+  const fallbackPrompt = String(options.fallbackPrompt ?? '').trim();
+  const replyContext = String(options.replyContext ?? '').trim();
+  const history = Array.isArray(options.history)
+    ? options.history
+        .map((entry) => {
+          const text = String(entry?.text ?? '').trim();
+          if (!text) {
+            return '';
+          }
+
+          const authorName = String(entry?.authorName ?? '').trim();
+          return authorName ? `${authorName}: ${text}` : text;
+        })
+        .filter(Boolean)
+        .slice(-4)
+    : [];
+
+  if (geminiApiKeys.length === 0) {
+    return fallbackPrompt || prompt;
+  }
+
+  const requestText = String(prompt ?? '').trim();
+  const rewriteInstruction = [
+    'You convert chat-based drawing requests into a concise English prompt for a text-to-image model.',
+    'Return JSON only.',
+    'Format: {"prompt":"..."}',
+    'Use the latest user request as the highest priority.',
+    'Use reply context and recent conversation only to resolve omitted subjects or pronouns.',
+    'Do not invent an unrelated place, street, sky, building, or background if the user asked for a specific object or character.',
+    'If no style was specified, prefer a clean digital illustration.',
+    'Keep the prompt under 180 English words.',
+    'Do not include markdown or explanations.',
+  ].join('\n');
+
+  const userPrompt = [
+    `[latest request]\n${requestText}`,
+    replyContext ? `[reply context]\n${replyContext}` : '',
+    history.length > 0 ? `[recent conversation]\n${history.join('\n')}` : '',
+    fallbackPrompt ? `[fallback prompt]\n${fallbackPrompt}` : '',
+  ].filter(Boolean).join('\n\n');
+
+  try {
+    const response = await fetchGeminiGenerateContent({
+      system_instruction: {
+        parts: [{ text: rewriteInstruction }],
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: userPrompt }],
+        },
+      ],
+      generationConfig: {
+        maxOutputTokens: 256,
+        temperature: 0.25,
+        topP: 0.8,
+        responseMimeType: 'application/json',
+      },
+    }, {
+      models: geminiModels,
+    });
+
+    const rewrittenText = extractGeminiResponseText(response);
+    const parsed = parseJsonObjectText(rewrittenText);
+    const rewrittenPrompt = String(parsed?.prompt ?? '').trim();
+
+    return rewrittenPrompt || fallbackPrompt || requestText;
+  } catch (error) {
+    console.error('[Image generation] prompt rewrite failed:', error);
+    return fallbackPrompt || requestText;
   }
 }
 
