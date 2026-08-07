@@ -19,6 +19,7 @@ test('supportedGeminiEmotionLabels exposes the allowed output labels', () => {
 test('normalizeGeminiEmotionLabel maps common aliases into the supported labels', () => {
   assert.equal(normalizeGeminiEmotionLabel('wondering'), 'curious');
   assert.equal(normalizeGeminiEmotionLabel('hyped'), 'excited');
+  assert.equal(normalizeGeminiEmotionLabel('grumpy'), 'bored');
   assert.equal(normalizeGeminiEmotionLabel('ecstatic'), 'very_happy');
   assert.equal(normalizeGeminiEmotionLabel('joyful'), 'happy');
   assert.equal(normalizeGeminiEmotionLabel('frustrated'), 'angry');
@@ -31,6 +32,9 @@ test('normalizeGeminiEmotionLabel maps common aliases into the supported labels'
 test('getGeminiEmotionAssetPath returns the configured local emotion images', () => {
   assert.equal(path.basename(getGeminiEmotionAssetPath('curious')), 'curious.png');
   assert.equal(path.basename(getGeminiEmotionAssetPath('excited')), 'excited.png');
+  assert.equal(path.basename(getGeminiEmotionAssetPath('angry')), 'bored.png');
+  assert.equal(path.basename(getGeminiEmotionAssetPath('confused')), 'bored.png');
+  assert.equal(path.basename(getGeminiEmotionAssetPath('surprised')), 'bored.png');
   assert.equal(path.basename(getGeminiEmotionAssetPath('very_happy')), 'very-happy.png');
   assert.equal(path.basename(getGeminiEmotionAssetPath('happy')), 'happy.png');
   assert.equal(getGeminiEmotionAssetPath('neutral'), null);

@@ -28,6 +28,12 @@ const geminiEmotionAssetPathByLabel = new Map([
   ['happy', path.join(geminiAnswerDirname, '..', 'assets', 'emotions', 'happy.png')],
 ]);
 
+const geminiEmotionAssetAliasByLabel = new Map([
+  ['angry', 'bored'],
+  ['confused', 'bored'],
+  ['surprised', 'bored'],
+]);
+
 const emotionAliasMap = new Map([
   ['curious', 'curious'],
   ['curiosity', 'curious'],
@@ -41,6 +47,10 @@ const emotionAliasMap = new Map([
   ['bored', 'bored'],
   ['boring', 'bored'],
   ['idle', 'bored'],
+  ['grumpy', 'bored'],
+  ['unamused', 'bored'],
+  ['snappy', 'bored'],
+  ['bitey', 'bored'],
   ['very_happy', 'very_happy'],
   ['veryhappy', 'very_happy'],
   ['super_happy', 'very_happy'],
@@ -140,5 +150,12 @@ export function parseGeminiAnswerPayload(text) {
 
 export function getGeminiEmotionAssetPath(emotion) {
   const normalizedEmotion = normalizeGeminiEmotionLabel(emotion);
-  return geminiEmotionAssetPathByLabel.get(normalizedEmotion) ?? null;
+  const assetEmotion =
+    geminiEmotionAssetPathByLabel.has(normalizedEmotion)
+      ? normalizedEmotion
+      : (geminiEmotionAssetAliasByLabel.get(normalizedEmotion) ?? null);
+
+  return assetEmotion
+    ? (geminiEmotionAssetPathByLabel.get(assetEmotion) ?? null)
+    : null;
 }
