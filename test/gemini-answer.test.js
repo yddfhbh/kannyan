@@ -6,6 +6,7 @@ import {
   getGeminiEmotionAssetPath,
   normalizeGeminiEmotionLabel,
   parseGeminiAnswerPayload,
+  shouldAttachGeminiEmotionAsset,
   supportedGeminiEmotionLabels,
 } from '../src/gemini-answer.js';
 
@@ -38,6 +39,42 @@ test('getGeminiEmotionAssetPath returns the configured local emotion images', ()
   assert.equal(path.basename(getGeminiEmotionAssetPath('very_happy')), 'very-happy.png');
   assert.equal(path.basename(getGeminiEmotionAssetPath('happy')), 'happy.png');
   assert.equal(getGeminiEmotionAssetPath('neutral'), null);
+});
+
+test('shouldAttachGeminiEmotionAsset suppresses happy for plain questions and web search replies', () => {
+  assert.equal(
+    shouldAttachGeminiEmotionAsset('happy', {
+      prompt: '파이썬 리스트 정렬 어떻게 해?',
+      source: 'chat',
+    }),
+    false
+  );
+
+  assert.equal(
+    shouldAttachGeminiEmotionAsset('happy', {
+      prompt: '최신 환율 알려줘',
+      source: 'web-search',
+    }),
+    false
+  );
+});
+
+test('shouldAttachGeminiEmotionAsset still allows happy for clearly celebratory prompts', () => {
+  assert.equal(
+    shouldAttachGeminiEmotionAsset('happy', {
+      prompt: '오늘 합격했어 ㅋㅋ 축하해줘!',
+      source: 'chat',
+    }),
+    true
+  );
+
+  assert.equal(
+    shouldAttachGeminiEmotionAsset('curious', {
+      prompt: '파이썬 리스트 정렬 어떻게 해?',
+      source: 'chat',
+    }),
+    true
+  );
 });
 
 test('parseGeminiAnswerPayload reads answer and emotion from gemini json output', () => {

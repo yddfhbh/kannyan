@@ -101,6 +101,13 @@ const emotionAliasMap = new Map([
   ['normal', 'neutral'],
 ]);
 
+const informationalGeminiPromptPattern = /(?:[?？]|\b(?:what|why|how|when|where|who|which|can you|could you|would you|tell me|explain|help|is it|do i|should i|how to)\b|(?:뭐|무엇|왜|어떻게|어디|언제|누구|몇|알려줘|설명해줘|도와줘|추천해줘|가능해|맞아|맞나요|인가요|해줘|해줄래|할 수 있어|할수있어|방법))/i;
+const happyAttachmentPositiveCuePattern = /(?:ㅋㅋ+|ㅎㅎ+|축하|고마워|감사|사랑해|행복해|기뻐|신나|대박|최고야|귀여워|웃겨|재밌어|\b(?:yay|yippee|congrats|congratulations|thank you|thanks|love you)\b)/i;
+
+function normalizeGeminiEmotionContextText(value) {
+  return String(value ?? '').trim();
+}
+
 function parseJsonObjectText(text) {
   const cleaned = String(text ?? '')
     .trim()
@@ -133,6 +140,43 @@ export function normalizeGeminiEmotionLabel(value) {
     .replace(/[\s-]+/g, '_');
 
   return emotionAliasMap.get(normalized) ?? 'neutral';
+}
+
+export function isLikelyInformationalGeminiPrompt(prompt) {
+  const text = normalizeGeminiEmotionContextText(prompt);
+  if (!text) {
+    return false;
+  }
+
+  if (happyAttachmentPositiveCuePattern.test(text)) {
+    return false;
+  }
+
+  return informationalGeminiPromptPattern.test(text);
+}
+
+export function shouldAttachGeminiEmotionAsset(emotion, options = {}) {
+  const normalizedEmotion = normalizeGeminiEmotionLabel(emotion);
+  const source = String(options.source ?? '').trim().toLowerCase();
+  const prompt = normalizeGeminiEmotionContextText(options.prompt);
+
+  if (!getGeminiEmotionAssetPath(normalizedEmotion)) {
+    return false;
+  }
+
+  if (normalizedEmotion !== 'happy') {
+    return true;
+  }
+
+  if (source === 'web-search' || source === 'slash-web-search') {
+    return false;
+  }
+
+  if (isLikelyInformationalGeminiPrompt(prompt)) {
+    return false;
+  }
+
+  return true;
 }
 
 export function parseGeminiAnswerPayload(text) {

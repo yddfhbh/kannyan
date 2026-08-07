@@ -11,6 +11,7 @@ import { generateCloudflareImage } from './cloudflare-image.js';
 import {
   getGeminiEmotionAssetPath,
   parseGeminiAnswerPayload,
+  shouldAttachGeminiEmotionAsset,
   supportedGeminiEmotionLabels,
 } from './gemini-answer.js';
 import {
@@ -7579,7 +7580,11 @@ function parseJsonObjectText(text) {
   }
 }
 
-function getGeminiEmotionReplyFiles(emotion) {
+function getGeminiEmotionReplyFiles(emotion, options = {}) {
+  if (!shouldAttachGeminiEmotionAsset(emotion, options)) {
+    return [];
+  }
+
   const assetPath = getGeminiEmotionAssetPath(emotion);
   return assetPath
     ? [new AttachmentBuilder(assetPath, { name: path.basename(assetPath) })]
@@ -8097,7 +8102,10 @@ const chessAnalysis =
       source: shouldSearchPreviousWebContext ? 'web-followup-chat' : 'chat',
     });
     const answer = answerResult.answer;
-    const replyFiles = getGeminiEmotionReplyFiles(answerResult.emotion);
+    const replyFiles = getGeminiEmotionReplyFiles(answerResult.emotion, {
+      prompt: rawPrompt,
+      source: shouldSearchPreviousWebContext ? 'web-followup-chat' : 'chat',
+    });
     const permanentMemoryAttribution = formatPermanentMemoryAttribution(
       permanentMemories,
       answerResult.usedPermanentMemoryIds
@@ -8204,7 +8212,10 @@ async function handleWebSearchMessage(message, input) {
 
     const chunks = splitDiscordMessage(response.text, 1900);
     const [firstChunk, ...remainingChunks] = chunks;
-    const replyFiles = getGeminiEmotionReplyFiles(response.emotion);
+    const replyFiles = getGeminiEmotionReplyFiles(response.emotion, {
+      prompt: cleanedInput,
+      source: 'web-search',
+    });
 
     await sendReplyOrChannelMessage(message, {
       content: firstChunk,
@@ -8401,7 +8412,10 @@ async function showWebSearch(interaction) {
     });
     const chunks = splitDiscordMessage(response.text, 1900);
     const [firstChunk, ...remainingChunks] = chunks;
-    const replyFiles = getGeminiEmotionReplyFiles(response.emotion);
+    const replyFiles = getGeminiEmotionReplyFiles(response.emotion, {
+      prompt: query,
+      source: 'slash-web-search',
+    });
 
     await interaction.editReply({
       content: firstChunk,
@@ -8818,6 +8832,8 @@ async function generateGeminiAnswer(prompt, options = {}) {
     `emotion은 다음 중 하나만 쓴다: ${supportedGeminiEmotionLabels.join(', ')}`,
     'answer에는 사용자에게 실제로 보낼 최종 답변만 넣는다.',
     'emotion에는 answer의 전체 분위기를 가장 잘 나타내는 감정 라벨 하나만 넣는다.',
+    '단순 정보 질문, 사용법 안내, 사실 확인, 짧은 도움 요청처럼 평범한 질의응답이면 happy보다 neutral을 우선한다.',
+    '사용자가 기뻐하거나 축하받을 일, 들뜬 반응, 강한 감정 표현을 분명하게 보였을 때만 happy, very_happy, excited를 쓴다.',
     '답변 분위기가 시큰둥함, 귀찮음, 툭툭거리는 짜증, 장난스럽게 콱 무는 듯한 반응이면 neutral보다 bored를 우선한다.',
     'JSON 바깥의 설명, 코드 블록, 마크다운, 서문은 절대 출력하지 않는다.',
   ].join('\n');
