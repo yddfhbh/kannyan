@@ -10957,7 +10957,7 @@ function shouldWrapMinomuncherRecentReplayLookupError(error) {
 function formatMinomuncherRecentAnalysisMessage(replayFetchResult, usedReplayCount, failedParseCount = 0) {
   const targetCount = Number(replayFetchResult?.targetCount) || minomuncherRecentReplayTargetCount;
   if (usedReplayCount >= targetCount) {
-    return `최근 ${targetCount}경기 분석`;
+    return `최근 ${targetCount}경기 분석이다냥`;
   }
 
   const downloadFailureCount = Array.isArray(replayFetchResult?.failures)
@@ -10968,10 +10968,10 @@ function formatMinomuncherRecentAnalysisMessage(replayFetchResult, usedReplayCou
     Math.min(targetCount - usedReplayCount, downloadFailureCount + failedParseCount),
   );
   if (unavailableCount > 0) {
-    return `최근 ${usedReplayCount}경기 분석 (${unavailableCount}경기 리플레이 사용 불가)`;
+    return `최근 ${usedReplayCount}경기 분석이다냥. (${unavailableCount}경기 리플레이 사용 불가다냥)`;
   }
 
-  return `최근 ${usedReplayCount}경기 분석`;
+  return `최근 ${usedReplayCount}경기 분석이다냥`;
 }
 
 async function fetchTetrioStatsCardDataForInteraction(interaction, targets) {
