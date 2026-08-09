@@ -189,7 +189,7 @@ cutechess-cli \
 | `/그래프 닉네임:[입력]` | `%psq [입력]` | Opener/Plonk/Stride/Inf DS 그래프를 보여줍니다. 입력을 생략하면 연동 계정을 사용하고, 여러 닉네임은 한 그래프에 겹쳐 표시합니다. 없는 닉네임은 건너뛰고 따로 안내합니다. `60 2.0 120`처럼 APM/PPS/VS 직접 입력도 지원합니다. |
 | `/스타일 닉네임:[입력]` | `%sq [입력]` | ATTACK/SPEED/DEFENSE/CHEESE 스타일 그래프를 보여줍니다. 입력을 생략하면 연동 계정을 사용하고, 여러 닉네임은 한 그래프에 겹쳐 표시합니다. 없는 닉네임은 건너뛰고 따로 안내합니다. `60 2.0 120`처럼 APM/PPS/VS 직접 입력도 지원합니다. |
 | `/비교 닉네임:[입력]` | `%vs [입력]` | APM, PPS, VS, APP, DS/Second, DS/Piece, APP+DS/Piece, VS/APM, Cheese Index, Garbage Effi. 비교 그래프를 보여줍니다. 여러 닉네임은 한 그래프에 겹쳐 표시하고, 없는 닉네임은 건너뛰며, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시합니다. |
-| `/분석 파일:[.ttrm]` | `%munch` + `.ttrm` 첨부 | 첨부한 TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석합니다. 파일이 없으면 `ttrm파일 달라냥!`을 출력합니다. |
+| `/분석 파일:[.ttrm]` | `%munch`, `%munch 닉네임`, `%munch @유저`, 또는 `%munch` + `.ttrm` 첨부 | 첨부한 TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석합니다. 첨부가 없으면 최근 TETRA LEAGUE 리플레이를 최대 10경기까지 자동 수집해서 분석합니다. |
 | `/랭크컷` | `%tetr`, `%tetoranks` | TETRA LEAGUE 랭크컷 이미지를 보여줍니다. |
 | `/전적 닉네임:[닉네임] 숫자:[번호]` | `%tetra [닉네임] [번호]` | TETRA LEAGUE 최근 경기 전적을 이미지로 보여줍니다. 닉네임을 생략하면 연결된 계정을 사용합니다. |
 | `/퀵플 닉네임:[닉네임] 숫자:[번호] recent:[top/recent]` | `%qp [닉네임] [번호] [top/recent]` | QUICK PLAY top 또는 recent 기록의 고도 카드를 보여줍니다. 닉네임을 생략하면 연결된 계정을 사용합니다. |
@@ -240,7 +240,8 @@ Discord ID `635107514471415808`인 관리자가 `%기억제거`를 입력하면 
 | `src/tetrio-stats-card.js` | TETR.IO 스탯 카드 이미지 렌더링 |
 | `src/tetrio-playstyle-graph.js` | 플레이스타일 레이더 그래프 렌더링 |
 | `src/tetrio-versus-graph.js` | 주요 스탯 비교 레이더 그래프 렌더링 |
-| `src/minomuncher-analysis.js` | MinoMuncher 첨부 리플레이 파싱, 그래프 렌더링 |
+| `src/minomuncher-analysis.js` | MinoMuncher 리플레이 파싱, 그래프 렌더링 |
+| `src/tetrio-minomuncher-replays.js` | TETR.IO 최근 League 조회, replay ID 추출, Inoue 리플레이 다운로드 |
 | `src/tetrio-rankcut.js` | TETRA LEAGUE 랭크컷 데이터 조회와 이미지 렌더링 |
 | `src/tetrio-league-match.js` | TETRA LEAGUE 최근 경기 전적 조회와 매치 카드 렌더링 |
 | `src/tetrio-quickplay.js` | QUICK PLAY / EXPERT QUICK PLAY 기록 조회와 고도 카드, 40 LINES 시간 카드, BLITZ 점수 카드 렌더링 |

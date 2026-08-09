@@ -70,6 +70,10 @@ import {
 } from './tetrio-graph-input.js';
 import { createMinomuncherAnalysis } from './minomuncher-analysis.js';
 import {
+  fetchRecentTetrioLeagueReplayFiles,
+  minomuncherRecentReplayTargetCount,
+} from './tetrio-minomuncher-replays.js';
+import {
   handleDailyPuzzleClearInteraction,
   handleDailyPuzzleAnnouncementInteraction,
   handleDailyPuzzleLeaderboardInteraction,
@@ -10641,20 +10645,40 @@ async function showMinomuncherAnalysis(interaction) {
   await interaction.deferReply();
 
   try {
-    const replayFiles = await fetchMinomuncherReplayAttachments(
-      replayAttachment ? [replayAttachment] : []
-    );
+    if (replayAttachment) {
+      await interaction.editReply('리플레이 분석 중...');
+      const replayFiles = await fetchMinomuncherReplayAttachments([replayAttachment]);
+      if (replayFiles.length === 0) {
+        await interaction.editReply('ttrm파일 달라냥!');
+        return;
+      }
 
-    if (replayFiles.length === 0) {
-      await interaction.editReply('ttrm파일 달라냥!');
+      await sendMinomuncherAnalysisForInteraction(interaction, replayFiles);
       return;
     }
 
-    await sendMinomuncherAnalysisForInteraction(interaction, replayFiles);
+    const username = await findTetrioUsernameByDiscordId(interaction.user.id);
+    if (!username) {
+      await interaction.editReply('TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.');
+      return;
+    }
+
+    await interaction.editReply('최근 경기 분석 중...');
+    let replayFetchResult;
+    try {
+      replayFetchResult = await fetchRecentTetrioLeagueReplayFiles(username);
+    } catch (error) {
+      throw wrapMinomuncherRecentReplayLookupError(error, username, true);
+    }
+
+    await sendRecentMinomuncherAnalysisForInteraction(interaction, replayFetchResult);
   } catch (error) {
     console.error('Failed to render MinoMuncher analysis:');
     console.error(error);
-    await interaction.editReply(getMinomuncherErrorMessage(error));
+    await interaction.editReply(
+      (await getMinomuncherKnownErrorMessage(error))
+      ?? getMinomuncherErrorMessage(error),
+    );
   }
 }
 
@@ -10663,21 +10687,49 @@ async function showMinomuncherAnalysisMessage(message, input) {
     await safeSendTyping(message.channel, 'showMinomuncherAnalysisMessage');
 
     const replayFiles = await fetchMinomuncherReplayAttachments(message.attachments.values());
-    if (replayFiles.length === 0) {
+    if (replayFiles.length > 0) {
+      await sendMinomuncherAnalysisForMessage(message, replayFiles);
+      return;
+    }
+
+    const target = await resolveMinomuncherRecentAnalysisTarget(message, input);
+    if (target?.ignore) {
+      return;
+    }
+
+    if (target?.errorMessage) {
       await message.reply({
-        content: 'ttrm파일 달라냥!',
+        content: target.errorMessage,
         allowedMentions: { repliedUser: false },
       });
       return;
     }
 
-    await sendMinomuncherAnalysisForMessage(message, replayFiles);
+    const statusMessage = await message.reply({
+      content: '최근 경기 분석 중...',
+      allowedMentions: { repliedUser: false },
+    });
+
+    try {
+      const replayFetchResult = await fetchRecentTetrioLeagueReplayFiles(target.username);
+      await sendRecentMinomuncherAnalysisForStatusMessage(statusMessage, replayFetchResult);
+    } catch (error) {
+      const handledError = shouldWrapMinomuncherRecentReplayLookupError(error)
+        ? wrapMinomuncherRecentReplayLookupError(error, target.username, target.assumeExistingUser)
+        : error;
+      await statusMessage.edit({
+        content: (await getMinomuncherKnownErrorMessage(handledError))
+          ?? getMinomuncherErrorMessage(handledError),
+        allowedMentions: { repliedUser: false },
+      });
+    }
   } catch (error) {
     console.error('Failed to render MinoMuncher analysis:');
     console.error(error);
 
     await message.reply({
-      content: getMinomuncherErrorMessage(error),
+      content: (await getMinomuncherKnownErrorMessage(error))
+        ?? getMinomuncherErrorMessage(error),
       allowedMentions: { repliedUser: false },
     });
   }
@@ -10711,6 +10763,47 @@ async function sendMinomuncherAnalysisForMessage(message, replayFiles = []) {
     files: attachments,
     allowedMentions: { repliedUser: false },
   });
+}
+
+async function sendRecentMinomuncherAnalysisForInteraction(interaction, replayFetchResult) {
+  const replyData = await createRecentMinomuncherReplyData(replayFetchResult);
+  await interaction.editReply(replyData);
+}
+
+async function sendRecentMinomuncherAnalysisForStatusMessage(statusMessage, replayFetchResult) {
+  const replyData = await createRecentMinomuncherReplyData(replayFetchResult);
+  await statusMessage.edit({
+    ...replyData,
+    allowedMentions: { repliedUser: false },
+  });
+}
+
+async function createRecentMinomuncherReplyData(replayFetchResult) {
+  if (!Array.isArray(replayFetchResult?.replays) || replayFetchResult.replays.length === 0) {
+    const error = new Error('No usable recent league replays could be downloaded');
+    error.code = 'MINOMUNCHER_RECENT_REPLAYS_UNAVAILABLE';
+    error.replayFetchResult = replayFetchResult;
+    throw error;
+  }
+
+  const result = await createMinomuncherAnalysis({ replays: replayFetchResult.replays });
+  const attachments = createMinomuncherAttachments(result.files);
+  const usedReplayCount = Math.max(0, replayFetchResult.replays.length - result.failedReplayFiles.length);
+
+  if (attachments.length === 0 || usedReplayCount === 0) {
+    return {
+      content: '최근 경기 리플레이에서 분석할 플레이어를 찾지 못했다냥.',
+    };
+  }
+
+  return {
+    content: formatMinomuncherRecentAnalysisMessage(
+      replayFetchResult,
+      usedReplayCount,
+      result.failedReplayFiles.length,
+    ),
+    files: attachments,
+  };
 }
 
 function createMinomuncherAttachments(files) {
@@ -10763,10 +10856,119 @@ function getMinomuncherErrorMessage(error) {
   }
 
   if (error?.code === 'MINOMUNCHER_REPLAY_PARSE_FAILED') {
-    return '첨부한 리플레이를 파싱하지 못했다냥. `.ttrm` 파일이 맞는지 확인해달라냥.';
+    return '리플레이를 파싱하지 못했다냥. `.ttrm` 파일이 맞는지 확인해달라냥.';
+  }
+
+  if (error?.code === 'MINOMUNCHER_RECENT_REPLAYS_UNAVAILABLE') {
+    return '최근 TETRA LEAGUE 리플레이를 하나도 확보하지 못했다냥. 삭제됐거나 잠시 접근이 안 되는 경기들일 수 있으니 조금 뒤에 다시 시도해달라냥.';
   }
 
   return '분석 그래프를 만들지 못했다냥. 잠시 후 다시 시도해달라냥.';
+}
+
+async function getMinomuncherKnownErrorMessage(error) {
+  if (error?.code === 'MINOMUNCHER_RECENT_REPLAY_LOOKUP_FAILED') {
+    return getTetrioLeagueMatchKnownErrorMessage(
+      error.cause ?? error,
+      error.username,
+      error.assumeExistingUser,
+    );
+  }
+
+  return null;
+}
+
+async function resolveMinomuncherRecentAnalysisTarget(message, input) {
+  const trimmedInput = String(input ?? '').trim();
+  const repliedUser = await getRepliedUserFromTetrioMessage(message);
+
+  if (repliedUser) {
+    return resolveMinomuncherLinkedTarget(repliedUser);
+  }
+
+  if (!trimmedInput) {
+    return resolveMinomuncherLinkedTarget(message.author);
+  }
+
+  const mentionedUser = getSingleMentionedUserFromTetrioInput(message, trimmedInput);
+  if (mentionedUser) {
+    return resolveMinomuncherLinkedTarget(mentionedUser);
+  }
+
+  const tetrioValidationResult = validateTetrioMessageInput(trimmedInput);
+  if (tetrioValidationResult === 'too_long') {
+    return { errorMessage: '닉네임이 너무 길다냥.' };
+  }
+
+  if (tetrioValidationResult === 'ignore') {
+    return { ignore: true };
+  }
+
+  return {
+    username: trimmedInput,
+    assumeExistingUser: false,
+  };
+}
+
+async function resolveMinomuncherLinkedTarget(user) {
+  try {
+    const username = await findTetrioUsernameByDiscordId(user.id);
+    if (!username) {
+      return {
+        errorMessage: 'TETR.IO 계정이 연결되어 있지 않다냥. 닉네임을 직접 입력해달라냥.',
+      };
+    }
+
+    return {
+      username,
+      assumeExistingUser: true,
+    };
+  } catch (error) {
+    console.error(`Failed to find linked TETR.IO profile for Discord user ${user.id}:`);
+    console.error(error);
+    return {
+      errorMessage: 'TETR.IO 연동 정보를 확인하지 못했다냥. 잠시 후 다시 시도해달라냥.',
+    };
+  }
+}
+
+function wrapMinomuncherRecentReplayLookupError(error, username, assumeExistingUser) {
+  if (!error) {
+    return error;
+  }
+
+  const wrapped = new Error('Failed to fetch recent league replays for minomuncher');
+  wrapped.code = 'MINOMUNCHER_RECENT_REPLAY_LOOKUP_FAILED';
+  wrapped.username = username;
+  wrapped.assumeExistingUser = assumeExistingUser;
+  wrapped.cause = error;
+  wrapped.status = error.status;
+  return wrapped;
+}
+
+function shouldWrapMinomuncherRecentReplayLookupError(error) {
+  return error?.code !== 'MINOMUNCHER_RECENT_REPLAYS_UNAVAILABLE'
+    && error?.code !== 'MINOMUNCHER_REPLAY_PARSE_FAILED';
+}
+
+function formatMinomuncherRecentAnalysisMessage(replayFetchResult, usedReplayCount, failedParseCount = 0) {
+  const targetCount = Number(replayFetchResult?.targetCount) || minomuncherRecentReplayTargetCount;
+  if (usedReplayCount >= targetCount) {
+    return `최근 ${targetCount}경기 분석`;
+  }
+
+  const downloadFailureCount = Array.isArray(replayFetchResult?.failures)
+    ? replayFetchResult.failures.length
+    : 0;
+  const unavailableCount = Math.max(
+    0,
+    Math.min(targetCount - usedReplayCount, downloadFailureCount + failedParseCount),
+  );
+  if (unavailableCount > 0) {
+    return `최근 ${usedReplayCount}경기 분석 (${unavailableCount}경기 리플레이 사용 불가)`;
+  }
+
+  return `최근 ${usedReplayCount}경기 분석`;
 }
 
 async function fetchTetrioStatsCardDataForInteraction(interaction, targets) {
