@@ -37,13 +37,15 @@ export async function createMinomuncherAnalysis(options = {}) {
     throw error;
   }
 
-  const files = Object.keys(stats).length > 0
-    ? await createMinomuncherGraphFiles(stats)
+  const filteredStats = filterMinomuncherStatsByUsername(stats, options.targetUsername);
+
+  const files = Object.keys(filteredStats).length > 0
+    ? await createMinomuncherGraphFiles(filteredStats)
     : [];
 
   return {
     files,
-    stats,
+    stats: filteredStats,
     failedReplayFiles,
   };
 }
@@ -90,6 +92,17 @@ function buildCumulativeStats(gameStats) {
   }
 
   return stats;
+}
+
+export function filterMinomuncherStatsByUsername(stats, targetUsername) {
+  const normalizedTargetUsername = normalizeTargetUsername(targetUsername);
+  if (!normalizedTargetUsername) {
+    return stats;
+  }
+
+  return Object.fromEntries(
+    Object.entries(stats ?? {}).filter(([, player]) => normalizeTargetUsername(player?.username) === normalizedTargetUsername),
+  );
 }
 
 async function createMinomuncherGraphFiles(stats) {
@@ -301,4 +314,9 @@ function escapeXml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
+}
+
+function normalizeTargetUsername(value) {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  return normalized || null;
 }

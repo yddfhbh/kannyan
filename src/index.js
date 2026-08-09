@@ -10786,7 +10786,10 @@ async function createRecentMinomuncherReplyData(replayFetchResult) {
     throw error;
   }
 
-  const result = await createMinomuncherAnalysis({ replays: replayFetchResult.replays });
+  const result = await createMinomuncherAnalysis({
+    replays: replayFetchResult.replays,
+    targetUsername: replayFetchResult.username,
+  });
   const attachments = createMinomuncherAttachments(result.files);
   const usedReplayCount = Math.max(0, replayFetchResult.replays.length - result.failedReplayFiles.length);
 
