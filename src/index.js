@@ -33,10 +33,6 @@ import {
   createTetrioAchievementCard,
   searchTetrioAchievements,
 } from './tetrio-achievement-card.js';
-import {
-  createTetrioAchievementAverageCard,
-  initTetrioAchievementAverageTracker,
-} from './tetrio-achievement-average.js';
 import { calculateTetrioStats } from './tetrio-stats-calculations.js';
 import {
   createBlitzRecentScoreCard,
@@ -5824,11 +5820,6 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
-    if (interaction.commandName === '업적평균') {
-      await showTetrioAchievementAverage(interaction);
-      return;
-    }
-
     if (interaction.commandName === '스탯' || interaction.commandName === 'ts') {
       await showTetrioStats(interaction);
       return;
@@ -5999,8 +5990,6 @@ await initializeTetrioLeagueCache({
     console.log(`[TETR.IO LB] auto page=${page} users=${users} last=${lastUsername}`);
   },
 });
-initTetrioAchievementAverageTracker();
-
 const openingBookCacheStatus = await loadLichessPlayerOpeningBookCache();
 console.log(
   `[CHESS OPENING] loaded networkEnabled=${openingBookCacheStatus.networkEnabled ? 'yes' : 'no'} cacheEntries=${openingBookCacheStatus.cacheEntries} cachePath=${openingBookCacheStatus.cachePath} manualEntries=${openingBookCacheStatus.manualBookEntries} manualPlayer=${openingBookCacheStatus.manualBookPlayer ?? '-'} manualPath=${openingBookCacheStatus.manualBookPath}`
@@ -10228,7 +10217,7 @@ async function showTetrioProfile(interaction) {
 
 async function handleSlashCommandAutocomplete(interaction) {
   try {
-    if (interaction.commandName === '업적' || interaction.commandName === '업적평균') {
+    if (interaction.commandName === '업적') {
       await autocompleteTetrioAchievement(interaction);
       return;
     }
@@ -10311,38 +10300,6 @@ async function showTetrioAchievement(interaction) {
     }
 
     await interaction.editReply('TETR.IO 업적 카드를 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
-  }
-}
-
-async function showTetrioAchievementAverage(interaction) {
-  const achievementQuery = interaction.options.getString('업적', true)?.trim();
-
-  await interaction.deferReply();
-
-  try {
-    const card = await createTetrioAchievementAverageCard(achievementQuery);
-    const attachment = new AttachmentBuilder(card.image, {
-      name: `tetrio-achievement-average-${formatAttachmentSafeName(card.achievementName)}-${card.snapshotDateKey}.png`,
-    });
-
-    await interaction.editReply({
-      files: [attachment],
-    });
-  } catch (error) {
-    console.error(`Failed to fetch TETR.IO achievement average for ${achievementQuery}:`);
-    console.error(error);
-
-    if (error?.code === 'TETRIO_ACHIEVEMENT_NOT_FOUND') {
-      await interaction.editReply('해당 업적을 찾지 못했다냥.');
-      return;
-    }
-
-    if (error?.code === 'TETRIO_ACHIEVEMENT_AVERAGE_NO_SNAPSHOT') {
-      await interaction.editReply('아직 업적 평균 스냅샷이 준비되지 않았다냥. 봇이 리그 유저 표본을 수집하는 동안 잠시만 기다려달라냥.');
-      return;
-    }
-
-    await interaction.editReply('TETR.IO 업적 평균 카드를 가져오지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
 }
 
