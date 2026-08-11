@@ -124,6 +124,116 @@ function forceFenTurn(fen, turn) {
   return output.join(' ');
 }
 
+function normalizeRecognizedFen(recognizedFen) {
+  const normalized = String(recognizedFen ?? '').trim();
+
+  if (!normalized) {
+    throw new Error('Chess image recognizer returned empty FEN');
+  }
+
+  return normalized;
+}
+
+function validateRecognizedFenForTurn(recognizedFen, turn) {
+  return validateAnalyzableChessFen(
+    forceFenTurn(normalizeRecognizedFen(recognizedFen), turn),
+    turn
+  );
+}
+
+function normalizeImageRecognitionResult(result) {
+  if (typeof result === 'string') {
+    return {
+      recognizedFen: result,
+      details: {},
+    };
+  }
+
+  if (result && typeof result === 'object') {
+    return {
+      recognizedFen: result.fen ?? result.boardFen ?? '',
+      details: result,
+    };
+  }
+
+  return {
+    recognizedFen: '',
+    details: {},
+  };
+}
+
+export async function recognizeFenFromImageWithOrientationFallback(
+  imagePath,
+  {
+    turn,
+    detectedBoardOrientation = null,
+    imageToFen: imageToFenOverride = imageToFen,
+  } = {}
+) {
+  const preferredOrientation = resolveBoardOrientationForRecognition(detectedBoardOrientation);
+
+  if (preferredOrientation) {
+    const recognized = normalizeImageRecognitionResult(
+      await imageToFenOverride(imagePath, {
+        turn,
+        boardOrientation: preferredOrientation,
+        returnDetails: true,
+      })
+    );
+
+    return validateRecognizedFenForTurn(recognized.recognizedFen, turn);
+  }
+
+  const successfulRecognitions = [];
+
+  for (const boardOrientation of ['w', 'b']) {
+    try {
+      const recognized = normalizeImageRecognitionResult(
+        await imageToFenOverride(imagePath, {
+          turn,
+          boardOrientation,
+          returnDetails: true,
+        })
+      );
+
+      successfulRecognitions.push({
+        boardOrientation,
+        fen: validateRecognizedFenForTurn(recognized.recognizedFen, turn),
+        details: recognized.details,
+      });
+    } catch {
+      // Try the opposite orientation before giving up.
+    }
+  }
+
+  if (successfulRecognitions.length === 0) {
+    throw new Error('Chess board orientation is unreadable');
+  }
+
+  const confidentRecognitions = successfulRecognitions.filter((recognition) => {
+    const source = String(recognition.details?.orientationSource ?? '').trim().toLowerCase();
+    return source && source !== 'fallback';
+  });
+
+  if (confidentRecognitions.length === 1) {
+    return confidentRecognitions[0].fen;
+  }
+
+  const comparableRecognitions =
+    confidentRecognitions.length > 0 ? confidentRecognitions : successfulRecognitions;
+  const uniqueFens = new Set(comparableRecognitions.map((recognition) => recognition.fen));
+
+  if (uniqueFens.size === 1) {
+    return comparableRecognitions[0].fen;
+  }
+
+  if (successfulRecognitions.length === 1) {
+    return successfulRecognitions[0].fen;
+  }
+
+  throw new Error('Chess board orientation is unreadable');
+}
+
 export function resolveBoardOrientationForRecognition(detectedBoardOrientation) {
   if (detectedBoardOrientation === 'w' || detectedBoardOrientation === 'b') {
     return detectedBoardOrientation;
@@ -194,41 +304,31 @@ export async function handleChessAnalysisMessage(message, options = {}) {
     temporaryImage = await downloadChessImageAttachment(attachment);
     let detectedBoardOrientation = null;
 
-if (typeof options.detectBoardOrientation === 'function') {
-  try {
-    detectedBoardOrientation = await options.detectBoardOrientation({
-      message,
-      imagePath: temporaryImage.filePath,
-      turn: prompt.turn,
-    });
-  } catch (error) {
-    console.error('Chess board orientation detection failed:');
-    console.error(error);
-  }
-}
+    if (typeof options.detectBoardOrientation === 'function') {
+      try {
+        detectedBoardOrientation = await options.detectBoardOrientation({
+          message,
+          imagePath: temporaryImage.filePath,
+          turn: prompt.turn,
+        });
+      } catch (error) {
+        console.error('Chess board orientation detection failed:');
+        console.error(error);
+      }
+    }
 
-const boardOrientation = resolveBoardOrientationForRecognition(detectedBoardOrientation);
+    console.log(
+      `[CHESS IMAGE] turn=${prompt.turn} boardOrientation=${resolveBoardOrientationForRecognition(detectedBoardOrientation) ?? 'auto'}`
+    );
 
-if (!boardOrientation) {
-  throw new Error('Chess board orientation is unreadable');
-}
-
-console.log(
-  `[CHESS IMAGE] turn=${prompt.turn} boardOrientation=${boardOrientation}`
-);
-
-const recognizedFen = await (options.imageToFen ?? imageToFen)(
-  temporaryImage.filePath,
-  {
-    turn: prompt.turn,
-    boardOrientation,
-  }
-);
-
-fen = validateAnalyzableChessFen(
-  forceFenTurn(recognizedFen, prompt.turn),
-  prompt.turn
-);
+    fen = await recognizeFenFromImageWithOrientationFallback(
+      temporaryImage.filePath,
+      {
+        turn: prompt.turn,
+        detectedBoardOrientation,
+        imageToFen: options.imageToFen ?? imageToFen,
+      }
+    );
 
   } catch (error) {
     console.error('Primary chess image recognition failed:');
@@ -240,7 +340,7 @@ fen = validateAnalyzableChessFen(
           message,
           turn: prompt.turn,
         });
-        fen = validateAnalyzableChessFen(forceFenTurn(fallbackFen, prompt.turn), prompt.turn);
+        fen = validateRecognizedFenForTurn(fallbackFen, prompt.turn);
       } catch (fallbackError) {
         console.error('Gemini chess image recognition fallback failed:');
         console.error(fallbackError);
@@ -345,21 +445,13 @@ async function extractFenFromImage(message, imagePath, prompt, options = {}) {
     }
   }
 
-const boardOrientation = resolveBoardOrientationForRecognition(detectedBoardOrientation);
-
-if (!boardOrientation) {
-  throw new Error('Chess board orientation is unreadable');
-}
-
-const recognizedFen = await (options.imageToFen ?? imageToFen)(
-  imagePath,
-  {
+return normalizeDirectFen(
+  await recognizeFenFromImageWithOrientationFallback(imagePath, {
     turn: prompt.turn,
-    boardOrientation,
-  }
+    detectedBoardOrientation,
+    imageToFen: options.imageToFen ?? imageToFen,
+  })
 );
-
-return normalizeDirectFen(forceFenTurn(recognizedFen, prompt.turn));
 }
 
 async function analyzeAndReply(message, fen, options = {}) {

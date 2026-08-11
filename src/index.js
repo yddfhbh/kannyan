@@ -4330,7 +4330,8 @@ async function extractChessFenFromImage({ message, imagePath, turn }) {
     });
 
     if (boardOrientation === 'w' || boardOrientation === 'b') {
-      const localFen = await imageToFen(imagePath, turnHint ?? 'w', {
+      const localFen = await imageToFen(imagePath, {
+        turn: turnHint ?? 'w',
         boardOrientation,
       });
       localBoardFen = String(localFen ?? '').trim().split(/\s+/)[0] ?? '';

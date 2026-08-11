@@ -99,14 +99,20 @@ function parseRecognizerOutput(stdout) {
 
   try {
     const parsed = JSON.parse(text);
-    return normalizeBoardFen(
-      parsed?.fen ??
-      parsed?.boardFen ??
-      parsed?.board ??
-      parsed?.result?.fen
-    );
+    return {
+      boardFen: normalizeBoardFen(
+        parsed?.fen ??
+        parsed?.boardFen ??
+        parsed?.board ??
+        parsed?.result?.fen
+      ),
+      details: parsed && typeof parsed === 'object' ? parsed : {},
+    };
   } catch {
-    return normalizeBoardFen(text);
+    return {
+      boardFen: normalizeBoardFen(text),
+      details: {},
+    };
   }
 }
 
@@ -132,7 +138,16 @@ export async function imageToFen(imagePath, options = {}) {
     }
   );
 
-  const boardFen = parseRecognizerOutput(stdout);
+  const { boardFen, details } = parseRecognizerOutput(stdout);
+  const fen = `${boardFen} ${turn} - - 0 1`;
 
-  return `${boardFen} ${turn} - - 0 1`;
+  if (options.returnDetails) {
+    return {
+      ...details,
+      boardFen,
+      fen,
+    };
+  }
+
+  return fen;
 }
