@@ -125,6 +125,7 @@ import {
   parseVArchiveTierLookupInput,
   VArchiveLinkStore,
 } from './varchive-link-store.js';
+import { parseVArchivePerformanceMessageInput as parseVArchivePerformanceMessageInputValue } from './varchive-performance-input.js';
 import {
   createPermanentMemoryScope,
   extractPermanentMemoryUsage,
@@ -13761,61 +13762,9 @@ function parseVArchiveSongSelectionQuery(query) {
 }
 
 function parseVArchivePerformanceMessageInput(input, fallbackNickname = null) {
-  const trimmed = String(input ?? '').trim();
-  const normalizedFallbackNickname = fallbackNickname
-    ? normalizeVArchiveNickname(fallbackNickname)
-    : null;
-
-  if (!trimmed) {
-    return {
-      query: '',
-      nickname: normalizedFallbackNickname,
-      trailingQueryCandidate: '',
-      trailingNicknameCandidate: null,
-    };
-  }
-
-  const separatorIndex = trimmed.lastIndexOf('|');
-  if (separatorIndex < 0) {
-    const tokens = trimmed.split(/\s+/);
-    const trailingToken = tokens.length > 1
-      ? tokens[tokens.length - 1]
-      : null;
-    const trailingQueryCandidate = trailingToken
-      ? trimmed.slice(0, trimmed.length - trailingToken.length).trim()
-      : '';
-
-    return {
-      query: trimmed,
-      nickname: normalizedFallbackNickname,
-      trailingQueryCandidate,
-      trailingNicknameCandidate: trailingToken
-        ? normalizeVArchiveNickname(trailingToken)
-        : null,
-    };
-  }
-
-  const query = trimmed.slice(0, separatorIndex).trim();
-  const nicknameText = trimmed.slice(separatorIndex + 1).trim();
-
-  if (!query) {
-    const error = new Error(getVArchivePerformancePercentUsageMessage());
-    error.code = 'INVALID_VARCHIVE_PERFORMANCE_INPUT';
-    throw error;
-  }
-
-  if (!nicknameText) {
-    const error = new Error('`|` 뒤에 V-ARCHIVE 닉네임을 같이 적어달라냥.');
-    error.code = 'INVALID_NICKNAME';
-    throw error;
-  }
-
-  return {
-    query,
-    nickname: normalizeVArchiveNickname(nicknameText),
-    trailingQueryCandidate: '',
-    trailingNicknameCandidate: null,
-  };
+  return parseVArchivePerformanceMessageInputValue(input, fallbackNickname, {
+    usageMessage: getVArchivePerformancePercentUsageMessage(),
+  });
 }
 
 async function resolveVArchivePerformanceMessageInput(parsedInput) {
