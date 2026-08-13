@@ -37,6 +37,22 @@ const dailyPuzzleCheckIntervalMs = Math.max(
   30_000,
   Number(process.env.DAILY_CHESS_PUZZLE_CHECK_INTERVAL_MS) || 60_000
 );
+const configuredDailyPuzzlePoolMinRating = parseOptionalInteger(
+  process.env.DAILY_CHESS_PUZZLE_POOL_MIN_RATING ?? process.env.LICHESS_PUZZLE_MIN_RATING,
+  2200
+);
+const configuredDailyPuzzlePoolMaxRating = parseOptionalInteger(
+  process.env.DAILY_CHESS_PUZZLE_POOL_MAX_RATING ?? process.env.LICHESS_PUZZLE_MAX_RATING,
+  2800
+);
+const dailyPuzzlePoolMinRating = Math.min(
+  configuredDailyPuzzlePoolMinRating,
+  configuredDailyPuzzlePoolMaxRating
+);
+const dailyPuzzlePoolMaxRating = Math.max(
+  configuredDailyPuzzlePoolMinRating,
+  configuredDailyPuzzlePoolMaxRating
+);
 const dailyPuzzleInitialRawRating = 2600;
 const dailyPuzzleEloK = 32;
 const dailyPuzzleAnnouncementGuildId = '1219197226572840990';
@@ -264,6 +280,67 @@ export async function handleDailyPuzzleLeaderboardInteraction(interaction) {
 export async function handleDailyPuzzleRatingInteraction(interaction) {
   const targetUser = interaction.options.getUser('유저') ?? interaction.user;
   await interaction.reply(await createPuzzleRatingProfileReply(interaction.client, targetUser.id));
+}
+
+export async function handleDailyPuzzleResetAttemptsInteraction(interaction) {
+  if (!interaction.guildId) {
+    await interaction.reply({
+      content: '서버 채널에서만 기록을 초기화할 수 있다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (!canManageDailyPuzzleChannel(interaction)) {
+    await interaction.reply({
+      content: '관리자만 일일퍼즐 기록을 초기화할 수 있다냥.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const targetUser = interaction.options.getUser('유저');
+  const { dateKey } = getKstDateInfo();
+  const loadedState = await loadState();
+  const result = resetDailyPuzzleAttemptsForDate(loadedState, {
+    dateKey,
+    userId: targetUser?.id ?? null,
+  });
+
+  if (!result.changed) {
+    await interaction.reply({
+      content: targetUser
+        ? `<@${targetUser.id}> 님의 오늘 일일퍼즐 기록이 없어서 초기화할 내용이 없다냥.`
+        : '오늘 일일퍼즐 기록이 없어서 초기화할 내용이 없다냥.',
+      flags: MessageFlags.Ephemeral,
+      allowedMentions: {
+        users: targetUser ? [targetUser.id] : [],
+      },
+    });
+    return;
+  }
+
+  await saveState();
+
+  const targetText = targetUser
+    ? `<@${targetUser.id}> 님의 오늘 일일퍼즐 기록을 초기화했다냥.`
+    : '오늘 일일퍼즐 기록 전체를 초기화했다냥.';
+
+  await interaction.reply({
+    content: [
+      targetText,
+      `초기화된 유저: ${result.clearedUserCount}명`,
+      `정답 기록: ${result.clearedSolveCount}개`,
+      `레이팅 시도 기록: ${result.clearedAttemptCount}개`,
+      `포기 기록: ${result.clearedAbandonedCount}개`,
+      `진행 중 세션: ${result.clearedSessionCount}개`,
+      '이제 해당 유저들은 오늘 퍼즐을 다시 시작할 수 있다냥.',
+    ].join('\n'),
+    flags: MessageFlags.Ephemeral,
+    allowedMentions: {
+      users: targetUser ? [targetUser.id] : [],
+    },
+  });
 }
 
 export async function handleDailyPuzzleAnnouncementInteraction(interaction) {
@@ -929,10 +1006,13 @@ export async function createLeaderboardText(loadedState, client, dateKey) {
 }
 
 async function getDailyPuzzle(dateKey) {
-  const pool = await readPuzzlePool();
+  const pool = getDailyPuzzlePoolForConfiguredRatingRange(await readPuzzlePool());
 
   if (pool.length === 0) {
-    throw new Error('Lichess puzzle pool is empty. Run scripts/build-lichess-puzzle-pool.js first.');
+    throw new Error(
+      `No Lichess puzzles matched the configured rating range ${dailyPuzzlePoolMinRating}-${dailyPuzzlePoolMaxRating}. `
+      + 'Rebuild the pool or widen the range.'
+    );
   }
 
   const index = getDailyPuzzleIndex(dateKey, pool.length);
@@ -992,6 +1072,15 @@ export function buildPlayablePuzzleFromPoolItem(item) {
 function getDailyPuzzleIndex(dateKey, poolLength) {
   const hash = crypto.createHash('sha256').update(`kannyan:${dateKey}`).digest();
   return hash.readUInt32BE(0) % poolLength;
+}
+
+function getDailyPuzzlePoolForConfiguredRatingRange(pool) {
+  return pool.filter((item) => {
+    const rating = Number(item?.rating);
+    return Number.isFinite(rating)
+      && rating >= dailyPuzzlePoolMinRating
+      && rating <= dailyPuzzlePoolMaxRating;
+  });
 }
 
 export function getMoveFromUci(fen, uci) {
@@ -1750,6 +1839,184 @@ function clearDailyPuzzleAbandonedAttempt(loadedState, dateKey, userId) {
     delete loadedState.abandoned[dateKey];
   }
   return true;
+}
+
+function resetDailyPuzzleAttemptsForDate(loadedState, { dateKey, userId = null } = {}) {
+  const targetUserIds = new Set(
+    userId
+      ? [userId]
+      : [
+        ...Object.keys(loadedState.solved?.[dateKey] ?? {}),
+        ...Object.keys(loadedState.puzzleRatedAttempts?.[dateKey] ?? {}),
+        ...Object.keys(loadedState.abandoned?.[dateKey] ?? {}),
+        ...Object.entries(loadedState.sessions ?? {})
+          .filter(([, session]) => session?.dateKey === dateKey)
+          .map(([sessionUserId]) => sessionUserId),
+      ]
+  );
+
+  const affectedUserIds = new Set();
+  let clearedSolveCount = 0;
+  let clearedAttemptCount = 0;
+  let clearedAbandonedCount = 0;
+  let clearedSessionCount = 0;
+
+  for (const targetUserId of targetUserIds) {
+    let touched = false;
+
+    if (loadedState.solved?.[dateKey]?.[targetUserId]) {
+      delete loadedState.solved[dateKey][targetUserId];
+      clearedSolveCount += 1;
+      touched = true;
+    }
+
+    const ratedAttempts = loadedState.puzzleRatedAttempts?.[dateKey]?.[targetUserId];
+    if (ratedAttempts && typeof ratedAttempts === 'object') {
+      clearedAttemptCount += Object.keys(ratedAttempts).length;
+      delete loadedState.puzzleRatedAttempts[dateKey][targetUserId];
+      touched = true;
+    }
+
+    if (loadedState.abandoned?.[dateKey]?.[targetUserId]) {
+      delete loadedState.abandoned[dateKey][targetUserId];
+      clearedAbandonedCount += 1;
+      touched = true;
+    }
+
+    if (loadedState.sessions?.[targetUserId]?.dateKey === dateKey) {
+      delete loadedState.sessions[targetUserId];
+      activeSessions.delete(targetUserId);
+      clearedSessionCount += 1;
+      touched = true;
+    }
+
+    if (touched) {
+      affectedUserIds.add(targetUserId);
+    }
+  }
+
+  deleteEmptyDailyPuzzleDateEntry(loadedState.solved, dateKey);
+  deleteEmptyDailyPuzzleDateEntry(loadedState.puzzleRatedAttempts, dateKey);
+  deleteEmptyDailyPuzzleDateEntry(loadedState.abandoned, dateKey);
+
+  for (const affectedUserId of affectedUserIds) {
+    rebuildDailyPuzzleRatingProfile(loadedState, affectedUserId);
+  }
+
+  return {
+    changed: affectedUserIds.size > 0,
+    clearedUserCount: affectedUserIds.size,
+    clearedSolveCount,
+    clearedAttemptCount,
+    clearedAbandonedCount,
+    clearedSessionCount,
+  };
+}
+
+function deleteEmptyDailyPuzzleDateEntry(collection, dateKey) {
+  if (!collection?.[dateKey] || Object.keys(collection[dateKey]).length > 0) {
+    return;
+  }
+
+  delete collection[dateKey];
+}
+
+function rebuildDailyPuzzleRatingProfile(loadedState, userId) {
+  const existingProfile = loadedState.puzzleRatings?.[userId];
+  const attempts = getDailyPuzzleRatedAttemptsForUser(loadedState, userId);
+  const solvedRecords = getDailyPuzzleSolvedRecordsForUser(loadedState, userId);
+
+  if (attempts.length === 0 && solvedRecords.length === 0) {
+    if (loadedState.puzzleRatings?.[userId]) {
+      delete loadedState.puzzleRatings[userId];
+    }
+    return;
+  }
+
+  let rawRating = dailyPuzzleInitialRawRating;
+
+  for (const attempt of attempts) {
+    attempt.rawBefore = rawRating;
+    rawRating = calculateDailyPuzzleRawRating(
+      rawRating,
+      getDailyPuzzleOpponentRating(attempt.puzzleRating),
+      Number(attempt.result) === 1 ? 1 : 0
+    );
+    attempt.rawAfter = rawRating;
+    attempt.displayRating = getDailyPuzzleDisplayRating(rawRating);
+  }
+
+  const latestSolvedRecord = solvedRecords.at(-1) ?? null;
+  const profile = existingProfile && typeof existingProfile === 'object'
+    ? existingProfile
+    : { userId };
+
+  profile.userId = userId;
+  profile.rawRating = rawRating;
+  profile.ratedAttempts = attempts.length;
+  profile.solvedCount = solvedRecords.length;
+  profile.userTag = normalizeDailyPuzzleDisplayName(
+    existingProfile?.userTag
+      ?? latestSolvedRecord?.userTag
+      ?? `${userId}`
+  ) || `${userId}`;
+  profile.lastGuildId = latestSolvedRecord?.guildId ?? existingProfile?.lastGuildId ?? null;
+  profile.lastGuildDisplayName = normalizeDailyPuzzleDisplayName(
+    latestSolvedRecord?.guildDisplayName
+      ?? existingProfile?.lastGuildDisplayName
+      ?? profile.userTag
+  );
+  profile.updatedAt = new Date().toISOString();
+
+  loadedState.puzzleRatings[userId] = profile;
+}
+
+function getDailyPuzzleRatedAttemptsForUser(loadedState, userId) {
+  const attempts = [];
+
+  for (const [dateKey, dateEntry] of Object.entries(loadedState.puzzleRatedAttempts ?? {})) {
+    const userAttempts = dateEntry?.[userId];
+    if (!userAttempts || typeof userAttempts !== 'object') {
+      continue;
+    }
+
+    for (const attempt of Object.values(userAttempts)) {
+      if (!attempt || typeof attempt !== 'object') {
+        continue;
+      }
+
+      attempts.push(attempt);
+    }
+  }
+
+  attempts.sort((a, b) => {
+    const left = `${a.ratedAt ?? ''}:${a.dateKey ?? ''}:${a.puzzleId ?? ''}`;
+    const right = `${b.ratedAt ?? ''}:${b.dateKey ?? ''}:${b.puzzleId ?? ''}`;
+    return left.localeCompare(right);
+  });
+
+  return attempts;
+}
+
+function getDailyPuzzleSolvedRecordsForUser(loadedState, userId) {
+  const records = [];
+
+  for (const dateEntry of Object.values(loadedState.solved ?? {})) {
+    const record = dateEntry?.[userId];
+    if (!record || typeof record !== 'object') {
+      continue;
+    }
+
+    records.push(record);
+  }
+
+  records.sort((a, b) => {
+    const left = `${a.solvedAt ?? ''}:${a.puzzleId ?? ''}`;
+    const right = `${b.solvedAt ?? ''}:${b.puzzleId ?? ''}`;
+    return left.localeCompare(right);
+  });
+
+  return records;
 }
 
 function getDailyPuzzleOpponentRating(value) {

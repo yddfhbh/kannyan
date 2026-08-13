@@ -100,6 +100,17 @@ function buildSlashCommands() {
   .setName('일일퍼즐해제')
   .setDescription('이 서버의 일일 체스 퍼즐 알림 채널 지정을 해제합니다.')
   .toJSON(),
+  new SlashCommandBuilder()
+    .setName('일일퍼즐기록초기화')
+    .setDescription('오늘 일일퍼즐 기록을 지워 다시 풀 수 있게 합니다.')
+    .setDefaultMemberPermissions(adminOnlyPermission)
+    .addUserOption((option) =>
+      option
+        .setName('유저')
+        .setDescription('비우면 오늘 기록 전체, 지정하면 해당 유저만 초기화합니다.')
+        .setRequired(false)
+    )
+    .toJSON(),
 
 new SlashCommandBuilder()
   .setName('일일퍼즐')

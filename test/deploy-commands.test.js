@@ -17,10 +17,18 @@ test('buildSlashCommands includes daily puzzle clear command', () => {
   const commands = buildSlashCommands();
   const setCommand = commands.find((command) => command.name === '일일퍼즐지정');
   const clearCommand = commands.find((command) => command.name === '일일퍼즐해제');
+  const resetCommand = commands.find((command) => command.name === '일일퍼즐기록초기화');
 
   assert.ok(setCommand);
   assert.equal(setCommand.description, '이 채널을 매일 일일 체스 퍼즐 알림 채널로 지정합니다.');
 
   assert.ok(clearCommand);
   assert.equal(clearCommand.description, '이 서버의 일일 체스 퍼즐 알림 채널 지정을 해제합니다.');
+
+  assert.ok(resetCommand);
+  assert.equal(resetCommand.description, '오늘 일일퍼즐 기록을 지워 다시 풀 수 있게 합니다.');
+  assert.equal(resetCommand.default_member_permissions, String(8n));
+  assert.equal(resetCommand.options?.length, 1);
+  assert.equal(resetCommand.options[0].name, '유저');
+  assert.equal(resetCommand.options[0].required, false);
 });

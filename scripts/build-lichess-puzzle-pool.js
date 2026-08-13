@@ -4,8 +4,8 @@ import { Chess } from 'chess.js';
 
 const outputPath = process.env.LICHESS_PUZZLE_OUTPUT_PATH || 'data/lichess-puzzle-pool.jsonl';
 
-const minRating = Number(process.env.LICHESS_PUZZLE_MIN_RATING) || 2000;
-const maxRating = Number(process.env.LICHESS_PUZZLE_MAX_RATING) || 2600;
+const minRating = Number(process.env.LICHESS_PUZZLE_MIN_RATING) || 2200;
+const maxRating = Number(process.env.LICHESS_PUZZLE_MAX_RATING) || 2800;
 const maxRatingDeviation = Number(process.env.LICHESS_PUZZLE_MAX_RD) || 120;
 const minPopularity = Number(process.env.LICHESS_PUZZLE_MIN_POPULARITY) || 60;
 const minPlays = Number(process.env.LICHESS_PUZZLE_MIN_PLAYS) || 30;

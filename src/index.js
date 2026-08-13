@@ -74,6 +74,7 @@ import {
   handleDailyPuzzleAnnouncementInteraction,
   handleDailyPuzzleLeaderboardInteraction,
   handleDailyPuzzleMessage,
+  handleDailyPuzzleResetAttemptsInteraction,
   handleDailyPuzzleRatingInteraction,
   handleDailyPuzzleRequestInteraction,
   handleDailyPuzzleSetInteraction,
@@ -5709,6 +5710,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 if (interaction.commandName === '일일퍼즐해제') {
   await handleDailyPuzzleClearInteraction(interaction);
+  return;
+}
+
+if (interaction.commandName === '일일퍼즐기록초기화') {
+  await handleDailyPuzzleResetAttemptsInteraction(interaction);
   return;
 }
 
