@@ -10414,12 +10414,12 @@ async function showTetrioGlickoTrMessage(message, input) {
   const normalizedInput = String(input ?? '').trim();
 
   const match = normalizedInput.match(
-    /^([+-]?(?:\d+(?:\.\d+)?|\.\d+))\s*,\s*([+-]?(?:\d+(?:\.\d+)?|\.\d+))$/
+    /^([+-]?(?:\d+(?:\.\d+)?|\.\d+))\s+([+-]?(?:\d+(?:\.\d+)?|\.\d+))$/
   );
 
   if (!match) {
     await message.reply({
-      content: '형식은 `%글리코 글리코,RD`로 입력해달라냥. 예: `%글리코 2238.3,60`',
+      content: '형식은 `%글리코 글리코 RD`로 입력해달라냥. 예: `%글리코 2238.3 60`',
       allowedMentions: { repliedUser: false },
     });
     return;
