@@ -33,7 +33,10 @@ import {
   createTetrioAchievementCard,
   searchTetrioAchievements,
 } from './tetrio-achievement-card.js';
-import { calculateTetrioStats } from './tetrio-stats-calculations.js';
+import {
+  calculateTetraRating,
+  calculateTetrioStats,
+} from './tetrio-stats-calculations.js';
 import {
   createBlitzRecentScoreCard,
   createBlitzScoreCard,
@@ -608,6 +611,7 @@ const percentCommandAliases = {
   varchiveTier30: ['b30'],
   varchiveTier50: ['b50'],
   teto: ['teto', 'ㅅㄷ새'],
+  tetrioGlickoTr: ['글리코'],
   tetrioStats: ['ts'],
   tetrioPlaystyleGraph: ['psq'],
   tetrioStyleGraph: ['sq'],
@@ -6684,6 +6688,11 @@ async function handlePercentMessageCommand(message) {
     return true;
   }
 
+  if (command === 'tetrioGlickoTr') {
+    await showTetrioGlickoTrMessage(message, input);
+    return true;
+  }
+
   if (command === 'tetrioPlaystyleGraph') {
     await showTetrioPlaystyleGraphMessage(message, input);
     return true;
@@ -10399,6 +10408,69 @@ async function showTetrioStats(interaction) {
 
     await interaction.editReply('스탯 카드를 렌더링하지 못했다냥. 잠시 뒤 다시 시도해달라냥.');
   }
+}
+
+async function showTetrioGlickoTrMessage(message, input) {
+  const normalizedInput = String(input ?? '').trim();
+
+  const match = normalizedInput.match(
+    /^([+-]?(?:\d+(?:\.\d+)?|\.\d+))\s*,\s*([+-]?(?:\d+(?:\.\d+)?|\.\d+))$/
+  );
+
+  if (!match) {
+    await message.reply({
+      content: '형식은 `%글리코 글리코,RD`로 입력해달라냥. 예: `%글리코 2238.3,60`',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  const glicko = Number(match[1]);
+  const rd = Number(match[2]);
+
+  if (!Number.isFinite(glicko) || !Number.isFinite(rd)) {
+    await message.reply({
+      content: '글리코와 RD는 숫자로 입력해달라냥.',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  if (rd < 0 || rd > 350) {
+    await message.reply({
+      content: 'RD는 0~350 사이로 입력해달라냥.',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  const tr = calculateTetraRating(glicko, rd);
+
+  if (!Number.isFinite(tr)) {
+    await message.reply({
+      content: 'TR을 계산하지 못했다냥.',
+      allowedMentions: { repliedUser: false },
+    });
+    return;
+  }
+
+  const formattedGlicko = glicko.toLocaleString('en-US', {
+    maximumFractionDigits: 2,
+  });
+
+  const formattedRd = rd.toLocaleString('en-US', {
+    maximumFractionDigits: 2,
+  });
+
+  const formattedTr = tr.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  await message.reply({
+    content: `Glicko **${formattedGlicko} ± ${formattedRd}** → **${formattedTr} TR**이다냥.`,
+    allowedMentions: { repliedUser: false },
+  });
 }
 
 async function showTetrioPlaystyleGraph(interaction) {
