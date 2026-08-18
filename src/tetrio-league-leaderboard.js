@@ -31,6 +31,8 @@ const STAT_CONFIG = {
   rd: { label: 'RD', key: 'rd', digits: 2 },
   tr: { label: 'TR', key: 'tr', digits: 2 },
 
+  apl: { label: 'APL', key: 'apl', digits: 4 },
+  lpm: { label: 'LPM', key: 'lpm', digits: 4 },
   app: { label: 'APP', key: 'app', digits: 4 },
   dspiece: { label: 'DS/Piece', key: 'dsPiece', digits: 4 },
   ds: { label: 'DS/Piece', key: 'dsPiece', digits: 4 },
@@ -275,6 +277,8 @@ function convertEntry(entry, tlRank) {
     decaying: Boolean(league.decaying),
 
     // 파생값
+    apl: derived.apl,
+    lpm: derived.lpm,
     app: derived.app,
     dsSecond: derived.dsSecond,
     dsPiece: derived.dsPiece,
