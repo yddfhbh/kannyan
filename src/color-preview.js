@@ -104,14 +104,14 @@ export function renderHexColorPreviewSvg(colorInput) {
   const panelWidth = width - panelX * 2;
   const panelHeight = height - panelY * 2;
   const swatchX = panelX + 48;
-  const swatchY = panelY + 112;
+  const swatchY = panelY + 172;
   const swatchWidth = panelWidth - 96;
-  const swatchHeight = 280;
+  const swatchHeight = 220;
   const labelColor = getContrastTextColor(color.red, color.green, color.blue);
   const pageTop = mixHexColors(color.rgbHex, '#FFFFFF', 0.68);
   const pageBottom = mixHexColors(color.rgbHex, '#0E1016', 0.78);
   const panelBg = mixHexColors(color.rgbHex, '#151821', 0.82);
-  const panelStroke = mixHexColors(color.rgbHex, '#FFFFFF', 0.58);
+  const panelStroke = '#8B909A';
   const accent = mixHexColors(color.rgbHex, '#FFFFFF', 0.22);
   const muted = mixHexColors(color.rgbHex, '#E9EDF5', 0.76);
   const shadow = mixHexColors(color.rgbHex, '#000000', 0.75);
@@ -180,7 +180,7 @@ export function renderHexColorPreviewSvg(colorInput) {
   <g>
     <rect x="${swatchX}" y="${swatchY}" width="${swatchWidth}" height="${swatchHeight}" rx="28" fill="url(#checker)" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="2"/>
     <rect x="${swatchX}" y="${swatchY}" width="${swatchWidth}" height="${swatchHeight}" rx="28" fill="${escapeXml(color.rgbHex)}" fill-opacity="${formatAlphaOpacity(color.alpha)}"/>
-    <rect x="${swatchX + 28}" y="${swatchY + 28}" width="${swatchWidth - 56}" height="${swatchHeight - 56}" rx="22" fill="#FFFFFF" fill-opacity="0.10"/>
+
     <text x="${swatchX + 40}" y="${swatchY + swatchHeight - 42}" font-family="${escapeXml(bundledSvgFontFamily)}" font-size="42" font-weight="900" fill="${labelColor}">${escapeXml(color.normalizedHex)}</text>
   </g>
   ${renderDetailBox({
