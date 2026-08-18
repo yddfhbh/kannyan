@@ -400,7 +400,13 @@ def main() -> None:
             requested_orientation,
         )
 
-        raw_fen = predict_fen(crop_path)
+        recognition_result = predict_fen(crop_path, output_type="detailed")
+        if isinstance(recognition_result, dict):
+            raw_fen = recognition_result.get("fen", "")
+            raw_predictions = recognition_result.get("predictions") or []
+        else:
+            raw_fen = recognition_result
+            raw_predictions = []
     except Exception as exc:
         fail(str(exc))
     finally:
@@ -415,6 +421,60 @@ def main() -> None:
     if board_orientation == "b":
         board_fen = rotate_board_180(board_fen)
 
+    # chessimg2pos가 반환한 64칸별 confidence를 보존한다.
+    # 흑 시점 이미지는 FEN과 동일하게 square 좌표도 180도 회전한다.
+    tile_predictions = []
+
+    for prediction in raw_predictions:
+        if not isinstance(prediction, (list, tuple)) or len(prediction) < 3:
+            continue
+
+        square = str(prediction[0] or "").strip().lower()
+        piece = str(prediction[1] or "1").strip() or "1"
+
+        try:
+            confidence = float(prediction[2])
+        except (TypeError, ValueError):
+            continue
+
+        if (
+            board_orientation == "b"
+            and len(square) == 2
+            and "a" <= square[0] <= "h"
+            and square[1] in "12345678"
+        ):
+            square = (
+                chr(ord("h") - (ord(square[0]) - ord("a")))
+                + str(9 - int(square[1]))
+            )
+
+        tile_predictions.append({
+            "square": square,
+            "piece": piece,
+            "confidence": round(confidence, 4),
+        })
+
+    tile_predictions.sort(key=lambda item: item["square"])
+
+    lowest_confidence_squares = sorted(
+        tile_predictions,
+        key=lambda item: item["confidence"],
+    )[:8]
+
+    minimum_tile_confidence = min(
+        (item["confidence"] for item in tile_predictions),
+        default=None,
+    )
+
+    minimum_piece_confidence = min(
+        (
+            item["confidence"]
+            for item in tile_predictions
+            if item["piece"] != "1"
+        ),
+        default=None,
+    )
+
     print(json.dumps({
         "fen": board_fen,
         "rawFen": str(raw_fen),
@@ -422,6 +482,10 @@ def main() -> None:
         "orientationSource": orientation_source,
         "requestedOrientation": requested_orientation,
         "boardBBox": board_bbox,
+        "tilePredictions": tile_predictions,
+        "lowestConfidenceSquares": lowest_confidence_squares,
+        "minimumTileConfidence": minimum_tile_confidence,
+        "minimumPieceConfidence": minimum_piece_confidence,
     }, ensure_ascii=False))
 
 

@@ -162,6 +162,218 @@ function normalizeImageRecognitionResult(result) {
   };
 }
 
+function readChessImageConfidenceThreshold(name, fallback) {
+  const value = Number(process.env[name]);
+
+  if (
+    Number.isFinite(value)
+    && value >= 0
+    && value <= 1
+  ) {
+    return value;
+  }
+
+  return fallback;
+}
+
+function readChessImageConfidenceCount(name, fallback) {
+  const value = Number(process.env[name]);
+
+  if (Number.isInteger(value) && value >= 0) {
+    return value;
+  }
+
+  return fallback;
+}
+
+function evaluateChessImageRecognitionConfidence(details) {
+  const rawPredictions = Array.isArray(details?.tilePredictions)
+    ? details.tilePredictions
+    : [];
+
+  // 테스트 mock이나 구버전 recognizer처럼 confidence 정보가 없는 경우에는
+  // 기존 동작을 그대로 유지한다.
+  if (rawPredictions.length === 0) {
+    return {
+      available: false,
+      reliable: true,
+      predictions: [],
+      lowConfidenceSquares: [],
+      criticalSquares: [],
+      minimumConfidence: null,
+      minimumPieceConfidence: null,
+      tooManyLowConfidenceSquares: false,
+    };
+  }
+
+  const warningThreshold = readChessImageConfidenceThreshold(
+    'CHESS_IMAGE_CONFIDENCE_WARN',
+    0.75
+  );
+
+  const hardRejectThreshold = readChessImageConfidenceThreshold(
+    'CHESS_IMAGE_CONFIDENCE_REJECT',
+    0.35
+  );
+
+  const pieceRejectThreshold = readChessImageConfidenceThreshold(
+    'CHESS_IMAGE_PIECE_CONFIDENCE_REJECT',
+    0.65
+  );
+
+  const maxLowConfidenceSquares = readChessImageConfidenceCount(
+    'CHESS_IMAGE_MAX_LOW_CONFIDENCE_SQUARES',
+    16
+  );
+
+  const predictions = rawPredictions
+    .map((prediction) => ({
+      square: String(prediction?.square ?? '').trim().toLowerCase(),
+      piece: String(prediction?.piece ?? '1').trim() || '1',
+      confidence: Number(prediction?.confidence),
+    }))
+    .filter((prediction) => Number.isFinite(prediction.confidence));
+
+  if (predictions.length === 0) {
+    return {
+      available: false,
+      reliable: true,
+      predictions: [],
+      lowConfidenceSquares: [],
+      criticalSquares: [],
+      minimumConfidence: null,
+      minimumPieceConfidence: null,
+      tooManyLowConfidenceSquares: false,
+    };
+  }
+
+  const lowConfidenceSquares = predictions
+    .filter(
+      (prediction) =>
+        prediction.confidence < warningThreshold
+    )
+    .sort(
+      (a, b) =>
+        a.confidence - b.confidence
+    );
+
+  const criticalSquares = predictions
+    .filter((prediction) => {
+      if (prediction.confidence < hardRejectThreshold) {
+        return true;
+      }
+
+      return (
+        prediction.piece !== '1'
+        && prediction.confidence < pieceRejectThreshold
+      );
+    })
+    .sort(
+      (a, b) =>
+        a.confidence - b.confidence
+    );
+
+  const piecePredictions = predictions.filter(
+    (prediction) =>
+      prediction.piece !== '1'
+  );
+
+  const minimumConfidence = Math.min(
+    ...predictions.map(
+      (prediction) =>
+        prediction.confidence
+    )
+  );
+
+  const minimumPieceConfidence =
+    piecePredictions.length > 0
+      ? Math.min(
+        ...piecePredictions.map(
+          (prediction) =>
+            prediction.confidence
+        )
+      )
+      : null;
+
+  const tooManyLowConfidenceSquares =
+    lowConfidenceSquares.length
+    > maxLowConfidenceSquares;
+
+  return {
+    available: true,
+    reliable:
+      criticalSquares.length === 0
+      && !tooManyLowConfidenceSquares,
+    predictions,
+    lowConfidenceSquares,
+    criticalSquares,
+    minimumConfidence,
+    minimumPieceConfidence,
+    tooManyLowConfidenceSquares,
+  };
+}
+
+function formatChessImageConfidenceSquare(prediction) {
+  return (
+    `${prediction.square || '?'}:`
+    + `${prediction.piece}@`
+    + `${prediction.confidence.toFixed(2)}`
+  );
+}
+
+function assertChessImageRecognitionConfidence(
+  recognition,
+  boardOrientation
+) {
+  const report =
+    evaluateChessImageRecognitionConfidence(
+      recognition?.details
+    );
+
+  if (!report.available) {
+    console.log(
+      `[CHESS IMAGE] orientation=${boardOrientation} confidence=unavailable`
+    );
+    return;
+  }
+
+  const lowText =
+    report.lowConfidenceSquares
+      .slice(0, 8)
+      .map(formatChessImageConfidenceSquare)
+      .join(',')
+    || 'none';
+
+  const minPieceText =
+    report.minimumPieceConfidence == null
+      ? 'n/a'
+      : report.minimumPieceConfidence.toFixed(2);
+
+  console.log(
+    `[CHESS IMAGE] orientation=${boardOrientation}`
+    + ` minConfidence=${report.minimumConfidence.toFixed(2)}`
+    + ` minPieceConfidence=${minPieceText}`
+    + ` lowConfidenceSquares=${lowText}`
+  );
+
+  if (report.reliable) {
+    return;
+  }
+
+  const criticalText =
+    report.criticalSquares
+      .slice(0, 8)
+      .map(formatChessImageConfidenceSquare)
+      .join(',')
+    || 'none';
+
+  throw new Error(
+    'Chess image recognition confidence too low: '
+    + `critical=${criticalText} `
+    + `lowCount=${report.lowConfidenceSquares.length}`
+  );
+}
+
 export async function recognizeFenFromImageWithOrientationFallback(
   imagePath,
   {
@@ -181,6 +393,11 @@ export async function recognizeFenFromImageWithOrientationFallback(
       })
     );
 
+    assertChessImageRecognitionConfidence(
+      recognized,
+      preferredOrientation
+    );
+
     return validateRecognizedFenForTurn(recognized.recognizedFen, turn);
   }
 
@@ -194,6 +411,11 @@ export async function recognizeFenFromImageWithOrientationFallback(
           boardOrientation,
           returnDetails: true,
         })
+      );
+
+      assertChessImageRecognitionConfidence(
+        recognized,
+        boardOrientation
       );
 
       successfulRecognitions.push({
