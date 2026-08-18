@@ -25,24 +25,46 @@ Node.js와 `discord.js`로 만든 디스코드 봇입니다. TETR.IO 프로필/�
 
 ## 설치
 
+### Node.js
+
 ```bash
 npm install
 ```
 
-배포 환경에서는 잠금 파일 기준 설치를 쓰면 됩니다.
+배포 환경에서는 잠금 파일 기준 설치를 권장합니다.
 
 ```bash
 npm ci --omit=dev
 ```
 
-체스 이미지 분석 기능은 별도 Python 가상환경에 설치합니다.
+### 체스 이미지 분석
+
+체스 이미지 분석은 Python 3.10 이상과 `chessimg2pos`, PyTorch, OpenCV를 사용합니다.
+
+GPU가 필요 없는 일반 서버/VM에서는 `requirements-chess-cpu.txt` 사용을 권장합니다.
+CPU 전용 PyTorch를 사용하므로 불필요한 CUDA/NVIDIA 패키지 설치를 피할 수 있습니다.
+
+**Linux:**
 
 ```bash
 python3 -m venv .venv-chess
-.venv-chess/bin/pip install -r requirements-chess.txt
+.venv-chess/bin/python -m pip install --upgrade pip
+.venv-chess/bin/python -m pip install -r requirements-chess-cpu.txt
 ```
 
-Windows PowerShell에서는 `.venv-chess\Scripts\python.exe -m pip install -r requirements-chess.txt`를 사용하면 됩니다.
+**Windows PowerShell:**
+
+```powershell
+py -3 -m venv .venv-chess
+.venv-chess\Scripts\python.exe -m pip install --upgrade pip
+.venv-chess\Scripts\python.exe -m pip install -r requirements-chess-cpu.txt
+```
+
+GPU 환경을 직접 구성하려면 기존 `requirements-chess.txt`를 사용할 수 있습니다.
+Linux에서 일반 PyTorch를 설치하면 CUDA/NVIDIA 패키지 때문에 수 GB의 추가 공간을 사용할 수 있습니다.
+
+PM2는 기본적으로 프로젝트의 `.venv-chess/bin/python`을 사용합니다.
+다른 Python을 쓰려면 `CHESS_IMAGE_PYTHON`에 실행 파일의 절대 경로를 지정하세요.
 
 ## 환경 변수
 
@@ -83,7 +105,10 @@ PORT=8080
 | `CHESS_IMAGE_PYTHON` | `chessimg2pos`가 설치된 Python 실행 파일입니다. 비우면 프로젝트의 `.venv-chess` 또는 시스템 Python을 찾습니다. |
 | `CHESS_IMAGE_TIMEOUT_MS` | 이미지에서 FEN을 읽는 최대 시간입니다. 기본값은 `120000`입니다. |
 | `CHESS_IMAGE_MAX_BYTES` | 체스 이미지 첨부 최대 크기입니다. 기본값은 8 MiB입니다. |
-| `CHESS_IMAGE_MIN_CONFIDENCE` | 인식 결과의 최소 평균 신뢰도입니다. 기본값 `0`은 구조 검증만 사용합니다. |
+| `CHESS_IMAGE_CONFIDENCE_WARN` | 이 값보다 confidence가 낮은 칸을 low-confidence로 기록합니다. 기본값은 `0.75`입니다. |
+| `CHESS_IMAGE_CONFIDENCE_REJECT` | 어떤 칸이 이 값보다 낮으면 로컬 이미지 인식 결과를 거부합니다. 기본값은 `0.35`입니다. |
+| `CHESS_IMAGE_PIECE_CONFIDENCE_REJECT` | 기물이 있다고 인식된 칸이 이 값보다 낮으면 결과를 거부합니다. 기본값은 `0.65`입니다. |
+| `CHESS_IMAGE_MAX_LOW_CONFIDENCE_SQUARES` | low-confidence 칸의 최대 허용 개수입니다. 기본값은 `16`입니다. |
 | `CHESS_STOCKFISH_MOVETIME_MS` | Stockfish가 최선 수를 탐색하는 시간입니다. 기본값은 `2000`입니다. |
 | `CHESS_OPENING_ENABLED` | `true`면 봇과 두는 체스 대국에서 오프닝북 기능을 켭니다. 기본 동작은 로컬 수동 북만 사용합니다. `false`, `0`, `off`, `no`면 끕니다. |
 | `CHESS_OPENING_PLAYER` | 오프닝북 기준으로 따라할 Lichess 플레이어 이름입니다. 기본값은 `bears4347`입니다. |
@@ -259,6 +284,53 @@ Discord ID `635107514471415808`인 관리자가 `%기억제거`를 입력하면 
 
 ```powershell
 .\deploy-vm.ps1
+```
+
+## 체스 이미지 분석 문제 해결
+
+### `spawn .../.venv-chess/bin/python ENOENT`
+
+Linux/PM2에서 `.venv-chess`가 없거나 Python 경로가 잘못된 경우입니다.
+
+```bash
+ls -l .venv-chess/bin/python
+```
+
+가상환경을 설치한 뒤 PM2를 다시 시작합니다.
+
+```bash
+pm2 restart discord-bot --update-env
+```
+
+### PyTorch 설치 후 디스크 사용량이 크게 늘어난 경우
+
+CUDA/NVIDIA 지원 PyTorch가 설치되었을 수 있습니다.
+
+```bash
+du -sh .venv-chess
+.venv-chess/bin/python -m pip list | grep -Ei "^(nvidia-|cuda-|triton)"
+```
+
+GPU가 필요하지 않다면 `requirements-chess-cpu.txt`로 CPU 전용 환경을 설치하는 것을 권장합니다.
+
+설치 후 pip 다운로드 캐시는 필요하지 않다면 정리할 수 있습니다.
+
+```bash
+.venv-chess/bin/python -m pip cache purge
+```
+
+### 이미지 인식 confidence 확인
+
+정상적으로 로컬 이미지 인식기가 실행되면 로그에 다음과 비슷한 항목이 표시됩니다.
+
+```text
+[CHESS IMAGE] orientation=b minConfidence=0.96 minPieceConfidence=0.96 lowConfidenceSquares=none
+```
+
+확인 명령:
+
+```bash
+pm2 logs discord-bot --lines 50 --nostream | grep -E "CHESS IMAGE|Primary chess image recognition failed"
 ```
 
 ## 참고
