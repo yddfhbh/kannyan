@@ -552,6 +552,8 @@ export async function handleChessAnalysisMessage(message, options = {}) {
       }
     );
 
+    console.log(`[CHESS IMAGE] recognizedFen=${fen}`);
+
   } catch (error) {
     console.error('Primary chess image recognition failed:');
     console.error(error);

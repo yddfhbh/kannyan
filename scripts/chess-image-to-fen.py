@@ -360,10 +360,11 @@ def save_board_crop(image_path: str, fallback_orientation: str):
     x, y, size, score = find_board_bbox(rgb)
     board_rgb = rgb[y:y + size, x:x + size]
 
-    board_orientation, orientation_source = detect_board_orientation_from_coords(
-        board_rgb,
-        fallback_orientation,
-    )
+    # Board orientation is resolved by the JS layer before this script is called.
+    # Do not re-detect it here, because pieces near the coordinate labels can make
+    # the local rank-label heuristic confidently choose the opposite orientation.
+    board_orientation = "b" if fallback_orientation == "b" else "w"
+    orientation_source = "requested"
 
     fd, crop_path = tempfile.mkstemp(prefix="chess-board-", suffix=".png")
     os.close(fd)
