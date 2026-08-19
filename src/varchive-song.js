@@ -282,13 +282,13 @@ async function ensureVArchiveSongSearchIndex(options = {}) {
     return;
   }
 
-  const songsByTitleId = new Map(
-    (Array.isArray(songs) ? songs : []).map((song) => [getSongTitleId(song), song])
-  );
   const ropheTagsByTitleId = ropheTagCache.tagsByTitleId ?? buildRopheTagsByTitleId(ropheTags);
   const searchEntries = (Array.isArray(songs) ? songs : [])
     .map((song) => buildSongSearchEntry(song, ropheTagsByTitleId.get(getSongTitleId(song))))
     .filter(Boolean);
+  const songsByTitleId = new Map(
+    searchEntries.map((entry) => [entry.titleId, entry.song])
+  );
 
   vArchiveSearchIndexCache.searchEntries = searchEntries;
   vArchiveSearchIndexCache.songsByTitleId = songsByTitleId;
