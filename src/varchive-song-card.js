@@ -4,6 +4,7 @@ import {
 } from './svg-renderer.js';
 import {
   buildVArchiveSongPageUrl,
+  formatVArchiveSongBpm,
   formatVArchiveSongDlc,
 } from './varchive-song.js';
 
@@ -97,6 +98,8 @@ export function renderVArchiveSongCardSvg(song, options = {}) {
   const footerY = tableY + tableHeaderHeight + rowHeight * 4 + 36;
   const songName = String(song?.name ?? 'Unknown Song');
   const composer = String(song?.composer ?? 'Unknown Composer');
+  const bpmLabel = formatVArchiveSongBpm(song);
+  const subtitle = [composer, bpmLabel].filter(Boolean).join(' · ');
   const dlcLabel = formatVArchiveSongDlc(song);
   const dlcAccent = getVArchiveDlcAccent(song?.dlcCode);
   const pageUrl = buildVArchiveSongPageUrl(song);
@@ -203,7 +206,7 @@ export function renderVArchiveSongCardSvg(song, options = {}) {
   <rect x="${contentX + 124}" y="${contentY + 14}" width="156" height="30" rx="8" ry="8" fill="${dlcAccent.badgeFill}"/>
   <text x="${contentX + 142}" y="${contentY + 36}" class="dlcBadgeText">${escapeXml(dlcLabel)}</text>
   <text x="${contentX + 124}" y="${contentY + 80}" class="title">${escapeXml(songName)}</text>
-  <text x="${contentX + 124}" y="${contentY + 112}" class="subtitle">${escapeXml(composer)}</text>
+  <text x="${contentX + 124}" y="${contentY + 112}" class="subtitle">${escapeXml(subtitle)}</text>
 
   <rect x="${contentX}" y="${tableY}" width="${tableWidth}" height="${tableHeaderHeight + rowHeight * 4}" fill="#f6f3f7" stroke="${dlcAccent.gridColor}" stroke-width="${varchiveSongGridStrokeWidth}"/>
   ${diffHeaderMarkup}

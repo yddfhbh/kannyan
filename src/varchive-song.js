@@ -263,6 +263,11 @@ export function formatVArchiveSongDlc(song) {
   return dlcLabels[code] ?? code;
 }
 
+export function formatVArchiveSongBpm(song) {
+  const bpm = String(song?.bpm ?? '').trim();
+  return bpm ? `BPM ${bpm}` : '';
+}
+
 async function ensureVArchiveSongSearchIndex(options = {}) {
   const [songs, ropheTags] = await Promise.all([
     fetchVArchiveSongs(options),
@@ -450,8 +455,12 @@ function buildSongSearchEntry(song, rophe = null) {
     ...rophePatternTagNames,
   ]);
 
+  const songWithMetadata = ropheBpmText
+    ? { ...song, bpm: ropheBpmText }
+    : song;
+
   return {
-    song,
+    song: songWithMetadata,
     titleId,
     rophe,
     nameExactKey: normalizeSongName(songName),
