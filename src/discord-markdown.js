@@ -47,10 +47,19 @@ export function normalizeDiscordMarkdown(text) {
     }
   }
 
-  return insertDiscordBlockSpacing(normalizedLines)
-    .join('\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  return ensureCouncilRoleSectionLineBreaks(
+    insertDiscordBlockSpacing(normalizedLines)
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+  );
+}
+
+export function ensureCouncilRoleSectionLineBreaks(text) {
+  return String(text ?? '').replace(
+    /(^|\n)(\*\*(?:kanna|isharong|gangji)(?:[^*\n]{0,80})\*\*)[ \t]*(?=\S)/giu,
+    '$1$2\n'
+  );
 }
 
 function splitInlineListMarkers(line) {

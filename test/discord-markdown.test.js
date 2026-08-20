@@ -1,9 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { normalizeDiscordMarkdown } from '../src/discord-markdown.js';
+import {
+  ensureCouncilRoleSectionLineBreaks,
+  normalizeDiscordMarkdown,
+} from '../src/discord-markdown.js';
 
 const discordBlankLine = '\u2800';
+
+test('Council role Markdown headings are followed by real line breaks', () => {
+  const input = [
+    '**kanna 역할**최종 응답을 조정한다.',
+    '**isharong 분석** 조사 결과를 정리한다.',
+    '**gangji 검증**오류 가능성을 비판한다.',
+  ].join('\n');
+
+  assert.equal(
+    ensureCouncilRoleSectionLineBreaks(input),
+    [
+      '**kanna 역할**\n최종 응답을 조정한다.',
+      '**isharong 분석**\n조사 결과를 정리한다.',
+      '**gangji 검증**\n오류 가능성을 비판한다.',
+    ].join('\n')
+  );
+});
 
 test(
   'normalizeDiscordMarkdown converts headings and horizontal rules into Discord-friendly text',
