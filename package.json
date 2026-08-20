@@ -12,7 +12,6 @@
     "preview:tetolb": "node scripts/preview-tetolb.js",
     "register": "node src/deploy-commands.js",
     "start": "node src/index.js",
-    "check": "node --check src/index.js && node --check src/council-status-board.js && node --check src/discord-markdown.js && node --test",
     "uci": "node src/chess/kannyan-uci.js",
     "test": "node --test --test-isolation=none"
   },

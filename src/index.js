@@ -211,11 +211,6 @@ import {
 } from './image-generation-request.js';
 import { normalizeDiscordMarkdown } from './discord-markdown.js';
 import {
-  createCouncilStatusBoard,
-  defaultCouncilStatusChannelId,
-  isCouncilStatusChannelMessage,
-} from './council-status-board.js';
-import {
   buildGeminiCurrentUserPromptSection,
   geminiStyleRequestHandlingSystemInstructionLines,
 } from './gemini-style-guidance.js';
@@ -325,13 +320,6 @@ const guildListRefreshIntervalMs = Math.max(
 );
 const vmStatusDiskPath = process.env.VM_STATUS_DISK_PATH?.trim() || '/';
 const vmStatusMessageTitle = 'VM 상태 대시보드다냥';
-const councilStatusChannelId = process.env.COUNCIL_STATUS_CHANNEL_ID?.trim()
-  || defaultCouncilStatusChannelId;
-const councilAgentKey = process.env.COUNCIL_AGENT_NAME?.trim()
-  || process.env.COUNCIL_AGENT_KEY?.trim()
-  || '';
-const councilAgentModel = process.env.COUNCIL_AGENT_MODEL?.trim() || '미설정';
-const councilAgentRole = process.env.COUNCIL_AGENT_ROLE?.trim() || '';
 
 const geminiSupportedImageMimeTypes = new Set([
   'image/jpeg',
@@ -910,13 +898,6 @@ const client = new Client({
     GatewayIntentBits.DirectMessages,
   ],
   partials: [Partials.Channel, Partials.Message, Partials.Reaction],
-});
-const councilStatusBoard = createCouncilStatusBoard({
-  client,
-  channelId: councilStatusChannelId,
-  agentKey: councilAgentKey,
-  agentModel: councilAgentModel,
-  agentRole: councilAgentRole,
 });
 
 const GUILD_LIST_CHANNEL_ID = '1502965960133574703';
@@ -1688,11 +1669,6 @@ client.once(Events.ClientReady, async (readyClient) => {
 
   console.log(`Logged in as ${readyClient.user.tag}`);
 
-  await councilStatusBoard.start().catch((error) => {
-    console.error('[COUNCIL STATUS] startup failed.');
-    console.error(error);
-  });
-
   void flushDiscordConsoleLogs();
   try {
     await loadChessPlayState();
@@ -1734,10 +1710,6 @@ client.on(Events.Error, (error) => {
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) {
-    return;
-  }
-
-  if (isCouncilStatusChannelMessage(message, councilStatusChannelId)) {
     return;
   }
 
@@ -6102,15 +6074,11 @@ process.on('uncaughtException', (error) => {
 });
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
-  process.on(signal, async () => {
+  process.on(signal, () => {
     console.log(`Received ${signal}, shutting down...`);
     stopGuildListUpdater();
     stopVmStatusUpdater();
     stopChessPlayInactivityMonitor();
-    await councilStatusBoard.stop().catch((error) => {
-      console.error('[COUNCIL STATUS] offline update failed.');
-      console.error(error);
-    });
     closeStockfishEngine();
     client.destroy();
     server.close(() => process.exit(0));
@@ -9053,20 +9021,9 @@ async function generateGeminiAnswer(prompt, options = {}) {
       models: modelsToUse,
     });
   } catch (error) {
-    void councilStatusBoard.recordAiResult({
-      ok: false,
-      at: new Date(),
-      latencyMs: Date.now() - answerStartedAt,
-    });
     logGeminiTiming(`answer failed total=${Date.now() - answerStartedAt}ms status=${formatGeminiErrorStatus(error)}`);
     throw error;
   }
-
-  void councilStatusBoard.recordAiResult({
-    ok: true,
-    at: new Date(),
-    latencyMs: Date.now() - answerStartedAt,
-  });
 
   const text = extractGeminiResponseText(response);
 
