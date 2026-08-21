@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import sharp from 'sharp';
 import {
   getTetrioHunDinFontDataUri,
@@ -19,6 +20,15 @@ const tetrioGameBaseUrl = 'https://tetr.io';
 const tetrioHeaders = {
   'User-Agent': 'discord-bot/1.0 TETR.IO achievement card',
 };
+
+const staticAchievementCatalog = Object.freeze(
+  JSON.parse(
+    readFileSync(
+      new URL('./data/tetrio-achievements.json', import.meta.url),
+      'utf8',
+    ),
+  ),
+);
 const achievementIconGridSize = 8;
 const achievementSummaryCacheTtlMs = 30_000;
 const achievementCatalogCacheTtlMs = 21_600_000;
@@ -56,9 +66,8 @@ const achievementAccentPalette = new Map([
 ]);
 
 export async function searchTetrioAchievements(query = '', limit = 25) {
-  const achievements = await fetchTetrioAchievementCatalog();
   const normalizedQuery = normalizeAchievementSearchText(query);
-  const uniqueAchievements = dedupeAchievementsByName(achievements);
+  const uniqueAchievements = dedupeAchievementsByName(staticAchievementCatalog);
   const filtered = normalizedQuery
     ? uniqueAchievements.filter((achievement) =>
       normalizeAchievementSearchText(achievement.name).includes(normalizedQuery)
@@ -102,20 +111,7 @@ export async function createTetrioAchievementCard(username, achievementQuery) {
 }
 
 export async function fetchTetrioAchievementCatalog() {
-  if (achievementCatalogCache && achievementCatalogCache.expiresAt > Date.now()) {
-    return achievementCatalogCache.value;
-  }
-
-  if (achievementCatalogPendingPromise) {
-    return achievementCatalogPendingPromise;
-  }
-
-  const promise = fetchTetrioAchievementCatalogUncached()
-    .finally(() => {
-      achievementCatalogPendingPromise = null;
-    });
-  achievementCatalogPendingPromise = promise;
-  return promise;
+  return staticAchievementCatalog;
 }
 
 async function fetchTetrioAchievementCatalogUncached() {
@@ -173,30 +169,31 @@ async function fetchTetrioAchievementSummary(username) {
 }
 
 async function fetchTetrioAchievementSummaryUncached(username) {
-  const [userResponse, summariesResponse] = await Promise.all([
-    fetch(`${tetrioApiBaseUrl}/users/${encodeURIComponent(username)}`, { headers: tetrioHeaders }),
-    fetch(`${tetrioApiBaseUrl}/users/${encodeURIComponent(username)}/summaries`, { headers: tetrioHeaders }),
-  ]);
+  const response = await fetch(
+    `${tetrioApiBaseUrl}/users/${encodeURIComponent(username)}/summaries/achievements`,
+    { headers: tetrioHeaders },
+  );
 
-  if (!userResponse.ok) {
-    const error = new Error(`TETR.IO user lookup failed with ${userResponse.status}`);
-    error.status = userResponse.status;
+  if (!response.ok) {
+    const error = new Error(
+      `TETR.IO achievement summary lookup failed with ${response.status}`,
+    );
+    error.status = response.status;
     throw error;
   }
 
-  if (!summariesResponse.ok) {
-    const error = new Error(`TETR.IO achievement summary lookup failed with ${summariesResponse.status}`);
-    error.status = summariesResponse.status;
+  const payload = await response.json();
+
+  if (!payload?.success || !Array.isArray(payload?.data)) {
+    const error = new Error('Invalid TETR.IO achievement summary response');
+    error.status = response.status;
     throw error;
   }
 
-  const userPayload = await userResponse.json();
-  const summariesPayload = await summariesResponse.json();
   const value = {
-    achievements: Array.isArray(summariesPayload?.data?.achievements)
-      ? summariesPayload.data.achievements.filter((achievement) => !achievement?.stub && Number(achievement?.rank) !== 0)
-      : [],
-    username: userPayload?.data?.username ?? username,
+    achievements: payload.data.filter((achievement) =>
+      !achievement?.stub && Number(achievement?.rank) !== 0),
+    username,
   };
 
   summaryCache.set(username, {

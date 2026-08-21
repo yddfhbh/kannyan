@@ -322,7 +322,7 @@ function getTetrioJsonCacheTtlCapMs(path) {
 
   // 유저 기본 정보
   if (/^\/users\/[^/?]+$/.test(path)) {
-    return 30_000;
+    return 5_000;
   }
 
   return 30_000;
