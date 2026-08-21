@@ -10899,6 +10899,29 @@ function getMinomuncherErrorMessage(error) {
     return '리플레이를 파싱하지 못했다냥. `.ttrm` 파일이 맞는지 확인해달라냥.';
   }
 
+  if (error?.code === 'MINOMUNCHER_REPLAY_REJECTED') {
+    const fileName = error.fileName ?? '리플레이';
+    return `${fileName}은 비정상적인 리플레이 데이터라서 분석을 차단했다냥.`;
+  }
+
+  if (error?.code === 'MINOMUNCHER_BUSY') {
+    return '지금 다른 리플레이를 분석 중이다냥. 잠시 뒤 다시 시도해달라냥.';
+  }
+
+  if (error?.code === 'MINOMUNCHER_WORKER_TIMEOUT') {
+    return '리플레이 분석이 너무 오래 걸려서 안전하게 중단했다냥.';
+  }
+
+  if (error?.code === 'MINOMUNCHER_WORKER_RESOURCE_LIMIT') {
+    return '리플레이 분석이 메모리를 너무 많이 사용해서 안전하게 중단했다냥.';
+  }
+
+  if (
+    error?.code === 'MINOMUNCHER_WORKER_CRASH'
+    || error?.code === 'MINOMUNCHER_WORKER_FAILED'
+  ) {
+    return '리플레이 분석 프로세스가 비정상 종료돼서 분석을 중단했다냥.';
+  }
   if (error?.code === 'MINOMUNCHER_RECENT_REPLAYS_UNAVAILABLE') {
     return '최근 TETRA LEAGUE 리플레이를 하나도 확보하지 못했다냥. 삭제됐거나 잠시 접근이 안 되는 경기들일 수 있으니 조금 뒤에 다시 시도해달라냥.';
   }
@@ -10987,8 +11010,7 @@ function wrapMinomuncherRecentReplayLookupError(error, username, assumeExistingU
 }
 
 function shouldWrapMinomuncherRecentReplayLookupError(error) {
-  return error?.code !== 'MINOMUNCHER_RECENT_REPLAYS_UNAVAILABLE'
-    && error?.code !== 'MINOMUNCHER_REPLAY_PARSE_FAILED';
+  return !String(error?.code ?? '').startsWith('MINOMUNCHER_');
 }
 
 function formatMinomuncherRecentAnalysisMessage(replayFetchResult, usedReplayCount, failedParseCount = 0) {

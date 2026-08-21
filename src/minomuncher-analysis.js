@@ -1,322 +1,486 @@
-import { JSDOM } from 'jsdom';
+import { fork } from 'node:child_process';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
 import {
-  calculateCumulativeStats,
-  combineStats,
-  createGraph,
-  parseReplay,
-  Theme,
-} from 'minomuncher-core';
-import { renderSvgToPng } from './svg-renderer.js';
+  validateMinomuncherReplayFiles,
+} from './minomuncher-replay-validation.js';
 
-const muncherGraphGroups = [
-  ['deathAndKills', ['deaths', 'kills']],
-  ['annoyingness', ['downstacking', 'attack cheesiness']],
-  ['stackedBars', ['spin efficiency', 'attack per line', 'phase PPS', 'phase APM']],
-];
-const muncherSingleGraphTypes = [
-  'clear types',
-  'PPS distribution',
-  'well columns',
-  'attack recieved',
-  'surge',
-  'PPS',
-];
-const muncherGraphRenderConcurrency = 3;
-const muncherGraphBackground = Theme.defaultScheme?.b_med ?? '#181820';
+const workerPath =
+  fileURLToPath(
+    new URL(
+      './minomuncher-analysis-worker.js',
+      import.meta.url,
+    ),
+  );
 
-export async function createMinomuncherAnalysis(options = {}) {
-  const replayFiles = normalizeReplayFiles(options.replays);
-  const gameStats = {};
-  const { failedReplayFiles } = parseLocalMinomuncherReplays(replayFiles, gameStats);
-  const stats = buildCumulativeStats(gameStats);
+const workerTimeoutMs =
+  readPositiveInteger(
+    process.env.MINOMUNCHER_WORKER_TIMEOUT_MS,
+    30_000,
+  );
 
-  if (Object.keys(stats).length === 0 && failedReplayFiles.length > 0) {
-    const error = new Error('No replay data could be parsed');
-    error.code = 'MINOMUNCHER_REPLAY_PARSE_FAILED';
-    error.failedReplayFiles = failedReplayFiles;
+// V8 자체 OOM까지 도달하기 전에
+// 아래 RSS watchdog이 먼저 worker를 죽이도록
+// heap limit은 RSS limit보다 조금 크게 둔다.
+const workerHeapMb =
+  readPositiveInteger(
+    process.env.MINOMUNCHER_WORKER_HEAP_MB,
+    1024,
+  );
+
+const workerRssLimitMb =
+  readPositiveInteger(
+    process.env.MINOMUNCHER_WORKER_RSS_LIMIT_MB,
+    768,
+  );
+
+const maxConcurrency =
+  readPositiveInteger(
+    process.env.MINOMUNCHER_MAX_CONCURRENCY,
+    1,
+  );
+
+const workerRssPollMs =
+  Math.max(
+    50,
+    readPositiveInteger(
+      process.env.MINOMUNCHER_WORKER_RSS_POLL_MS,
+      100,
+    ),
+  );
+
+const workerStderrMaxChars =
+  32_000;
+
+let activeAnalysisCount = 0;
+
+export async function createMinomuncherAnalysis(
+  options = {},
+) {
+  // 가장 먼저 메인 프로세스에서 가벼운 구조 검증.
+  // 여기서 비정상 frame / board / prototype 입력을 차단한다.
+  const replayFiles =
+    validateMinomuncherReplayFiles(
+      options.replays,
+    );
+
+  // 공격자가 여러 worker를 동시에 띄워
+  // VM 전체 RAM을 압박하는 것도 막는다.
+  if (
+    activeAnalysisCount >=
+    maxConcurrency
+  ) {
+    const error =
+      new Error(
+        'MinoMuncher worker is busy',
+      );
+
+    error.code =
+      'MINOMUNCHER_BUSY';
+
     throw error;
   }
 
-  const filteredStats = filterMinomuncherStatsByUsername(stats, options.targetUsername);
+  activeAnalysisCount += 1;
 
-  const files = Object.keys(filteredStats).length > 0
-    ? await createMinomuncherGraphFiles(filteredStats)
-    : [];
+  try {
+    return await runMinomuncherWorker({
+      replays: replayFiles,
 
-  return {
-    files,
-    stats: filteredStats,
-    failedReplayFiles,
-  };
-}
-
-function parseLocalMinomuncherReplays(replayFiles, gameStats) {
-  const failedReplayFiles = [];
-
-  for (const replayFile of replayFiles) {
-    try {
-      const localPlayers = parseReplay(replayFile.content);
-
-      if (!localPlayers || Object.keys(localPlayers).length === 0) {
-        throw new Error('Replay parser returned no players');
-      }
-
-      mergePlayerGameStats(gameStats, localPlayers);
-    } catch (error) {
-      failedReplayFiles.push(replayFile.name);
-      console.error(`Failed to parse MinoMuncher replay attachment ${replayFile.name}:`);
-      console.error(error);
-    }
-  }
-
-  return { failedReplayFiles };
-}
-
-function mergePlayerGameStats(gameStats, localPlayers) {
-  for (const [playerId, player] of Object.entries(localPlayers)) {
-    if (!gameStats[playerId]) {
-      gameStats[playerId] = player;
-    } else {
-      combineStats(gameStats[playerId].stats, player.stats);
-    }
+      targetUsername:
+        normalizeTargetUsername(
+          options.targetUsername,
+        ),
+    });
+  } finally {
+    activeAnalysisCount -= 1;
   }
 }
 
-function buildCumulativeStats(gameStats) {
-  const stats = {};
-  for (const [playerId, player] of Object.entries(gameStats)) {
-    stats[playerId] = {
-      username: player.username,
-      stats: calculateCumulativeStats(player.stats),
-    };
-  }
+export function filterMinomuncherStatsByUsername(
+  stats,
+  targetUsername,
+) {
+  const normalizedTargetUsername =
+    normalizeTargetUsername(
+      targetUsername,
+    );
 
-  return stats;
-}
-
-export function filterMinomuncherStatsByUsername(stats, targetUsername) {
-  const normalizedTargetUsername = normalizeTargetUsername(targetUsername);
   if (!normalizedTargetUsername) {
     return stats;
   }
 
   return Object.fromEntries(
-    Object.entries(stats ?? {}).filter(([, player]) => normalizeTargetUsername(player?.username) === normalizedTargetUsername),
+    Object.entries(
+      stats ?? {},
+    ).filter(
+      ([, player]) =>
+        normalizeTargetUsername(
+          player?.username,
+        ) ===
+        normalizedTargetUsername,
+    ),
   );
 }
 
-async function createMinomuncherGraphFiles(stats) {
-  const graphFiles = [];
+function runMinomuncherWorker(payload) {
+  return new Promise(
+    (resolve, reject) => {
+      let settled = false;
+      let stderrText = '';
 
-  for (const [groupName, graphTypes] of muncherGraphGroups) {
-    const svgData = graphTypes.map((graphType) => createMinomuncherGraphSvg(graphType, stats));
-    const svg = combineSvgData(svgData);
-    graphFiles.push({
-      name: `${groupName}.png`,
-      svg,
-    });
-  }
+      let timeoutId = null;
+      let rssIntervalId = null;
 
-  for (const graphType of muncherSingleGraphTypes) {
-    const svg = createMinomuncherGraphSvg(graphType, stats);
-    graphFiles.push({
-      name: `${formatAttachmentName(graphType)}.png`,
-      svg,
-    });
-  }
+      const child = fork(
+        workerPath,
+        [],
+        {
+          // 테스트 러너나 inspector 플래그는 상속하지 않고
+          // worker heap 제한만 명시적으로 적용한다.
+          execArgv: [
+            `--max-old-space-size=${workerHeapMb}`,
+          ],
 
-  const files = await mapWithConcurrency(
-    graphFiles,
-    muncherGraphRenderConcurrency,
-    async ({ name, svg }) => ({
-      name,
-      buffer: await renderSvgData(name, svg),
-    }),
+          env: {
+            ...process.env,
+            MINOMUNCHER_ISOLATED_WORKER:
+              '1',
+          },
+
+          stdio: [
+            'ignore',
+            'ignore',
+            'pipe',
+            'ipc',
+          ],
+
+          // Buffer를 JSON 배열로 터뜨리지 않고
+          // IPC structured clone으로 전달한다.
+          serialization: 'advanced',
+        },
+      );
+
+      const finish = (
+        error,
+        result,
+      ) => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+
+        clearTimeout(timeoutId);
+        clearInterval(rssIntervalId);
+
+        if (error) {
+          if (
+            stderrText &&
+            !error.workerStderr
+          ) {
+            error.workerStderr =
+              stderrText.slice(
+                -workerStderrMaxChars,
+              );
+          }
+
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      };
+
+      const terminate = (error) => {
+        if (
+          !settled &&
+          child.pid
+        ) {
+          // SIGABRT가 아니라 SIGKILL로 직접 종료해서
+          // runaway worker가 본체까지 붙잡지 못하게 한다.
+          child.kill('SIGKILL');
+        }
+
+        finish(error);
+      };
+
+      child.stderr?.on(
+        'data',
+        (chunk) => {
+          stderrText =
+            `${stderrText}${String(chunk)}`
+              .slice(
+                -workerStderrMaxChars,
+              );
+        },
+      );
+
+      child.once(
+        'error',
+        (cause) => {
+          const error =
+            new Error(
+              'Failed to start MinoMuncher worker',
+            );
+
+          error.code =
+            'MINOMUNCHER_WORKER_CRASH';
+
+          error.cause = cause;
+
+          finish(error);
+        },
+      );
+
+      child.once(
+        'exit',
+        (code, signal) => {
+          if (settled) {
+            return;
+          }
+
+          const error =
+            new Error(
+              `MinoMuncher worker exited before returning a result (code=${code}, signal=${signal})`,
+            );
+
+          error.code =
+            'MINOMUNCHER_WORKER_CRASH';
+
+          error.exitCode =
+            code;
+
+          error.signal =
+            signal;
+
+          finish(error);
+        },
+      );
+
+      child.on(
+        'message',
+        (message) => {
+          if (
+            settled ||
+            message?.type !==
+              'minomuncher-result'
+          ) {
+            return;
+          }
+
+          if (message.ok) {
+            finish(
+              null,
+              message.result,
+            );
+
+            return;
+          }
+
+          finish(
+            deserializeWorkerError(
+              message.error,
+            ),
+          );
+        },
+      );
+
+      // CPU 무한루프 / tick-loop 방어
+      timeoutId =
+        setTimeout(
+          () => {
+            const error =
+              new Error(
+                `MinoMuncher analysis exceeded ${workerTimeoutMs}ms`,
+              );
+
+            error.code =
+              'MINOMUNCHER_WORKER_TIMEOUT';
+
+            error.timeoutMs =
+              workerTimeoutMs;
+
+            terminate(error);
+          },
+          workerTimeoutMs,
+        );
+
+      // Linux VM에서 실제 RSS를 감시.
+      //
+      // Node V8 heap OOM으로 SIGABRT가 나기 전에
+      // parent가 SIGKILL해버리는 것이 목적.
+      if (
+        process.platform === 'linux' &&
+        child.pid
+      ) {
+        rssIntervalId =
+          setInterval(
+            () => {
+              const rssBytes =
+                readLinuxProcessRssBytes(
+                  child.pid,
+                );
+
+              if (
+                rssBytes === null
+              ) {
+                return;
+              }
+
+              const limitBytes =
+                workerRssLimitMb *
+                1024 *
+                1024;
+
+              if (
+                rssBytes <= limitBytes
+              ) {
+                return;
+              }
+
+              const error =
+                new Error(
+                  `MinoMuncher worker exceeded RSS limit (${rssBytes} > ${limitBytes})`,
+                );
+
+              error.code =
+                'MINOMUNCHER_WORKER_RESOURCE_LIMIT';
+
+              error.rssBytes =
+                rssBytes;
+
+              error.rssLimitBytes =
+                limitBytes;
+
+              terminate(error);
+            },
+            workerRssPollMs,
+          );
+
+        rssIntervalId.unref?.();
+      }
+
+      child.send(
+        {
+          type:
+            'minomuncher-run',
+
+          payload,
+        },
+        (sendError) => {
+          if (
+            !sendError ||
+            settled
+          ) {
+            return;
+          }
+
+          const error =
+            new Error(
+              'Failed to send work to MinoMuncher worker',
+            );
+
+          error.code =
+            'MINOMUNCHER_WORKER_CRASH';
+
+          error.cause =
+            sendError;
+
+          terminate(error);
+        },
+      );
+    },
   );
-
-  files.push({
-    name: 'rawStats.json',
-    buffer: Buffer.from(JSON.stringify(stats, null, 2)),
-  });
-
-  return files;
 }
 
-async function mapWithConcurrency(items, concurrency, mapper) {
-  const results = new Array(items.length);
-  const workerCount = Math.min(Math.max(1, concurrency), items.length);
-  let nextIndex = 0;
-
-  async function worker() {
-    while (nextIndex < items.length) {
-      const index = nextIndex;
-      nextIndex += 1;
-      results[index] = await mapper(items[index], index);
-    }
-  }
-
-  await Promise.all(Array.from({ length: workerCount }, () => worker()));
-  return results;
-}
-
-function createMinomuncherGraphSvg(graphType, stats) {
+function readLinuxProcessRssBytes(pid) {
   try {
-    const dom = new JSDOM();
-    const root = dom.window.document.createElement('div');
-    dom.window.document.body.appendChild(root);
-    createGraph(root, graphType, stats);
-    return root.innerHTML;
-  } catch (error) {
-    console.error(`Failed to build MinoMuncher graph SVG for ${graphType}:`);
-    console.error(error);
-    return '';
+    const status =
+      fs.readFileSync(
+        `/proc/${pid}/status`,
+        'utf8',
+      );
+
+    const match =
+      status.match(
+        /^VmRSS:\s+(\d+)\s+kB$/m,
+      );
+
+    return match
+      ? Number(match[1]) * 1024
+      : null;
+  } catch {
+    return null;
   }
 }
 
-async function renderSvgData(name, svg) {
-  const normalizedSvg = normalizeRenderableSvg(svg);
-  if (!normalizedSvg) {
-    console.error(`MinoMuncher graph ${name} did not produce a renderable SVG root.`);
-    return renderFallbackGraphPng(name, '그래프 데이터를 만들지 못했다냥.');
-  }
+function deserializeWorkerError(
+  serialized,
+) {
+  const error =
+    new Error(
+      serialized?.message ||
+      'MinoMuncher worker failed',
+    );
 
-  try {
-    return renderSvgToPng(normalizedSvg, {
-      background: muncherGraphBackground,
-    });
-  } catch (error) {
-    console.error(`Failed to render MinoMuncher graph ${name}:`);
-    console.error(error);
-    return renderFallbackGraphPng(name, '그래프 렌더링에 실패했다냥.');
-  }
-}
+  error.code =
+    serialized?.code ||
+    'MINOMUNCHER_WORKER_FAILED';
 
-function combineSvgData(svgData) {
-  const dom = new JSDOM();
-  const document = dom.window.document;
-  const root = document.createElement('div');
-  const [columns] = factorClosestPair(svgData.length);
-  let cursorX = 0;
-  let cursorY = 0;
-  let maxWidth = 0;
-  let maxHeight = 0;
-  let rowHeight = 0;
-
-  const baseSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  root.appendChild(baseSvg);
-
-  for (let index = 0; index < svgData.length; index += 1) {
-    const fragment = JSDOM.fragment(svgData[index]);
-const svgElement = fragment.querySelector('svg');
-
-if (!svgElement) {
-  console.error(`Combined MinoMuncher graph item ${index} does not contain an SVG root.`);
-  continue;
-}
-
-    const width = Number.parseFloat(svgElement.getAttribute('width') || '0');
-    const height = Number.parseFloat(svgElement.getAttribute('height') || '0');
-    svgElement.setAttribute('x', String(cursorX));
-    svgElement.setAttribute('y', String(cursorY));
-
-    cursorX += width;
-    maxWidth = Math.max(maxWidth, cursorX);
-    rowHeight = Math.max(rowHeight, height);
-
-    if ((index + 1) % columns === 0) {
-      cursorX = 0;
-      cursorY += rowHeight;
-      maxHeight = Math.max(maxHeight, cursorY);
-      rowHeight = 0;
+  for (
+    const key of [
+      'status',
+      'fileName',
+      'reason',
+      'failedReplayFiles',
+    ]
+  ) {
+    if (
+      serialized?.[key] !==
+      undefined
+    ) {
+      error[key] =
+        serialized[key];
     }
-
-    baseSvg.appendChild(svgElement);
   }
 
-  if (svgData.length % columns !== 0) {
-    maxHeight = cursorY + rowHeight;
+  if (serialized?.stack) {
+    error.workerStack =
+      serialized.stack;
   }
 
-  baseSvg.setAttribute('width', String(maxWidth));
-  baseSvg.setAttribute('height', String(maxHeight));
-  baseSvg.setAttribute('viewBox', `0 0 ${maxWidth} ${maxHeight}`);
-
-  return root.innerHTML;
+  return error;
 }
 
-function normalizeRenderableSvg(svg) {
-  const markup = String(svg ?? '').trim();
-  if (!markup) {
-    return '';
-  }
+function normalizeTargetUsername(
+  value,
+) {
+  const normalized =
+    String(
+      value ?? '',
+    )
+      .trim()
+      .toLowerCase();
 
-  const fragment = JSDOM.fragment(markup);
-  const svgElement = [...fragment.childNodes]
-    .find((node) => node.nodeType === 1 && node.nodeName.toLowerCase() === 'svg');
-
-  return svgElement?.outerHTML?.trim() ?? '';
-}
-
-function renderFallbackGraphPng(name, message) {
-  return renderSvgToPng(buildFallbackGraphSvg(name, message), {
-    background: muncherGraphBackground,
-  });
-}
-
-function buildFallbackGraphSvg(name, message) {
-  const title = escapeXml(name);
-  const body = escapeXml(message);
-
-  return `
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
-  <rect width="1200" height="675" fill="${muncherGraphBackground}" />
-  <text x="64" y="110" fill="#f5f7ff" font-size="44" font-family="Arial, sans-serif">${title}</text>
-  <text x="64" y="180" fill="#c7cede" font-size="28" font-family="Arial, sans-serif">${body}</text>
-</svg>`.trim();
-}
-
-function factorClosestPair(value) {
-  let factor = Math.floor(Math.sqrt(value));
-
-  while (factor > 0) {
-    if (value % factor === 0) {
-      return [factor, value / factor];
-    }
-
-    factor -= 1;
-  }
-
-  return [1, value];
-}
-
-function normalizeReplayFiles(replays) {
-  return (Array.isArray(replays) ? replays : [])
-    .map((replay, index) => ({
-      name: String(replay?.name ?? `replay-${index + 1}.ttrm`).trim() || `replay-${index + 1}.ttrm`,
-      content: String(replay?.content ?? ''),
-    }))
-    .filter((replay) => replay.content);
-}
-
-function formatAttachmentName(value) {
-  return String(value ?? 'graph')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    || 'graph';
-}
-
-function escapeXml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-function normalizeTargetUsername(value) {
-  const normalized = String(value ?? '').trim().toLowerCase();
   return normalized || null;
+}
+
+function readPositiveInteger(
+  ...values
+) {
+  for (const value of values) {
+    const number =
+      Number(value);
+
+    if (
+      Number.isSafeInteger(number) &&
+      number > 0
+    ) {
+      return number;
+    }
+  }
+
+  return 1;
 }
