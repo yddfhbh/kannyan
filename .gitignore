@@ -27,3 +27,5 @@ data/starforce-statistics/
 data/tetolb-cache.json
 data/tetolb-user-cache.json
 *.bak-*
+
+/data
