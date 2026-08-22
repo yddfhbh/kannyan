@@ -1108,10 +1108,9 @@ export function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
   const opponentWins = Number(opponentSide.wins);
   const hasWins = Number.isFinite(targetWins) && Number.isFinite(opponentWins);
   const isNoContest = resultType.includes('nocontest') || resultType.includes('no contest');
-  const isWin = hasWins
-    ? targetWins > opponentWins
-    : resultType.includes('victory');
   const isDq = resultType.includes('dq');
+  const explicitResult = resolveExplicitLeagueResult(resultType);
+  const isWin = explicitResult ?? (hasWins ? targetWins > opponentWins : false);
   const opponentMeta = otherUsers.find((user) => user?.id === opponentSide.id)
     ?? otherUsers.find((user) => String(user?.username ?? '').toLowerCase() === opponentSide.username.toLowerCase())
     ?? null;
@@ -1145,6 +1144,26 @@ export function buildRecentLeagueMatchRow(record, requestedUsername, rowIndex) {
     trDeltaDisplay: isNeutralZeroDelta ? '±0.00' : formattedTrDelta,
     vs: isNoContest ? '-' : formatDecimal(targetSide.stats?.vsscore, 2),
   };
+}
+
+function resolveExplicitLeagueResult(resultType) {
+  const normalizedResult = String(resultType ?? '')
+    .toLowerCase()
+    .replace(/[^a-z]+/g, '');
+
+  if (!normalizedResult || normalizedResult.includes('nocontest')) {
+    return null;
+  }
+
+  if (normalizedResult.includes('victory') || normalizedResult.includes('win')) {
+    return true;
+  }
+
+  if (normalizedResult.includes('defeat') || normalizedResult.includes('loss') || normalizedResult.includes('lose')) {
+    return false;
+  }
+
+  return null;
 }
 
 function getRecentLeagueRowLayout(x, width) {
