@@ -29,3 +29,7 @@ data/tetolb-user-cache.json
 *.bak-*
 
 /data
+discord-bot-vm.tar.gz
+discord-bot-vm-deploy.sh
+preview-*.png
+preview-*.svg

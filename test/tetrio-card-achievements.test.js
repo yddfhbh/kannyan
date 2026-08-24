@@ -5,6 +5,8 @@ import {
   calculateAchievementProgress,
   getAchievementCompetitivePlace,
   getAchievementRingClipPoints,
+  isBotTetrioUser,
+  isGuestTetrioUser,
 } from '../src/tetrio-card.js';
 import { renderTetrioAchievementIconMarkup } from '../src/tetrio-achievement-icon.js';
 
@@ -84,4 +86,12 @@ test('renderTetrioAchievementIconMarkup follows the shared frame-ring-inner-icon
   assert.ok(markup.indexOf('href="frame.png"') < markup.indexOf('href="ring.png"'));
   assert.ok(markup.indexOf('href="ring.png"') < markup.indexOf('href="icon.png"'));
   assert.ok(markup.indexOf('href="icon.png"') < markup.indexOf('href="wreath.png"'));
+});
+
+test('guest and bot account detection follows TETR.IO role values', () => {
+  assert.equal(isGuestTetrioUser({ role: 'anon' }), true);
+  assert.equal(isGuestTetrioUser({ role: 'ANON' }), true);
+  assert.equal(isGuestTetrioUser({ role: 'user' }), false);
+  assert.equal(isBotTetrioUser({ role: 'bot' }), true);
+  assert.equal(isBotTetrioUser({ role: 'anon' }), false);
 });

@@ -977,6 +977,7 @@ const bannerRightEdgeCoverY = bannerEdgeCoverY ;
   const zenithEx = summaries.zenithex;
   const badges = user.badges ?? [];
   const isBotAccount = isBotTetrioUser(user);
+  const isGuestAccount = isGuestTetrioUser(user);
   const levelTag = getLevelTag(user.xp);
   const badgeLayout = getBadgeLayout(badges, assets.badgeIcons, contentWidth);
   const levelTagY = bannerY + bannerHeight + 8;
@@ -1036,7 +1037,7 @@ const standardSvgHeight = bottomStatY + 126;
 const botPanelY = badgeBoxY;
 const botPanelHeight = 244;
 const botSvgBottomPadding = 32;
-const svgHeight = isBotAccount
+const svgHeight = isBotAccount || isGuestAccount
   ? botPanelY + botPanelHeight + botSvgBottomPadding
   : standardSvgHeight;
 const cardHeight = svgHeight - 32;
@@ -1282,6 +1283,8 @@ ${renderHeaderFlag(flag, headerFlagX, headerFlagY)}
 
   ${isBotAccount
     ? renderBotAccountPanel(botPanelY, contentX, contentWidth, botPanelHeight, botMaster)
+    : isGuestAccount
+      ? renderGuestAccountPanel(botPanelY, contentX, contentWidth, botPanelHeight)
     : [
       renderBadgeRow(badges, assets.badgeIcons, badgeY, contentX, contentWidth, badgeLayout),
       renderBio(bioLines, bioEmojiAssets, bioY, bioHeight, contentX, contentWidth),
@@ -1320,6 +1323,10 @@ function isBotTetrioUser(user) {
   return String(user?.role ?? '').trim().toLowerCase() === 'bot';
 }
 
+function isGuestTetrioUser(user) {
+  return String(user?.role ?? '').trim().toLowerCase() === 'anon';
+}
+
 function formatBotMasterName(value) {
   const text = String(value ?? '').trim();
   return text ? text.toUpperCase() : 'UNKNOWN';
@@ -1344,6 +1351,28 @@ function renderBotAccountPanel(y, x = 36, width = 888, height = 244, botMaster =
     <text x="${centerX}" y="${titleY}" text-anchor="middle" font-size="50" font-weight="900" fill="#c9ffc8">BOT</text>
     ${bodyLines.map((line, index) => `<text x="${centerX}" y="${bodyY + index * 30}" text-anchor="middle" class="sub" font-size="21.5">${renderTetrioTextMarkup(line)}</text>`).join('\n    ')}
     <text x="${centerX}" y="${footerY}" text-anchor="middle" class="sub" font-size="25.5">THIS BOT IS OPERATED BY <tspan class="white">${escapeXml(botMaster)}</tspan></text>
+  </g>`;
+}
+
+function renderGuestAccountPanel(y, x = 36, width = 888, height = 244) {
+  const innerX = x + 16;
+  const innerY = y + 16;
+  const innerWidth = width - 32;
+  const innerHeight = height - 32;
+  const centerX = x + width / 2;
+  const titleY = innerY + 52;
+  const bodyY = innerY + 104;
+  const footerY = innerY + innerHeight - 26;
+  const bodyLines = splitBotNoticeLines('THIS IS A GUEST ACCOUNT. SOLO AND LEAGUE RECORDS ARE HIDDEN UNTIL THE PLAYER REGISTERS.');
+
+  return `
+  <g>
+    <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${tetrioPalette.panelBg}"/>
+    <rect x="${x + 1}" y="${y + 1}" width="${width - 2}" height="${height - 2}" fill="none" stroke="${tetrioPalette.panelBorder}" stroke-width="2"/>
+    <rect x="${innerX}" y="${innerY}" width="${innerWidth}" height="${innerHeight}" fill="none" stroke="${tetrioPalette.panelBorder}" stroke-width="2" opacity="0.88"/>
+    <text x="${centerX}" y="${titleY}" text-anchor="middle" font-size="50" font-weight="900" fill="#c9ffc8">GUEST</text>
+    ${bodyLines.map((line, index) => `<text x="${centerX}" y="${bodyY + index * 30}" text-anchor="middle" class="sub" font-size="21.5">${renderTetrioTextMarkup(line)}</text>`).join('\n    ')}
+    <text x="${centerX}" y="${footerY}" text-anchor="middle" class="sub" font-size="25.5">SIGN IN TO <tspan class="white">TETR.IO</tspan> TO CREATE A FULL ACCOUNT</text>
   </g>`;
 }
 
@@ -4549,4 +4578,6 @@ export {
   calculateAchievementProgress,
   getAchievementCompetitivePlace,
   getAchievementRingClipPoints,
+  isBotTetrioUser,
+  isGuestTetrioUser,
 };
