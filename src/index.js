@@ -1,4 +1,4 @@
-﻿import 'dotenv/config';
+import 'dotenv/config';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
 import http from 'node:http';
@@ -258,7 +258,7 @@ const geminiApiKeys = getUniqueValues([
 const port = Number(process.env.PORT) || 8080;
 const chessComBaseUrl = 'https://api.chess.com/pub/player';
 const lichessBaseUrl = 'https://lichess.org/api/user';
-const liveRatingsBaseUrl = 'https://2700chess.live';
+const liveRatingsBaseUrl = 'https://2700-chess.netlify.app';
 const geminiApiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
 const geminiModel = getPreferredEnvValue(['GEMINI_MODEL', 'GEMMA_MODEL']) || 'gemini-3.6-flash';
 const geminiFallbackModels = getEnvModelList(
@@ -14315,3 +14315,4 @@ function decodeHtmlEntities(value) {
     return namedEntities[lowerEntity] ?? `&${entity};`;
   });
 }
+

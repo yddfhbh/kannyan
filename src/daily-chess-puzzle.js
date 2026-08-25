@@ -1178,6 +1178,11 @@ function isMateInOneSession(session) {
 }
 
 export async function renderPuzzleImage({ fen, title, subtitle, flipped = false }) {
+  const svg = await renderPuzzleImageSvg({ fen, title, subtitle, flipped });
+  return renderSvgToPng(svg);
+}
+
+export async function renderPuzzleImageSvg({ fen, title, subtitle, flipped = false }) {
   const size = 560;
   const boardSize = 480;
   const margin = 40;
@@ -1203,7 +1208,7 @@ export async function renderPuzzleImage({ fen, title, subtitle, flipped = false 
 
       const x = margin + col * squareSize;
       const y = top + row * squareSize;
-      const isLight = (fileIndex + rank) % 2 === 1;
+      const isLight = (fileIndex + rank) % 2 === 0;
 
       squaresSvg += `<rect x="${x}" y="${y}" width="${squareSize}" height="${squareSize}" fill="${isLight ? light : dark}"/>`;
 
@@ -1240,8 +1245,7 @@ if (piece) {
   ${coordsSvg}
   ${piecesSvg}
 </svg>`;
-
-  return renderSvgToPng(svg);
+  return svg;
 }
 
 async function createPuzzleRatingLeaderboardReply(client, { allowMentions } = {}) {
