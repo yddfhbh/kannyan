@@ -1818,12 +1818,13 @@ if (chessAnalysisFollowupHandled) {
   const command = rawCommand === 'ㅅㄷ새' ? 'teto' : rawCommand;
   const input = match[2]?.trim();
   if (command === '도움말' || command === 'help') {
-    const reply = await message.reply({
-      content: '아직은 안 알려줄 거다냥.',
+    const sent = await sendHelpMessageToUser(message.author);
+    await message.reply({
+      content: sent
+        ? '도움말 전문은 DM으로 보냈다냥.'
+        : '도움말을 DM으로 보내려 했는데 실패했다냥. DM 허용을 켜고 다시 시도해달라냥.',
       allowedMentions: { repliedUser: false },
     });
-    await wait(5_000);
-    await reply.edit(getHelpMessage());
     return;
   }
 
@@ -5788,23 +5789,23 @@ if (interaction.commandName === '개념글테스트') {
     }
 
     if (interaction.commandName === '도움말') {
-  await interaction.reply('아직은 안 알려줄 거다냥.');
-  await wait(5_000);
+      const helpMessage = getHelpMessage();
+      const chunks = splitDiscordMessage(helpMessage, 1900);
 
-  const helpMessage = getHelpMessage();
-  const chunks = splitDiscordMessage(helpMessage, 1900);
+      await interaction.reply({
+        content: chunks[0],
+        flags: MessageFlags.Ephemeral,
+      });
 
-  await interaction.editReply(chunks[0]);
+      for (const chunk of chunks.slice(1)) {
+        await interaction.followUp({
+          content: chunk,
+          flags: MessageFlags.Ephemeral,
+        });
+      }
 
-  for (const chunk of chunks.slice(1)) {
-    await interaction.followUp({
-      content: chunk,
-      flags: MessageFlags.Ephemeral,
-    });
-  }
-
-  return;
-}
+      return;
+    }
 
     if (interaction.commandName === '검색') {
       await showWebSearch(interaction);
@@ -6581,30 +6582,15 @@ async function handlePercentMessageCommand(message) {
 
   const { command, input } = parsedCommand;
   if (command === 'help') {
-  const reply = await message.reply({
-    content: '아직은 안 알려줄 거다냥.',
-    allowedMentions: { repliedUser: false },
-  });
-
-  await wait(5_000);
-
-  const helpMessage = getHelpMessage();
-  const chunks = splitDiscordMessage(helpMessage, 1900);
-
-  await reply.edit({
-    content: chunks[0],
-    allowedMentions: { parse: [], repliedUser: false },
-  });
-
-  for (const chunk of chunks.slice(1)) {
-    await message.channel.send({
-      content: chunk,
-      allowedMentions: { parse: [] },
+    const sent = await sendHelpMessageToUser(message.author);
+    await message.reply({
+      content: sent
+        ? '도움말 전문은 DM으로 보냈다냥.'
+        : '도움말을 DM으로 보내려 했는데 실패했다냥. DM 허용을 켜고 다시 시도해달라냥.',
+      allowedMentions: { repliedUser: false },
     });
+    return true;
   }
-
-  return true;
-}
 
   if (command === 'webSearch') {
     if (!input) {
@@ -10073,6 +10059,25 @@ function getHelpMessage() {
     '`/스타포스 시작 장비레벨:[140|160|200|250]`, `/스타포스 불러오기`, `%스타포스 <장비레벨>`, `%스타포스 불러오기` - 버튼으로 직접 누르는 스타포스 시뮬레이터를 시작하거나 저장한 진행도를 불러온다냥.',
     '`/강화랭킹 장비레벨:[140|160|200|250] 출력수:[1~50]` 또는 `%강화랭킹 <장비레벨> <출력수>` - 해당 레벨의 스타포스 종료 기록을 원하는 수만큼 보여준다냥. 예: `/강화랭킹 장비레벨:160 출력수:10`, `%강화랭킹 160 10`',
   ].join('\n');
+}
+
+async function sendHelpMessageToUser(user) {
+  const helpMessage = getHelpMessage();
+  const chunks = splitDiscordMessage(helpMessage, 1900);
+
+  try {
+    for (const chunk of chunks) {
+      await user.send({
+        content: chunk,
+        allowedMentions: { parse: [] },
+      });
+    }
+    return true;
+  } catch (error) {
+    console.error(`Failed to send help DM to ${user?.tag ?? user?.id ?? 'unknown user'}:`);
+    console.error(error);
+    return false;
+  }
 }
 
 function validateTetrioMessageInput(input) {
