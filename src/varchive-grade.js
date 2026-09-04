@@ -1,10 +1,15 @@
 const validVArchiveGradeButtons = new Set([4, 5, 6, 8]);
 const vArchiveGradeDifficulties = ['NM', 'HD', 'MX', 'SC'];
 const vArchiveGradeFloorPattern = /^\d+(?:\.\d+)?$/;
+const vArchiveGradeIntegerFloorPattern = /^\d+$/;
 const vArchiveJacketBaseUrl = 'https://v-archive.net/s3/images/jackets';
 
 export function isVArchiveGradeFloorName(value) {
   return vArchiveGradeFloorPattern.test(String(value ?? '').trim());
+}
+
+function isVArchiveGradeIntegerFloorName(value) {
+  return vArchiveGradeIntegerFloorPattern.test(String(value ?? '').trim());
 }
 
 export function normalizeVArchiveGradeFloorName(value) {
@@ -61,7 +66,11 @@ export function findVArchiveGradeEntries(songs, floorName, button) {
       const patternFloorName = String(pattern?.floorName ?? '').trim();
       const level = Number(pattern?.level);
 
-      if (patternFloorName !== normalizedFloorName || !Number.isFinite(level)) {
+      const floorMatches = isVArchiveGradeIntegerFloorName(normalizedFloorName)
+        ? patternFloorName.startsWith(`${normalizedFloorName}.`)
+        : patternFloorName === normalizedFloorName;
+
+      if (!floorMatches || !Number.isFinite(level)) {
         continue;
       }
 

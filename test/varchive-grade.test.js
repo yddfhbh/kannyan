@@ -83,6 +83,22 @@ test('findVArchiveGradeEntries excludes other buttons and floors', () => {
   assert.equal(entries.some((entry) => entry.songName === 'Gamma'), false);
 });
 
+test('findVArchiveGradeEntries treats an integer floor as a prefix match', () => {
+  const entries = findVArchiveGradeEntries(fixtureSongs, '15', 4);
+
+  assert.deepEqual(
+    entries.map((entry) => `${entry.songName}:${entry.floorName}`),
+    [
+      'Alpha:15.2',
+      'Alpha:15.2',
+      'Alpha:15.2',
+      'Alpha:15.2',
+      'Beta:15.2',
+      'Beta:15.3',
+    ],
+  );
+});
+
 test('findVArchiveGradeEntries keeps multiple qualifying patterns from one song', () => {
   const alphaEntries = findVArchiveGradeEntries(fixtureSongs, '15.2', 4)
     .filter((entry) => entry.songName === 'Alpha');
@@ -110,6 +126,15 @@ test('parseVArchiveSongLookupInput prefers grade mode only for valid floor and b
     rawQuery: '12.1 6',
     floorName: '12.1',
     button: 6,
+    baseQuery: null,
+    selectionIndex: null,
+  });
+
+  assert.deepEqual(parseVArchiveSongLookupInput('15 4'), {
+    mode: 'grade',
+    rawQuery: '15 4',
+    floorName: '15',
+    button: 4,
     baseQuery: null,
     selectionIndex: null,
   });
