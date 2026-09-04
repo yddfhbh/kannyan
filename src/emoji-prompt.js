@@ -97,6 +97,7 @@ function isEmojiOnlyText(text) {
 function segmentGraphemes(text) {
   const normalized = String(text ?? '');
 
+  // Keep joined emoji sequences intact while iterating visible characters.
   if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
     return Array.from(
       new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(normalized),
