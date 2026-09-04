@@ -8,6 +8,10 @@ import {
   formatVArchiveSongDlc,
 } from './varchive-song.js';
 import { normalizeVArchiveNickname } from './varchive-link-store.js';
+import {
+  fetchVArchiveBoardPageHtml as fetchSharedVArchiveBoardPageHtml,
+  parseBoardPageEntry as parseSharedBoardPageEntry,
+} from './varchive-board.js';
 
 const varchiveBaseUrl = 'https://v-archive.net';
 const varchiveJacketBaseUrl = `${varchiveBaseUrl}/s3/images/jackets`;
@@ -17,7 +21,6 @@ const varchivePerformanceCardHeight = 806;
 const varchivePerformanceCardOuterPadding = 24;
 const varchivePerformanceCardRenderScale = 1;
 const varchiveBoardPageCount = 17;
-const varchiveBoardPageCacheTtlMs = 10 * 60 * 1000;
 const varchiveKeyOrder = ['4B', '5B', '6B', '8B'];
 const varchiveDifficultyOrder = ['NM', 'HD', 'MX', 'SC'];
 const varchiveHeaderTitleYOffset = 6;
@@ -71,8 +74,6 @@ const scorePaletteByKind = {
 };
 
 const assetDataUrlCache = new Map();
-const boardPageHtmlCache = new Map();
-
 export async function createVArchivePerformanceCard(nickname, song, options = {}) {
   const normalizedNickname = normalizeVArchiveNickname(nickname);
   const fetchImpl = resolveFetch(options.fetchImpl);
@@ -350,14 +351,14 @@ async function resolveVArchiveBoardEntriesForButton(nickname, titleId, button, p
     Array.from({ length: varchiveBoardPageCount }, (_, index) => index + 1)
       .map(async (boardNo) => ({
         boardNo,
-        html: await fetchVArchiveBoardPageHtml(nickname, button, boardNo, { fetchImpl }),
+        html: await fetchSharedVArchiveBoardPageHtml(nickname, button, boardNo, { fetchImpl }),
       }))
   );
 
   return Object.fromEntries(
     patterns.map(({ difficulty }) => {
       for (const pageEntry of pageEntries) {
-        const parsed = parseBoardPageEntry(pageEntry.html, button, titleId, difficulty);
+        const parsed = parseSharedBoardPageEntry(pageEntry.html, button, titleId, difficulty);
         if (parsed) {
           return [difficulty, { ...parsed, boardNo: pageEntry.boardNo }];
         }

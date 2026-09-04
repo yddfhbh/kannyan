@@ -118,6 +118,7 @@ import {
 import { renderLiveRatingCard } from './live-rating-card.js';
 import { createVArchiveSongCard } from './varchive-song-card.js';
 import { createVArchivePerformanceCard } from './varchive-performance-card.js';
+import { createVArchiveLevelPerformanceCard } from './varchive-level-performance-card.js';
 import { createVArchiveGradeCard } from './varchive-grade-card.js';
 import { createVArchiveTierCard } from './varchive-tier-card.js';
 import {
@@ -126,6 +127,10 @@ import {
   searchVArchiveSong,
 } from './varchive-song.js';
 import { getVArchiveGradeEmptyMessage } from './varchive-grade.js';
+import {
+  getVArchiveLevelPerformanceUsageMessage,
+  parseVArchiveLevelPerformanceMessageInput,
+} from './varchive-level-performance.js';
 import {
   normalizeVArchiveNickname,
   parseVArchiveTierLookupInput,
@@ -613,6 +618,7 @@ const percentCommandAliases = {
   lichess: ['리체스'],
   varchiveSong: ['서열표', '곡정보'],
   varchivePerformance: ['성과'],
+  varchiveLevelPerformance: ['레벨성과'],
   varchiveTier10: ['b10'],
   varchiveTier30: ['b30'],
   varchiveTier50: ['b50'],
@@ -6652,6 +6658,11 @@ async function handlePercentMessageCommand(message) {
 
   if (command === 'varchivePerformance') {
     await showVArchivePerformanceMessage(message, input);
+    return true;
+  }
+
+  if (command === 'varchiveLevelPerformance') {
+    await showVArchiveLevelPerformanceMessage(message, input);
     return true;
   }
 
@@ -13799,6 +13810,62 @@ async function showVArchivePerformanceMessage(message, input) {
   }
 }
 
+async function showVArchiveLevelPerformanceMessage(message, input) {
+  const fallbackNickname = vArchiveLinkStore.getNickname(message.author.id);
+  let parsedInput;
+
+  try {
+    parsedInput = parseVArchiveLevelPerformanceMessageInput(input, fallbackNickname);
+  } catch (error) {
+    await message.reply({
+      content: error?.message ?? getVArchiveLevelPerformanceUsageMessage(),
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return;
+  }
+
+  if (!parsedInput.difficulty || parsedInput.level === null || !parsedInput.button) {
+    await message.reply({
+      content: getVArchiveLevelPerformanceUsageMessage(),
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return;
+  }
+
+  await safeSendTyping(message.channel, 'showVArchiveLevelPerformanceMessage');
+
+  if (!parsedInput.nickname) {
+    await message.reply({
+      content: `${getVArchiveLevelPerformanceUsageMessage()}\n${getMissingVArchiveNicknameMessage()}`,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+    return;
+  }
+
+  try {
+    const replyData = await createVArchiveLevelPerformanceReplyData(
+      parsedInput.nickname,
+      parsedInput.difficulty,
+      parsedInput.level,
+      parsedInput.button,
+    );
+    await message.reply({
+      ...replyData,
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+  } catch (error) {
+    console.error(
+      `Failed to fetch V-ARCHIVE level performance for ${parsedInput.nickname} / ${parsedInput.difficulty}${parsedInput.level} / ${parsedInput.button}B:`,
+    );
+    console.error(error);
+    await message.reply({
+      content: getVArchiveLevelPerformanceKnownErrorMessage(error, parsedInput.nickname)
+        ?? 'V-ARCHIVE 레벨 성과표를 가져오지 못했다냥.',
+      allowedMentions: { parse: [], repliedUser: false },
+    });
+  }
+}
+
 async function createVArchiveSongReplyData(query) {
   const result = await resolveVArchiveSongLookup(query);
 
@@ -13863,6 +13930,18 @@ async function createVArchivePerformanceReplyData(nickname, query) {
     files: [
       new AttachmentBuilder(card.image, {
         name: `varchive-performance-${formatAttachmentSafeName(card.nickname)}-${formatAttachmentSafeName(card.songName)}-${card.titleId}.png`,
+      }),
+    ],
+  };
+}
+
+async function createVArchiveLevelPerformanceReplyData(nickname, difficulty, level, button) {
+  const card = await createVArchiveLevelPerformanceCard(nickname, difficulty, level, button);
+  return {
+    content: `<${card.focusUrl}>`,
+    files: [
+      new AttachmentBuilder(card.image, {
+        name: `varchive-level-performance-${formatAttachmentSafeName(card.difficulty.toLowerCase())}${card.level}-${card.button}b-${formatAttachmentSafeName(card.nickname)}.png`,
       }),
     ],
   };
@@ -14025,6 +14104,43 @@ function getVArchivePerformanceKnownErrorMessage(error, nickname) {
 
   if (error.code === 'VARCHIVE_BOARD_FETCH_FAILED') {
     return 'V-ARCHIVE 성과표를 불러오지 못했다냥.';
+  }
+
+  return null;
+}
+
+function getVArchiveLevelPerformanceKnownErrorMessage(error, nickname) {
+  if (!error) {
+    return null;
+  }
+
+  if (
+    error.code === 'INVALID_NICKNAME'
+    || error.code === 'INVALID_VARCHIVE_LEVEL_PERFORMANCE_INPUT'
+    || error.code === 'INVALID_VARCHIVE_LEVEL_PERFORMANCE_LEVEL'
+    || error.code === 'INVALID_VARCHIVE_LEVEL_PERFORMANCE_BUTTON'
+  ) {
+    return error.message;
+  }
+
+  if (error.code === 'NO_VARCHIVE_LEVEL_PERFORMANCE_ENTRIES') {
+    return error.message;
+  }
+
+  if (error.code === 'VARCHIVE_PROFILE_NOT_FOUND') {
+    return `V-ARCHIVE에서 ${nickname} 유저를 찾지 못했다냥.`;
+  }
+
+  if (error.code === 'VARCHIVE_BOARD_TIMEOUT') {
+    return 'V-ARCHIVE 응답이 너무 오래 걸린다냥. 잠시 뒤 다시 시도해달라냥.';
+  }
+
+  if (error.code === 'VARCHIVE_BOARD_FETCH_FAILED') {
+    return 'V-ARCHIVE 레벨 성과표를 불러오지 못했다냥.';
+  }
+
+  if (error.code === 'VARCHIVE_SONG_FETCH_FAILED' || error.code === 'VARCHIVE_SONG_TIMEOUT') {
+    return 'V-ARCHIVE 데이터를 불러오지 못했다냥.';
   }
 
   return null;

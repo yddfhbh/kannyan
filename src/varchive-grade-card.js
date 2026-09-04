@@ -21,6 +21,8 @@ const varchiveGradeTileWidth = 142;
 const varchiveGradeTileHeight = 182;
 const varchiveGradeJacketSize = 120;
 const varchiveGradeHeaderHeight = 102;
+const varchiveGradeSectionHeaderHeight = 36;
+const varchiveGradeSectionGap = 18;
 const varchiveGradeFooterHeight = 30;
 const varchiveGradeAssetDataUrlCache = new Map();
 const difficultyPalette = {
@@ -80,11 +82,20 @@ export function buildVArchiveGradeCardView({
   const normalizedButton = normalizeVArchiveGradeButton(button);
   const safeEntries = Array.isArray(entries) ? entries : [];
   const columns = safeEntries.length >= 40 ? varchiveGradeColumnsWide : varchiveGradeColumnsCompact;
-  const rows = Math.max(1, Math.ceil(Math.max(1, safeEntries.length) / columns));
   const contentWidth = columns * varchiveGradeTileWidth + Math.max(0, columns - 1) * varchiveGradeGap;
   const viewBoxWidth = varchiveGradeOuterPadding * 2 + contentWidth;
-  const gridHeight = rows * varchiveGradeTileHeight + Math.max(0, rows - 1) * varchiveGradeGap;
-  const viewBoxHeight = varchiveGradeOuterPadding * 2 + varchiveGradeHeaderHeight + 18 + gridHeight + varchiveGradeFooterHeight;
+  const gridY = varchiveGradeOuterPadding + varchiveGradeHeaderHeight + 18;
+  const entriesWithAssets = safeEntries.map((entry) => ({
+    ...entry,
+    jacketDataUrl: jacketDataUrlByTitleId[String(entry.titleId ?? '')] ?? null,
+    difficultyLabel: `${entry.difficulty} ${entry.level}`,
+    titleLines: splitTextLines(entry.songName, 14, 2),
+  }));
+  const sections = buildVArchiveGradeSections(entriesWithAssets, columns, gridY);
+  const contentHeight = sections.length > 0
+    ? sections.reduce((height, section) => Math.max(height, section.bottomY), gridY) - gridY
+    : varchiveGradeTileHeight;
+  const viewBoxHeight = varchiveGradeOuterPadding * 2 + varchiveGradeHeaderHeight + 18 + contentHeight + varchiveGradeFooterHeight;
 
   return {
     floorName: normalizedFloorName,
@@ -93,30 +104,12 @@ export function buildVArchiveGradeCardView({
     entryCountText: `${safeEntries.length} patterns`,
     generatedAtText: formatGeneratedAt(generatedAt),
     columns,
-    rows,
     contentWidth,
     viewBoxWidth,
     viewBoxHeight,
-    gridY: varchiveGradeOuterPadding + varchiveGradeHeaderHeight + 18,
-    entries: safeEntries.map((entry, index) => {
-      const column = index % columns;
-      const row = Math.floor(index / columns);
-      const tileX = varchiveGradeOuterPadding + column * (varchiveGradeTileWidth + varchiveGradeGap);
-      const tileY = varchiveGradeOuterPadding + varchiveGradeHeaderHeight + 18 + row * (varchiveGradeTileHeight + varchiveGradeGap);
-      const jacketX = tileX + Math.round((varchiveGradeTileWidth - varchiveGradeJacketSize) / 2);
-      const jacketY = tileY + 10;
-
-      return {
-        ...entry,
-        tileX,
-        tileY,
-        jacketX,
-        jacketY,
-        jacketDataUrl: jacketDataUrlByTitleId[String(entry.titleId ?? '')] ?? null,
-        difficultyLabel: `${entry.difficulty} ${entry.level}`,
-        titleLines: splitTextLines(entry.songName, 14, 2),
-      };
-    }),
+    gridY,
+    sections,
+    entries: sections.flatMap((section) => section.entries),
   };
 }
 
@@ -148,7 +141,18 @@ export async function renderVArchiveGradeCardResult(view) {
 
 export function renderVArchiveGradeCardSvg(view) {
   const safeEntries = Array.isArray(view?.entries) ? view.entries : [];
-  const tileMarkup = safeEntries.map((entry, index) => renderGradeTile(entry, index)).join('');
+  const sections = Array.isArray(view?.sections) && view.sections.length > 0
+    ? view.sections
+    : [{ floorName: view?.floorName ?? '-', titleY: view?.gridY ?? 0, lineY: (view?.gridY ?? 0) + 28, entries: safeEntries }];
+  const sectionMarkup = sections.map((section) => {
+    const tileMarkup = section.entries.map((entry, index) => renderGradeTile(entry, index)).join('');
+    return `
+  <g>
+    <text x="${varchiveGradeOuterPadding}" y="${section.titleY}" class="sectionHeading">${escapeXml(`${section.floorName}층`)}</text>
+    <line x1="${varchiveGradeOuterPadding}" y1="${section.lineY}" x2="${view.contentWidth + varchiveGradeOuterPadding}" y2="${section.lineY}" class="sectionDivider" />
+    ${tileMarkup}
+  </g>`;
+  }).join('');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${view.viewBoxWidth}" height="${view.viewBoxHeight}" viewBox="0 0 ${view.viewBoxWidth} ${view.viewBoxHeight}">
@@ -167,6 +171,15 @@ export function renderVArchiveGradeCardSvg(view) {
         fill: #5f7088;
         font-size: 16px;
         font-weight: 700;
+      }
+      .sectionHeading {
+        fill: #263e5b;
+        font-size: 20px;
+        font-weight: 900;
+      }
+      .sectionDivider {
+        stroke: rgba(59, 79, 107, 0.28);
+        stroke-width: 2;
       }
       .tile {
         fill: rgba(255,255,255,0.94);
@@ -211,8 +224,60 @@ export function renderVArchiveGradeCardSvg(view) {
   <text x="${varchiveGradeOuterPadding + 20}" y="${varchiveGradeOuterPadding + 70}" class="subheading">${escapeXml(view.entryCountText)}</text>
   <text x="${varchiveGradeOuterPadding + 20}" y="${varchiveGradeOuterPadding + 92}" class="subheading">${escapeXml('V-ARCHIVE songs.json')}</text>
   <text x="${view.viewBoxWidth - varchiveGradeOuterPadding - 2}" y="${varchiveGradeOuterPadding + 92}" text-anchor="end" class="footer">${escapeXml(`Generated ${view.generatedAtText}`)}</text>
-  ${tileMarkup}
+  ${sectionMarkup}
 </svg>`;
+}
+
+function buildVArchiveGradeSections(entries, columns, gridY) {
+  const groupedEntries = new Map();
+  for (const entry of entries) {
+    const floorName = String(entry?.floorName ?? '').trim() || '-';
+    if (!groupedEntries.has(floorName)) {
+      groupedEntries.set(floorName, []);
+    }
+    groupedEntries.get(floorName).push(entry);
+  }
+
+  const floorNames = [...groupedEntries.keys()].sort((left, right) => {
+    const numericDifference = Number(right) - Number(left);
+    return Number.isFinite(numericDifference) && numericDifference !== 0
+      ? numericDifference
+      : right.localeCompare(left, 'en', { numeric: true });
+  });
+  let cursorY = gridY;
+  let entryIndex = 0;
+
+  return floorNames.map((floorName) => {
+    const sectionEntries = groupedEntries.get(floorName);
+    const rows = Math.max(1, Math.ceil(sectionEntries.length / columns));
+    const titleY = cursorY + 20;
+    const lineY = cursorY + 30;
+    const tileStartY = cursorY + varchiveGradeSectionHeaderHeight;
+    const positionedEntries = sectionEntries.map((entry, index) => {
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      const tileX = varchiveGradeOuterPadding + column * (varchiveGradeTileWidth + varchiveGradeGap);
+      const tileY = tileStartY + row * (varchiveGradeTileHeight + varchiveGradeGap);
+      return {
+        ...entry,
+        tileX,
+        tileY,
+        jacketX: tileX + Math.round((varchiveGradeTileWidth - varchiveGradeJacketSize) / 2),
+        jacketY: tileY + 10,
+        renderIndex: entryIndex++,
+      };
+    });
+    const bottomY = tileStartY + rows * varchiveGradeTileHeight + Math.max(0, rows - 1) * varchiveGradeGap;
+    cursorY = bottomY + varchiveGradeSectionGap;
+
+    return {
+      floorName,
+      titleY,
+      lineY,
+      bottomY,
+      entries: positionedEntries,
+    };
+  });
 }
 
 async function buildJacketDataUrlByTitleId(entries, fetchImpl) {
@@ -299,7 +364,7 @@ function renderGradeTile(entry, index) {
     lineHeight: 17,
     className: 'title',
   });
-  const clipId = `grade-title-clip-${index}`;
+  const clipId = `grade-title-clip-${entry.renderIndex ?? index}`;
 
   return `
   <g>

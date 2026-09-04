@@ -227,3 +227,20 @@ test('createVArchiveGradeCard renders a smoke-test image from fixture songs', as
   assert.ok(metadata.width >= 1000);
   assert.ok(metadata.height >= 300);
 });
+
+test('createVArchiveGradeCard orders grouped integer floors from high to low', async () => {
+  const card = await createVArchiveGradeCard('15', 4, {
+    songs: fixtureSongs,
+    fetchImpl: async () => ({
+      ok: false,
+      async arrayBuffer() {
+        return Buffer.alloc(0);
+      },
+    }),
+    generatedAt: '2026-09-04T00:00:00.000Z',
+  });
+
+  assert.deepEqual(card.view.sections.map((section) => section.floorName), ['15.3', '15.2']);
+  assert.ok(card.view.sections[0].lineY < card.view.sections[0].bottomY);
+  assert.ok(card.view.sections[0].bottomY < card.view.sections[1].titleY);
+});
