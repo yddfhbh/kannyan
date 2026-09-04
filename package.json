@@ -13,6 +13,7 @@
     "register": "node src/deploy-commands.js",
     "start": "node src/index.js",
     "uci": "node src/chess/kannyan-uci.js",
+    "check": "node --test",
     "test": "node --test --test-isolation=none"
   },
   "keywords": [
