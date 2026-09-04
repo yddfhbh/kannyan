@@ -185,38 +185,30 @@ function wrapSongTitle(value, maxCharsPerLine, maxLines) {
 
   for (const word of words) {
     const next = current ? `${current} ${word}` : word;
-    if (next.length <= maxCharsPerLine || !current) {
+    if (next.length <= maxCharsPerLine) {
       current = next;
       continue;
     }
 
-    lines.push(current);
+    if (current) {
+      lines.push(current);
+    }
     current = word;
-    if (lines.length === maxLines - 1) {
+    if (lines.length >= maxLines - 1) {
       break;
     }
   }
 
-  const remainingWords = lines.length === maxLines - 1
-    ? [current, ...words.slice(lines.join(' ').split(/\s+/).filter(Boolean).length + (current ? 1 : 0))]
-    : [current];
-  const remaining = remainingWords.join(' ').trim();
-
-  if (lines.length < maxLines) {
+  if (lines.length < maxLines && current) {
     lines.push(current);
   }
 
-  while (lines.length < maxLines) {
-    lines.push('');
+  const result = lines.slice(0, maxLines).map((line) => trimWithEllipsis(line, maxCharsPerLine));
+  while (result.length < maxLines) {
+    result.push('');
   }
 
-  if (remaining && lines[maxLines - 1] !== remaining) {
-    lines[maxLines - 1] = trimWithEllipsis(remaining, maxCharsPerLine);
-  } else {
-    lines[maxLines - 1] = trimWithEllipsis(lines[maxLines - 1], maxCharsPerLine);
-  }
-
-  return lines.slice(0, maxLines);
+  return result;
 }
 
 function trimWithEllipsis(value, maxChars) {
