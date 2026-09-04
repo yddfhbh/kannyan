@@ -54,6 +54,7 @@ test('formatEmojiOnlyTextDetails formats both custom and unicode emoji details',
   );
 });
 test(
+  // Keep this case focused on parsed emoji metadata.
   'extractDiscordCustomEmojis reads names, ids, and animation state',
   () => {
     assert.deepEqual(
