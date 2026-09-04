@@ -118,18 +118,24 @@ import {
 import { renderLiveRatingCard } from './live-rating-card.js';
 import { createVArchiveSongCard } from './varchive-song-card.js';
 import { createVArchivePerformanceCard } from './varchive-performance-card.js';
+import { createVArchiveGradeCard } from './varchive-grade-card.js';
 import { createVArchiveTierCard } from './varchive-tier-card.js';
 import {
   buildVArchiveSongSearchResultsEmbed,
   normalizeSongName,
   searchVArchiveSong,
 } from './varchive-song.js';
+import { getVArchiveGradeEmptyMessage } from './varchive-grade.js';
 import {
   normalizeVArchiveNickname,
   parseVArchiveTierLookupInput,
   VArchiveLinkStore,
 } from './varchive-link-store.js';
 import { parseVArchivePerformanceMessageInput as parseVArchivePerformanceMessageInputValue } from './varchive-performance-input.js';
+import {
+  parseVArchiveSongLookupInput,
+  resolveVArchiveSongCommandOptions,
+} from './varchive-song-input.js';
 import {
   createPermanentMemoryScope,
   extractPermanentMemoryUsage,
@@ -10038,7 +10044,7 @@ function getHelpMessage() {
     '`/라이브레이팅 종류:<클래시컬|블리츠|래피드> 사람수:<1~50>` - 2700chess 라이브레이팅을 이미지 카드로 보여준다냥.',
     '`/브아카 닉네임:<V-ARCHIVE 닉네임>` - 내 디스코드 계정에 V-ARCHIVE 닉네임을 영구 저장한다냥.',
     '`/b10`, `/b30`, `/b50`은 닉네임을 생략하면 저장된 V-ARCHIVE 닉네임을 쓰고, `%b10 4`, `%b30 6`, `%b50 Hebi 8`처럼 `%` 명령도 바로 쓸 수 있다냥.',
-    '`/서열표 곡명:<곡명>`, `/곡정보 곡명:<곡명>`, `%서열표 곡명`, `%곡정보 곡명` - V-ARCHIVE 기준 4B/5B/6B/8B 난이도를 보여준다냥.',
+    '`/서열표 곡명:<곡명>`, `/서열표 서열표레벨:15.2 버튼:4`, `/곡정보 곡명:<곡명>`, `%서열표 곡명`, `%서열표 15.2 4`, `%곡정보 곡명` - V-ARCHIVE 기준 4B/5B/6B/8B 난이도를 보여준다냥.',
     '`/성과 곡명:<곡명> 닉네임:[V-ARCHIVE 닉네임]`, `%성과 곡명`, `%성과 곡명 | 닉네임`, `%성과 곡명 닉네임` - 연동된 V-ARCHIVE 닉네임 기준 개인 기록 성과표를 카드로 보여준다냥.',
     '체스판 이미지와 `%백선`, `%흑선`, `%분석해봐`, `%답이 뭐야` 같은 말을 보내면 FEN으로 읽고 Stockfish 최선 수를 보여준다냥.',
     '`%fen <FEN>` - 직접 입력한 FEN을 Stockfish로 분석한다냥.',
@@ -13628,18 +13634,57 @@ function getVArchiveTierPercentUsageMessage(commandName) {
   return `사용법은 \`%${commandName} <버튼>\` 또는 \`%${commandName} <닉네임> <버튼>\`이다냥. 예: \`%${commandName} 4\`, \`%${commandName} Hebi 4\``;
 }
 
+function getVArchiveSongPercentUsageMessage() {
+  return '\uC0AC\uC6A9\uBC95\uC740 `%\uC11C\uC5F4\uD45C \uACE1\uBA85`, `%\uC11C\uC5F4\uD45C \uC11C\uC5F4\uD45C\uB808\uBCA8 \uBC84\uD2BC`, `%\uACE1\uC815\uBCF4 \uACE1\uBA85`\uC774\uB2E4\uB0E5. \uC608: `%\uC11C\uC5F4\uD45C LIMBO`, `%\uC11C\uC5F4\uD45C 15.2 4`';
+}
+
+function getVArchiveSongSlashUsageMessage(commandName) {
+  if (commandName === '\uACE1\uC815\uBCF4') {
+    return '`/\uACE1\uC815\uBCF4 \uACE1\uBA85:<\uACE1\uBA85>` \uD615\uC2DD\uC73C\uB85C \uC368\uB2EC\uB77C\uB0E5.';
+  }
+
+  return '`/\uC11C\uC5F4\uD45C \uACE1\uBA85:<\uACE1\uBA85>` \uB610\uB294 `/\uC11C\uC5F4\uD45C \uC11C\uC5F4\uD45C\uB808\uBCA8:15.2 \uBC84\uD2BC:4` \uD615\uC2DD\uC73C\uB85C \uC368\uB2EC\uB77C\uB0E5.';
+}
+
+function getVArchiveGradeSlashUsageMessage() {
+  return '`/\uC11C\uC5F4\uD45C \uC11C\uC5F4\uD45C\uB808\uBCA8:15.2 \uBC84\uD2BC:4` \uCC98\uB7FC \uB808\uBCA8\uACFC \uBC84\uD2BC\uC744 \uD568\uAED8 \uC785\uB825\uD574\uB2EC\uB77C\uB0E5.';
+}
+
 async function showVArchiveSongInfo(interaction) {
-  const query = interaction.options.getString('곡명', true).trim();
+  let resolvedOptions;
+
+  try {
+    resolvedOptions = resolveVArchiveSongCommandOptions(interaction.commandName, {
+      songName: interaction.options.getString('곡명'),
+      floorName: interaction.options.getString('서열표레벨'),
+      button: interaction.options.getInteger('버튼'),
+      songUsageMessage: getVArchiveSongSlashUsageMessage(interaction.commandName),
+      gradeUsageMessage: getVArchiveGradeSlashUsageMessage(),
+    });
+  } catch (error) {
+    await interaction.reply({
+      content: error?.message ?? getVArchiveSongSlashUsageMessage(interaction.commandName),
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
 
   await interaction.deferReply();
 
   try {
-    const replyData = await createVArchiveSongReplyData(query);
+    const replyData = resolvedOptions.mode === 'grade'
+      ? await createVArchiveGradeReplyData(resolvedOptions.floorName, resolvedOptions.button)
+      : await createVArchiveSongReplyData(resolvedOptions.query);
     await interaction.editReply(replyData);
   } catch (error) {
-    console.error(`Failed to fetch V-ARCHIVE song info for query ${query}:`);
+    console.error('Failed to handle V-ARCHIVE song command:');
     console.error(error);
-    await interaction.editReply(getVArchiveSongKnownErrorMessage(error));
+    await interaction.editReply(
+      error?.code === 'NO_VARCHIVE_GRADE_ENTRIES'
+        ? error.message
+        : getVArchiveSongKnownErrorMessage(error)
+          ?? '\uC11C\uC5F4\uD45C \uCE74\uB4DC\uB97C \uAC00\uC838\uC624\uC9C0 \uBABB\uD588\uB2E4\uB0E5.'
+    );
   }
 }
 
@@ -13674,7 +13719,7 @@ async function showVArchiveSongInfoMessage(message, input) {
   const query = String(input ?? '').trim();
   if (!query) {
     await message.reply({
-      content: '사용법은 `%서열표 곡명` 또는 `%곡정보 곡명`이다냥.',
+      content: getVArchiveSongPercentUsageMessage(),
       allowedMentions: { parse: [], repliedUser: false },
     });
     return;
@@ -13683,7 +13728,13 @@ async function showVArchiveSongInfoMessage(message, input) {
   await safeSendTyping(message.channel, 'showVArchiveSongInfoMessage');
 
   try {
-    const replyData = await createVArchiveSongReplyData(query);
+    const commandToken = String(message.content ?? '').trim().split(/\s+/)[0] ?? '';
+    const parsedInput = parseVArchiveSongLookupInput(query, {
+      allowGradeMode: commandToken === '%서열표',
+    });
+    const replyData = parsedInput.mode === 'grade'
+      ? await createVArchiveGradeReplyData(parsedInput.floorName, parsedInput.button)
+      : await createVArchiveSongReplyData(query);
     await message.reply({
       ...replyData,
       allowedMentions: { parse: [], repliedUser: false },
@@ -13766,6 +13817,30 @@ async function createVArchiveSongReplyData(query) {
   };
 }
 
+async function createVArchiveGradeReplyData(floorName, button) {
+  try {
+    const card = await createVArchiveGradeCard(floorName, button);
+    const attachmentExtension = card.imageFormat === 'jpeg' ? 'jpg' : 'png';
+
+    return {
+      content: `${card.button}B ${card.floorName}층 패턴 ${card.entryCount}개다냥.`,
+      files: [
+        new AttachmentBuilder(card.image, {
+          name: `varchive-grade-${card.button}b-${formatAttachmentSafeName(card.floorName)}.${attachmentExtension}`,
+        }),
+      ],
+    };
+  } catch (error) {
+    if (error?.code === 'NO_VARCHIVE_GRADE_ENTRIES') {
+      return {
+        content: error.message ?? getVArchiveGradeEmptyMessage(button, floorName),
+      };
+    }
+
+    throw error;
+  }
+}
+
 async function createVArchivePerformanceReplyData(nickname, query) {
   const normalizedNickname = normalizeVArchiveNickname(nickname);
   const result = await resolveVArchiveSongLookup(query);
@@ -13794,7 +13869,7 @@ async function createVArchivePerformanceReplyData(nickname, query) {
 }
 
 async function resolveVArchiveSongLookup(query) {
-  const parsedQuery = parseVArchiveSongSelectionQuery(query);
+  const parsedQuery = parseVArchiveSongLookupInput(query, { allowGradeMode: false });
 
   if (parsedQuery.selectionIndex !== null && parsedQuery.baseQuery) {
     const selectedSongResult = await resolveSelectedVArchiveSongLookup(parsedQuery);
@@ -13844,25 +13919,6 @@ async function createVArchiveSongCardReplyData(song) {
         name: `varchive-song-${formatAttachmentSafeName(card.songName)}-${card.titleId}.png`,
       }),
     ],
-  };
-}
-
-function parseVArchiveSongSelectionQuery(query) {
-  const trimmed = String(query ?? '').trim();
-  const match = trimmed.match(/^(.*\S)\s+([1-9]\d*)$/);
-
-  if (!match) {
-    return {
-      rawQuery: trimmed,
-      baseQuery: trimmed,
-      selectionIndex: null,
-    };
-  }
-
-  return {
-    rawQuery: trimmed,
-    baseQuery: match[1].trim(),
-    selectionIndex: Number(match[2]),
   };
 }
 

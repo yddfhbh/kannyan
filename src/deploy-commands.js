@@ -492,8 +492,27 @@ new SlashCommandBuilder()
       option
         .setName('곡명')
         .setDescription('검색할 곡 이름')
-        .setRequired(true)
+        .setRequired(false)
         .setMaxLength(200)
+    )
+    .addStringOption((option) =>
+      option
+        .setName('서열표레벨')
+        .setDescription('예: 15.2')
+        .setRequired(false)
+        .setMaxLength(20)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('버튼')
+        .setDescription('조회할 버튼')
+        .setRequired(false)
+        .addChoices(
+          { name: '4', value: 4 },
+          { name: '5', value: 5 },
+          { name: '6', value: 6 },
+          { name: '8', value: 8 }
+        )
     )
     .toJSON(),
   new SlashCommandBuilder()
