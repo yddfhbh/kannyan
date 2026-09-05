@@ -44,6 +44,7 @@ test('collectEmojiOnlyTextDetails ignores text that is not emoji-only', () => {
   );
 });
 
+// Verify the formatted message includes both emoji categories.
 test('formatEmojiOnlyTextDetails formats both custom and unicode emoji details', () => {
   assert.equal(
     formatEmojiOnlyTextDetails({
