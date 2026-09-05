@@ -97,6 +97,35 @@ test('parseGeminiAnswerPayload tolerates fenced json and normalizes emotion alia
   );
 });
 
+test('parseGeminiAnswerPayload preserves valid newline escapes', () => {
+  assert.deepEqual(
+    parseGeminiAnswerPayload('{"answer":"첫 줄\\n둘째 줄","emotion":"neutral"}'),
+    {
+      answer: '첫 줄\n둘째 줄',
+      emotion: 'neutral',
+    }
+  );
+});
+
+test('parseGeminiAnswerPayload repairs single-backslash LaTeX commands', () => {
+  const rawJson = String.raw`{"answer":"$\sum x \ge y \frac{1}{2} \boxed{x}$","emotion":"happy"}`;
+
+  assert.deepEqual(parseGeminiAnswerPayload(rawJson), {
+    answer: String.raw`$\sum x \ge y \frac{1}{2} \boxed{x}$`,
+    emotion: 'happy',
+  });
+});
+
+test('parseGeminiAnswerPayload does not expose an unparseable answer wrapper', () => {
+  const malformedWrapper = '```json\n{"answer":"답변","emotion":"neutral",}\n```';
+
+  const result = parseGeminiAnswerPayload(malformedWrapper);
+
+  assert.equal(result.answer, '답변을 읽지 못했다냥.');
+  assert.equal(result.emotion, 'neutral');
+  assert.equal(result.answer.includes('"answer"'), false);
+});
+
 test('parseGeminiAnswerPayload falls back to the raw text and neutral emotion when json is missing', () => {
   assert.deepEqual(
     parseGeminiAnswerPayload('그냥 일반 문자열 답변이다냥.'),

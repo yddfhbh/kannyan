@@ -108,6 +108,50 @@ function normalizeGeminiEmotionContextText(value) {
   return String(value ?? '').trim();
 }
 
+function repairInvalidJsonStringEscapes(text) {
+  let repaired = '';
+  let insideString = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+
+    if (character === '"') {
+      repaired += character;
+      insideString = !insideString;
+      continue;
+    }
+
+    if (!insideString || character !== '\\') {
+      repaired += character;
+      continue;
+    }
+
+    const nextCharacter = text[index + 1];
+    // `\\boxed` and `\\frac` begin with valid JSON escapes (`\\b`/`\\f`),
+    // so recognize these LaTeX commands before preserving simple escapes.
+    const isLatexCommandEscape = /^(?:boxed|frac)(?![A-Za-z])/.test(text.slice(index + 1));
+    const isSimpleEscape = /["\\/bfnrt]/.test(nextCharacter ?? '');
+    const isUnicodeEscape = nextCharacter === 'u'
+      && /^[0-9a-fA-F]{4}$/.test(text.slice(index + 2, index + 6));
+
+    if (isLatexCommandEscape) {
+      repaired += '\\\\';
+    } else if (isSimpleEscape) {
+      repaired += text.slice(index, index + 2);
+      index += 1;
+    } else if (isUnicodeEscape) {
+      repaired += text.slice(index, index + 6);
+      index += 5;
+    } else {
+      // Gemini sometimes emits LaTeX escapes such as \sum as a single
+      // backslash inside a JSON string. Preserve that literal backslash.
+      repaired += '\\\\';
+    }
+  }
+
+  return repaired;
+}
+
 function parseJsonObjectText(text) {
   const cleaned = String(text ?? '')
     .trim()
@@ -119,17 +163,39 @@ function parseJsonObjectText(text) {
   try {
     return JSON.parse(cleaned);
   } catch {
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match) {
-      return null;
-    }
-
     try {
-      return JSON.parse(match[0]);
+      return JSON.parse(repairInvalidJsonStringEscapes(cleaned));
+    } catch {
+      // Continue with the object-shaped portion below.
+    }
+  }
+
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (!match) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(match[0]);
+  } catch {
+    try {
+      return JSON.parse(repairInvalidJsonStringEscapes(match[0]));
     } catch {
       return null;
     }
   }
+}
+
+function looksLikeGeminiAnswerWrapper(text) {
+  const cleaned = String(text ?? '')
+    .trim()
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```$/i, '')
+    .trim();
+
+  return /^\s*\{[\s\S]*"answer"\s*:/.test(cleaned)
+    && /"emotion"\s*:/.test(cleaned);
 }
 
 export function normalizeGeminiEmotionLabel(value) {
@@ -181,9 +247,10 @@ export function shouldAttachGeminiEmotionAsset(emotion, options = {}) {
 
 export function parseGeminiAnswerPayload(text) {
   const parsed = parseJsonObjectText(text);
+  const isUnparseableAnswerWrapper = !parsed && looksLikeGeminiAnswerWrapper(text);
   const rawAnswer = typeof parsed?.answer === 'string'
     ? parsed.answer
-    : String(text ?? '');
+    : (isUnparseableAnswerWrapper ? '답변을 읽지 못했다냥.' : String(text ?? ''));
   const answer = rawAnswer.trim();
 
   return {
