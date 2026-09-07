@@ -116,6 +116,7 @@ import {
   createTetolbLeaderboardReplyData,
 } from './tetrio-tetolb.js';
 import { renderLiveRatingCard } from './live-rating-card.js';
+import { respondToInteractionError } from './interaction-error.js';
 import { createVArchiveSongCard } from './varchive-song-card.js';
 import { createVArchivePerformanceCard } from './varchive-performance-card.js';
 import { createVArchiveLevelPerformanceCard } from './varchive-level-performance-card.js';
@@ -5974,20 +5975,7 @@ if (interaction.commandName === '개념글테스트') {
       flags: MessageFlags.Ephemeral,
     });
   } catch (error) {
-    console.error(`Failed to handle interaction ${interaction.id}:`);
-    console.error(error);
-
-    if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
-      try {
-        await interaction.reply({
-          content: '처리하다가 문제가 생겼다냥.',
-          flags: MessageFlags.Ephemeral,
-        });
-      } catch (replyError) {
-        console.error('Failed to send interaction error reply:');
-        console.error(replyError);
-      }
-    }
+    await respondToInteractionError(interaction, error);
   }
 });
 
