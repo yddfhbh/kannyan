@@ -4,6 +4,7 @@ import sharp from 'sharp';
 
 import {
   findVArchiveGradeEntries,
+  findVArchiveGradeEntriesByLevel,
   getVArchiveGradeEmptyMessage,
   normalizeVArchiveGradeButton,
 } from '../src/varchive-grade.js';
@@ -105,6 +106,13 @@ test('findVArchiveGradeEntries keeps multiple qualifying patterns from one song'
   assert.equal(alphaEntries.length, 4);
 });
 
+test('findVArchiveGradeEntriesByLevel selects a V-ARCHIVE difficulty level', () => {
+  assert.deepEqual(
+    findVArchiveGradeEntriesByLevel(fixtureSongs, 'hd', 13, 4).map((entry) => entry.songName),
+    ['Beta'],
+  );
+});
+
 test('findVArchiveGradeEntries returns empty array for missing floor', () => {
   assert.deepEqual(findVArchiveGradeEntries(fixtureSongs, '16.1', 4).map((entry) => entry.songName), ['Gamma']);
   assert.deepEqual(findVArchiveGradeEntries(fixtureSongs, '17.0', 4), []);
@@ -134,6 +142,16 @@ test('parseVArchiveSongLookupInput prefers grade mode only for valid floor and b
     mode: 'grade',
     rawQuery: '15 4',
     floorName: '15',
+    button: 4,
+    baseQuery: null,
+    selectionIndex: null,
+  });
+
+  assert.deepEqual(parseVArchiveSongLookupInput('hd13 4'), {
+    mode: 'grade',
+    rawQuery: 'hd13 4',
+    difficulty: 'HD',
+    level: 13,
     button: 4,
     baseQuery: null,
     selectionIndex: null,

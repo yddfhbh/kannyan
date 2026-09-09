@@ -4,6 +4,7 @@ import { fetchVArchiveSongs } from './varchive-song.js';
 import {
   buildVArchiveJacketUrl,
   findVArchiveGradeEntries,
+  findVArchiveGradeEntriesByLevel,
   getVArchiveGradeEmptyMessage,
   getVArchiveGradeKey,
   normalizeVArchiveGradeButton,
@@ -33,15 +34,20 @@ const difficultyPalette = {
 };
 
 export async function createVArchiveGradeCard(floorName, button, options = {}) {
-  const normalizedFloorName = normalizeVArchiveGradeFloorName(floorName);
+  const levelFilter = typeof floorName === 'object' ? floorName : null;
+  const normalizedFloorName = levelFilter ? null : normalizeVArchiveGradeFloorName(floorName);
   const normalizedButton = normalizeVArchiveGradeButton(button);
   const songs = Array.isArray(options.songs)
     ? options.songs
     : await fetchVArchiveSongs(options);
-  const entries = findVArchiveGradeEntries(songs, normalizedFloorName, normalizedButton);
+  const entries = levelFilter
+    ? findVArchiveGradeEntriesByLevel(songs, levelFilter.difficulty, levelFilter.level, normalizedButton)
+    : findVArchiveGradeEntries(songs, normalizedFloorName, normalizedButton);
 
   if (entries.length === 0) {
-    const error = new Error(getVArchiveGradeEmptyMessage(normalizedButton, normalizedFloorName));
+    const error = new Error(levelFilter
+      ? `${normalizedButton}B ${levelFilter.difficulty}${levelFilter.level} 레벨에 해당하는 패턴이 없다냥.`
+      : getVArchiveGradeEmptyMessage(normalizedButton, normalizedFloorName));
     error.code = 'NO_VARCHIVE_GRADE_ENTRIES';
     error.button = normalizedButton;
     error.floorName = normalizedFloorName;
@@ -52,6 +58,8 @@ export async function createVArchiveGradeCard(floorName, button, options = {}) {
   const jacketDataUrlByTitleId = await buildJacketDataUrlByTitleId(entries, fetchImpl);
   const view = buildVArchiveGradeCardView({
     floorName: normalizedFloorName,
+    difficulty: levelFilter?.difficulty ?? null,
+    level: levelFilter?.level ?? null,
     button: normalizedButton,
     entries,
     jacketDataUrlByTitleId,
@@ -64,6 +72,8 @@ export async function createVArchiveGradeCard(floorName, button, options = {}) {
     imageFormat: renderedCard.format,
     imageContentType: renderedCard.contentType,
     floorName: normalizedFloorName,
+    difficulty: levelFilter?.difficulty ?? null,
+    level: levelFilter?.level ?? null,
     button: normalizedButton,
     entries,
     entryCount: entries.length,
@@ -73,12 +83,16 @@ export async function createVArchiveGradeCard(floorName, button, options = {}) {
 
 export function buildVArchiveGradeCardView({
   floorName,
+  difficulty,
+  level,
   button,
   entries,
   jacketDataUrlByTitleId = {},
   generatedAt,
 }) {
-  const normalizedFloorName = normalizeVArchiveGradeFloorName(floorName);
+  const normalizedFloorName = floorName === null || floorName === undefined
+    ? null
+    : normalizeVArchiveGradeFloorName(floorName);
   const normalizedButton = normalizeVArchiveGradeButton(button);
   const safeEntries = Array.isArray(entries) ? entries : [];
   const columns = safeEntries.length >= 40 ? varchiveGradeColumnsWide : varchiveGradeColumnsCompact;
@@ -99,8 +113,10 @@ export function buildVArchiveGradeCardView({
 
   return {
     floorName: normalizedFloorName,
+    difficulty: difficulty ?? null,
+    level: level ?? null,
     button: normalizedButton,
-    heading: `${getVArchiveGradeKey(normalizedButton)} \uC11C\uC5F4\uD45C \u00B7 ${normalizedFloorName}`,
+    heading: `${getVArchiveGradeKey(normalizedButton)} \uC11C\uC5F4\uD45C \u00B7 ${normalizedFloorName ?? `${difficulty}${level}`}`,
     entryCountText: `${safeEntries.length} patterns`,
     generatedAtText: formatGeneratedAt(generatedAt),
     columns,
@@ -143,7 +159,7 @@ export function renderVArchiveGradeCardSvg(view) {
   const safeEntries = Array.isArray(view?.entries) ? view.entries : [];
   const sections = Array.isArray(view?.sections) && view.sections.length > 0
     ? view.sections
-    : [{ floorName: view?.floorName ?? '-', titleY: view?.gridY ?? 0, lineY: (view?.gridY ?? 0) + 28, entries: safeEntries }];
+    : [{ floorName: view?.floorName ?? `${view?.difficulty ?? ''}${view?.level ?? ''}`, titleY: view?.gridY ?? 0, lineY: (view?.gridY ?? 0) + 28, entries: safeEntries }];
   const sectionMarkup = sections.map((section) => {
     const tileMarkup = section.entries.map((entry, index) => renderGradeTile(entry, index)).join('');
     return `
@@ -201,6 +217,11 @@ export function renderVArchiveGradeCardSvg(view) {
         fill: #182435;
         font-size: 15px;
         font-weight: 900;
+      }
+      .levelLabel {
+        fill: #60728a;
+        font-size: 11px;
+        font-weight: 800;
       }
       .footer {
         fill: #76879d;
@@ -375,7 +396,7 @@ function renderGradeTile(entry, index) {
     <rect x="${entry.jacketX + 8}" y="${entry.jacketY + 8}" width="38" height="18" rx="9" ry="9" class="dlcBadge" />
     <text x="${entry.jacketX + 27}" y="${entry.jacketY + 21}" text-anchor="middle" class="dlcText">${escapeXml(entry.dlcCode || '-')}</text>
     <rect x="${entry.jacketX + 58}" y="${entry.jacketY + 90}" width="54" height="22" rx="11" ry="11" fill="${difficultyColors.fill}" />
-    <text x="${entry.jacketX + 85}" y="${entry.jacketY + 105}" text-anchor="middle" fill="${difficultyColors.text}" font-size="12" font-weight="900">${escapeXml(entry.difficultyLabel)}</text>
+    <text x="${entry.jacketX + 85}" y="${entry.jacketY + 105}" text-anchor="middle" fill="${difficultyColors.text}" font-size="12" font-weight="900">${escapeXml(entry.difficulty)}</text>
     <defs>
       <clipPath id="${clipId}">
         <rect x="${entry.tileX + 10}" y="${entry.tileY + 136}" width="${varchiveGradeTileWidth - 20}" height="36" />
@@ -384,6 +405,7 @@ function renderGradeTile(entry, index) {
     <g clip-path="url(#${clipId})">
       ${titleMarkup}
     </g>
+    <text x="${entry.tileX + varchiveGradeTileWidth / 2}" y="${entry.tileY + 178}" text-anchor="middle" class="levelLabel">${escapeXml(`V-ARCHIVE LV.${entry.level}`)}</text>
   </g>`;
 }
 

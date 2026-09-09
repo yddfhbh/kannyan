@@ -2,6 +2,7 @@ const validVArchiveGradeButtons = new Set([4, 5, 6, 8]);
 const vArchiveGradeDifficulties = ['NM', 'HD', 'MX', 'SC'];
 const vArchiveGradeFloorPattern = /^\d+(?:\.\d+)?$/;
 const vArchiveGradeIntegerFloorPattern = /^\d+$/;
+const vArchiveGradeLevelPattern = /^(NM|HD|MX|SC)(\d+)$/i;
 const vArchiveJacketBaseUrl = 'https://v-archive.net/s3/images/jackets';
 
 export function isVArchiveGradeFloorName(value) {
@@ -21,6 +22,18 @@ export function normalizeVArchiveGradeFloorName(value) {
   const error = new Error('\uC11C\uC5F4\uD45C \uB808\uBCA8\uC740 `15.2`\uCC98\uB7FC \uC785\uB825\uD574\uB2EC\uB77C\uB0E5.');
   error.code = 'INVALID_VARCHIVE_GRADE_FLOOR';
   throw error;
+}
+
+export function parseVArchiveGradeLevel(value) {
+  const match = String(value ?? '').trim().match(vArchiveGradeLevelPattern);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    difficulty: match[1].toUpperCase(),
+    level: Number.parseInt(match[2], 10),
+  };
 }
 
 export function normalizeVArchiveGradeButton(value) {
@@ -51,6 +64,17 @@ export function getVArchiveGradeEmptyMessage(button, floorName) {
 
 export function findVArchiveGradeEntries(songs, floorName, button) {
   const normalizedFloorName = normalizeVArchiveGradeFloorName(floorName);
+  return findVArchiveGradeEntriesByFilter(songs, { floorName: normalizedFloorName }, button);
+}
+
+export function findVArchiveGradeEntriesByLevel(songs, difficulty, level, button) {
+  return findVArchiveGradeEntriesByFilter(songs, {
+    difficulty: String(difficulty ?? '').trim().toUpperCase(),
+    level: Number(level),
+  }, button);
+}
+
+function findVArchiveGradeEntriesByFilter(songs, filter, button) {
   const normalizedButton = normalizeVArchiveGradeButton(button);
   const targetKey = `${normalizedButton}B`;
   const entries = [];
@@ -66,11 +90,16 @@ export function findVArchiveGradeEntries(songs, floorName, button) {
       const patternFloorName = String(pattern?.floorName ?? '').trim();
       const level = Number(pattern?.level);
 
-      const floorMatches = isVArchiveGradeIntegerFloorName(normalizedFloorName)
-        ? patternFloorName.startsWith(`${normalizedFloorName}.`)
-        : patternFloorName === normalizedFloorName;
+      const floorMatches = filter.floorName
+        ? (isVArchiveGradeIntegerFloorName(filter.floorName)
+          ? patternFloorName.startsWith(`${filter.floorName}.`)
+          : patternFloorName === filter.floorName)
+        : true;
+      const levelMatches = filter.difficulty
+        ? difficulty === filter.difficulty && level === filter.level
+        : true;
 
-      if (!floorMatches || !Number.isFinite(level)) {
+      if (!floorMatches || !levelMatches || !Number.isFinite(level)) {
         continue;
       }
 

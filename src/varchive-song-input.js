@@ -2,6 +2,7 @@ import {
   isVArchiveGradeFloorName,
   normalizeVArchiveGradeButton,
   normalizeVArchiveGradeFloorName,
+  parseVArchiveGradeLevel,
 } from './varchive-grade.js';
 
 const numericSelectionTokenPattern = /^[1-9]\d*$/;
@@ -14,7 +15,9 @@ export function parseVArchiveSongLookupInput(input, options = {}) {
       return {
         mode: 'grade',
         rawQuery: trimmed,
-        floorName: gradeMode.floorName,
+        ...(gradeMode.floorName
+          ? { floorName: gradeMode.floorName }
+          : { difficulty: gradeMode.difficulty, level: gradeMode.level }),
         button: gradeMode.button,
         baseQuery: null,
         selectionIndex: null,
@@ -47,13 +50,16 @@ export function parseVArchiveGradeMessageInput(input) {
     return null;
   }
 
-  if (!isVArchiveGradeFloorName(tokens[0]) || !numericSelectionTokenPattern.test(tokens[1])) {
+  const levelFilter = parseVArchiveGradeLevel(tokens[0]);
+  if ((!isVArchiveGradeFloorName(tokens[0]) && !levelFilter) || !numericSelectionTokenPattern.test(tokens[1])) {
     return null;
   }
 
   try {
     return {
-      floorName: normalizeVArchiveGradeFloorName(tokens[0]),
+      ...(levelFilter
+        ? { difficulty: levelFilter.difficulty, level: levelFilter.level }
+        : { floorName: normalizeVArchiveGradeFloorName(tokens[0]) }),
       button: normalizeVArchiveGradeButton(tokens[1]),
     };
   } catch {
@@ -99,9 +105,12 @@ export function resolveVArchiveSongCommandOptions(commandName, options = {}) {
   }
 
   if (hasFloorName && hasButton) {
+    const levelFilter = parseVArchiveGradeLevel(floorName);
     return {
       mode: 'grade',
-      floorName: normalizeVArchiveGradeFloorName(floorName),
+      ...(levelFilter
+        ? { difficulty: levelFilter.difficulty, level: levelFilter.level }
+        : { floorName: normalizeVArchiveGradeFloorName(floorName) }),
       button: normalizeVArchiveGradeButton(rawButton),
     };
   }
