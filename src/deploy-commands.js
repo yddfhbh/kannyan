@@ -545,6 +545,36 @@ new SlashCommandBuilder()
     )
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('레벨성과')
+    .setDescription('V-ARCHIVE 레벨별 개인 기록 성과표를 보여줍니다.')
+    .addStringOption((option) =>
+      option
+        .setName('레벨')
+        .setDescription('난이도 레벨(hd13) 또는 V-ARCHIVE 서열표 레벨(14.1)')
+        .setRequired(true)
+        .setMaxLength(20)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName('버튼')
+        .setDescription('조회할 버튼')
+        .setRequired(true)
+        .addChoices(
+          { name: '4', value: 4 },
+          { name: '5', value: 5 },
+          { name: '6', value: 6 },
+          { name: '8', value: 8 }
+        )
+    )
+    .addStringOption((option) =>
+      option
+        .setName('닉네임')
+        .setDescription('V-ARCHIVE 닉네임, 생략하면 연동된 닉네임')
+        .setRequired(false)
+        .setMaxLength(40)
+    )
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('퀵플')
     .setDescription('TETR.IO 퀵플레이 top 또는 recent 기록의 고도를 이미지로 보여줍니다.')
     .addStringOption((option) =>

@@ -10,6 +10,7 @@ import {
 } from './varchive-board.js';
 
 const validDifficulties = new Set(['NM', 'HD', 'MX', 'SC']);
+const levelPerformanceDifficulties = ['NM', 'HD', 'MX', 'SC'];
 const varchiveBoardPageCount = 17;
 
 export function parseVArchiveLevelPerformanceToken(value) {
@@ -28,6 +29,30 @@ export function parseVArchiveLevelPerformanceToken(value) {
   };
 }
 
+export function parseVArchiveLevelPerformanceSelector(value) {
+  const trimmed = String(value ?? '').trim();
+  const difficultyMatch = trimmed.match(/^(nm|hd|mx|sc)(\d+)$/i);
+  if (difficultyMatch) {
+    return {
+      difficulty: difficultyMatch[1].toUpperCase(),
+      level: Number.parseInt(difficultyMatch[2], 10),
+      floorName: null,
+    };
+  }
+
+  if (!/^\d+(?:\.\d+)?$/.test(trimmed)) {
+    const error = new Error('레벨은 `hd13` 또는 `14.1`처럼 입력해달라냥.');
+    error.code = 'INVALID_VARCHIVE_LEVEL_PERFORMANCE_LEVEL';
+    throw error;
+  }
+
+  return {
+    difficulty: null,
+    level: null,
+    floorName: trimmed,
+  };
+}
+
 export function parseVArchiveLevelPerformanceMessageInput(input, fallbackNickname = null) {
   const trimmed = String(input ?? '').trim();
   const normalizedFallbackNickname = fallbackNickname
@@ -38,6 +63,7 @@ export function parseVArchiveLevelPerformanceMessageInput(input, fallbackNicknam
     return {
       difficulty: null,
       level: null,
+      floorName: null,
       button: null,
       nickname: normalizedFallbackNickname,
       usedFallbackNickname: Boolean(normalizedFallbackNickname),
@@ -45,31 +71,38 @@ export function parseVArchiveLevelPerformanceMessageInput(input, fallbackNicknam
   }
 
   const tokens = trimmed.split(/\s+/);
-  if (tokens.length < 2) {
+  if (tokens.length < 1) {
     const error = new Error(getVArchiveLevelPerformanceUsageMessage());
     error.code = 'INVALID_VARCHIVE_LEVEL_PERFORMANCE_INPUT';
     throw error;
   }
 
-  const { difficulty, level } = parseVArchiveLevelPerformanceToken(tokens[0]);
-  const button = parseVArchiveButtonToken(tokens[1]);
-
-  if (button === null) {
-    const error = new Error('버튼 수는 4, 5, 6, 8만 지원한다냥.');
-    error.code = 'INVALID_VARCHIVE_LEVEL_PERFORMANCE_BUTTON';
-    throw error;
-  }
-
+  const parsed = (() => {
+    if (tokens.length < 2) {
+      const error = new Error(getVArchiveLevelPerformanceUsageMessage());
+      error.code = 'INVALID_VARCHIVE_LEVEL_PERFORMANCE_INPUT';
+      throw error;
+    }
+    const parsedToken = parseVArchiveLevelPerformanceSelector(tokens[0]);
+    const button = parseVArchiveButtonToken(tokens[1]);
+    if (button === null) {
+      const error = new Error('버튼 수는 4, 5, 6, 8만 지원한다냥.');
+      error.code = 'INVALID_VARCHIVE_LEVEL_PERFORMANCE_BUTTON';
+      throw error;
+    }
+    return { ...parsedToken, button };
+  })();
   const nicknameText = tokens.slice(2).join(' ').trim();
 
   return {
-    difficulty,
-    level,
-    button,
+    difficulty: parsed.difficulty,
+    level: parsed.level,
+    button: parsed.button,
     nickname: nicknameText
       ? normalizeVArchiveNickname(nicknameText)
       : normalizedFallbackNickname,
     usedFallbackNickname: !nicknameText && Boolean(normalizedFallbackNickname),
+    ...(parsed.floorName ? { floorName: parsed.floorName } : {}),
   };
 }
 
@@ -80,8 +113,9 @@ export async function createVArchiveLevelPerformanceLookup(
   button,
   options = {},
 ) {
-  const normalizedDifficulty = normalizeDifficulty(difficulty);
-  const normalizedLevel = normalizeLevel(level);
+  const normalizedDifficulty = normalizeDifficulty(difficulty, { allowAll: true });
+  const normalizedFloorName = options.floorName ? normalizeFloorName(options.floorName) : null;
+  const normalizedLevel = normalizedFloorName ? null : normalizeLevel(level);
   const normalizedButton = normalizeButton(button);
   const normalizedNickname = normalizeVArchiveNickname(nickname);
   const songs = options.songs ?? await fetchVArchiveSongs(options);
@@ -90,6 +124,7 @@ export async function createVArchiveLevelPerformanceLookup(
     normalizedDifficulty,
     normalizedLevel,
     normalizedButton,
+    normalizedFloorName,
   );
 
   if (entries.length === 0) {
@@ -111,42 +146,49 @@ export async function createVArchiveLevelPerformanceLookup(
     nickname: normalizedNickname,
     difficulty: normalizedDifficulty,
     level: normalizedLevel,
+    floorName: normalizedFloorName,
     button: normalizedButton,
     key: `${normalizedButton}B`,
     entries: performanceEntries,
   };
 }
 
-export function findVArchiveLevelPerformanceEntries(songs, difficulty, level, button) {
-  const normalizedDifficulty = normalizeDifficulty(difficulty);
-  const normalizedLevel = normalizeLevel(level);
+export function findVArchiveLevelPerformanceEntries(songs, difficulty, level, button, floorName = null) {
+  const normalizedDifficulty = normalizeDifficulty(difficulty, { allowAll: true });
+  const normalizedFloorName = floorName ? normalizeFloorName(floorName) : null;
+  const normalizedLevel = normalizedFloorName ? null : normalizeLevel(level);
   const normalizedButton = normalizeButton(button);
   const key = `${normalizedButton}B`;
   const entries = [];
 
   for (const song of Array.isArray(songs) ? songs : []) {
-    const pattern = song?.patterns?.[key]?.[normalizedDifficulty];
-    if (!pattern) {
-      continue;
-    }
+    const difficulties = normalizedDifficulty === 'ALL'
+      ? levelPerformanceDifficulties
+      : [normalizedDifficulty];
+    for (const currentDifficulty of difficulties) {
+      const pattern = song?.patterns?.[key]?.[currentDifficulty];
+      if (!pattern || (normalizedFloorName
+        ? (normalizedFloorName.includes('.')
+          ? String(pattern.floorName ?? '').trim() !== normalizedFloorName
+          : !String(pattern.floorName ?? '').trim().startsWith(`${normalizedFloorName}.`))
+        : Number(pattern.level) !== normalizedLevel)) {
+        continue;
+      }
 
-    if (Number(pattern.level) !== normalizedLevel) {
-      continue;
+      const titleId = normalizeSongTitleId(song?.title);
+      entries.push({
+        titleId,
+        songName: String(song?.name ?? '').trim() || 'Unknown Song',
+        difficulty: currentDifficulty,
+        level: normalizedLevel,
+        floorName: String(pattern?.floorName ?? '').trim(),
+        button: normalizedButton,
+        key,
+        rating: Number.isFinite(Number(pattern?.rating)) ? Number(pattern.rating) : null,
+        dlcCode: String(song?.dlcCode ?? '').trim(),
+        jacketUrl: buildVArchiveJacketUrl(titleId),
+      });
     }
-
-    const titleId = normalizeSongTitleId(song?.title);
-    entries.push({
-      titleId,
-      songName: String(song?.name ?? '').trim() || 'Unknown Song',
-      difficulty: normalizedDifficulty,
-      level: normalizedLevel,
-      button: normalizedButton,
-      key,
-      floorName: String(pattern?.floorName ?? '').trim(),
-      rating: Number.isFinite(Number(pattern?.rating)) ? Number(pattern.rating) : null,
-      dlcCode: String(song?.dlcCode ?? '').trim(),
-      jacketUrl: buildVArchiveJacketUrl(titleId),
-    });
   }
 
   return entries.sort(compareLevelPerformanceEntries);
@@ -221,13 +263,17 @@ export function buildVArchiveLevelPerformanceFocusUrl(lookup) {
 }
 
 export function getVArchiveLevelPerformanceUsageMessage() {
-  return '사용법은 `%레벨성과 <난이도레벨> <버튼수> [닉네임]`이다냥. 예: `%레벨성과 sc14 4`, `%레벨성과 mx13 6 KanNyan0713`';
+  return '사용법은 `%레벨성과 <난이도레벨> <버튼수> [닉네임]` 또는 `%레벨성과 <서열표레벨> <버튼수> [닉네임]`이다냥. 예: `%레벨성과 sc14 4`, `%레벨성과 hd13 4`, `%레벨성과 14.1 4`';
 }
 
-function normalizeDifficulty(value) {
+function normalizeDifficulty(value, { allowAll = false } = {}) {
   const difficulty = String(value ?? '').trim().toUpperCase();
   if (validDifficulties.has(difficulty)) {
     return difficulty;
+  }
+
+  if (allowAll && (!difficulty || difficulty === 'ALL')) {
+    return 'ALL';
   }
 
   throw new Error(`Unsupported difficulty: ${value}`);
@@ -242,6 +288,15 @@ function normalizeLevel(value) {
   throw new Error(`Unsupported level: ${value}`);
 }
 
+function normalizeFloorName(value) {
+  const floorName = String(value ?? '').trim();
+  if (/^\d+(?:\.\d+)?$/.test(floorName)) {
+    return floorName;
+  }
+
+  throw new Error(`Unsupported V-ARCHIVE floor: ${value}`);
+}
+
 function normalizeButton(value) {
   const button = parseVArchiveButtonToken(value);
   if (button !== null) {
@@ -252,6 +307,12 @@ function normalizeButton(value) {
 }
 
 function compareLevelPerformanceEntries(left, right) {
+  const difficultyOrder = levelPerformanceDifficulties.indexOf(left?.difficulty)
+    - levelPerformanceDifficulties.indexOf(right?.difficulty);
+  if (difficultyOrder !== 0) {
+    return difficultyOrder;
+  }
+
   const scoreOrder = String(left?.songName ?? '').localeCompare(
     String(right?.songName ?? ''),
     'ko',

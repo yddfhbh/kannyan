@@ -5930,6 +5930,11 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
+    if (interaction.commandName === '레벨성과') {
+      await showVArchiveLevelPerformance(interaction);
+      return;
+    }
+
     if (interaction.commandName === '퀵플') {
       await showQuickPlayAltitude(interaction);
       return;
@@ -10044,6 +10049,7 @@ function getHelpMessage() {
     '`/브아카 닉네임:<V-ARCHIVE 닉네임>` - 내 디스코드 계정에 V-ARCHIVE 닉네임을 영구 저장한다냥.',
     '`/b10`, `/b30`, `/b50`은 닉네임을 생략하면 저장된 V-ARCHIVE 닉네임을 쓰고, `%b10 4`, `%b30 6`, `%b50 Hebi 8`처럼 `%` 명령도 바로 쓸 수 있다냥.',
     '`/서열표 곡명:<곡명>`, `/서열표 서열표레벨:15.2 버튼:4`, `/곡정보 곡명:<곡명>`, `%서열표 곡명`, `%서열표 15.2 4`, `%서열표 hd13 4`, `%곡정보 곡명` - V-ARCHIVE 기준 4B/5B/6B/8B 난이도를 보여준다냥.',
+    '`/레벨성과 레벨:hd13 버튼:4`, `%레벨성과 sc14 4`, `%레벨성과 hd13 4`, `%레벨성과 14.1 4` - V-ARCHIVE 기준 레벨 또는 지정 난이도의 개인 성과를 보여준다냥.',
     '`/성과 곡명:<곡명> 닉네임:[V-ARCHIVE 닉네임]`, `%성과 곡명`, `%성과 곡명 | 닉네임`, `%성과 곡명 닉네임` - 연동된 V-ARCHIVE 닉네임 기준 개인 기록 성과표를 카드로 보여준다냥.',
     '체스판 이미지와 `%백선`, `%흑선`, `%분석해봐`, `%답이 뭐야` 같은 말을 보내면 FEN으로 읽고 Stockfish 최선 수를 보여준다냥.',
     '`%fen <FEN>` - 직접 입력한 FEN을 Stockfish로 분석한다냥.',
@@ -13714,6 +13720,54 @@ async function showVArchivePerformance(interaction) {
   }
 }
 
+async function showVArchiveLevelPerformance(interaction) {
+  const nickname = resolveVArchiveNicknameForInteraction(interaction);
+  const selector = interaction.options.getString('레벨', true).trim();
+  const button = interaction.options.getInteger('버튼', true);
+  let parsed;
+
+  try {
+    parsed = parseVArchiveLevelPerformanceMessageInput(
+      `${selector} ${button}`,
+      nickname,
+    );
+  } catch (error) {
+    await interaction.reply({
+      content: error?.message ?? getVArchiveLevelPerformanceUsageMessage(),
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (!parsed.nickname) {
+    await interaction.reply({
+      content: getMissingVArchiveNicknameMessage(),
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  await interaction.deferReply();
+
+  try {
+    const replyData = await createVArchiveLevelPerformanceReplyData(
+      parsed.nickname,
+      parsed.difficulty,
+      parsed.level,
+      parsed.button,
+      { floorName: parsed.floorName },
+    );
+    await interaction.editReply(replyData);
+  } catch (error) {
+    console.error(`Failed to fetch V-ARCHIVE level performance for ${parsed.nickname} / ${selector} / ${button}B:`);
+    console.error(error);
+    await interaction.editReply(
+      getVArchiveLevelPerformanceKnownErrorMessage(error, parsed.nickname)
+        ?? 'V-ARCHIVE 레벨 성과표를 가져오지 못했다냥.'
+    );
+  }
+}
+
 async function showVArchiveSongInfoMessage(message, input) {
   const query = String(input ?? '').trim();
   if (!query) {
@@ -13812,7 +13866,7 @@ async function showVArchiveLevelPerformanceMessage(message, input) {
     return;
   }
 
-  if (!parsedInput.difficulty || parsedInput.level === null || !parsedInput.button) {
+  if ((parsedInput.level === null && !parsedInput.floorName) || !parsedInput.button) {
     await message.reply({
       content: getVArchiveLevelPerformanceUsageMessage(),
       allowedMentions: { parse: [], repliedUser: false },
@@ -13836,6 +13890,7 @@ async function showVArchiveLevelPerformanceMessage(message, input) {
       parsedInput.difficulty,
       parsedInput.level,
       parsedInput.button,
+      { floorName: parsedInput.floorName },
     );
     await message.reply({
       ...replyData,
@@ -13843,7 +13898,7 @@ async function showVArchiveLevelPerformanceMessage(message, input) {
     });
   } catch (error) {
     console.error(
-      `Failed to fetch V-ARCHIVE level performance for ${parsedInput.nickname} / ${parsedInput.difficulty}${parsedInput.level} / ${parsedInput.button}B:`,
+      `Failed to fetch V-ARCHIVE level performance for ${parsedInput.nickname} / ${parsedInput.floorName ?? `${parsedInput.difficulty ?? 'ALL'}${parsedInput.level}`} / ${parsedInput.button}B:`,
     );
     console.error(error);
     await message.reply({
@@ -13927,13 +13982,13 @@ async function createVArchivePerformanceReplyData(nickname, query) {
   };
 }
 
-async function createVArchiveLevelPerformanceReplyData(nickname, difficulty, level, button) {
-  const card = await createVArchiveLevelPerformanceCard(nickname, difficulty, level, button);
+async function createVArchiveLevelPerformanceReplyData(nickname, difficulty, level, button, options = {}) {
+  const card = await createVArchiveLevelPerformanceCard(nickname, difficulty, level, button, options);
   return {
     content: `<${card.focusUrl}>`,
     files: [
       new AttachmentBuilder(card.image, {
-        name: `varchive-level-performance-${formatAttachmentSafeName(card.difficulty.toLowerCase())}${card.level}-${card.button}b-${formatAttachmentSafeName(card.nickname)}.png`,
+        name: `varchive-level-performance-${formatAttachmentSafeName(card.floorName ?? `${card.difficulty.toLowerCase()}${card.level}`)}-${card.button}b-${formatAttachmentSafeName(card.nickname)}.png`,
       }),
     ],
   };
