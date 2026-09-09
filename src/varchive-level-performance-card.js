@@ -42,6 +42,7 @@ export async function createVArchiveLevelPerformanceCard(
     nickname: lookup.nickname,
     difficulty: lookup.difficulty,
     level: lookup.level,
+    floorName: lookup.floorName,
     button: lookup.button,
     focusUrl: buildVArchiveLevelPerformanceFocusUrl(lookup),
     entries: lookup.entries,
@@ -56,7 +57,7 @@ export function renderVArchiveLevelPerformanceCardSvg({
   const entries = Array.isArray(lookup?.entries) ? lookup.entries : [];
   const columns = getColumnCount(entries.length);
   const tileWidth = 164;
-  const tileHeight = 238;
+  const tileHeight = 264;
   const gap = 14;
   const outerPadding = 28;
   const headerHeight = 118;
@@ -67,7 +68,11 @@ export function renderVArchiveLevelPerformanceCardSvg({
   const gridY = outerPadding + headerHeight;
   const contentHeight = rows * tileHeight + Math.max(0, rows - 1) * gap;
   const viewBoxHeight = outerPadding + headerHeight + contentHeight + footerHeight;
-  const heading = `${lookup?.difficulty ?? '-'} ${lookup?.level ?? '-'} · ${lookup?.button ?? '-'}B`;
+  const heading = lookup?.floorName
+    ? `${lookup?.button ?? '-'}B · V-ARCHIVE ${lookup.floorName}`
+    : lookup?.difficulty === 'ALL'
+      ? `${lookup?.button ?? '-'}B · LEVEL ${lookup?.level ?? '-'}`
+      : `${lookup?.difficulty ?? '-'} ${lookup?.level ?? '-'} · ${lookup?.button ?? '-'}B`;
   const subheading = `${entries.length} patterns · PLAYER ${lookup?.nickname ?? '-'}`;
   const tileMarkup = entries.map((entry, index) => {
     const column = index % columns;
@@ -75,7 +80,15 @@ export function renderVArchiveLevelPerformanceCardSvg({
     const x = outerPadding + column * (tileWidth + gap);
     const y = gridY + row * (tileHeight + gap);
     const jacketDataUrl = jacketDataUrls[entry.titleId] ?? null;
-    return renderEntryTile({ entry, jacketDataUrl, x, y, width: tileWidth, height: tileHeight });
+    return renderEntryTile({
+      entry,
+      jacketDataUrl,
+      showVArchiveLevel: !lookup?.floorName,
+      x,
+      y,
+      width: tileWidth,
+      height: tileHeight,
+    });
   }).join('');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -134,7 +147,7 @@ async function resolveJacketDataUrls(entries, fetchImpl) {
   return Object.fromEntries(dataUrls);
 }
 
-function renderEntryTile({ entry, jacketDataUrl, x, y, width, height }) {
+function renderEntryTile({ entry, jacketDataUrl, showVArchiveLevel, x, y, width, height }) {
   const jacketSize = 124;
   const jacketX = x + Math.round((width - jacketSize) / 2);
   const jacketY = y + 46;
@@ -142,6 +155,9 @@ function renderEntryTile({ entry, jacketDataUrl, x, y, width, height }) {
   const badgeX = x + Math.round((width - badgeWidth) / 2);
   const songLines = wrapSongTitle(entry?.songName ?? 'Unknown Song', 16, 2);
   const scoreLabel = formatScoreText(entry?.scoreText);
+  const levelLabel = showVArchiveLevel
+    ? `V-ARCHIVE ${entry?.floorName ?? '-'}`
+    : `${entry?.difficulty ?? '-'} ${entry?.level ?? '-'}`;
 
   return `
   <g>
@@ -151,9 +167,9 @@ function renderEntryTile({ entry, jacketDataUrl, x, y, width, height }) {
       ? `<image href="${escapeXml(jacketDataUrl)}" x="${jacketX}" y="${jacketY}" width="${jacketSize}" height="${jacketSize}" preserveAspectRatio="none"/>`
       : `<rect x="${jacketX}" y="${jacketY}" width="${jacketSize}" height="${jacketSize}" rx="14" ry="14" fill="#d6deea"/>`}
     <rect x="${badgeX}" y="${y + 180}" width="${badgeWidth}" height="26" rx="13" ry="13" fill="#e8f1fb"/>
-    <text x="${x + width / 2}" y="${y + 198}" text-anchor="middle" class="difficulty">${escapeXml(`${entry?.difficulty ?? '-'} ${entry?.level ?? '-'}`)}</text>
-    <text x="${x + width / 2}" y="${y + 220}" text-anchor="middle" class="${songLines.some((line) => String(line).length > 14) ? 'songSmall' : 'song'}">${escapeXml(songLines[0] ?? '')}</text>
-    <text x="${x + width / 2}" y="${y + 239}" text-anchor="middle" class="${songLines.some((line) => String(line).length > 14) ? 'songSmall' : 'song'}">${escapeXml(songLines[1] ?? '')}</text>
+    <text x="${x + width / 2}" y="${y + 198}" text-anchor="middle" class="difficulty">${escapeXml(levelLabel)}</text>
+    <text x="${x + width / 2}" y="${y + 238}" text-anchor="middle" class="${songLines.some((line) => String(line).length > 14) ? 'songSmall' : 'song'}">${escapeXml(songLines[0] ?? '')}</text>
+    <text x="${x + width / 2}" y="${y + 257}" text-anchor="middle" class="${songLines.some((line) => String(line).length > 14) ? 'songSmall' : 'song'}">${escapeXml(songLines[1] ?? '')}</text>
   </g>`;
 }
 
