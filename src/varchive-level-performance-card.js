@@ -83,7 +83,7 @@ export function renderVArchiveLevelPerformanceCardSvg({
     return renderEntryTile({
       entry,
       jacketDataUrl,
-      showVArchiveLevel: !lookup?.floorName,
+      showVArchiveLevel: false,
       x,
       y,
       width: tileWidth,
@@ -168,6 +168,7 @@ function renderEntryTile({ entry, jacketDataUrl, showVArchiveLevel, x, y, width,
       : `<rect x="${jacketX}" y="${jacketY}" width="${jacketSize}" height="${jacketSize}" rx="14" ry="14" fill="#d6deea"/>`}
     <rect x="${badgeX}" y="${y + 180}" width="${badgeWidth}" height="26" rx="13" ry="13" fill="#e8f1fb"/>
     <text x="${x + width / 2}" y="${y + 198}" text-anchor="middle" class="difficulty">${escapeXml(levelLabel)}</text>
+    <text x="${x + width / 2}" y="${y + 216}" text-anchor="middle" class="meta">${escapeXml(entry?.floorName ? `V-ARCHIVE ${entry.floorName}` : '')}</text>
     <text x="${x + width / 2}" y="${y + 238}" text-anchor="middle" class="${songLines.some((line) => String(line).length > 14) ? 'songSmall' : 'song'}">${escapeXml(songLines[0] ?? '')}</text>
     <text x="${x + width / 2}" y="${y + 257}" text-anchor="middle" class="${songLines.some((line) => String(line).length > 14) ? 'songSmall' : 'song'}">${escapeXml(songLines[1] ?? '')}</text>
   </g>`;

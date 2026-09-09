@@ -22,7 +22,7 @@ test('does not render a short song title twice', () => {
   assert.equal((svg.match(/Löschen/g) || []).length, 1);
 });
 
-test('renders in-game level input with V-ARCHIVE level labels', () => {
+test('renders ALL difficulty heading and per-entry difficulty labels', () => {
   const svg = renderVArchiveLevelPerformanceCardSvg({
     lookup: {
       nickname: 'KanNyan0713',
@@ -37,8 +37,8 @@ test('renders in-game level input with V-ARCHIVE level labels', () => {
   });
 
   assert.match(svg, /4B · LEVEL 14/);
-  assert.doesNotMatch(svg, /NM 14/);
-  assert.doesNotMatch(svg, /SC 14/);
+  assert.match(svg, /NM 14/);
+  assert.match(svg, /SC 14/);
   assert.match(svg, /V-ARCHIVE 4\.1/);
 });
 
