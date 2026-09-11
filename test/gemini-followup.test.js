@@ -84,3 +84,30 @@ test('can read the previous guild-channel key format after the session key upgra
     await fs.rm(tempDir, { recursive: true, force: true });
   }
 });
+
+test('preserves entries appended before an initial load finishes', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gemini-memory-'));
+  const filePath = path.join(tempDir, 'memory.json');
+  const sessionKey = createGeminiSessionKey({ guildId: 'g1', channelId: 'c1' });
+
+  try {
+    await fs.writeFile(filePath, JSON.stringify({
+      version: 1,
+      sessions: {
+        [sessionKey]: [{ role: 'user', text: '디스크 기록', timestamp: Date.now() }],
+      },
+    }));
+
+    const store = new GeminiMemoryStore(filePath);
+    store.append(sessionKey, { role: 'model', text: '로드 중 추가된 기록' });
+    await store.save();
+
+    const persisted = JSON.parse(await fs.readFile(filePath, 'utf8'));
+    assert.deepEqual(
+      persisted.sessions[sessionKey].map((entry) => entry.text),
+      ['디스크 기록', '로드 중 추가된 기록']
+    );
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});

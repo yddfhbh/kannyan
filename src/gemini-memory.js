@@ -75,6 +75,9 @@ export class GeminiMemoryStore {
   }
 
   async save() {
+    // Callers normally load the store before mutating it, but keeping this
+    // invariant here prevents an early save from racing with the first load.
+    await this.ensureLoaded();
     this.prune();
     this.saveQueue = this.saveQueue.catch(() => {}).then(async () => {
       const payload = {
@@ -96,7 +99,8 @@ export class GeminiMemoryStore {
       const sessions = parsed?.sessions && typeof parsed.sessions === 'object'
         ? parsed.sessions
         : {};
-      this.sessions.clear();
+      const entriesAddedWhileLoading = this.sessions;
+      const loadedSessions = new Map();
       for (const [sessionKey, entries] of Object.entries(sessions)) {
         if (!Array.isArray(entries)) continue;
         const normalized = entries
@@ -107,7 +111,18 @@ export class GeminiMemoryStore {
             text: truncateMemoryText(entry.text, this.maxEntryLength),
             timestamp: Number(entry.timestamp) || Date.now(),
           }));
-        if (normalized.length > 0) this.sessions.set(sessionKey, normalized);
+        if (normalized.length > 0) loadedSessions.set(sessionKey, normalized);
+      }
+
+      this.sessions = loadedSessions;
+      // `append()` is synchronous, so preserve entries added while the file
+      // was being read instead of letting the load overwrite them.
+      for (const [sessionKey, entries] of entriesAddedWhileLoading.entries()) {
+        const currentEntries = this.sessions.get(sessionKey) ?? [];
+        this.sessions.set(
+          sessionKey,
+          [...currentEntries, ...entries].slice(-this.maxMessagesPerSession)
+        );
       }
       this.prune();
     } catch (error) {
