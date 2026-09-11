@@ -214,6 +214,11 @@ import {
   inferChessBoardOrientation,
 } from './chess-orientation.js';
 import { isLikelyContextDependentPrompt } from './gemini-followup.js';
+import {
+  createGeminiChatContents,
+  createGeminiSessionKey,
+  GeminiMemoryStore,
+} from './gemini-memory.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
 import {
   buildImageGenerationPrompt,
@@ -342,7 +347,11 @@ const geminiSupportedImageMimeTypes = new Set([
 ]);
 
 
-const geminiMemory = new Map();
+const geminiMemory = new GeminiMemoryStore(geminiMemoryPath, {
+  retentionMs: geminiMemoryRetentionMs,
+  maxMessagesPerSession: geminiMemoryMaxMessagesPerSession,
+  maxEntryLength: geminiMemoryMaxEntryLength,
+});
 const chessPlaySessions = new Map();
 const recentChessAnalysisSessions = new Map();
 const finishedChessGamePgnCache = new Map();
@@ -365,9 +374,6 @@ const disabledEnvPattern = /^(?:0|false|off|no)$/i;
 const pyhokWikiSearchConfig = getPyhokWikiSearchConfig();
 
 const geminiPermanentMemory = new PermanentMemoryStore(geminiPermanentMemoryPath);
-let geminiMemoryLoaded = false;
-let geminiMemoryLoadPromise = null;
-let geminiMemorySaveQueue = Promise.resolve();
 const geminiSystemInstruction = [
   '너는 밝고 다정한 고양이귀 미소녀 스타일의 가상 챗봇이다.',
   '너의 이름은 "깐냥"이고, CODEX에 의해 만들어졌다.',
@@ -8998,15 +9004,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
           },
         ],
       },
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: contextualPrompt },
-            ...imageParts,
-          ],
-        },
-      ],
+      contents: createGeminiChatContents(contextualPrompt, imageParts),
       generationConfig: {
         maxOutputTokens: geminiMaxOutputTokens,
         temperature: 0.55,
@@ -9085,122 +9083,23 @@ async function generateGeminiAnswer(prompt, options = {}) {
 }
 
 async function ensureGeminiMemoryLoaded() {
-  if (geminiMemoryLoaded) {
-    return;
-  }
-
-  if (!geminiMemoryLoadPromise) {
-    geminiMemoryLoadPromise = loadGeminiMemory();
-  }
-
-  await geminiMemoryLoadPromise;
-}
-
-async function loadGeminiMemory() {
-  try {
-    const raw = await fs.readFile(geminiMemoryPath, 'utf8');
-    const parsed = JSON.parse(raw);
-
-    const sessions = parsed?.sessions && typeof parsed.sessions === 'object'
-      ? parsed.sessions
-      : {};
-
-    geminiMemory.clear();
-
-    for (const [sessionKey, entries] of Object.entries(sessions)) {
-      if (!Array.isArray(entries)) {
-        continue;
-      }
-
-      const normalizedEntries = entries
-        .filter((entry) => entry && typeof entry.text === 'string')
-        .map((entry) => ({
-          role: entry.role === 'model' ? 'model' : 'user',
-          authorName: String(entry.authorName ?? 'Unknown').slice(0, 80),
-          text: truncateMemoryText(entry.text, geminiMemoryMaxEntryLength),
-          timestamp: Number(entry.timestamp) || Date.now(),
-        }));
-
-      if (normalizedEntries.length > 0) {
-        geminiMemory.set(sessionKey, normalizedEntries);
-      }
-    }
-
-    pruneGeminiMemory();
-  } catch (error) {
-    if (error.code !== 'ENOENT') {
-      console.error('Failed to load Gemma memory:');
-      console.error(error);
-    }
-  } finally {
-    geminiMemoryLoaded = true;
-  }
+  await geminiMemory.ensureLoaded();
 }
 
 async function saveGeminiMemory() {
-  pruneGeminiMemory();
-
-  geminiMemorySaveQueue = geminiMemorySaveQueue
-    .catch(() => {})
-    .then(async () => {
-      const sessions = Object.fromEntries(geminiMemory.entries());
-
-      const payload = {
-        version: 1,
-        savedAt: new Date().toISOString(),
-        retentionDays: geminiMemoryRetentionDays,
-        sessions,
-      };
-
-      await fs.mkdir(path.dirname(geminiMemoryPath), { recursive: true });
-      await fs.writeFile(geminiMemoryPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    });
-
-  return geminiMemorySaveQueue;
-}
-
-function pruneGeminiMemory(now = Date.now()) {
-  const cutoff = now - geminiMemoryRetentionMs;
-
-  for (const [sessionKey, entries] of geminiMemory.entries()) {
-    const filteredEntries = entries
-      .filter((entry) => Number(entry.timestamp) >= cutoff)
-      .slice(-geminiMemoryMaxMessagesPerSession);
-
-    if (filteredEntries.length > 0) {
-      geminiMemory.set(sessionKey, filteredEntries);
-    } else {
-      geminiMemory.delete(sessionKey);
-    }
-  }
+  return geminiMemory.save();
 }
 
 function getGeminiSessionKey(message) {
-  const guildId = message.guildId ?? 'dm';
-  return `${guildId}:${message.channelId}`;
+  return createGeminiSessionKey(message);
 }
 
 function getGeminiSessionHistory(sessionKey) {
-  pruneGeminiMemory();
-
-  return [...(geminiMemory.get(sessionKey) ?? [])]
-    .slice(-geminiMemoryMaxMessagesPerSession);
+  return geminiMemory.getHistory(sessionKey);
 }
 
 function appendGeminiMemoryEntry(sessionKey, entry) {
-  const entries = geminiMemory.get(sessionKey) ?? [];
-
-  entries.push({
-    role: entry.role === 'model' ? 'model' : 'user',
-    authorName: String(entry.authorName ?? 'Unknown').slice(0, 80),
-    text: truncateMemoryText(entry.text, geminiMemoryMaxEntryLength),
-    timestamp: Number(entry.timestamp) || Date.now(),
-  });
-
-  geminiMemory.set(
-    sessionKey,
-    entries.slice(-geminiMemoryMaxMessagesPerSession)
-  );
+  geminiMemory.append(sessionKey, entry);
 }
 
 async function getGeminiReplyContext(message, resolvedReferencedMessage = undefined) {
