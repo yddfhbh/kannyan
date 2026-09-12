@@ -1,5 +1,5 @@
 const directImageReferencePattern =
-  /(사진|이미지|짤|그림|보드|체스판|판세|판\s*상황|기물|포지션|글자|텍스트|OCR|색상|컬러|헥스|hex)/i;
+  /(사진|이미지|짤|그림|보드|체스판|판세|판\s*상황|기물|포지션|글자|텍스트|OCR|색상|컬러|헥스|hex|통계|수치|점수|기록|경기|테트리오|tetr\.io|표|그래프|순위)/i;
 const shortDeicticPattern =
   /^(?:이거|이건|이게|이 사진|이 이미지|얘|이 사람|여기|여기서|저거|저건|그거|그건)(?:\s|$)/i;
 const shortReplyImageActionPattern =

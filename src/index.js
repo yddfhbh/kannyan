@@ -221,6 +221,12 @@ import {
 } from './gemini-memory.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
 import {
+  bufferToGeminiImagePart,
+  detectGeminiImageMimeType,
+  inferGeminiImageMimeType,
+  isGeminiSupportedImageAttachment,
+} from './gemini-image.js';
+import {
   buildImageGenerationPrompt,
   inferImageGenerationPromptFromContext,
   parseImageGenerationRequest,
@@ -337,15 +343,6 @@ const guildListRefreshIntervalMs = Math.max(
 );
 const vmStatusDiskPath = process.env.VM_STATUS_DISK_PATH?.trim() || '/';
 const vmStatusMessageTitle = 'VM 상태 대시보드다냥';
-
-const geminiSupportedImageMimeTypes = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/heic',
-  'image/heif',
-]);
-
 
 const geminiMemory = new GeminiMemoryStore(geminiMemoryPath, {
   retentionMs: geminiMemoryRetentionMs,
@@ -4992,14 +4989,8 @@ async function classifyChessAnalysisFollowupIntent(message, text, recent) {
 }
 
 function hasGeminiImageAttachment(message) {
-  return [...message.attachments.values()].some((attachment) => {
-    const contentType = String(attachment.contentType ?? '')
-      .split(';')[0]
-      .trim()
-      .toLowerCase();
-
-    return geminiSupportedImageMimeTypes.has(contentType);
-  });
+  return [...(message?.attachments?.values?.() ?? [])]
+    .some(isGeminiSupportedImageAttachment);
 }
 
 function normalizeChessFollowupText(text) {
@@ -8806,6 +8797,10 @@ function isPromptOverrideAttempt(prompt) {
 }
 
 function getGeminiUserErrorMessage(error) {
+  if (error?.code === 'GEMINI_IMAGE_UNAVAILABLE') {
+    return '첨부 이미지를 읽지 못했다냥. 이미지가 만료되지 않았는지, 지원되는 PNG/JPEG/WebP 형식인지 확인해서 다시 올려달라냥.';
+  }
+
   if (error?.status === 429) {
     return '체력이 다 떨어졌다냥...';
   }
@@ -8987,6 +8982,14 @@ async function generateGeminiAnswer(prompt, options = {}) {
     '사용자가 기뻐하거나 축하받을 일, 들뜬 반응, 강한 감정 표현을 분명하게 보였을 때만 happy, very_happy, excited를 쓴다.',
     '답변 분위기가 시큰둥함, 귀찮음, 툭툭거리는 짜증, 장난스럽게 콱 무는 듯한 반응이면 neutral보다 bored를 우선한다.',
     'JSON 바깥의 설명, 코드 블록, 마크다운, 서문은 절대 출력하지 않는다.',
+    ...(imageParts.length > 0 ? [
+      '',
+      '[이미지 판독 규칙]',
+      '첨부된 이미지가 이번 질문의 근거다. 이미지에 실제로 보이는 내용만 답하고, 이미지와 무관한 최근 대화 기록의 추측을 사실처럼 섞지 않는다.',
+      '이미지 속 텍스트·표·경기 통계·수치는 확대해서 항목별로 다시 확인한다. 숫자, 소수점, 단위, 순서, 승패를 임의로 보정하거나 만들어내지 않는다.',
+      '읽을 수 없는 글자나 수치는 “판독할 수 없다”고 표시하고, 확실하지 않은 값은 가능한 값처럼 단정하지 않는다. 필요한 경우 확인된 값과 불확실한 값을 분리해 답한다.',
+      '사용자가 여러 수치의 비교·합계·비율을 요청해도 먼저 이미지에서 확인된 원자료를 제시하고, 산출값은 계산 근거를 보인 뒤 계산한다.',
+    ] : []),
   ].join('\n');
   const answerStartedAt = Date.now();
 
@@ -9170,6 +9173,7 @@ async function getGeminiImageParts(message, resolvedReferencedMessages = undefin
     .slice(0, 4);
 
   const imageParts = [];
+  const imageErrors = [];
 
   for (const attachment of imageAttachments) {
     try {
@@ -9180,29 +9184,25 @@ async function getGeminiImageParts(message, resolvedReferencedMessages = undefin
     } catch (error) {
       console.error(`Failed to read image attachment ${attachment.name ?? attachment.url}:`);
       console.error(error);
+      imageErrors.push(error);
     }
+  }
+
+  if (imageAttachments.length > 0 && imageErrors.length > 0) {
+    const error = new Error(
+      imageParts.length > 0
+        ? 'One or more Discord image attachments could not be read.'
+        : 'Discord image attachments could not be read.'
+    );
+    error.code = 'GEMINI_IMAGE_UNAVAILABLE';
+    error.cause = imageErrors[0];
+    throw error;
   }
 
   return imageParts;
 }
 
-function isGeminiSupportedImageAttachment(attachment) {
-  const contentType = String(attachment.contentType ?? '').split(';')[0].trim().toLowerCase();
-
-  if (!geminiSupportedImageMimeTypes.has(contentType)) {
-    return false;
-  }
-
-  if (Number(attachment.size ?? 0) > geminiImageMaxBytes) {
-    return false;
-  }
-
-  return Boolean(attachment.url);
-}
-
 async function discordAttachmentToGeminiImagePart(attachment) {
-  const contentType = String(attachment.contentType ?? '').split(';')[0].trim().toLowerCase();
-
   const response = await fetch(attachment.url);
   if (!response.ok) {
     throw new Error(`Discord attachment fetch failed with ${response.status}`);
@@ -9214,16 +9214,16 @@ async function discordAttachmentToGeminiImagePart(attachment) {
     throw new Error(`Image is too large: ${arrayBuffer.byteLength} bytes`);
   }
 
-  return bufferToGeminiImagePart(Buffer.from(arrayBuffer), contentType);
-}
-
-function bufferToGeminiImagePart(buffer, contentType) {
-  return {
-    inline_data: {
-      mime_type: String(contentType ?? '').trim().toLowerCase() || 'image/png',
-      data: Buffer.from(buffer).toString('base64'),
-    },
-  };
+  const buffer = Buffer.from(arrayBuffer);
+  const contentType = inferGeminiImageMimeType(
+    attachment,
+    response.headers.get('content-type') ?? ''
+  ) || detectGeminiImageMimeType(buffer);
+  const part = bufferToGeminiImagePart(buffer, contentType);
+  if (!part) {
+    throw new Error(`Unsupported or invalid image MIME type for ${attachment.name ?? attachment.url}`);
+  }
+  return part;
 }
 
 async function fetchDiscordVisualAsGeminiPart(url, label) {
