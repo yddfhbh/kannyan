@@ -14,9 +14,10 @@ const relativeTimePattern = /(오늘|지금|현재|최근|이번 주|이번주|�
 const timelyTopicPattern = /(뉴스|기온|날씨|시세|주가|가격|일정|결과|순위|업데이트|발표|출시|영업시간|운영시간)/i;
 const sourceRequestPattern = /(출처|링크|원문|참고자료|reference|references|source|sources|link|links|url)/i;
 const factualQuestionPattern = /(누구|뭐야|무엇|어디|언제|몇|설명|정의|소개|정체|어떤|어떻게|알려줘|알려 줘|찾아줘|찾아 줘|검색해|search)/i;
+const informationRequestPattern = /(알려\s*줘|설명해\s*줘|소개해\s*줘|정리해\s*줘|가르쳐\s*줘|말해\s*줘|무슨\s*뜻|무엇을\s*의미)/i;
 const questionEndingPattern = /(\?|까\??|가\??|야\??|요\??|냐\??|임\??|인가\??)$/i;
 const factualTopicPattern = /(게임|인물|회사|브랜드|서비스|api|라이브러리|모델|용어|맵|위키|문서|규칙|설정|기능|스펙|버전|에러|오류|공식|링크|주소|프로젝트|단어|뉴스|날씨|가격|일정)/i;
-const searchTailCleanupPattern = /\s*(검색해봐|검색해 줘|검색해줘|찾아봐|찾아 봐|찾아줘|찾아 줘|알려줘|알려 줘|정리해줘|정리해 줘)\s*$/i;
+const searchTailCleanupPattern = /\s*(검색해봐|검색해 줘|검색해줘|검색해서(?:알려줘|알려 줘)?|검색하여(?:알려줘|알려 줘)?|찾아봐|찾아 봐|찾아줘|찾아 줘|찾아서(?:알려줘|알려 줘)?|알려줘|알려 줘|정리해줘|정리해 줘)\s*$/i;
 const currentTimeReferencePattern = /(최신|현재|지금|실시간|최근|today|current|latest|live|real[- ]?time)/i;
 const explicitDatePattern = /(\d{4}[./-]\d{1,2}[./-]\d{1,2}|\d{4}년\s*\d{1,2}월(?:\s*\d{1,2}일)?|\d{1,2}월\s*\d{1,2}일|어제|그제|오늘|내일|모레|작년|재작년|올해|내년|지난달|저번달|이번달|다음달|지난주|저번주|이번주|다음주)/i;
 const currencyUnitPattern = /(달러|usd|원화|한화|원|krw|엔화|엔|jpy|유로|eur|위안|cny|파운드|gbp|홍콩달러|hkd|대만달러|twd)/i;
@@ -116,6 +117,17 @@ export function shouldUseWebSearch(prompt) {
     || (relativeTimePattern.test(text) && timelyTopicPattern.test(text))
     || shouldPreferFreshPriceData(text)
     || looksLikeFactualLookupPrompt(text);
+}
+
+// 모델이 아는 척하며 끝내지 않도록, 불확실한 답변을 반환했을 때
+// 호출부가 한 번 더 검색할 수 있게 한다.
+export function shouldRetryWebSearchForUncertainAnswer(answer) {
+  const text = normalizeSearchText(answer);
+  if (!text) {
+    return true;
+  }
+
+  return /(모르겠|알 수 없|알지 못|확인할 수 없|정보가 부족|찾지 못|답변하기 어렵|확실하지 않|잘 모르|기억나지 않|제공할 수 없|확인되지 않)/i.test(text);
 }
 
 export function deriveWebSearchQuery(prompt) {
@@ -413,7 +425,8 @@ function looksLikeFactualLookupPrompt(text) {
   }
 
   return (questionEndingPattern.test(normalized) && factualQuestionPattern.test(normalized))
-    || (factualTopicPattern.test(normalized) && factualQuestionPattern.test(normalized));
+    || (factualTopicPattern.test(normalized) && factualQuestionPattern.test(normalized))
+    || informationRequestPattern.test(normalized);
 }
 
 function shouldPreferFreshPriceData(text) {

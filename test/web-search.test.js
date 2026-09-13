@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   deriveWebSearchQuery,
+  shouldRetryWebSearchForUncertainAnswer,
   shouldUseWebSearch,
 } from '../src/web-search.js';
 
@@ -14,6 +15,16 @@ test('shouldUseWebSearch turns on for explicit search-like Gemini prompts withou
   assert.equal(shouldUseWebSearch('OpenAI 최신 정보 알려줘'), true);
   assert.equal(shouldUseWebSearch('TETR.IO 검색해봐'), true);
   assert.equal(deriveWebSearchQuery('TETR.IO 검색해봐'), 'TETR.IO');
+});
+
+test('shouldUseWebSearch recognizes information requests whose subject is not a factual-topic keyword', () => {
+  assert.equal(shouldUseWebSearch('hebi의 지금부터 가사를 알려줘'), true);
+  assert.equal(deriveWebSearchQuery('hebi의 지금부터 가사를 검색해서알려줘'), 'hebi의 지금부터 가사를');
+});
+
+test('shouldRetryWebSearchForUncertainAnswer detects answers that admit missing knowledge', () => {
+  assert.equal(shouldRetryWebSearchForUncertainAnswer('정확한 가사를 알 수 없다냥.'), true);
+  assert.equal(shouldRetryWebSearchForUncertainAnswer('검색 결과를 바탕으로 정리해봤다냥.'), false);
 });
 
 test('shouldUseWebSearch turns on for short currency amount prompts and enriches them with latest exchange context', () => {

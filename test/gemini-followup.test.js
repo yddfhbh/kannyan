@@ -16,11 +16,14 @@ test('treats very short follow-up fragments as context dependent', () => {
   assert.equal(isLikelyContextDependentPrompt('동'), true);
   assert.equal(isLikelyContextDependentPrompt('왜?'), true);
   assert.equal(isLikelyContextDependentPrompt('그럼'), true);
+  assert.equal(isLikelyContextDependentPrompt('검색해서알려줘'), true);
+  assert.equal(isLikelyContextDependentPrompt('그 곡 검색해줘'), true);
 });
 
 test('keeps ordinary longer prompts out of follow-up heuristic', () => {
   assert.equal(isLikelyContextDependentPrompt('오늘 서울 날씨 알려줘'), false);
   assert.equal(isLikelyContextDependentPrompt('고양이 그림 그려줘'), false);
+  assert.equal(isLikelyContextDependentPrompt('오늘 서울 날씨 검색해줘'), false);
 });
 
 test('persists a conversation and makes the previous turn available to a follow-up', async () => {

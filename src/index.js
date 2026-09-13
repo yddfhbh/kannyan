@@ -160,6 +160,7 @@ import {
   formatWebSearchContext,
   searchWeb,
   shouldIncludeWebSearchSources,
+  shouldRetryWebSearchForUncertainAnswer,
   shouldUseWebSearch,
 } from './web-search.js';
 import {
@@ -6595,15 +6596,19 @@ async function handlePercentMessageCommand(message) {
   }
 
   if (command === 'webSearch') {
-    if (!input) {
+    const sessionKey = getGeminiSessionKey(message);
+    await ensureGeminiMemoryLoaded();
+    const history = getGeminiSessionHistory(sessionKey);
+    const contextualInput = input || getImmediatePreviousWebSearchQuery(history);
+    if (!contextualInput) {
       await message.reply({
-        content: '검색어를 입력해달라냥. 예: `%검색 오늘 서울 날씨`',
+        content: '검색어를 입력해달라냥. 예: `%검색 오늘 서울 날씨` 또는 직전 검색 대화에 `%검색해서알려줘`라고 이어서 말해달라냥.',
         allowedMentions: { repliedUser: false },
       });
       return true;
     }
 
-    await handleWebSearchMessage(message, input);
+    await handleWebSearchMessage(message, contextualInput);
     return true;
   }
 
@@ -8116,13 +8121,17 @@ const chessAnalysis =
     });
     const shouldRestrictToWikiSources = isExplicitPyhokWikiPrompt(rawPrompt);
     const isWikiLinkRequest = isPyhokWikiLinkRequest(rawPrompt);
+    const isSearchOnlyFollowup = /^(?:검색|search|찾아|찾아줘|찾아 줘|검색해|검색해줘|검색해 줘|검색해서|검색해서알려줘|검색하여|알려줘|알려 줘|찾아서알려줘|찾아서 알려줘)$/i.test(rawPrompt.trim());
     const shouldSearchPreviousWebContext = Boolean(followupWebSearchQuery)
+      && (contextDependentPrompt || isSearchOnlyFollowup)
       && imageParts.length === 0
       && !prioritizeChessImageAnalysis;
     let webSearchData = null;
     let wikiSearchData = null;
     const shouldAttemptExternalSearch = imageParts.length === 0 && !prioritizeChessImageAnalysis;
-    const webSearchPrompt = shouldSearchPreviousWebContext ? followupWebSearchQuery : rawPrompt;
+    const webSearchPrompt = shouldSearchPreviousWebContext
+      ? (isSearchOnlyFollowup ? previousWebSearchQuery : followupWebSearchQuery)
+      : rawPrompt;
 
     await Promise.all([
       ((shouldAttemptExternalSearch || shouldForceChessWebSearch)
@@ -8225,7 +8234,7 @@ const chessAnalysis =
       ? `${answerPrompt}\n\n${webPageData.context}`
       : answerPrompt;
 
-    const answerResult = await generateGeminiAnswer(promptWithWebPages, {
+    let answerResult = await generateGeminiAnswer(promptWithWebPages, {
       history,
       replyContext,
       mentionContext,
@@ -8239,6 +8248,39 @@ const chessAnalysis =
       // 여기 추가: 이미지도 같이 넘김
       imageParts,
     });
+
+    // 첫 검색 조건을 놓친 지식 질문에서 모델이 모른다고 답하면 검색을
+    // 강제하고, 검색 결과를 근거로 한 번만 다시 답하게 한다.
+    const shouldRetryWithWebSearch = shouldAttemptExternalSearch
+      && !webSearchData?.context
+      && shouldRetryWebSearchForUncertainAnswer(answerResult.answer);
+    if (shouldRetryWithWebSearch) {
+      try {
+        const retryWebSearchData = await tryBuildWebSearchData(rawPrompt, { force: true });
+        if (retryWebSearchData?.context) {
+          webSearchData = retryWebSearchData;
+          const retryWebPageData = await buildWebPageReferenceContext(rawPrompt);
+          const retryPrompt = retryWebPageData.context
+            ? `${answerPrompt}\n\n${retryWebPageData.context}`
+            : answerPrompt;
+          answerResult = await generateGeminiAnswer(retryPrompt, {
+            history,
+            replyContext,
+            mentionContext,
+            currentUserContext,
+            contextDependentPrompt,
+            permanentMemories,
+            promptControl,
+            wikiSearchContext: wikiSearchData?.context ?? '',
+            webSearchContext: webSearchData.context,
+            imageParts,
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to retry web search for uncertain Gemini answer ${JSON.stringify(rawPrompt)}:`);
+        console.error(error);
+      }
+    }
     await sendGeminiChatUsageLog(message, answerResult, {
       hasImages: imageParts.length > 0,
       source: shouldSearchPreviousWebContext ? 'web-followup-chat' : 'chat',
@@ -8263,11 +8305,12 @@ const chessAnalysis =
       .filter(Boolean)
       .join('\n\n');
 
+    const usedWebSearchReference = Boolean(webSearchData?.context);
     appendGeminiMemoryEntry(sessionKey, {
       role: 'user',
       authorName: getMessageAuthorName(message),
-      text: shouldSearchPreviousWebContext
-        ? `[웹 검색 후속 요청] ${followupWebSearchQuery}`
+      text: shouldSearchPreviousWebContext || usedWebSearchReference
+        ? `[웹 검색 요청] ${webSearchData?.query || followupWebSearchQuery || rawPrompt}`
         : replyContext
         ? `[답장 원본: ${replyContext.authorName}] ${replyContext.text}\n\n[첨부 이미지: ${imageParts.length}개]\n\n[현재 질문] ${prompt}`
         : `[첨부 이미지: ${imageParts.length}개]\n\n${prompt}`,
@@ -8277,7 +8320,7 @@ const chessAnalysis =
     appendGeminiMemoryEntry(sessionKey, {
       role: 'model',
       authorName: message.client.user?.username ?? 'Bot',
-      text: shouldSearchPreviousWebContext
+      text: shouldSearchPreviousWebContext || usedWebSearchReference
         ? `[웹 검색 답변]\n${answer || '답변을 만들지 못했다냥.'}`
         : answer || '답변을 만들지 못했다냥.',
       timestamp: Date.now(),
@@ -8821,6 +8864,15 @@ function parsePercentCommand(content) {
   const commandBody = trimmed.slice(1).trim();
   if (!commandBody) {
     return null;
+  }
+
+  // `%검색해서알려줘`처럼 명령어와 의도를 붙여 쓰는 후속 검색도
+  // 직전 검색 맥락을 사용할 수 있도록 검색 명령으로 정규화한다.
+  if (/^(?:검색|search)(?:해서|하여)(?:알려줘|알려 줘)?$/i.test(commandBody)) {
+    return {
+      command: 'webSearch',
+      input: '',
+    };
   }
 
   const [commandToken, ...restTokens] = commandBody.split(/\s+/);
