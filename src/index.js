@@ -8635,6 +8635,11 @@ async function createWebSearchResponse(prompt, options = {}) {
     tryBuildWebSearchData(prompt, { force: true }),
   ]);
 
+  // `/검색`에 URL을 넣은 경우 검색엔진 결과뿐 아니라 해당 페이지 본문도
+  // 직접 읽어서 답변 근거로 사용한다. 페이지를 읽지 못하면 기존 검색 결과를
+  // 계속 사용할 수 있도록 실패는 buildWebPageReferenceContext 내부에서 삼킨다.
+  const webPageData = await buildWebPageReferenceContext(prompt);
+
   ({ wikiSearchData, webSearchData } = finalizeGeminiSearchReferenceData({
     wikiSearchData,
     webSearchData,
@@ -8643,7 +8648,9 @@ async function createWebSearchResponse(prompt, options = {}) {
   const hasWikiResults = Array.isArray(wikiSearchData?.results) && wikiSearchData.results.length > 0;
   const hasWebResults = Array.isArray(webSearchData?.results) && webSearchData.results.length > 0;
 
-  if (!hasWikiResults && !hasWebResults) {
+  const hasWebPageResults = Array.isArray(webPageData?.pages) && webPageData.pages.length > 0;
+
+  if (!hasWikiResults && !hasWebResults && !hasWebPageResults) {
     return {
       text: '검색 결과를 찾지 못했다냥.',
       emotion: 'neutral',
@@ -8651,6 +8658,13 @@ async function createWebSearchResponse(prompt, options = {}) {
   }
 
   if (geminiApiKeys.length === 0) {
+    if (hasWebPageResults) {
+      return {
+        text: formatWebPageSearchResults(webPageData.pages, { includeSources: resolvedIncludeSources }),
+        emotion: 'neutral',
+      };
+    }
+
     if (!hasWebResults && hasWikiResults) {
       return {
         text: wikiSearchData.context || '검색 결과를 찾지 못했다냥.',
@@ -8670,7 +8684,10 @@ async function createWebSearchResponse(prompt, options = {}) {
     };
   }
 
-  const answerResult = await generateGeminiAnswer(prompt, {
+  const answerPrompt = webPageData.context
+    ? `${prompt}\n\n${webPageData.context}`
+    : prompt;
+  const answerResult = await generateGeminiAnswer(answerPrompt, {
     history,
     replyContext,
     mentionContext,
