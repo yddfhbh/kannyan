@@ -233,7 +233,7 @@ import {
   parseImageGenerationRequest,
   shouldClarifyImageGenerationPrompt,
 } from './image-generation-request.js';
-import { normalizeDiscordMarkdown } from './discord-markdown.js';
+import { normalizeDiscordMath, normalizeDiscordMarkdown } from './discord-markdown.js';
 import {
   buildGeminiCurrentUserPromptSection,
   geminiStyleRequestHandlingSystemInstructionLines,
@@ -8395,7 +8395,7 @@ async function handleWebSearchMessage(message, input) {
     });
     await saveGeminiMemory();
 
-    const chunks = splitDiscordMessage(response.text, 1900);
+    const chunks = splitDiscordMessage(normalizeDiscordMath(response.text), 1900);
     const [firstChunk, ...remainingChunks] = chunks;
     const replyFiles = getGeminiEmotionReplyFiles(response.emotion, {
       prompt: cleanedInput,
@@ -8595,7 +8595,7 @@ async function showWebSearch(interaction) {
         `작성자 Discord ID: ${interaction.user.id}`,
       ].join('\n'),
     });
-    const chunks = splitDiscordMessage(response.text, 1900);
+    const chunks = splitDiscordMessage(normalizeDiscordMath(response.text), 1900);
     const [firstChunk, ...remainingChunks] = chunks;
     const replyFiles = getGeminiEmotionReplyFiles(response.emotion, {
       prompt: query,

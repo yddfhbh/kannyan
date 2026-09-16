@@ -1,9 +1,47 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { normalizeDiscordMarkdown } from '../src/discord-markdown.js';
+import { normalizeDiscordMath, normalizeDiscordMarkdown } from '../src/discord-markdown.js';
 
 const discordBlankLine = '\u2800';
+
+test('normalizeDiscordMath converts LaTeX into Discord-compatible text', () => {
+  assert.equal(
+    normalizeDiscordMath(String.raw`적분은 $\int f(x)\,dn$이고, \int, \geq, \frac{1}{2}, aspirin도 보인다.`),
+    '적분은 ∫ f(x) dn이고, ∫, ≥, (1)/(2), aspirin도 보인다.'
+  );
+});
+
+test('normalizeDiscordMath preserves code while converting inline and display math', () => {
+  const input = String.raw`식: \(\sum_{i=1}^{n} x_i\) 그리고 \[\sqrt{x}\]. 코드: ${'`'}$\int$${'`'}`;
+
+  assert.equal(
+    normalizeDiscordMath(input),
+    '식: ∑_(i=1)^(n) x_i 그리고 √(x). 코드: `$\\int$`'
+  );
+});
+
+test('normalizeDiscordMath leaves fenced code blocks untouched', () => {
+  const input = `앞: $\\int$
+\`\`\`latex
+$\\int f(x) dn$
+\`\`\``;
+
+  assert.equal(
+    normalizeDiscordMath(input),
+    `앞: ∫
+\`\`\`latex
+$\\int f(x) dn$
+\`\`\``
+  );
+});
+
+test('normalizeDiscordMarkdown applies math normalization without changing Korean text', () => {
+  assert.equal(
+    normalizeDiscordMarkdown(String.raw`약은 aspirin이고, 복용량은 $\int_0^1 f(x)\,dn$으로 설명한다.`),
+    '약은 aspirin이고, 복용량은 ∫_0^1 f(x) dn으로 설명한다.'
+  );
+});
 
 test(
   'normalizeDiscordMarkdown converts headings and horizontal rules into Discord-friendly text',

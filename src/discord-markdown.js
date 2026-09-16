@@ -21,6 +21,7 @@ export function normalizeDiscordMarkdown(text) {
       .replace(/^\s*---+\s*(?=#{1,6}\s+)/u, '')
       .trimEnd();
 
+    line = normalizeDiscordMath(line);
     line = splitInlineListMarkers(line);
     line = splitInlineHeadings(line);
 
@@ -51,6 +52,66 @@ export function normalizeDiscordMarkdown(text) {
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+// Discord 메시지는 LaTeX를 렌더링하지 않으므로, 수식은 의존성 없이 읽을 수
+// 있는 유니코드/일반 텍스트로 바꾼다. 코드 블록과 인라인 코드는 사용자가
+// 입력한 코드일 수 있으므로 변환 대상에서 제외한다.
+export function normalizeDiscordMath(text) {
+  const protectedCode = [];
+  const protectCode = (match) => {
+    const token = `\u0000DISCORD_CODE_${protectedCode.length}\u0000`;
+    protectedCode.push(match);
+    return token;
+  };
+
+  let normalized = String(text ?? '')
+    .replace(/```[\s\S]*?```/gu, protectCode)
+    .replace(/`[^`\n]*`/gu, protectCode)
+    .replace(/\$\$([\s\S]*?)\$\$/gu, (_, expression) => renderDiscordMathExpression(expression))
+    .replace(/\$([^$\n]+?)\$/gu, (_, expression) => renderDiscordMathExpression(expression))
+    .replace(/\\\(([^\n]*?)\\\)/gu, (_, expression) => renderDiscordMathExpression(expression))
+    .replace(/\\\[([\s\S]*?)\\\]/gu, (_, expression) => renderDiscordMathExpression(expression));
+
+  // 모델이 구분자 없이 출력한 \int, \geq 같은 단일 명령도 읽을 수 있게 한다.
+  normalized = renderDiscordMathExpression(normalized);
+
+  return normalized.replace(/\u0000DISCORD_CODE_(\d+)\u0000/gu, (_, index) => protectedCode[Number(index)]);
+}
+
+const discordMathCommandMap = new Map([
+  ['int', '∫'], ['iint', '∬'], ['iiint', '∭'], ['oint', '∮'],
+  ['sum', '∑'], ['prod', '∏'], ['coprod', '∐'],
+  ['infty', '∞'], ['partial', '∂'], ['nabla', '∇'],
+  ['pm', '±'], ['mp', '∓'], ['times', '×'], ['cdot', '·'], ['div', '÷'],
+  ['le', '≤'], ['leq', '≤'], ['ge', '≥'], ['geq', '≥'], ['neq', '≠'], ['ne', '≠'],
+  ['approx', '≈'], ['sim', '∼'], ['equiv', '≡'], ['propto', '∝'],
+  ['to', '→'], ['rightarrow', '→'], ['leftarrow', '←'], ['Rightarrow', '⇒'],
+  ['in', '∈'], ['notin', '∉'], ['subset', '⊂'], ['subseteq', '⊆'],
+  ['cup', '∪'], ['cap', '∩'], ['forall', '∀'], ['exists', '∃'],
+  ['alpha', 'α'], ['beta', 'β'], ['gamma', 'γ'], ['delta', 'δ'],
+  ['epsilon', 'ε'], ['theta', 'θ'], ['lambda', 'λ'], ['mu', 'μ'],
+  ['pi', 'π'], ['sigma', 'σ'], ['phi', 'φ'], ['omega', 'ω'],
+  ['Gamma', 'Γ'], ['Delta', 'Δ'], ['Theta', 'Θ'], ['Lambda', 'Λ'],
+  ['Pi', 'Π'], ['Sigma', 'Σ'], ['Phi', 'Φ'], ['Omega', 'Ω'],
+]);
+
+function renderDiscordMathExpression(expression) {
+  let result = String(expression ?? '');
+
+  result = result
+    .replace(/\\(?:text|mathrm|operatorname)\s*\{([^{}]*)\}/gu, '$1')
+    .replace(/\\[,;:!]/gu, ' ')
+    .replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/gu, '($1)/($2)')
+    .replace(/\\sqrt\s*\{([^{}]*)\}/gu, '√($1)')
+    .replace(/\^\{([^{}]*)\}/gu, '^($1)')
+    .replace(/_\{([^{}]*)\}/gu, '_($1)')
+    .replace(/[{}]/gu, '')
+    .replace(/\\([A-Za-z]+)/gu, (match, command) => discordMathCommandMap.get(command) ?? match)
+    .replace(/\\([\\$%_#&])/gu, '$1')
+    .replace(/[ \t]+/gu, ' ');
+
+  return result;
 }
 
 function splitInlineListMarkers(line) {
