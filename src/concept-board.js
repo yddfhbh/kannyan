@@ -545,7 +545,7 @@ async function resolveSourceMessage(reaction) {
   return reaction.message ?? null;
 }
 
-async function upsertConceptPost({ message, config, reactionCount }) {
+async function upsertConceptPost({ message, config, reactionCount, createIfMissing = true }) {
   const loadedState = await loadState();
   const duplicateKey = getConceptPostKey(message.guildId, config.outputChannelId, message.id);
   const existingPost = loadedState.conceptPosts[duplicateKey] ?? null;
@@ -610,6 +610,10 @@ async function upsertConceptPost({ message, config, reactionCount }) {
       await saveState();
       return;
     }
+  }
+
+  if (!createIfMissing) {
+    return;
   }
 
   const sent = await outputChannel.send({
@@ -694,6 +698,70 @@ async function processConceptBoardReactionAdd(reaction) {
       message,
       config,
       reactionCount,
+    });
+  }
+}
+
+async function processConceptBoardReactionRemove(reaction) {
+  const reactionEmojiKey = getReactionEmojiKey(reaction?.emoji);
+
+  if (!reactionEmojiKey) {
+    return;
+  }
+
+  let message = reaction?.message ?? null;
+
+  if (!message) {
+    return;
+  }
+
+  if (message.partial) {
+    message = await message.fetch();
+  }
+
+  if (!message?.guildId || !message.guild) {
+    return;
+  }
+
+  const loadedState = await loadState();
+  const guildState = loadedState.guilds[message.guildId];
+  const configs = Object.values(guildState?.configs ?? {});
+
+  if (configs.length === 0) {
+    return;
+  }
+
+  const reactionCount = Math.max(0, Number(reaction.count) || 0);
+
+  for (const config of configs) {
+    if (!config || config.emojiKey !== reactionEmojiKey) {
+      continue;
+    }
+
+    if (message.channelId === config.outputChannelId) {
+      continue;
+    }
+
+    const duplicateKey = getConceptPostKey(
+      message.guildId,
+      config.outputChannelId,
+      message.id
+    );
+    const existingPost = loadedState.conceptPosts[duplicateKey] ?? null;
+
+    if (!existingPost) {
+      continue;
+    }
+
+    if (existingPost.configId && String(existingPost.configId) !== String(config.id)) {
+      continue;
+    }
+
+    await upsertConceptPost({
+      message,
+      config,
+      reactionCount,
+      createIfMissing: false,
     });
   }
 }
@@ -1056,6 +1124,6 @@ export async function handleConceptBoardReactionAdd(reaction) {
   await processConceptBoardReactionAdd(reaction);
 }
 
-export async function handleConceptBoardReactionRemove() {
-  // 개념글은 한 번 올라가면 유지한다.
+export async function handleConceptBoardReactionRemove(reaction) {
+  await processConceptBoardReactionRemove(reaction);
 }
