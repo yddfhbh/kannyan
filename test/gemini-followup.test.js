@@ -35,7 +35,7 @@ test('persists a conversation and makes the previous turn available to a follow-
   try {
     const firstStore = new GeminiMemoryStore(filePath);
     await firstStore.ensureLoaded();
-    firstStore.append(sessionKey, { role: 'user', text: '내 고양이 이름은 나비야', authorName: 'user' });
+    firstStore.append(sessionKey, { role: 'user', text: '내 고양이 이름은 나비야', authorId: 'user-1', authorName: 'user' });
     firstStore.append(sessionKey, { role: 'model', text: '나비구나! 기억할게.', authorName: 'bot' });
     await firstStore.save();
 
@@ -44,6 +44,7 @@ test('persists a conversation and makes the previous turn available to a follow-
     const history = nextStore.getHistory(sessionKey);
     assert.equal(history.length, 2);
     assert.match(history[0].text, /고양이 이름은 나비/);
+    assert.equal(history[0].authorId, 'user-1');
 
     const contextualPrompt = `[최근 대화 기록]\n${history.map((entry) => entry.text).join('\n')}\n\n[현재 질문]\n그럼 이름이 뭐야?`;
     const contents = createGeminiChatContents(contextualPrompt);

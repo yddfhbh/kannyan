@@ -63,6 +63,7 @@ export class GeminiMemoryStore {
     entries.push({
       role: entry.role === 'model' ? 'model' : 'user',
       authorName: String(entry.authorName ?? 'Unknown').slice(0, 80),
+      ...(String(entry.authorId ?? '').trim() ? { authorId: String(entry.authorId).trim().slice(0, 128) } : {}),
       text: truncateMemoryText(entry.text, this.maxEntryLength),
       timestamp: Number(entry.timestamp) || Date.now(),
     });
@@ -108,6 +109,7 @@ export class GeminiMemoryStore {
           .map((entry) => ({
             role: entry.role === 'model' ? 'model' : 'user',
             authorName: String(entry.authorName ?? 'Unknown').slice(0, 80),
+            ...(String(entry.authorId ?? '').trim() ? { authorId: String(entry.authorId).trim().slice(0, 128) } : {}),
             text: truncateMemoryText(entry.text, this.maxEntryLength),
             timestamp: Number(entry.timestamp) || Date.now(),
           }));

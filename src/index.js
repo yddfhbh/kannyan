@@ -220,6 +220,7 @@ import {
   createGeminiSessionKey,
   GeminiMemoryStore,
 } from './gemini-memory.js';
+import { selectGeminiContextSections } from './gemini-context.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
 import {
   bufferToGeminiImagePart,
@@ -776,6 +777,7 @@ async function handleImageGenerationMessage(message, rawPrompt) {
 
     appendGeminiMemoryEntry(sessionKey, {
       role: 'user',
+      authorId: message.author?.id,
       authorName: getMessageAuthorName(message),
       text: replyContext?.text
         ? `[이미지 생성 요청]\n답장 원본: ${replyContext.authorName}\n${replyContext.text}\n\n현재 요청: ${resolvedPrompt}`
@@ -8244,6 +8246,7 @@ const chessAnalysis =
       promptControl,
       wikiSearchContext: wikiSearchData?.context ?? '',
       webSearchContext: webSearchData?.context ?? '',
+      currentAuthorId: message.author?.id,
 
       // 여기 추가: 이미지도 같이 넘김
       imageParts,
@@ -8308,9 +8311,10 @@ const chessAnalysis =
     const usedWebSearchReference = Boolean(webSearchData?.context);
     appendGeminiMemoryEntry(sessionKey, {
       role: 'user',
+      authorId: message.author?.id,
       authorName: getMessageAuthorName(message),
       text: shouldSearchPreviousWebContext || usedWebSearchReference
-        ? `[웹 검색 요청] ${webSearchData?.query || followupWebSearchQuery || rawPrompt}`
+        ? `[웹 검색 요청]\n원래 질문: ${prompt}\n실제 검색 query: ${webSearchData?.query || followupWebSearchQuery || rawPrompt}`
         : replyContext
         ? `[답장 원본: ${replyContext.authorName}] ${replyContext.text}\n\n[첨부 이미지: ${imageParts.length}개]\n\n[현재 질문] ${prompt}`
         : `[첨부 이미지: ${imageParts.length}개]\n\n${prompt}`,
@@ -8378,13 +8382,15 @@ async function handleWebSearchMessage(message, input) {
       history,
       mentionContext: getGeminiMentionContext(message),
       currentUserContext: getGeminiCurrentUserContext(message),
+      currentAuthorId: message.author?.id,
     });
 
     // `%검색`도 일반 Gemini 대화와 같은 세션에 남겨 후속 질문이 검색 결과를 이어받게 한다.
     appendGeminiMemoryEntry(sessionKey, {
       role: 'user',
+      authorId: message.author?.id,
       authorName: getMessageAuthorName(message),
-      text: `[웹 검색 요청] ${cleanedInput}`,
+      text: `[웹 검색 요청]\n원래 질문: ${cleanedInput}\n실제 검색 query: ${deriveWebSearchQuery(cleanedInput) || cleanedInput}`,
       timestamp: Date.now(),
     });
     appendGeminiMemoryEntry(sessionKey, {
@@ -8430,6 +8436,7 @@ async function handleHexColorPreviewMessage(message, options = {}) {
     prompt = '',
     mentionContext = '',
     currentUserContext = '',
+    currentAuthorId = '',
     getReferencedMessages = async () => [],
     colorRequest = null,
   } = options;
@@ -8496,6 +8503,7 @@ async function handleHexColorPreviewMessage(message, options = {}) {
           mentionContext,
           currentUserContext,
           permanentMemories,
+          currentAuthorId: message.author?.id,
         }
       );
 
@@ -8507,6 +8515,7 @@ async function handleHexColorPreviewMessage(message, options = {}) {
 
       appendGeminiMemoryEntry(sessionKey, {
         role: 'user',
+        authorId: message.author?.id,
         authorName: getMessageAuthorName(message),
         text: replyContext
           ? `[답장 원본: ${replyContext.authorName}] ${replyContext.text}\n\n[헥스 색상 미리보기]\n\n[현재 질문] ${prompt}`
@@ -8695,6 +8704,7 @@ async function createWebSearchResponse(prompt, options = {}) {
     permanentMemories,
     wikiSearchContext: wikiSearchData?.context ?? '',
     webSearchContext: webSearchData?.context ?? '',
+    currentAuthorId,
   });
 
   return {
@@ -9025,7 +9035,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     imageParts = [],
   } = options;
 
-  const contextualPrompt = buildGeminiContextualPrompt({
+  const contextSelection = selectGeminiContextSections({
     prompt,
     history,
     replyContext,
@@ -9035,7 +9045,10 @@ async function generateGeminiAnswer(prompt, options = {}) {
     permanentMemories,
     wikiSearchContext,
     webSearchContext,
+    currentAuthorId: options.currentAuthorId,
+    maxContextLength: geminiMemoryMaxContextLength,
   });
+  const contextualPrompt = contextSelection.prompt;
 
   const modelsToUse = imageParts.length > 0
     ? geminiVisionModels
@@ -9063,7 +9076,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
   const answerStartedAt = Date.now();
 
   logGeminiTiming(
-    `answer start mode=${imageParts.length > 0 ? 'vision' : 'text'} models=${modelsToUse.join(',')} promptChars=${contextualPrompt.length} history=${history.length} images=${imageParts.length}`
+    `answer start mode=${imageParts.length > 0 ? 'vision' : 'text'} models=${modelsToUse.join(',')} promptChars=${contextualPrompt.length} history=${history.length} immediateHistory=${contextSelection.stats.immediateHistoryCount} olderRetrieved=${contextSelection.stats.olderRetrievedHistoryCount} contextChars=${contextSelection.stats.finalTextualContextChars} images=${imageParts.length}`
   );
 
   let response;
@@ -9701,7 +9714,13 @@ function getImmediatePreviousWebSearchQuery(history) {
     return '';
   }
 
-  const match = String(previousEntry?.text ?? '').match(/^\[웹 검색 (?:요청|후속 요청)\]\s*(.+)$/);
+  const previousText = String(previousEntry?.text ?? '');
+  const structuredMatch = previousText.match(/(?:^|\n)실제 검색 query:\s*(.+)$/im);
+  if (structuredMatch?.[1]?.trim()) {
+    return structuredMatch[1].trim();
+  }
+
+  const match = previousText.match(/^\[웹 검색 (?:요청|후속 요청)\]\s*(.+)$/);
   return match?.[1]?.trim() ?? '';
 }
 
