@@ -222,6 +222,7 @@ import {
 } from './gemini-memory.js';
 import { selectGeminiContextSections } from './gemini-context.js';
 import { shouldUseReplyImagesForGeminiPrompt } from './gemini-image-routing.js';
+import { createGeminiInteractionMessage } from './gemini-interaction.js';
 import {
   bufferToGeminiImagePart,
   detectGeminiImageMimeType,
@@ -5820,8 +5821,8 @@ if (interaction.commandName === '개념글테스트') {
       return;
     }
 
-    if (interaction.commandName === '검색') {
-      await showWebSearch(interaction);
+    if (interaction.commandName === '말걸기') {
+      await handleGeminiInteraction(interaction);
       return;
     }
 
@@ -8276,6 +8277,7 @@ const chessAnalysis =
             promptControl,
             wikiSearchContext: wikiSearchData?.context ?? '',
             webSearchContext: webSearchData.context,
+            currentAuthorId: message.author?.id,
             imageParts,
           });
         }
@@ -8427,6 +8429,29 @@ async function handleWebSearchMessage(message, input) {
       content: '웹 검색을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.',
       allowedMentions: { parse: [], repliedUser: false },
     }, 'handleWebSearchMessage:error');
+  }
+}
+
+async function handleGeminiInteraction(interaction) {
+  const question = interaction.options.getString('질문', true).trim();
+  const imageAttachment = interaction.options.getAttachment('이미지');
+  await interaction.deferReply();
+
+  const message = createGeminiInteractionMessage(
+    interaction,
+    question,
+    imageAttachment
+  );
+
+  try {
+    await handleGeminiFallbackMessage(message);
+  } catch (error) {
+    console.error(`Failed to handle Gemini interaction ${interaction.id}:`);
+    console.error(error);
+    await interaction.editReply({
+      content: getGeminiUserErrorMessage(error),
+      allowedMentions: { parse: [] },
+    });
   }
 }
 
@@ -8592,48 +8617,13 @@ function getHexColorPreviewAttachmentName(hex) {
   return `hex-color-${safeHex || 'preview'}.png`;
 }
 
-async function showWebSearch(interaction) {
-  const query = interaction.options.getString('질문', true).trim();
-  await interaction.deferReply();
-
-  try {
-    const response = await createWebSearchResponse(query, {
-      currentUserContext: [
-        `작성자 표시 이름: ${interaction.member?.displayName ?? interaction.user.globalName ?? interaction.user.username}`,
-        `작성자 계정명: ${interaction.user.username}`,
-        `작성자 Discord ID: ${interaction.user.id}`,
-      ].join('\n'),
-    });
-    const chunks = splitDiscordMessage(normalizeDiscordMath(response.text), 1900);
-    const [firstChunk, ...remainingChunks] = chunks;
-    const replyFiles = getGeminiEmotionReplyFiles(response.emotion, {
-      prompt: query,
-      source: 'slash-web-search',
-    });
-
-    await interaction.editReply({
-      content: firstChunk,
-      ...(replyFiles.length > 0 ? { files: replyFiles } : {}),
-    });
-
-    for (const chunk of remainingChunks) {
-      await interaction.followUp({
-        content: chunk,
-      });
-    }
-  } catch (error) {
-    console.error(`Failed to handle web search interaction ${interaction.id}:`);
-    console.error(error);
-    await interaction.editReply('웹 검색을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.');
-  }
-}
-
 async function createWebSearchResponse(prompt, options = {}) {
   const {
     history = [],
     replyContext = null,
     mentionContext = '',
     currentUserContext = '',
+    currentAuthorId = '',
     permanentMemories = [],
     includeSources = false,
   } = options;
@@ -8644,7 +8634,7 @@ async function createWebSearchResponse(prompt, options = {}) {
     tryBuildWebSearchData(prompt, { force: true }),
   ]);
 
-  // `/검색`에 URL을 넣은 경우 검색엔진 결과뿐 아니라 해당 페이지 본문도
+  // 명시적 `%검색`에 URL을 넣은 경우 검색엔진 결과뿐 아니라 해당 페이지 본문도
   // 직접 읽어서 답변 근거로 사용한다. 페이지를 읽지 못하면 기존 검색 결과를
   // 계속 사용할 수 있도록 실패는 buildWebPageReferenceContext 내부에서 삼킨다.
   const webPageData = await buildWebPageReferenceContext(prompt);
@@ -10016,7 +10006,8 @@ function getHelpMessage() {
   return [
     '**사용 가능한 명령어다냥**',
     '`/도움말`, `%도움말`, `%help` - 이 안내를 보여준다냥.',
-    '`/검색 질문:<검색어>` 또는 `%검색 검색어` - 웹 검색 결과를 바탕으로 최신 정보를 정리한다냥.',
+    '`/말걸기 질문:<내용>` 또는 `%질문` - 깐냥이에게 일반 대화를 건다냥. 필요한 경우 최신 정보를 자동으로 검색한다냥.',
+    '`%검색 검색어` 또는 `%search query` - 웹 검색 결과를 바탕으로 최신 정보를 명시적으로 정리한다냥.',
     '`/가르치기 정보:<내용>` 또는 `%...기억해줘`, `%...기억해둬`, `%...기억해` - 만료되지 않는 영구 기억에 정보와 작성자를 저장한다냥.',
     '`/체닷 닉네임:<Chess.com 닉네임>` 또는 `%체닷 닉네임` - Chess.com 래피드, 블리츠, 불렛, 퍼즐 레이팅을 보여준다냥.',
     '`/리체스 멤버이름:<Lichess 멤버 이름>` 또는 `%리체스 멤버이름` - Lichess 래피드, 블리츠, 불렛 레이팅을 보여준다냥.',

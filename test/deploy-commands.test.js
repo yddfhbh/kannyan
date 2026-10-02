@@ -32,3 +32,17 @@ test('buildSlashCommands includes daily puzzle clear command', () => {
   assert.equal(resetCommand.options[0].name, '유저');
   assert.equal(resetCommand.options[0].required, false);
 });
+
+test('buildSlashCommands replaces 검색 with 말걸기 conversation command', () => {
+  const commands = buildSlashCommands();
+  const searchCommand = commands.find((command) => command.name === '검색');
+  const talkCommand = commands.find((command) => command.name === '말걸기');
+
+  assert.equal(searchCommand, undefined);
+  assert.ok(talkCommand);
+  assert.equal(talkCommand.description, '깐냥이에게 말을 겁니다.');
+  assert.equal(talkCommand.options?.find((option) => option.name === '질문')?.required, true);
+  assert.equal(talkCommand.options?.find((option) => option.name === '질문')?.type, 3);
+  assert.equal(talkCommand.options?.find((option) => option.name === '이미지')?.required, false);
+  assert.equal(talkCommand.options?.find((option) => option.name === '이미지')?.type, 11);
+});

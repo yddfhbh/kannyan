@@ -23,14 +23,20 @@ function buildSlashCommands() {
     .setDescription('사용 가능한 명령어를 보여줍니다.')
     .toJSON(),
   new SlashCommandBuilder()
-    .setName('검색')
-    .setDescription('웹 검색 결과를 바탕으로 최신 정보를 정리합니다.')
+    .setName('말걸기')
+    .setDescription('깐냥이에게 말을 겁니다.')
     .addStringOption((option) =>
       option
         .setName('질문')
-        .setDescription('검색할 질문 또는 키워드')
+        .setDescription('깐냥이에게 할 질문')
         .setRequired(true)
         .setMaxLength(300)
+    )
+    .addAttachmentOption((option) =>
+      option
+        .setName('이미지')
+        .setDescription('대화에 함께 보낼 이미지')
+        .setRequired(false)
     )
     .toJSON(),
   new SlashCommandBuilder()
