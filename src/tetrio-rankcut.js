@@ -113,13 +113,25 @@ async function renderTetrioRankCutImage(response) {
   });
 }
 
-function buildRankCards(data) {
+export function buildRankCards(data) {
   const rankedCards = rankOrder
     .filter((rank) => rank !== 'tl')
     .map((rank) => buildRankCard(rank, data[rank]))
     .filter(Boolean);
 
-  return [...rankedCards, buildLeagueSummaryCard(rankedCards, data.total)];
+  const weightedPlayerCount = rankedCards.reduce((sum, card) => sum + Math.max(0, card.players), 0);
+  const totalPlayers = Number(data.total);
+  const populationTotal = Number.isFinite(totalPlayers) && totalPlayers > 0
+    ? totalPlayers
+    : weightedPlayerCount;
+
+  return [
+    ...rankedCards.map((card) => ({
+      ...card,
+      playerPercentage: calculatePlayerPercentage(card.players, populationTotal),
+    })),
+    buildLeagueSummaryCard(rankedCards, populationTotal, populationTotal),
+  ];
 }
 
 function buildRankCard(rank, data) {
@@ -141,7 +153,7 @@ function buildRankCard(rank, data) {
   };
 }
 
-function buildLeagueSummaryCard(cards, totalPlayers) {
+function buildLeagueSummaryCard(cards, totalPlayers, populationTotal) {
   const weightedPlayerCount = cards.reduce((sum, card) => sum + Math.max(0, card.players), 0);
   const safeTotalPlayers = Number.isFinite(totalPlayers) && totalPlayers > 0
     ? totalPlayers
@@ -156,9 +168,18 @@ function buildLeagueSummaryCard(cards, totalPlayers) {
     pps: calculateWeightedAverage(cards, 'pps', weightedPlayerCount),
     vs: calculateWeightedAverage(cards, 'vs', weightedPlayerCount),
     app: calculateWeightedAverage(cards, 'app', weightedPlayerCount),
+    playerPercentage: calculatePlayerPercentage(safeTotalPlayers, populationTotal),
     style: rankCardStyles.tl,
     isSummary: true,
   };
+}
+
+function calculatePlayerPercentage(players, totalPlayers) {
+  if (!Number.isFinite(players) || players < 0 || !Number.isFinite(totalPlayers) || totalPlayers <= 0) {
+    return null;
+  }
+
+  return players / totalPlayers * 100;
 }
 
 function calculateWeightedAverage(cards, key, totalPlayers) {
@@ -219,7 +240,7 @@ export function fetchTetrioLeagueRankIconDataUri(rank) {
   return fetchRankIconDataUri(String(rank ?? '').trim().toLowerCase());
 }
 
-function renderTetrioRankCutSvg(cards, assets, hunFontDataUri, asOf) {
+export function renderTetrioRankCutSvg(cards, assets, hunFontDataUri, asOf) {
   const columns = 7;
   const cardWidth = 188;
   const cardHeight = 292;
@@ -258,6 +279,12 @@ function renderTetrioRankCutSvg(cards, assets, hunFontDataUri, asOf) {
         font-size: 16px;
         font-weight: 800;
         letter-spacing: 0.6px;
+      }
+      .playersPercentage {
+        fill: rgba(255, 255, 255, 0.76);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
       }
       .metricLabel {
         fill: rgba(255, 255, 255, 0.82);
@@ -313,7 +340,8 @@ function renderRankCutCard(card, iconDataUri, x, y, width, height) {
     ? renderTlWordmark(iconDataUri, x, iconBoxY, width)
     : renderRankIcon(iconDataUri, x, iconBoxY, width);
   const valueY = y + 148;
-  const playersY = y + 176;
+  const playersY = y + 171;
+  const percentageY = y + 184;
   const metricsY = y + 188;
   const halfWidth = width / 2;
 
@@ -325,6 +353,7 @@ function renderRankCutCard(card, iconDataUri, x, y, width, height) {
     ${iconMarkup}
     <text x="${x + width / 2}" y="${valueY}" text-anchor="middle" class="rankValue">${formatRankValueMarkup(card.tr)}</text>
     <text x="${x + width / 2}" y="${playersY}" text-anchor="middle" class="playersLabel">${escapeXml(formatPlayersText(card.players))}</text>
+    <text x="${x + width / 2}" y="${percentageY}" text-anchor="middle" class="playersPercentage">${escapeXml(formatPlayerPercentage(card.playerPercentage))}</text>
     <line x1="${x + 4}" y1="${metricsY}" x2="${x + width - 4}" y2="${metricsY}" stroke="${style.border}" stroke-width="1.5" opacity="0.95"/>
     <line x1="${x + halfWidth}" y1="${metricsY}" x2="${x + halfWidth}" y2="${y + height - 4}" stroke="${style.border}" stroke-width="1" opacity="0.72"/>
     <line x1="${x + 4}" y1="${metricsY + 50}" x2="${x + width - 4}" y2="${metricsY + 50}" stroke="${style.border}" stroke-width="1" opacity="0.72"/>
@@ -407,6 +436,22 @@ function formatPlayersText(value) {
   }
 
   return `${Math.round(value).toLocaleString('en-US')} PLAYERS`;
+}
+
+export function formatPlayerPercentage(value) {
+  if (!Number.isFinite(value) || value < 0) {
+    return '-';
+  }
+
+  let maximumFractionDigits = 2;
+  if (value > 0 && value < 0.01) {
+    maximumFractionDigits = Math.min(12, Math.max(3, 1 - Math.floor(Math.log10(value))));
+  }
+
+  return `${value.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits,
+  })}%`;
 }
 
 function formatMetricValue(value) {
