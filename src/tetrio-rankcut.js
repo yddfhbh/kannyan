@@ -125,11 +125,17 @@ export function buildRankCards(data) {
     ? totalPlayers
     : weightedPlayerCount;
 
-  return [
-    ...rankedCards.map((card) => ({
+  let cumulativePlayers = 0;
+  const cardsWithPercentages = rankedCards.map((card) => {
+    cumulativePlayers += Math.max(0, card.players);
+    return {
       ...card,
-      playerPercentage: calculatePlayerPercentage(card.players, populationTotal),
-    })),
+      playerPercentage: calculatePlayerPercentage(cumulativePlayers, populationTotal),
+    };
+  });
+
+  return [
+    ...cardsWithPercentages,
     buildLeagueSummaryCard(rankedCards, populationTotal, populationTotal),
   ];
 }
@@ -448,7 +454,7 @@ export function formatPlayerPercentage(value) {
     maximumFractionDigits = Math.min(12, Math.max(3, 1 - Math.floor(Math.log10(value))));
   }
 
-  return `${value.toLocaleString('en-US', {
+  return `TOP ${value.toLocaleString('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits,
   })}%`;
