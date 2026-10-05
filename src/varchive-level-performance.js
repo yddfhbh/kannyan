@@ -222,7 +222,7 @@ export async function fetchVArchiveLevelPerformanceEntries(nickname, entries, op
       })),
   );
 
-  return safeEntries.map((entry) => {
+  const performanceEntries = safeEntries.map((entry) => {
     const lookupKey = `${entry.titleId}:${entry.difficulty}`;
 
     for (const pageEntry of pageEntries) {
@@ -246,6 +246,8 @@ export async function fetchVArchiveLevelPerformanceEntries(nickname, entries, op
       scoreKind: 'none',
     };
   });
+
+  return sortLevelPerformanceEntriesByScore(performanceEntries);
 }
 
 export function buildVArchiveLevelPerformanceFocusUrl(lookup) {
@@ -327,6 +329,37 @@ function compareLevelPerformanceEntries(left, right) {
     'en',
     { numeric: true },
   );
+}
+
+function sortLevelPerformanceEntriesByScore(entries) {
+  return entries
+    .map((entry, index) => ({ entry, index, score: getLevelPerformanceScore(entry?.scoreText) }))
+    .sort((left, right) => {
+      const leftHasScore = Number.isFinite(left.score);
+      const rightHasScore = Number.isFinite(right.score);
+
+      if (leftHasScore && rightHasScore && left.score !== right.score) {
+        return right.score - left.score;
+      }
+
+      if (leftHasScore !== rightHasScore) {
+        return leftHasScore ? -1 : 1;
+      }
+
+      // Preserve the pre-existing filtered order for equal or unavailable scores.
+      return left.index - right.index;
+    })
+    .map(({ entry }) => entry);
+}
+
+function getLevelPerformanceScore(value) {
+  const trimmed = String(value ?? '').trim();
+  if (!trimmed || trimmed === '-') {
+    return null;
+  }
+
+  const score = Number.parseFloat(trimmed);
+  return Number.isFinite(score) ? score : null;
 }
 
 function normalizeSongTitleId(value) {

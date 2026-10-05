@@ -220,6 +220,44 @@ test('fetchVArchiveLevelPerformanceEntries does not mix other difficulties', asy
   );
 });
 
+test('fetchVArchiveLevelPerformanceEntries sorts all matched patterns by numeric score stably', async () => {
+  clearVArchiveBoardPageHtmlCache();
+
+  const entries = [
+    { titleId: '1', songName: 'First equal score', difficulty: 'SC', level: 13, button: 4 },
+    { titleId: '2', songName: 'Low score', difficulty: 'SC', level: 13, button: 4 },
+    { titleId: '3', songName: 'Perfect score', difficulty: 'SC', level: 13, button: 4 },
+    { titleId: '4', songName: 'Second equal score', difficulty: 'SC', level: 13, button: 4 },
+    { titleId: '5', songName: 'Invalid score', difficulty: 'SC', level: 13, button: 4 },
+    { titleId: '6', songName: 'No record', difficulty: 'SC', level: 13, button: 4 },
+  ];
+  const result = await fetchVArchiveLevelPerformanceEntries('Hebi', entries, {
+    boardPageCount: 1,
+    fetchImpl: async () => ({
+      ok: true,
+      text: async () => `
+        <div id="4-1-SC"><div class="text-center">99.99</div></div>
+        <div id="4-2-SC"><div class="text-center">99.71</div></div>
+        <div id="4-3-SC"><div class="text-center">100.00</div></div>
+        <div id="4-4-SC"><div class="text-center">99.99</div></div>
+        <div id="4-5-SC"><div class="text-center">not-a-score</div></div>
+      `,
+    }),
+  });
+
+  assert.deepEqual(
+    result.map((entry) => [entry.titleId, entry.scoreText]),
+    [
+      ['3', '100.00'],
+      ['1', '99.99'],
+      ['4', '99.99'],
+      ['2', '99.71'],
+      ['5', 'not-a-score'],
+      ['6', '-'],
+    ],
+  );
+});
+
 test('createVArchiveLevelPerformanceLookup resolves ALL difficulty scores independently', async () => {
   clearVArchiveBoardPageHtmlCache();
 
@@ -239,10 +277,16 @@ test('createVArchiveLevelPerformanceLookup resolves ALL difficulty scores indepe
 
   assert.equal(result.difficulty, 'ALL');
   assert.deepEqual(
-    result.entries.filter((entry) => entry.titleId === '101').map((entry) => [entry.difficulty, entry.scoreText]),
-    [['NM', '97.10'], ['HD', '98.20'], ['MX', '99.30'], ['SC', '99.40']],
+    result.entries.map((entry) => [entry.titleId, entry.difficulty, entry.scoreText]),
+    [
+      ['101', 'SC', '99.40'],
+      ['101', 'MX', '99.30'],
+      ['101', 'HD', '98.20'],
+      ['101', 'NM', '97.10'],
+      ['102', 'HD', '-'],
+      ['102', 'SC', '-'],
+    ],
   );
-  assert.equal(result.entries.find((entry) => entry.titleId === '102' && entry.difficulty === 'HD').scoreText, '-');
 });
 
 test('fetchVArchiveLevelPerformanceEntries fetches each board page only once per run', async () => {
