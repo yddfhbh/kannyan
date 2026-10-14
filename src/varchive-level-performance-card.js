@@ -1,7 +1,6 @@
-import {
-  bundledSvgFontFamily,
-  renderSvgToPng,
-} from './svg-renderer.js';
+import { bundledSvgFontFamily } from './svg-renderer.js';
+import { renderSvgToPngInWorker } from './svg-renderer-pool.js';
+import { selectVArchiveFont } from './varchive-font-selection.js';
 import {
   buildVArchiveLevelPerformanceFocusUrl,
   createVArchiveLevelPerformanceLookup,
@@ -33,14 +32,26 @@ export async function createVArchiveLevelPerformanceCard(
     },
   ));
   const jackets = await measure('assets', () => resolveJacketDataUrls(lookup.entries, fetchImpl));
+  const generatedAt = options.generatedAt ?? new Date().toISOString();
   const svg = await measure('render-svg', () => renderVArchiveLevelPerformanceCardSvg({
     lookup,
     jacketDataUrls: jackets,
-    generatedAt: options.generatedAt ?? new Date().toISOString(),
+    generatedAt,
   }));
+  const fontSelection = selectVArchiveFont(getVArchiveLevelPerformanceTextContent({ lookup, generatedAt }));
+  const renderPng = options.renderPng ?? renderSvgToPngInWorker;
+
+  const image = await measure('render-png', () => renderPng(svg, {
+    scale: 1,
+    fontFiles: [fontSelection.fontPath],
+  }));
+  if (performanceTrace) {
+    console.log(`[V-ARCHIVE][${performanceTrace.id ?? 'trace'}] renderer=worker font=${fontSelection.kind} unsupportedCodepointCount=${fontSelection.unsupportedCodepointCount}`);
+    console.log(`[V-ARCHIVE][${performanceTrace.id ?? 'trace'}] render-diagnostics ${JSON.stringify(getVArchiveRenderDiagnostics(svg, lookup, jackets, image))}`);
+  }
 
   return {
-    image: await measure('render-png', () => renderSvgToPng(svg, { scale: 1 })),
+    image,
     imageFormat: 'png',
     imageContentType: 'image/png',
     nickname: lookup.nickname,
@@ -50,6 +61,48 @@ export async function createVArchiveLevelPerformanceCard(
     button: lookup.button,
     focusUrl: buildVArchiveLevelPerformanceFocusUrl(lookup),
     entries: lookup.entries,
+  };
+}
+
+export { renderSvgToPngInWorker };
+
+export function getVArchiveLevelPerformanceTextContent({ lookup, generatedAt }) {
+  const entries = Array.isArray(lookup?.entries) ? lookup.entries : [];
+  const heading = getVArchiveLevelPerformanceHeading(lookup);
+  const content = [
+    heading,
+    `${entries.length} patterns · PLAYER ${lookup?.nickname ?? '-'}`,
+    'V-ARCHIVE archive board · compact grid',
+  ];
+  for (const entry of entries) {
+    const songLines = wrapSongTitle(entry?.songName ?? 'Unknown Song', 16, 2);
+    content.push(
+      formatScoreText(entry?.scoreText),
+      `${entry?.difficulty ?? '-'} ${entry?.level ?? '-'}`,
+      entry?.floorName ? `V-ARCHIVE ${entry.floorName}` : '',
+      ...songLines,
+    );
+  }
+  content.push(`Generated ${formatGeneratedAt(generatedAt ?? new Date().toISOString())}`);
+  return content.join('\n');
+}
+
+export function getVArchiveRenderDiagnostics(svg, lookup, jacketDataUrls = {}, png = null) {
+  const svgText = String(svg ?? '');
+  const width = readSvgDimension(svgText, 'width');
+  const height = readSvgDimension(svgText, 'height');
+  const images = [...new Set((Array.isArray(lookup?.entries) ? lookup.entries : [])
+    .map((entry) => jacketDataUrls[entry?.titleId])
+    .filter(Boolean))]
+    .map((dataUrl) => ({
+      bytes: dataUrlByteLength(dataUrl),
+      ...readImageDimensions(dataUrl),
+    }));
+  return {
+    svg: { width, height, bytes: Buffer.byteLength(svgText, 'utf8') },
+    entries: Array.isArray(lookup?.entries) ? lookup.entries.length : 0,
+    embeddedJackets: { count: images.length, bytes: images.reduce((sum, image) => sum + image.bytes, 0), images },
+    png: readPngDimensions(png),
   };
 }
 
@@ -72,11 +125,7 @@ export function renderVArchiveLevelPerformanceCardSvg({
   const gridY = outerPadding + headerHeight;
   const contentHeight = rows * tileHeight + Math.max(0, rows - 1) * gap;
   const viewBoxHeight = outerPadding + headerHeight + contentHeight + footerHeight;
-  const heading = lookup?.floorName
-    ? `${lookup?.button ?? '-'}B · V-ARCHIVE ${lookup.floorName}`
-    : lookup?.difficulty === 'ALL'
-      ? `${lookup?.button ?? '-'}B · LEVEL ${lookup?.level ?? '-'}`
-      : `${lookup?.difficulty ?? '-'} ${lookup?.level ?? '-'} · ${lookup?.button ?? '-'}B`;
+  const heading = getVArchiveLevelPerformanceHeading(lookup);
   const subheading = `${entries.length} patterns · PLAYER ${lookup?.nickname ?? '-'}`;
   const tileMarkup = entries.map((entry, index) => {
     const column = index % columns;
@@ -131,6 +180,14 @@ export function renderVArchiveLevelPerformanceCardSvg({
   ${tileMarkup}
   <text x="${outerPadding}" y="${viewBoxHeight - 12}" class="footer">${escapeXml(`Generated ${formatGeneratedAt(generatedAt)}`)}</text>
 </svg>`;
+}
+
+function getVArchiveLevelPerformanceHeading(lookup) {
+  return lookup?.floorName
+    ? `${lookup?.button ?? '-'}B · V-ARCHIVE ${lookup.floorName}`
+    : lookup?.difficulty === 'ALL'
+      ? `${lookup?.button ?? '-'}B · LEVEL ${lookup?.level ?? '-'}`
+      : `${lookup?.difficulty ?? '-'} ${lookup?.level ?? '-'} · ${lookup?.button ?? '-'}B`;
 }
 
 async function resolveJacketDataUrls(entries, fetchImpl) {
@@ -314,6 +371,44 @@ function formatGeneratedAt(value) {
   }).formatToParts(new Date(value));
   const mapped = Object.fromEntries(parts.map((part) => [part.type, part.value]));
   return `${mapped.year}-${mapped.month}-${mapped.day} ${mapped.hour}:${mapped.minute} KST`;
+}
+
+function readSvgDimension(svg, name) {
+  const match = new RegExp(`\\b${name}=["']([0-9.]+)`).exec(svg);
+  return match ? Number(match[1]) : null;
+}
+
+function dataUrlByteLength(dataUrl) {
+  const base64 = String(dataUrl).split(',', 2)[1] ?? '';
+  return Buffer.byteLength(base64, 'base64');
+}
+
+function readImageDimensions(dataUrl) {
+  const base64 = String(dataUrl).split(',', 2)[1] ?? '';
+  const bytes = Buffer.from(base64, 'base64');
+  if (bytes.length >= 24 && bytes.readUInt32BE(0) === 0x89504e47) {
+    return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), format: 'png' };
+  }
+  if (bytes.length >= 10 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP') {
+    return { width: bytes.readUIntLE(24, 3) + 1, height: bytes.readUIntLE(27, 3) + 1, format: 'webp' };
+  }
+  if (bytes.length >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8) {
+    for (let offset = 2; offset + 9 < bytes.length;) {
+      if (bytes[offset] !== 0xff) { offset += 1; continue; }
+      const marker = bytes[offset + 1];
+      const length = bytes.readUInt16BE(offset + 2);
+      if ((marker >= 0xc0 && marker <= 0xc3) || (marker >= 0xc5 && marker <= 0xc7) || (marker >= 0xc9 && marker <= 0xcb) || (marker >= 0xcd && marker <= 0xcf)) {
+        return { width: bytes.readUInt16BE(offset + 7), height: bytes.readUInt16BE(offset + 5), format: 'jpeg' };
+      }
+      offset += 2 + length;
+    }
+  }
+  return { width: null, height: null, format: 'unknown' };
+}
+
+function readPngDimensions(png) {
+  if (!Buffer.isBuffer(png) || png.length < 24 || png.readUInt32BE(0) !== 0x89504e47) return null;
+  return { width: png.readUInt32BE(16), height: png.readUInt32BE(20), bytes: png.length };
 }
 
 function escapeXml(value) {

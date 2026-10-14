@@ -120,6 +120,7 @@ import { respondToInteractionError } from './interaction-error.js';
 import { createVArchiveSongCard } from './varchive-song-card.js';
 import { createVArchivePerformanceCard } from './varchive-performance-card.js';
 import { createVArchiveLevelPerformanceCard } from './varchive-level-performance-card.js';
+import { closeSvgRendererPool } from './svg-renderer-pool.js';
 import { withVArchivePerformanceTrace } from './varchive-performance-logging.js';
 import { createVArchiveGradeCard } from './varchive-grade-card.js';
 import { createVArchiveTierCard } from './varchive-tier-card.js';
@@ -6082,13 +6083,14 @@ process.on('uncaughtException', (error) => {
 });
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
-  process.on(signal, () => {
+  process.on(signal, async () => {
     console.log(`Received ${signal}, shutting down...`);
     stopGuildListUpdater();
     stopVmStatusUpdater();
     stopChessPlayInactivityMonitor();
     closeStockfishEngine();
     client.destroy();
+    await closeSvgRendererPool();
     server.close(() => process.exit(0));
   });
 }
