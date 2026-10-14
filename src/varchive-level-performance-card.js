@@ -18,25 +18,29 @@ export async function createVArchiveLevelPerformanceCard(
   options = {},
 ) {
   const fetchImpl = resolveFetch(options.fetchImpl);
-  const lookup = await createVArchiveLevelPerformanceLookup(
+  const { performanceTrace, ...lookupOptions } = options;
+  const measure = options.performanceTrace?.measure
+    ? (label, operation) => options.performanceTrace.measure(label, operation)
+    : async (_label, operation) => operation();
+  const lookup = await measure('lookup', () => createVArchiveLevelPerformanceLookup(
     nickname,
     difficulty,
     level,
     button,
     {
-      ...options,
+      ...lookupOptions,
       fetchImpl,
     },
-  );
-  const jackets = await resolveJacketDataUrls(lookup.entries, fetchImpl);
-  const svg = renderVArchiveLevelPerformanceCardSvg({
+  ));
+  const jackets = await measure('assets', () => resolveJacketDataUrls(lookup.entries, fetchImpl));
+  const svg = await measure('render-svg', () => renderVArchiveLevelPerformanceCardSvg({
     lookup,
     jacketDataUrls: jackets,
     generatedAt: options.generatedAt ?? new Date().toISOString(),
-  });
+  }));
 
   return {
-    image: renderSvgToPng(svg, { scale: 1 }),
+    image: await measure('render-png', () => renderSvgToPng(svg, { scale: 1 })),
     imageFormat: 'png',
     imageContentType: 'image/png',
     nickname: lookup.nickname,

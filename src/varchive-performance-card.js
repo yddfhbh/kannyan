@@ -77,9 +77,12 @@ const assetDataUrlCache = new Map();
 export async function createVArchivePerformanceCard(nickname, song, options = {}) {
   const normalizedNickname = normalizeVArchiveNickname(nickname);
   const fetchImpl = resolveFetch(options.fetchImpl);
-  const performance = await fetchVArchiveSongPerformance(normalizedNickname, song, { fetchImpl });
-  const assets = await resolvePerformanceCardAssets(song, fetchImpl);
-  const svg = renderVArchivePerformanceCardSvg({
+  const measure = options.performanceTrace?.measure
+    ? (label, operation) => options.performanceTrace.measure(label, operation)
+    : async (_label, operation) => operation();
+  const performance = await measure('fetch-performance', () => fetchVArchiveSongPerformance(normalizedNickname, song, { fetchImpl }));
+  const assets = await measure('assets', () => resolvePerformanceCardAssets(song, fetchImpl));
+  const svg = await measure('render-svg', () => renderVArchivePerformanceCardSvg({
     nickname: normalizedNickname,
     song,
     performance,
@@ -87,8 +90,8 @@ export async function createVArchivePerformanceCard(nickname, song, options = {}
     keyBackgroundDataUrls: assets.keyBackgroundDataUrls,
     difficultyIconDataUrls: assets.difficultyIconDataUrls,
     generatedAt: options.generatedAt ?? new Date().toISOString(),
-  });
-  const image = renderSvgToPng(svg, { scale: varchivePerformanceCardRenderScale });
+  }));
+  const image = await measure('render-png', () => renderSvgToPng(svg, { scale: varchivePerformanceCardRenderScale }));
   const focusUrl = buildPreferredFocusUrl(normalizedNickname, song, performance);
 
   return {

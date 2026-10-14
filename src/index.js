@@ -120,6 +120,7 @@ import { respondToInteractionError } from './interaction-error.js';
 import { createVArchiveSongCard } from './varchive-song-card.js';
 import { createVArchivePerformanceCard } from './varchive-performance-card.js';
 import { createVArchiveLevelPerformanceCard } from './varchive-level-performance-card.js';
+import { withVArchivePerformanceTrace } from './varchive-performance-logging.js';
 import { createVArchiveGradeCard } from './varchive-grade-card.js';
 import { createVArchiveTierCard } from './varchive-tier-card.js';
 import {
@@ -13672,6 +13673,10 @@ async function showVArchiveSongInfo(interaction) {
 }
 
 async function showVArchivePerformance(interaction) {
+  return withVArchivePerformanceTrace('VARCHIVE PERF', (trace) => showVArchivePerformanceImpl(interaction, trace));
+}
+
+async function showVArchivePerformanceImpl(interaction, trace) {
   const nickname = resolveVArchiveNicknameForInteraction(interaction);
   const query = interaction.options.getString('곡명', true).trim();
 
@@ -13686,19 +13691,24 @@ async function showVArchivePerformance(interaction) {
   await interaction.deferReply();
 
   try {
-    const replyData = await createVArchivePerformanceReplyData(nickname, query);
-    await interaction.editReply(replyData);
+    const replyData = await createVArchivePerformanceReplyData(nickname, query, { performanceTrace: trace });
+    await trace.measure('discord-send', () => interaction.editReply(replyData));
   } catch (error) {
+    trace.markFailed();
     console.error(`Failed to fetch V-ARCHIVE performance for ${nickname} / ${query}:`);
     console.error(error);
-    await interaction.editReply(
+    await trace.measure('discord-send', () => interaction.editReply(
       getVArchivePerformanceKnownErrorMessage(error, nickname)
         ?? 'V-ARCHIVE 성과표를 가져오지 못했다냥.'
-    );
+    ));
   }
 }
 
 async function showVArchiveLevelPerformance(interaction) {
+  return withVArchivePerformanceTrace('VARCHIVE LEVEL PERF', (trace) => showVArchiveLevelPerformanceImpl(interaction, trace));
+}
+
+async function showVArchiveLevelPerformanceImpl(interaction, trace) {
   const nickname = resolveVArchiveNicknameForInteraction(interaction);
   const selector = interaction.options.getString('레벨', true).trim();
   const button = interaction.options.getInteger('버튼', true);
@@ -13734,15 +13744,17 @@ async function showVArchiveLevelPerformance(interaction) {
       parsed.level,
       parsed.button,
       { floorName: parsed.floorName },
+      { performanceTrace: trace },
     );
-    await interaction.editReply(replyData);
+    await trace.measure('discord-send', () => interaction.editReply(replyData));
   } catch (error) {
+    trace.markFailed();
     console.error(`Failed to fetch V-ARCHIVE level performance for ${parsed.nickname} / ${selector} / ${button}B:`);
     console.error(error);
-    await interaction.editReply(
+    await trace.measure('discord-send', () => interaction.editReply(
       getVArchiveLevelPerformanceKnownErrorMessage(error, parsed.nickname)
         ?? 'V-ARCHIVE 레벨 성과표를 가져오지 못했다냥.'
-    );
+    ));
   }
 }
 
@@ -13781,6 +13793,10 @@ async function showVArchiveSongInfoMessage(message, input) {
 }
 
 async function showVArchivePerformanceMessage(message, input) {
+  return withVArchivePerformanceTrace('VARCHIVE PERF', (trace) => showVArchivePerformanceMessageImpl(message, input, trace));
+}
+
+async function showVArchivePerformanceMessageImpl(message, input, trace) {
   let parsedInput;
 
   try {
@@ -13803,7 +13819,7 @@ async function showVArchivePerformanceMessage(message, input) {
 
   await safeSendTyping(message.channel, 'showVArchivePerformanceMessage');
 
-  parsedInput = await resolveVArchivePerformanceMessageInput(parsedInput);
+  parsedInput = await resolveVArchivePerformanceMessageInput(parsedInput, trace);
 
   if (!parsedInput.nickname) {
     await message.reply({
@@ -13814,23 +13830,28 @@ async function showVArchivePerformanceMessage(message, input) {
   }
 
   try {
-    const replyData = await createVArchivePerformanceReplyData(parsedInput.nickname, parsedInput.query);
-    await message.reply({
+    const replyData = await createVArchivePerformanceReplyData(parsedInput.nickname, parsedInput.query, { performanceTrace: trace });
+    await trace.measure('discord-send', () => message.reply({
       ...replyData,
       allowedMentions: { parse: [], repliedUser: false },
-    });
+    }));
   } catch (error) {
+    trace.markFailed();
     console.error(`Failed to fetch V-ARCHIVE performance for ${parsedInput.nickname} / ${parsedInput.query}:`);
     console.error(error);
-    await message.reply({
+    await trace.measure('discord-send', () => message.reply({
       content: getVArchivePerformanceKnownErrorMessage(error, parsedInput.nickname)
         ?? 'V-ARCHIVE 성과표를 가져오지 못했다냥.',
       allowedMentions: { parse: [], repliedUser: false },
-    });
+    }));
   }
 }
 
 async function showVArchiveLevelPerformanceMessage(message, input) {
+  return withVArchivePerformanceTrace('VARCHIVE LEVEL PERF', (trace) => showVArchiveLevelPerformanceMessageImpl(message, input, trace));
+}
+
+async function showVArchiveLevelPerformanceMessageImpl(message, input, trace) {
   const fallbackNickname = vArchiveLinkStore.getNickname(message.author.id);
   let parsedInput;
 
@@ -13869,21 +13890,23 @@ async function showVArchiveLevelPerformanceMessage(message, input) {
       parsedInput.level,
       parsedInput.button,
       { floorName: parsedInput.floorName },
+      { performanceTrace: trace },
     );
-    await message.reply({
+    await trace.measure('discord-send', () => message.reply({
       ...replyData,
       allowedMentions: { parse: [], repliedUser: false },
-    });
+    }));
   } catch (error) {
+    trace.markFailed();
     console.error(
       `Failed to fetch V-ARCHIVE level performance for ${parsedInput.nickname} / ${parsedInput.floorName ?? `${parsedInput.difficulty ?? 'ALL'}${parsedInput.level}`} / ${parsedInput.button}B:`,
     );
     console.error(error);
-    await message.reply({
+    await trace.measure('discord-send', () => message.reply({
       content: getVArchiveLevelPerformanceKnownErrorMessage(error, parsedInput.nickname)
         ?? 'V-ARCHIVE 레벨 성과표를 가져오지 못했다냥.',
       allowedMentions: { parse: [], repliedUser: false },
-    });
+    }));
   }
 }
 
@@ -13933,9 +13956,12 @@ async function createVArchiveGradeReplyData(selector, button) {
   }
 }
 
-async function createVArchivePerformanceReplyData(nickname, query) {
+async function createVArchivePerformanceReplyData(nickname, query, options = {}) {
   const normalizedNickname = normalizeVArchiveNickname(nickname);
-  const result = await resolveVArchiveSongLookup(query);
+  const measure = options.performanceTrace?.measure
+    ? (label, operation) => options.performanceTrace.measure(label, operation)
+    : async (_label, operation) => operation();
+  const result = await measure('song-lookup', () => resolveVArchiveSongLookup(query));
 
   if (result.status === 'none') {
     return {
@@ -13949,27 +13975,33 @@ async function createVArchivePerformanceReplyData(nickname, query) {
     };
   }
 
-  const card = await createVArchivePerformanceCard(normalizedNickname, result.song);
-  return {
+  const card = await createVArchivePerformanceCard(normalizedNickname, result.song, options);
+  return measure('reply-data', () => ({
     content: `<${card.focusUrl ?? card.pageUrl}>`,
     files: [
       new AttachmentBuilder(card.image, {
         name: `varchive-performance-${formatAttachmentSafeName(card.nickname)}-${formatAttachmentSafeName(card.songName)}-${card.titleId}.png`,
       }),
     ],
-  };
+  }));
 }
 
-async function createVArchiveLevelPerformanceReplyData(nickname, difficulty, level, button, options = {}) {
-  const card = await createVArchiveLevelPerformanceCard(nickname, difficulty, level, button, options);
-  return {
+async function createVArchiveLevelPerformanceReplyData(nickname, difficulty, level, button, cardOptions = {}, traceOptions = {}) {
+  const measure = traceOptions.performanceTrace?.measure
+    ? (label, operation) => traceOptions.performanceTrace.measure(label, operation)
+    : async (_label, operation) => operation();
+  const card = await createVArchiveLevelPerformanceCard(nickname, difficulty, level, button, {
+    ...cardOptions,
+    ...traceOptions,
+  });
+  return measure('reply-data', () => ({
     content: `<${card.focusUrl}>`,
     files: [
       new AttachmentBuilder(card.image, {
         name: `varchive-level-performance-${formatAttachmentSafeName(card.floorName ?? `${card.difficulty.toLowerCase()}${card.level}`)}-${card.button}b-${formatAttachmentSafeName(card.nickname)}.png`,
       }),
     ],
-  };
+  }));
 }
 
 async function resolveVArchiveSongLookup(query) {
@@ -14032,17 +14064,20 @@ function parseVArchivePerformanceMessageInput(input, fallbackNickname = null) {
   });
 }
 
-async function resolveVArchivePerformanceMessageInput(parsedInput) {
+async function resolveVArchivePerformanceMessageInput(parsedInput, trace = null) {
   if (!parsedInput?.trailingQueryCandidate || !parsedInput?.trailingNicknameCandidate) {
     return parsedInput;
   }
 
   const fullQuery = parsedInput.query;
   const splitQuery = parsedInput.trailingQueryCandidate;
-  const [fullQueryResult, splitQueryResult] = await Promise.all([
+  const lookup = () => Promise.all([
     resolveVArchiveSongLookup(fullQuery),
     resolveVArchiveSongLookup(splitQuery),
   ]);
+  const [fullQueryResult, splitQueryResult] = trace?.measure
+    ? await trace.measure('song-lookup', lookup)
+    : await lookup();
 
   if (!shouldPreferSplitVArchivePerformanceInput({
     fullQuery,
