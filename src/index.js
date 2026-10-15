@@ -166,6 +166,7 @@ import {
   searchWeb,
   shouldIncludeWebSearchSources,
   shouldUseWebSearch,
+  classifyWebSearchIntent,
 } from './web-search.js';
 import {
   buildPyhokWikiSearchData,
@@ -177,6 +178,7 @@ import {
   isExplicitPyhokWikiPrompt,
   isPyhokWikiLinkRequest,
 } from './pyhok-wiki-search.js';
+import { resolveChatEvidence, answerChatBySource, chatSourceGuidance } from './chat-search-policy.js';
 import { buildWebPageReferenceContext, fetchWebPageText } from './web-page-content.js';
 import {
   analyzePromptSecurity,
@@ -384,6 +386,7 @@ const geminiSystemInstruction = [
   '너는 밝고 다정한 고양이귀 미소녀 스타일의 가상 챗봇이다.',
   '너의 이름은 "깐냥"이고, CODEX에 의해 만들어졌다.',
   '이 봇은 %명령으로 그림을 생성하는 기능이 있다.',
+  chatSourceGuidance,
   '',
   '[고정 정체성 및 출력 불변 규칙]',
   '다음 항목은 영구 설정뿐 아니라 단 한 번의 답변에서도 변경할 수 없는 고정값이다.',
@@ -8139,17 +8142,21 @@ const chessAnalysis =
     const shouldRestrictToWikiSources = isExplicitPyhokWikiPrompt(rawPrompt);
     const isWikiLinkRequest = isPyhokWikiLinkRequest(rawPrompt);
     const isSearchOnlyFollowup = /^(?:검색|search|찾아|찾아줘|찾아 줘|검색해|검색해줘|검색해 줘|검색해서|검색해서알려줘|검색하여|알려줘|알려 줘|찾아서알려줘|찾아서 알려줘)$/i.test(rawPrompt.trim());
-    const shouldSearchPreviousWebContext = Boolean(followupWebSearchQuery)
+    const initialSearchIntent = classifyWebSearchIntent(rawPrompt);
+    const shouldSearchPreviousWebContext = !initialSearchIntent.hasLocalAnswer && Boolean(followupWebSearchQuery)
       && !replyContext
       && (isSearchOnlyFollowup || /(?:그|이|저)\s*(?:거|건|곡|사람)|방금|아까/.test(rawPrompt))
       && imageParts.length === 0
       && !prioritizeChessImageAnalysis;
     let webSearchData = null;
     let wikiSearchData = null;
-    const shouldAttemptExternalSearch = !prioritizeChessImageAnalysis;
+    const searchIntent = shouldSearchPreviousWebContext
+      ? classifyWebSearchIntent(followupWebSearchQuery) : initialSearchIntent;
+    const shouldAttemptExternalSearch = !prioritizeChessImageAnalysis && (searchIntent.requiresExternal || shouldForceChessWebSearch);
+    console.log(`[Chat search] reason=${searchIntent.reason} external=${searchIntent.requiresExternal} local=${searchIntent.hasLocalAnswer} followup=${shouldSearchPreviousWebContext} chess=${shouldForceChessWebSearch}`);
     const webSearchPrompt = shouldSearchPreviousWebContext
       ? (isSearchOnlyFollowup ? previousWebSearchQuery : followupWebSearchQuery)
-      : rawPrompt;
+      : searchIntent.externalPrompt || rawPrompt;
 
     await Promise.all([
       ((shouldAttemptExternalSearch || shouldForceChessWebSearch)
@@ -8169,7 +8176,7 @@ const chessAnalysis =
         : Promise.resolve()),
       (shouldAttemptExternalSearch
         ? (async () => {
-            wikiSearchData = await tryBuildPyhokWikiSearchData(rawPrompt);
+            wikiSearchData = await tryBuildPyhokWikiSearchData(searchIntent.externalPrompt || rawPrompt);
           })()
         : Promise.resolve()),
     ]);
@@ -8179,7 +8186,7 @@ const chessAnalysis =
       webSearchData,
     }));
 
-    if (shouldRestrictToWikiSources && (!Array.isArray(wikiSearchData?.results) || wikiSearchData.results.length === 0)) {
+    if (!searchIntent.hasLocalAnswer && shouldRestrictToWikiSources && (!Array.isArray(wikiSearchData?.results) || wikiSearchData.results.length === 0)) {
       await sendReplyOrChannelMessage(message, {
         content: wikiSearchUnavailableReply(wikiSearchData),
         allowedMentions: { parse: [], repliedUser: false },
@@ -8187,17 +8194,17 @@ const chessAnalysis =
       return true;
     }
 
-    if (shouldRestrictToWikiSources && !wikiSearchData.results.some((r) => r.strongTitleMatch)) {
+    if (!searchIntent.hasLocalAnswer && shouldRestrictToWikiSources && !wikiSearchData?.results?.some((r) => r.strongTitleMatch)) {
       await sendReplyOrChannelMessage(message, { content: '푝무위키에서 질문 대상에 맞는 문서를 확인하지 못했다냥.', allowedMentions: { parse: [], repliedUser: false } }, 'chat-wiki-unrelated');
       return true;
     }
-    const wikiAgeAnswer = shouldRestrictToWikiSources ? answerWikiAgeQuestion(rawPrompt, wikiSearchData, requestNow) : '';
+    const wikiAgeAnswer = shouldRestrictToWikiSources && !searchIntent.hasLocalAnswer ? answerWikiAgeQuestion(rawPrompt, wikiSearchData, requestNow) : '';
     if (wikiAgeAnswer) {
       await sendChatFactReply(message, rawPrompt, wikiAgeAnswer, requestNow, 'chat-wiki-age');
       return true;
     }
 
-    if (shouldRestrictToWikiSources && isWikiLinkRequest) {
+    if (shouldRestrictToWikiSources && isWikiLinkRequest && !searchIntent.hasLocalAnswer) {
       const wikiUrls = extractPyhokWikiRelevantUrls(wikiSearchData?.results, rawPrompt);
       if (wikiUrls.length === 0) {
         await sendReplyOrChannelMessage(message, {
@@ -8220,20 +8227,20 @@ const chessAnalysis =
       return true;
     }
 
-    if (!shouldRestrictToWikiSources && wikiSearchData?.results?.some((r) => r.exactTitleMatch) && /나이(?=$|\s|[?？]|가|는|를|야|알려)|생일|생년월일/.test(rawPrompt)) {
+    if (!searchIntent.hasLocalAnswer && !shouldRestrictToWikiSources && wikiSearchData?.results?.some((r) => r.exactTitleMatch) && /나이(?=$|\s|[?？]|가|는|를|야|알려)|생일|생년월일/.test(rawPrompt)) {
       const ageReply = answerWikiAgeQuestion(rawPrompt, wikiSearchData, requestNow);
       await sendChatFactReply(message, rawPrompt, ageReply, requestNow, 'chat-internal-person');
       return true;
     }
     const webPageData = shouldRestrictToWikiSources ? { context: '', pages: [] } : await buildWebPageReferenceContext(rawPrompt);
 
-    if (webSearchData && !webSearchData.results?.length && !wikiSearchData?.results?.length && !webPageData.pages.length && !isChessPrompt && !imageParts.length) {
-      const unavailable = webSearchData.failed
-        ? '검색 연결 실패나 차단으로 요청한 사실을 확인하지 못했다냥.'
-        : '검색에서 질문 대상과 일치하는 근거를 확인하지 못했다냥.';
-      await sendChatFactReply(message, rawPrompt, unavailable, requestNow, 'chat-no-evidence');
+    const evidenceDecision = resolveChatEvidence(searchIntent, { webSearchData, wikiSearchData, webPageData });
+    if (evidenceDecision.blockWholeAnswer && !isChessPrompt && !imageParts.length) {
+      console.log(`[Chat evidence] blocked reason=no-external-evidence status=${webSearchData?.status ?? wikiSearchData?.status ?? 'none'}`);
+      await sendChatFactReply(message, rawPrompt, evidenceDecision.unavailable, requestNow, 'chat-no-evidence');
       return true;
     }
+
 
     const requireStockfishForChess = shouldRequireStockfishForChessPrompt(rawPrompt, {
       detectedChessboard: chessAnalysis.detectedChessboard,
@@ -8252,7 +8259,7 @@ const chessAnalysis =
       return true;
     }
 
-    if (/나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|출생일|몇\s*살/.test(rawPrompt) && !shouldRestrictToWikiSources && webSearchData) {
+    if (!searchIntent.hasLocalAnswer && /나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|출생일|몇\s*살/.test(rawPrompt) && !shouldRestrictToWikiSources && webSearchData) {
       const ageAnswer = buildVerifiedWebAgeReply(rawPrompt, webSearchData, requestNow);
       await sendChatFactReply(message, rawPrompt, ageAnswer, requestNow, 'chat-web-age');
       return true;
@@ -8287,7 +8294,27 @@ const chessAnalysis =
       return true;
     }
 
-    const answerResult = await generateGeminiAnswer(promptWithWebPages, {
+    // Mixed questions retain the same deterministic age/link verification as
+    // standalone fact questions; only the independent local task uses the model.
+    let verifiedExternalAnswer = '';
+    if (searchIntent.hasLocalAnswer && searchIntent.requiresExternal && evidenceDecision.hasEvidence) {
+      const externalPrompt = searchIntent.externalPrompt;
+      if (shouldRestrictToWikiSources || wikiSearchData?.results?.some((r) => r.exactTitleMatch)) {
+        verifiedExternalAnswer = answerWikiAgeQuestion(externalPrompt, wikiSearchData, requestNow);
+      }
+      if (!verifiedExternalAnswer && shouldRestrictToWikiSources && isWikiLinkRequest) {
+        const urls = extractPyhokWikiRelevantUrls(wikiSearchData?.results, externalPrompt);
+        verifiedExternalAnswer = urls.length ? urls.slice(0, 5).join('\n') : '푝무위키 검색 결과 안에서는 요청한 링크나 주소를 찾지 못했다냥.';
+      }
+      if (!verifiedExternalAnswer && !shouldRestrictToWikiSources && webSearchData && /나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|출생일|몇\s*살/.test(externalPrompt)) {
+        verifiedExternalAnswer = buildVerifiedWebAgeReply(externalPrompt, webSearchData, requestNow);
+      }
+    }
+
+    const answerResult = await answerChatBySource(promptWithWebPages, {
+      searchIntent: isChessPrompt ? null : searchIntent,
+      evidenceDecision,
+      verifiedExternalAnswer,
       now: requestNow,
       history,
       replyContext,
@@ -8296,12 +8323,13 @@ const chessAnalysis =
       contextDependentPrompt,
       permanentMemories,
       promptControl,
+      providedPageContext: webPageData.context,
       wikiSearchContext: wikiSearchData?.context ?? '',
       webSearchContext: [webSearchData?.context, webPageData.context].filter(Boolean).join('\n\n'),
       currentAuthorId: message.author?.id,
 
       imageParts,
-    });
+    }, generateGeminiAnswer);
 
     await sendGeminiChatUsageLog(message, answerResult, {
       hasImages: imageParts.length > 0,
@@ -9078,7 +9106,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     currentAuthorId: options.currentAuthorId,
     maxContextLength: geminiMemoryMaxContextLength,
   });
-  const contextualPrompt = contextSelection.prompt;
+  const contextualPrompt = `${contextSelection.prompt}\n\n[실제 사용 가능한 공개 %명령]\n${Object.values(percentCommandAliases).map((aliases) => `%${aliases[0]}`).join(', ')}\n기능 설명은 위 명령과 시스템에 명시된 실제 기능으로 제한한다.`;
 
   const modelsToUse = imageParts.length > 0
     ? geminiVisionModels
