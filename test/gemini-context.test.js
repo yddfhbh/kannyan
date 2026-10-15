@@ -37,7 +37,7 @@ test('retrieves a relevant older entry while skipping unrelated old history', ()
     ...Array.from({ length: 18 }, (_, index) => entry('user', `무관한 잡담 ${index} ${'z'.repeat(200)}`)),
     entry('user', '지난번에 산 이어폰 EB2S가 오래 끼면 어떤지 물었어'),
     entry('model', 'EB2S는 착용감과 이어팁을 확인해보면 좋아'),
-    ...Array.from({ length: 8 }, (_, index) => entry(index % 2 ? 'model' : 'user', `최근 잡담 ${index}`)),
+    ...Array.from({ length: 16 }, (_, index) => entry(index % 2 ? 'model' : 'user', `최근 잡담 ${index}`)),
   ];
   const result = selectGeminiContextSections({
     prompt: 'EB2S 오래 끼면 어때?',

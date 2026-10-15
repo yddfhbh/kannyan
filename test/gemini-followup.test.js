@@ -115,3 +115,13 @@ test('preserves entries appended before an initial load finishes', async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
 });
+
+test('appending to a legacy session carries its history into the current session key', () => {
+  const store = new GeminiMemoryStore('/tmp/unused-chat-migration.json');
+  store.loaded = true;
+  store.sessions.set('g1:c1', [{role:'user',text:'이전 조건',timestamp:Date.now()}]);
+  const key = createGeminiSessionKey({guildId:'g1',channelId:'c1'});
+  store.append(key,{role:'user',text:'새 후속 질문'});
+  assert.deepEqual(store.getHistory(key).map((e)=>e.text),['이전 조건','새 후속 질문']);
+  assert.equal(store.sessions.get('g1:c1').length,1);
+});

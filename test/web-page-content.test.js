@@ -40,3 +40,13 @@ test('normalizeKannyangSpeech avoids unnatural polite-ending plus 냥 forms', ()
     '이 이모지는 화나 보여냥.'
   );
 });
+
+test('total page deadline covers slow DNS before any network request', async () => {
+  let requests = 0;
+  await assert.rejects(fetchWebPageText('https://public.example/', {
+    totalTimeoutMs: 1000,
+    resolveHostnames: () => new Promise(() => {}),
+    fetchImpl: async () => { requests += 1; return new Response('<p>body</p>'); },
+  }), {name:'AbortError'});
+  assert.equal(requests, 0);
+});

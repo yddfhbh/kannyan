@@ -37,7 +37,7 @@ export class GeminiMemoryStore {
     this.filePath = filePath;
     this.retentionMs = Number(options.retentionMs) || 45 * 24 * 60 * 60 * 1000;
     this.maxMessagesPerSession = Number(options.maxMessagesPerSession) || 50;
-    this.maxEntryLength = Number(options.maxEntryLength) || 4000;
+    this.maxEntryLength = Number(options.maxEntryLength) || 12000;
     this.sessions = new Map();
     this.loaded = false;
     this.loadPromise = null;
@@ -59,7 +59,7 @@ export class GeminiMemoryStore {
   }
 
   append(sessionKey, entry) {
-    const entries = this.sessions.get(sessionKey) ?? [];
+    const entries = [...(this.sessions.get(sessionKey) ?? this.sessions.get(getLegacySessionKey(sessionKey)) ?? [])];
     entries.push({
       role: entry.role === 'model' ? 'model' : 'user',
       authorName: String(entry.authorName ?? 'Unknown').slice(0, 80),

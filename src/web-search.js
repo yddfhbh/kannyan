@@ -50,17 +50,25 @@ export async function searchWeb(query, options = {}) {
   try {
     const queryVariants = buildSearchQueryVariants(normalizedQuery, preferredDomains);
     const queryResults = [];
+    const failures = [];
+    let successfulRequests = 0;
+    const collect = async (operation) => {
+      try { const results = await operation(); successfulRequests += 1; return results; }
+      catch (error) { failures.push(error); return []; }
+    };
 
     for (const searchQuery of queryVariants) {
-      let results = await performDuckDuckGoHtmlSearch(searchQuery, {
+      let results = await collect(() => performDuckDuckGoHtmlSearch(searchQuery, {
         region: options.region,
         signal: controller.signal,
-      }).catch(() => []);
+        fetchImpl: options.fetchImpl,
+      }));
 
       if (results.length === 0) {
-        results = await performNaverSearch(searchQuery, {
+        results = await collect(() => performNaverSearch(searchQuery, {
           signal: controller.signal,
-        }).catch(() => []);
+        fetchImpl: options.fetchImpl,
+        }));
       }
 
       queryResults.push(results);
@@ -72,6 +80,8 @@ export async function searchWeb(query, options = {}) {
     return {
       query: normalizedQuery,
       results: mergedResults,
+      status: mergedResults.length ? 'success' : successfulRequests ? 'empty' : controller.signal.aborted ? 'timeout' : failures.some((e) => [403, 429].includes(e.status)) ? 'blocked' : 'failed',
+      failed: !mergedResults.length && successfulRequests === 0,
     };
   } finally {
     clearTimeout(timeout);
@@ -111,7 +121,14 @@ export function shouldUseWebSearch(prompt) {
     return false;
   }
 
-  return explicitSearchPattern.test(text)
+  if (explicitSearchPattern.test(text)) return true;
+  if (/(번역|translate|요약|다듬어|교정|소설|이야기.*써|시.*써|계산해)/i.test(text) || /^[\d\s.+*/()%-]+$/.test(text)) return false;
+  const arithmetic = text.replace(/계산|결과|알려\s*줘|얼마|뭐야|무엇|이야|인가요|인가|는|은|이|가|야|\?/g, '').trim();
+  if (/\d/.test(arithmetic) && /^[\d\s.+*/()%=-]+$/.test(arithmetic)) return false;
+  if (/^(?:내|저|오늘.*내).*생일(?:이야|이다|이에요|이네)[.!~]*$/.test(text)) return false;
+  if (/^(?:안녕|고마워|잘자|잘 자|반가워|오늘.*피곤|심심해|너.*이름|너 뭐야|너 누구)/.test(text)) return false;
+  return /(?:나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|출생일|생일|몇\s*살|버전|멤버|국적|소속|인구|출생)/.test(text)
+    || explicitSearchPattern.test(text)
     || explicitSearchIntentPattern.test(text)
     || strongTimeSensitivePattern.test(text)
     || (relativeTimePattern.test(text) && timelyTopicPattern.test(text))
@@ -177,13 +194,15 @@ export function formatWebSearchContext(query, results, options = {}) {
     '아래는 방금 웹 검색으로 가져온 참고 결과다.',
     searchedAtText ? `검색 시각: ${searchedAtText}` : '',
     `검색어: ${normalizedQuery}`,
-    '검색 결과가 있으면 그 내용을 우선 참고하고, 결과에 없는 사실은 추측하지 않는다.',
+    '검색 결과 존재만으로 근거가 충분한 것은 아니다. 대상, 속성, 시점을 확인하고 결과에 없는 사실은 추측하지 않는다.',
+    '현재 정보가 확인되지 않으면 과거 자료를 현재 사실처럼 답하지 않는다. 답변에 사용한 자료의 URL만 짧게 인용한다.',
     ...normalizedResults.map((result, index) => {
       const lines = [
         `[${index + 1}] 제목: ${truncateText(result.title, 320)}`,
         `URL: ${result.url}`,
       ];
 
+      if (result.pageText) lines.push(`확인한 본문: ${truncateText(result.pageText, 4000)}`);
       if (result.snippet) {
         lines.push(`요약: ${truncateText(result.snippet, 1200)}`);
       }
@@ -227,7 +246,7 @@ async function performDuckDuckGoHtmlSearch(query, options = {}) {
   url.searchParams.set('q', normalizeSearchText(query));
   url.searchParams.set('kl', String(options.region ?? 'kr-ko'));
 
-  const response = await fetch(url, {
+  const response = await (options.fetchImpl ?? fetch)(url, {
     headers: browserHeaders,
     signal: options.signal,
   });
@@ -239,6 +258,9 @@ async function performDuckDuckGoHtmlSearch(query, options = {}) {
     throw error;
   }
 
+  if (/anomaly-modal|challenge-form|captcha/i.test(html)) {
+    const error = new Error('Search blocked by challenge'); error.status = 403; throw error;
+  }
   return parseDuckDuckGoHtmlResults(html);
 }
 
@@ -264,7 +286,7 @@ async function performNaverSearch(query, options = {}) {
   url.searchParams.set('where', 'nexearch');
   url.searchParams.set('query', normalizeSearchText(query));
 
-  const response = await fetch(url, {
+  const response = await (options.fetchImpl ?? fetch)(url, {
     headers: browserHeaders,
     signal: options.signal,
   });
@@ -276,6 +298,9 @@ async function performNaverSearch(query, options = {}) {
     throw error;
   }
 
+  if (/captcha|자동입력\s*방지/i.test(html)) {
+    const error = new Error('Search blocked by challenge'); error.status = 403; throw error;
+  }
   return parseNaverSearchResults(html);
 }
 

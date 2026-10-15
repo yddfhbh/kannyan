@@ -59,6 +59,29 @@ export async function buildWebPageReferenceContext(text, options = {}) {
 }
 
 export async function fetchWebPageText(input, options = {}) {
+  // Chat search can impose one total deadline across DNS, redirects and body.
+  if (!options.totalTimeoutMs) return fetchWebPageTextWithinDeadline(input, options);
+  const controller = new AbortController();
+  let timeout;
+  const deadline = new Promise((_, reject) => {
+    timeout = setTimeout(() => {
+      controller.abort();
+      const error = new Error('Page total deadline exceeded');
+      error.name = 'AbortError';
+      reject(error);
+    }, clampInteger(options.totalTimeoutMs, 1000, 60000, defaultTimeoutMs));
+  });
+  try {
+    return await Promise.race([
+      fetchWebPageTextWithinDeadline(input, { ...options, signal: controller.signal }),
+      deadline,
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchWebPageTextWithinDeadline(input, options = {}) {
   const timeoutMs = clampInteger(options.timeoutMs, 1_000, 60_000, defaultTimeoutMs);
   const maxHtmlBytes = clampInteger(options.maxHtmlBytes, 10_000, 5_000_000, defaultMaxHtmlBytes);
   const maxTextLength = clampInteger(options.maxTextLength, 500, 30_000, defaultMaxTextLength);
@@ -68,13 +91,14 @@ export async function fetchWebPageText(input, options = {}) {
 
   for (let redirects = 0; redirects <= 4; redirects += 1) {
     await assertSafePublicUrl(url, resolveHostnames);
+    options.signal?.throwIfAborted();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     let response;
     try {
       response = await fetchImpl(url, {
         redirect: 'manual',
-        signal: controller.signal,
+        signal: options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal,
         headers: { 'user-agent': userAgent, accept: 'text/html,application/xhtml+xml' },
       });
     } finally {

@@ -1,3 +1,4 @@
+import { calculateAge, getAgeReferenceDate } from './chat-clock.js';
 import {
   analyzePromptSecurity,
   sanitizePromptInjectionText,
@@ -173,7 +174,8 @@ export function derivePyhokWikiSearchQuery(prompt) {
     return '';
   }
 
-  let normalized = originalPrompt
+  const subjectPrompt = originalPrompt.replace(/\d{4}[년./-]\s*\d{1,2}[월./-]\s*\d{1,2}일?\s*기준/g, '');
+  let normalized = subjectPrompt
     .replace(punctuationCleanupPattern, ' ')
     .replace(sentencePunctuationCleanupPattern, ' ')
     .replace(/\s+/g, ' ')
@@ -188,13 +190,15 @@ export function derivePyhokWikiSearchQuery(prompt) {
   }
 
   const isLinkRequest = isPyhokWikiLinkRequest(originalPrompt);
+  const isBirthRequest = /나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|생일|출생일|몇\s*살/.test(originalPrompt);
   const tokens = normalized
     .split(/\s+/)
     .map((token) => stripTrailingParticle(token))
     .map((token) => token.trim())
     .filter(Boolean)
     .filter((token) => !queryNoiseTokens.has(token.toLowerCase()))
-    .filter((token) => !(isLinkRequest && linkRequestNoiseTokens.has(token.toLowerCase())));
+    .filter((token) => !(isLinkRequest && linkRequestNoiseTokens.has(token.toLowerCase())))
+    .filter((token) => !(isBirthRequest && /^(?:만|나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|생일|출생일|몇살|몇|살|언제)$/.test(token)));
 
   const query = normalizeText(tokens.join(' '));
   if (!query || query.length <= 1) {
@@ -211,13 +215,16 @@ export async function buildPyhokWikiSearchData(query, options = {}) {
     ...options,
   };
 
+  if (isExplicitPyhokWikiPrompt(normalizedQuery) && !config.enabled) {
+    return { query: derivePyhokWikiSearchQuery(normalizedQuery), results: [], context: '', failed: true, status: 'disabled' };
+  }
   if (!shouldUsePyhokWikiSearch(normalizedQuery, config)) {
     return null;
   }
 
   try {
     return await searchPyhokWiki(normalizedQuery, config);
-  } catch {
+  } catch (error) {
     const searchQuery = derivePyhokWikiSearchQuery(normalizedQuery);
     return {
       query: searchQuery,
@@ -225,6 +232,7 @@ export async function buildPyhokWikiSearchData(query, options = {}) {
       results: [],
       context: '',
       failed: true,
+      status: error?.name === 'AbortError' ? 'timeout' : [401, 403].includes(error?.status) ? 'unauthorized' : error?.status === 429 ? 'blocked' : error?.status ? 'http-error' : 'unreachable',
     };
   }
 }
@@ -257,11 +265,7 @@ export async function searchPyhokWiki(query, options = {}) {
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const startedAt = Date.now();
 
-  if (searchQuery !== originalQuery) {
-    safeLog(logger, 'log', `[Wiki search] start query=${JSON.stringify(originalQuery)} searchQuery=${JSON.stringify(searchQuery)}`);
-  } else {
-    safeLog(logger, 'log', `[Wiki search] start query=${JSON.stringify(originalQuery)}`);
-  }
+  safeLog(logger, 'log', '[Wiki search] start');
 
   try {
     const response = await fetchImpl(requestUrl, {
@@ -298,6 +302,9 @@ export async function searchPyhokWiki(query, options = {}) {
       throw error;
     }
 
+    if (!Array.isArray(payload?.hits)) {
+      const error = new Error('Invalid wiki search response'); error.status = 502; throw error;
+    }
     const results = parsePyhokWikiSearchResponse(payload, {
       query: searchQuery,
       originalQuery,
@@ -328,6 +335,7 @@ export async function searchPyhokWiki(query, options = {}) {
       originalQuery,
       results,
       context,
+      status: results.length ? 'success' : 'empty',
     };
   } catch (error) {
     const durationMs = Date.now() - startedAt;
@@ -476,7 +484,7 @@ export function formatPyhokWikiContext(query, results, options = {}) {
     const primaryBudget = Math.max(0, Math.floor(availableLength * 0.6));
     const primaryBlock = formatWikiContextBlock(primaryResult, 0, {
       label: `[문서 1 - 최우선 참고 문서]`,
-      bodyText: primaryResult.primaryContent || primaryResult.content || primaryResult.raw || primaryResult.excerpt,
+      bodyText: extractRelevantExcerpt(primaryResult.primaryContent || primaryResult.content || primaryResult.raw || primaryResult.excerpt, /나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|생일/.test(options.originalQuery) ? '생년월일 출생 생일' : query, Math.max(200, primaryBudget - 300)),
       maxBlockLength: primaryBudget,
     });
 
@@ -617,10 +625,9 @@ function normalizePyhokWikiHit(hit, options = {}) {
   const sanitizedRaw = sanitizeWikiContextText(hit.raw);
   const excerptSource = selectPyhokWikiExcerpt(hit, options.query);
   const excerpt = truncateText(sanitizeWikiContextText(excerptSource), options.maxExcerptLength);
-  const primaryContent = truncateText(
-    sanitizedContent || sanitizedRaw,
-    options.maxPrimaryContentLength
-  );
+  const attributeQuery = /나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|생일|출생일/.test(options.originalQuery) ? '생년월일 출생 생일' : options.originalQuery;
+  const primaryContent = extractRelevantExcerpt(sanitizedContent || sanitizedRaw, attributeQuery, options.maxPrimaryContentLength);
+  const verifiedBirthDate = extractWikiBirthDate(String(hit.content || hit.raw || ''), options.query);
 
   if (!title || (!excerpt && !primaryContent)) {
     return null;
@@ -635,6 +642,7 @@ function normalizePyhokWikiHit(hit, options = {}) {
     raw: truncateText(sanitizedRaw, options.maxExcerptLength),
     excerpt,
     primaryContent,
+    verifiedBirthDate,
     url: buildPyhokWikiDocumentUrl({ namespace, title }, options.wikiBaseUrl),
     rank: Number.isFinite(options.rank) ? options.rank : 0,
   };
@@ -886,4 +894,50 @@ function safeLog(logger, method, message) {
 
 function escapeRegExp(value) {
   return String(value ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function wikiSearchUnavailableReply(data) {
+  if (data?.status === 'disabled') return '푝무위키 검색이 비활성화되어 내용을 확인할 수 없다냥.';
+  if (data?.failed) {
+    const reason = { unauthorized: '인증 실패', timeout: '시간 초과', blocked: '요청 차단', unreachable: '연결 실패', 'http-error': '서버 오류' }[data.status] || '연결 실패';
+    return `푝무위키 ${reason}로 내용을 확인하지 못했다냥. 문서가 없는 것으로 확인된 것은 아니다냥.`;
+  }
+  return '푝무위키에서 해당 내용을 찾지 못했다냥.';
+}
+
+// Only explicit birth fields or a sentence naming the target are evidence.
+export function extractWikiBirthDate(text, target) {
+  const dates = new Set();
+  const name = String(target ?? '').trim();
+  if (!name) return null;
+  let targetSection = true;
+  for (const rawLine of String(text).split(/\r?\n/)) {
+    const heading = rawLine.match(/^={1,6}\s*(.*?)\s*=+$/)?.[1];
+    if (heading) targetSection = heading.includes(name) || /^(?:개요|프로필|정보|인적 사항|생애|출생|신상|소개)$/.test(heading);
+    const line = rawLine.replace(/\[\[|\]\]|\*\*/g, '').trim();
+    if (/친구|주변|아내|남편|아버지|어머니|동생|형제|지인/.test(line)) continue;
+    const field = /^(?:\|+\s*)?(?:생년월일|출생일|출생|생일)\s*(?:[:：]|\|+)/.test(line);
+    const subject = line.startsWith(name) && /^(?:은|는|의|이|가)?\s*(?:생년월일|출생일|생일)/.test(line.slice(name.length));
+    if ((!field || !targetSection) && !subject) continue;
+    const matches = [...line.matchAll(/(\d{4})\s*(?:년\s*|[.\/-]\s*)(\d{1,2})\s*(?:월\s*|[.\/-]\s*)(\d{1,2})\s*일?/g)];
+    if (matches.length !== 1) return null;
+    const m = matches[0];
+    const date = `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+    if (calculateAge(date, '9999-12-31') === null) return null;
+    dates.add(date);
+  }
+  return dates.size === 1 ? [...dates][0] : null;
+}
+
+export function answerWikiAgeQuestion(prompt, data, now = new Date()) {
+  if (!/나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|생일|출생일|몇\s*살/.test(prompt)) return '';
+  if (!data?.results?.length) return wikiSearchUnavailableReply(data);
+  const target = derivePyhokWikiSearchQuery(prompt);
+  const primary = data.results.find((r) => r.exactTitleMatch && r.normalizedSearchQuery === normalizeTitleMatchText(target));
+  if (!primary) return '푝무위키에서 대상 인물의 문서를 확실히 확인하지 못했다냥. 동명이인이나 주변 인물의 생일로 나이를 추정할 수 없다냥.';
+  const birth = primary.verifiedBirthDate;
+  const referenceDate = getAgeReferenceDate(prompt, now);
+  const age = calculateAge(birth, referenceDate);
+  if (!birth || age === null) return `푝무위키 대상 문서에서 명확한 생년월일을 확인하지 못해 나이를 계산할 수 없다냥.\n${primary.url}`;
+  return `푝무위키 ${primary.documentTitle} 문서의 생년월일은 ${birth}이며, ${referenceDate} 기준 만 ${age}세다냥. 위키 서술 기준이다냥.\n${primary.url}`;
 }

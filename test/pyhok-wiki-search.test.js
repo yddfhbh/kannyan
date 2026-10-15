@@ -203,7 +203,8 @@ test('searchPyhokWiki sends the cleaned search query to Meilisearch and returns 
   assert.deepEqual(requests[0].body.filter, ['anyoneReadable = true']);
   assert.equal(result.query, '테이크 생활');
   assert.equal(result.originalQuery, '테이크의 생활을 우리 위키 기준으로 설명해줘');
-  assert.match(logs[0], /searchQuery="테이크 생활"/);
+  assert.equal(logs[0], '[Wiki search] start');
+  assert.ok(logs.every((line) => !line.includes(result.originalQuery)), 'logs omit raw query');
   assert.match(logs.at(-1), /top="테이크\/생활"/);
 });
 

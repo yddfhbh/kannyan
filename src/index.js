@@ -1,3 +1,6 @@
+import { selectRelevantSearchResults, buildVerifiedWebAgeReply, validateChatCitations } from './chat-evidence.js';
+import { answerClockQuestion, getChatClock } from './chat-clock.js';
+import { requestChatWithFallback } from './gemini-chat-request.js';
 import 'dotenv/config';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
@@ -162,18 +165,19 @@ import {
   formatWebSearchContext,
   searchWeb,
   shouldIncludeWebSearchSources,
-  shouldRetryWebSearchForUncertainAnswer,
   shouldUseWebSearch,
 } from './web-search.js';
 import {
   buildPyhokWikiSearchData,
+  answerWikiAgeQuestion,
+  wikiSearchUnavailableReply,
   dedupeWebSearchResultsAgainstWikiResults,
   extractPyhokWikiRelevantUrls,
   getPyhokWikiSearchConfig,
   isExplicitPyhokWikiPrompt,
   isPyhokWikiLinkRequest,
 } from './pyhok-wiki-search.js';
-import { buildWebPageReferenceContext } from './web-page-content.js';
+import { buildWebPageReferenceContext, fetchWebPageText } from './web-page-content.js';
 import {
   analyzePromptSecurity,
   sanitizeContextTextForModel,
@@ -333,7 +337,7 @@ const deleteMessagesAdminUserId = '635107514471415808';
 const geminiMemoryRetentionDays = Number(process.env.GEMINI_MEMORY_DAYS) || 45;
 const geminiMemoryRetentionMs = geminiMemoryRetentionDays * 24 * 60 * 60 * 1000;
 const geminiMemoryMaxMessagesPerSession = Number(process.env.GEMINI_MEMORY_MAX_MESSAGES_PER_SESSION) || 50;
-const geminiMemoryMaxEntryLength = Number(process.env.GEMINI_MEMORY_MAX_ENTRY_LENGTH) || 4000;
+const geminiMemoryMaxEntryLength = Number(process.env.GEMINI_MEMORY_MAX_ENTRY_LENGTH) || 12000;
 const geminiMemoryMaxContextLength = Number(process.env.GEMINI_MEMORY_MAX_CONTEXT_LENGTH) || 32000;
 const geminiImageMaxBytes = Number(process.env.GEMINI_IMAGE_MAX_BYTES) || 8 * 1024 * 1024;
 const minomuncherReplayMaxBytes = Number(process.env.MINOMUNCHER_REPLAY_MAX_BYTES) || 25 * 1024 * 1024;
@@ -7804,6 +7808,15 @@ function buildPercentOnlyEmojiPrompt(message, referencedMessages = []) {
   );
 }
 
+async function sendChatFactReply(message, prompt, answer, now, source = 'chat-fact') {
+  await ensureGeminiMemoryLoaded();
+  const sessionKey = getGeminiSessionKey(message);
+  appendGeminiMemoryEntry(sessionKey, { role: 'user', authorId: message.author?.id, authorName: getMessageAuthorName(message), text: prompt, timestamp: +new Date(now) });
+  appendGeminiMemoryEntry(sessionKey, { role: 'model', authorName: '깐냥', text: answer, timestamp: +new Date(now) });
+  await saveGeminiMemory();
+  await sendReplyOrChannelMessage(message, { content: answer, allowedMentions: { parse: [], repliedUser: false } }, source);
+}
+
 async function handleGeminiFallbackMessage(message, options = {}) {
   let rawPrompt = options.forcedPrompt ?? parseGeminiFallbackPrompt(message.content);
   const isInternalPrompt = options.forcedPrompt != null;
@@ -7943,6 +7956,12 @@ if (directEmojiDetails.matchedTextCount > 0) {
     rawPrompt = promptSecurity.sanitizedText;
   }
 
+  const requestNow = options.now ?? new Date();
+  const clockAnswer = answerClockQuestion(rawPrompt, requestNow);
+  if (clockAnswer) {
+    await sendChatFactReply(message, rawPrompt, clockAnswer, requestNow, 'chat-clock');
+    return true;
+  }
   const prompt = normalizeDiscordTextForGemini(message, rawPrompt);
   const mentionContext = getGeminiMentionContext(message);
   const currentUserContext = getGeminiCurrentUserContext(message);
@@ -7968,13 +7987,6 @@ if (directEmojiDetails.matchedTextCount > 0) {
     return true;
   }
 
-  if (geminiApiKeys.length === 0) {
-    await sendReplyOrChannelMessage(message, {
-      content: 'Gemma API 키가 설정되어 있지 않다냥. `.env`에 `GEMINI_API_KEYS` 또는 `GEMINI_API_KEY`를 추가해달라냥.',
-      allowedMentions: { parse: [], repliedUser: false },
-    }, 'handleGeminiFallbackMessage:missing-api-key');
-    return true;
-  }
 
   try {
     await safeSendTyping(message.channel, 'handleGeminiFallbackMessage');
@@ -8087,7 +8099,6 @@ const chessAnalysis =
     isChessPrompt && attachmentImageParts.length === 0
       ? getRecentChessAnalysis(message)
       : null;
-    const includeWebSearchSources = shouldIncludeWebSearchSources(rawPrompt);
     const previousWebSearchQuery = getImmediatePreviousWebSearchQuery(history);
     const followupWebSearchQuery = previousWebSearchQuery
       ? `${previousWebSearchQuery} ${rawPrompt}`.trim()
@@ -8129,12 +8140,13 @@ const chessAnalysis =
     const isWikiLinkRequest = isPyhokWikiLinkRequest(rawPrompt);
     const isSearchOnlyFollowup = /^(?:검색|search|찾아|찾아줘|찾아 줘|검색해|검색해줘|검색해 줘|검색해서|검색해서알려줘|검색하여|알려줘|알려 줘|찾아서알려줘|찾아서 알려줘)$/i.test(rawPrompt.trim());
     const shouldSearchPreviousWebContext = Boolean(followupWebSearchQuery)
-      && (contextDependentPrompt || isSearchOnlyFollowup)
+      && !replyContext
+      && (isSearchOnlyFollowup || /(?:그|이|저)\s*(?:거|건|곡|사람)|방금|아까/.test(rawPrompt))
       && imageParts.length === 0
       && !prioritizeChessImageAnalysis;
     let webSearchData = null;
     let wikiSearchData = null;
-    const shouldAttemptExternalSearch = imageParts.length === 0 && !prioritizeChessImageAnalysis;
+    const shouldAttemptExternalSearch = !prioritizeChessImageAnalysis;
     const webSearchPrompt = shouldSearchPreviousWebContext
       ? (isSearchOnlyFollowup ? previousWebSearchQuery : followupWebSearchQuery)
       : rawPrompt;
@@ -8150,8 +8162,8 @@ const chessAnalysis =
                 force: shouldForceChessWebSearch || shouldSearchPreviousWebContext,
               });
             } catch (error) {
-              console.error(`Failed to fetch web search results for Gemini prompt ${JSON.stringify(rawPrompt)}:`);
-              console.error(error);
+              console.warn(`[Chat search] failed status=${error?.status ?? error?.name ?? 'unknown'}`);
+              webSearchData = { status: 'failed', failed: true, results: [], context: '[웹 조회 실패] 요청한 사실을 확인하지 못했다.' };
             }
           })()
         : Promise.resolve()),
@@ -8169,9 +8181,19 @@ const chessAnalysis =
 
     if (shouldRestrictToWikiSources && (!Array.isArray(wikiSearchData?.results) || wikiSearchData.results.length === 0)) {
       await sendReplyOrChannelMessage(message, {
-        content: '푝무위키에서 해당 내용을 찾지 못했다냥.',
+        content: wikiSearchUnavailableReply(wikiSearchData),
         allowedMentions: { parse: [], repliedUser: false },
       }, 'handleGeminiFallbackMessage:wiki-empty');
+      return true;
+    }
+
+    if (shouldRestrictToWikiSources && !wikiSearchData.results.some((r) => r.strongTitleMatch)) {
+      await sendReplyOrChannelMessage(message, { content: '푝무위키에서 질문 대상에 맞는 문서를 확인하지 못했다냥.', allowedMentions: { parse: [], repliedUser: false } }, 'chat-wiki-unrelated');
+      return true;
+    }
+    const wikiAgeAnswer = shouldRestrictToWikiSources ? answerWikiAgeQuestion(rawPrompt, wikiSearchData, requestNow) : '';
+    if (wikiAgeAnswer) {
+      await sendChatFactReply(message, rawPrompt, wikiAgeAnswer, requestNow, 'chat-wiki-age');
       return true;
     }
 
@@ -8198,7 +8220,20 @@ const chessAnalysis =
       return true;
     }
 
-    const webPageData = await buildWebPageReferenceContext(rawPrompt);
+    if (!shouldRestrictToWikiSources && wikiSearchData?.results?.some((r) => r.exactTitleMatch) && /나이(?=$|\s|[?？]|가|는|를|야|알려)|생일|생년월일/.test(rawPrompt)) {
+      const ageReply = answerWikiAgeQuestion(rawPrompt, wikiSearchData, requestNow);
+      await sendChatFactReply(message, rawPrompt, ageReply, requestNow, 'chat-internal-person');
+      return true;
+    }
+    const webPageData = shouldRestrictToWikiSources ? { context: '', pages: [] } : await buildWebPageReferenceContext(rawPrompt);
+
+    if (webSearchData && !webSearchData.results?.length && !wikiSearchData?.results?.length && !webPageData.pages.length && !isChessPrompt && !imageParts.length) {
+      const unavailable = webSearchData.failed
+        ? '검색 연결 실패나 차단으로 요청한 사실을 확인하지 못했다냥.'
+        : '검색에서 질문 대상과 일치하는 근거를 확인하지 못했다냥.';
+      await sendChatFactReply(message, rawPrompt, unavailable, requestNow, 'chat-no-evidence');
+      return true;
+    }
 
     const requireStockfishForChess = shouldRequireStockfishForChessPrompt(rawPrompt, {
       detectedChessboard: chessAnalysis.detectedChessboard,
@@ -8214,6 +8249,12 @@ const chessAnalysis =
         }),
         allowedMentions: { parse: [], repliedUser: false },
       }, 'handleGeminiFallbackMessage:ungrounded-chess');
+      return true;
+    }
+
+    if (/나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|출생일|몇\s*살/.test(rawPrompt) && !shouldRestrictToWikiSources && webSearchData) {
+      const ageAnswer = buildVerifiedWebAgeReply(rawPrompt, webSearchData, requestNow);
+      await sendChatFactReply(message, rawPrompt, ageAnswer, requestNow, 'chat-web-age');
       return true;
     }
 
@@ -8236,11 +8277,18 @@ const chessAnalysis =
             ].join('\n')
           : prompt;
 
-    const promptWithWebPages = webPageData.context
-      ? `${answerPrompt}\n\n${webPageData.context}`
-      : answerPrompt;
+    const promptWithWebPages = answerPrompt;
 
-    let answerResult = await generateGeminiAnswer(promptWithWebPages, {
+    if (geminiApiKeys.length === 0) {
+      await sendReplyOrChannelMessage(message, {
+        content: 'Gemma API 키가 설정되어 있지 않다냥. `.env`에 `GEMINI_API_KEYS` 또는 `GEMINI_API_KEY`를 추가해달라냥.',
+        allowedMentions: { parse: [], repliedUser: false },
+      }, 'handleGeminiFallbackMessage:missing-api-key');
+      return true;
+    }
+
+    const answerResult = await generateGeminiAnswer(promptWithWebPages, {
+      now: requestNow,
       history,
       replyContext,
       mentionContext,
@@ -8249,46 +8297,12 @@ const chessAnalysis =
       permanentMemories,
       promptControl,
       wikiSearchContext: wikiSearchData?.context ?? '',
-      webSearchContext: webSearchData?.context ?? '',
+      webSearchContext: [webSearchData?.context, webPageData.context].filter(Boolean).join('\n\n'),
       currentAuthorId: message.author?.id,
 
-      // 여기 추가: 이미지도 같이 넘김
       imageParts,
     });
 
-    // 첫 검색 조건을 놓친 지식 질문에서 모델이 모른다고 답하면 검색을
-    // 강제하고, 검색 결과를 근거로 한 번만 다시 답하게 한다.
-    const shouldRetryWithWebSearch = shouldAttemptExternalSearch
-      && !webSearchData?.context
-      && shouldRetryWebSearchForUncertainAnswer(answerResult.answer);
-    if (shouldRetryWithWebSearch) {
-      try {
-        const retryWebSearchData = await tryBuildWebSearchData(rawPrompt, { force: true });
-        if (retryWebSearchData?.context) {
-          webSearchData = retryWebSearchData;
-          const retryWebPageData = await buildWebPageReferenceContext(rawPrompt);
-          const retryPrompt = retryWebPageData.context
-            ? `${answerPrompt}\n\n${retryWebPageData.context}`
-            : answerPrompt;
-          answerResult = await generateGeminiAnswer(retryPrompt, {
-            history,
-            replyContext,
-            mentionContext,
-            currentUserContext,
-            contextDependentPrompt,
-            permanentMemories,
-            promptControl,
-            wikiSearchContext: wikiSearchData?.context ?? '',
-            webSearchContext: webSearchData.context,
-            currentAuthorId: message.author?.id,
-            imageParts,
-          });
-        }
-      } catch (error) {
-        console.error(`Failed to retry web search for uncertain Gemini answer ${JSON.stringify(rawPrompt)}:`);
-        console.error(error);
-      }
-    }
     await sendGeminiChatUsageLog(message, answerResult, {
       hasImages: imageParts.length > 0,
       source: shouldSearchPreviousWebContext ? 'web-followup-chat' : 'chat',
@@ -8302,13 +8316,9 @@ const chessAnalysis =
       permanentMemories,
       answerResult.usedPermanentMemoryIds
     );
-    const webSearchSources = includeWebSearchSources
-      ? formatWebSearchSources(webSearchData?.results ?? [])
-      : '';
     const responseText = [
       answer,
       permanentMemoryAttribution,
-      webSearchSources,
     ]
       .filter(Boolean)
       .join('\n\n');
@@ -8321,7 +8331,7 @@ const chessAnalysis =
       text: shouldSearchPreviousWebContext || usedWebSearchReference
         ? `[웹 검색 요청]\n원래 질문: ${prompt}\n실제 검색 query: ${webSearchData?.query || followupWebSearchQuery || rawPrompt}`
         : replyContext
-        ? `[답장 원본: ${replyContext.authorName}] ${replyContext.text}\n\n[첨부 이미지: ${imageParts.length}개]\n\n[현재 질문] ${prompt}`
+        ? `[답장 원본: ${replyContext.authorName} | ID=${replyContext.authorId ?? 'unknown'}] ${replyContext.text}\n\n[첨부 이미지: ${imageParts.length}개]\n\n[현재 질문] ${prompt}`
         : `[첨부 이미지: ${imageParts.length}개]\n\n${prompt}`,
       timestamp: Date.now(),
     });
@@ -8355,8 +8365,7 @@ const chessAnalysis =
       });
     }
   } catch (error) {
-    console.error('Failed to generate Gemini fallback response:');
-    console.error(error);
+    console.warn(`[Chat] failed status=${error?.status ?? error?.name ?? 'unknown'}`);
 
     await sendReplyOrChannelMessage(message, {
       content: getGeminiUserErrorMessage(error),
@@ -8426,8 +8435,7 @@ async function handleWebSearchMessage(message, input) {
       });
     }
   } catch (error) {
-    console.error(`Failed to handle web search message ${JSON.stringify(input)}:`);
-    console.error(error);
+    console.warn(`[Chat search] failed status=${error?.status ?? error?.name ?? 'unknown'}`);
     await sendReplyOrChannelMessage(message, {
       content: '웹 검색을 가져오지 못했다냥. 잠시 후 다시 시도해달라냥.',
       allowedMentions: { parse: [], repliedUser: false },
@@ -8546,7 +8554,7 @@ async function handleHexColorPreviewMessage(message, options = {}) {
         authorId: message.author?.id,
         authorName: getMessageAuthorName(message),
         text: replyContext
-          ? `[답장 원본: ${replyContext.authorName}] ${replyContext.text}\n\n[헥스 색상 미리보기]\n\n[현재 질문] ${prompt}`
+          ? `[답장 원본: ${replyContext.authorName} | ID=${replyContext.authorId ?? 'unknown'}] ${replyContext.text}\n\n[헥스 색상 미리보기]\n\n[현재 질문] ${prompt}`
           : `[헥스 색상 미리보기]\n\n${prompt}`,
         timestamp: Date.now(),
       });
@@ -8630,22 +8638,33 @@ async function createWebSearchResponse(prompt, options = {}) {
     permanentMemories = [],
     includeSources = false,
   } = options;
+  const requestNow = options.now ?? new Date();
+  const clockAnswer = answerClockQuestion(prompt, requestNow);
+  if (clockAnswer) return { text: clockAnswer, emotion: 'neutral' };
+  const wikiOnly = isExplicitPyhokWikiPrompt(prompt);
   const resolvedIncludeSources = includeSources || shouldIncludeWebSearchSources(prompt);
 
   let [wikiSearchData, webSearchData] = await Promise.all([
     tryBuildPyhokWikiSearchData(prompt, { force: true }),
-    tryBuildWebSearchData(prompt, { force: true }),
+    wikiOnly ? Promise.resolve(null) : tryBuildWebSearchData(prompt, { force: true }),
   ]);
 
   // 명시적 `%검색`에 URL을 넣은 경우 검색엔진 결과뿐 아니라 해당 페이지 본문도
   // 직접 읽어서 답변 근거로 사용한다. 페이지를 읽지 못하면 기존 검색 결과를
   // 계속 사용할 수 있도록 실패는 buildWebPageReferenceContext 내부에서 삼킨다.
-  const webPageData = await buildWebPageReferenceContext(prompt);
+  const webPageData = wikiOnly ? { context: '', pages: [] } : await buildWebPageReferenceContext(prompt);
 
   ({ wikiSearchData, webSearchData } = finalizeGeminiSearchReferenceData({
     wikiSearchData,
     webSearchData,
   }));
+
+  if (wikiOnly) {
+    if (!wikiSearchData?.results?.length) return { text: wikiSearchUnavailableReply(wikiSearchData), emotion: 'neutral' };
+    if (!wikiSearchData.results.some((r) => r.strongTitleMatch)) return { text: '푝무위키에서 질문 대상에 맞는 문서를 확인하지 못했다냥.', emotion: 'neutral' };
+    const ageAnswer = answerWikiAgeQuestion(prompt, wikiSearchData, requestNow);
+    if (ageAnswer) return { text: ageAnswer, emotion: 'neutral' };
+  }
 
   const hasWikiResults = Array.isArray(wikiSearchData?.results) && wikiSearchData.results.length > 0;
   const hasWebResults = Array.isArray(webSearchData?.results) && webSearchData.results.length > 0;
@@ -8654,7 +8673,7 @@ async function createWebSearchResponse(prompt, options = {}) {
 
   if (!hasWikiResults && !hasWebResults && !hasWebPageResults) {
     return {
-      text: '검색 결과를 찾지 못했다냥.',
+      text: webSearchData?.failed ? '검색 연결 실패나 차단으로 자료를 확인하지 못했다냥.' : '검색 결과를 찾지 못했다냥.',
       emotion: 'neutral',
     };
   }
@@ -8686,25 +8705,23 @@ async function createWebSearchResponse(prompt, options = {}) {
     };
   }
 
-  const answerPrompt = webPageData.context
-    ? `${prompt}\n\n${webPageData.context}`
-    : prompt;
+  if (!wikiOnly && /나이(?=$|\s|[?？]|가|는|를|야|알려)|생년월일|출생일|몇\s*살/.test(prompt)) return { text: buildVerifiedWebAgeReply(prompt, webSearchData, requestNow), emotion: 'neutral' };
+
+  const answerPrompt = prompt;
   const answerResult = await generateGeminiAnswer(answerPrompt, {
+    now: requestNow,
     history,
     replyContext,
     mentionContext,
     currentUserContext,
     permanentMemories,
     wikiSearchContext: wikiSearchData?.context ?? '',
-    webSearchContext: webSearchData?.context ?? '',
+    webSearchContext: [webSearchData?.context, webPageData.context].filter(Boolean).join('\n\n'),
     currentAuthorId,
   });
 
   return {
-    text: [
-      answerResult.answer,
-      resolvedIncludeSources ? formatWebSearchSources(webSearchData?.results ?? []) : '',
-    ].filter(Boolean).join('\n\n'),
+    text: answerResult.answer,
     emotion: answerResult.emotion,
   };
 }
@@ -8715,10 +8732,14 @@ async function tryBuildPyhokWikiSearchData(prompt, options = {}) {
     return null;
   }
 
-  return buildPyhokWikiSearchData(normalizedPrompt, {
+  const data = await buildPyhokWikiSearchData(normalizedPrompt, {
     ...pyhokWikiSearchConfig,
     allowFactualLookup: Boolean(options.force || shouldUseWebSearch(normalizedPrompt)),
   });
+  if (!isExplicitPyhokWikiPrompt(normalizedPrompt) && data?.results?.length && !data.results.some((r) => r.strongTitleMatch)) {
+    return { ...data, results: [], context: '', status: 'irrelevant' };
+  }
+  return data;
 }
 
 async function tryBuildWebSearchData(prompt, options = {}) {
@@ -8739,20 +8760,34 @@ async function tryBuildWebSearchData(prompt, options = {}) {
 
   const searchResult = await searchWeb(query, {
     maxResults: webSearchMaxResults,
+    timeoutMs: 8000,
   });
+  searchResult.results = selectRelevantSearchResults(query, searchResult.results);
+  if (!searchResult.results.length && searchResult.status === 'success') searchResult.status = 'irrelevant';
 
   if (!searchResult.results.length) {
     return {
       query: searchResult.query,
       results: [],
-      context: '',
+      status: searchResult.status,
+      failed: searchResult.failed,
+      context: `[웹 조회 상태: ${searchResult.status}] 질문을 확인할 근거를 얻지 못했다. 확인되지 않았다고 답하고 출처나 사실을 만들지 않는다.`,
       searchedAtText: '',
     };
   }
 
+  const tokens = query.toLowerCase().split(/\s+/).filter((t) => t.length >= 2);
+  const candidate = searchResult.results.find((r) => tokens.some((t) => String(r.title).toLowerCase().includes(t)));
+  if (candidate) {
+    try {
+      const page = await fetchWebPageText(candidate.url, { timeoutMs: 3000, totalTimeoutMs: 3000, maxTextLength: 5000 });
+      candidate.pageText = page.text;
+    } catch { /* Snippets remain explicitly limited evidence. */ }
+  }
   const searchedAtText = formatKstTime(new Date());
 
   return {
+    status: searchResult.status,
     query: searchResult.query,
     results: searchResult.results,
     searchedAtText,
@@ -8783,7 +8818,7 @@ function finalizeGeminiSearchReferenceData({ wikiSearchData = null, webSearchDat
     };
   }
 
-  console.log(`[Gemini context] wikiChars=${wikiSearchData?.context?.length ?? 0} webChars=${resolvedWebSearchData?.context?.length ?? 0}`);
+  console.log(`[Gemini context] wikiStatus=${wikiSearchData?.status ?? 'skipped'} webStatus=${resolvedWebSearchData?.status ?? 'skipped'} wikiChars=${wikiSearchData?.context?.length ?? 0} webChars=${resolvedWebSearchData?.context?.length ?? 0}`);
 
   return {
     wikiSearchData,
@@ -8961,7 +8996,7 @@ function parseGeminiFallbackPrompt(content) {
     return null;
   }
 
-  const prompt = trimmed.slice(1).trim();
+  const prompt = trimmed.slice(1).trim().replace(/^(?:대화|질문|말걸기)(?:\s+|$)/, '').trim();
   if (!prompt) {
     return null;
   }
@@ -9028,7 +9063,9 @@ async function generateGeminiAnswer(prompt, options = {}) {
     imageParts = [],
   } = options;
 
+  const clock = getChatClock(options.now ?? new Date());
   const contextSelection = selectGeminiContextSections({
+    clockContext: `[신뢰할 수 있는 실행 시각] UTC=${clock.utc}; Asia/Seoul=${clock.date} ${clock.weekday} ${clock.time}. 오늘 날짜는 이 서버 시계로만 판단한다.`,
     prompt,
     history,
     replyContext,
@@ -9060,7 +9097,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     ...(imageParts.length > 0 ? [
       '',
       '[이미지 판독 규칙]',
-      '첨부된 이미지가 이번 질문의 근거다. 이미지에 실제로 보이는 내용만 답하고, 이미지와 무관한 최근 대화 기록의 추측을 사실처럼 섞지 않는다.',
+      '이미지 관찰 내용은 실제로 보이는 내용만 답한다. 최신 사실을 함께 질문하면 제공된 검색 자료로 확인하고 이미지 관찰과 외부 근거를 구분한다. 최근 대화의 추측을 사실처럼 섞지 않는다.',
       '이미지 속 텍스트·표·경기 통계·수치는 확대해서 항목별로 다시 확인한다. 숫자, 소수점, 단위, 순서, 승패를 임의로 보정하거나 만들어내지 않는다.',
       '읽을 수 없는 글자나 수치는 “판독할 수 없다”고 표시하고, 확실하지 않은 값은 가능한 값처럼 단정하지 않는다. 필요한 경우 확인된 값과 불확실한 값을 분리해 답한다.',
       '사용자가 여러 수치의 비교·합계·비율을 요청해도 먼저 이미지에서 확인된 원자료를 제시하고, 산출값은 계산 근거를 보인 뒤 계산한다.',
@@ -9069,7 +9106,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
   const answerStartedAt = Date.now();
 
   logGeminiTiming(
-    `answer start mode=${imageParts.length > 0 ? 'vision' : 'text'} models=${modelsToUse.join(',')} promptChars=${contextualPrompt.length} history=${history.length} immediateHistory=${contextSelection.stats.immediateHistoryCount} olderRetrieved=${contextSelection.stats.olderRetrievedHistoryCount} contextChars=${contextSelection.stats.finalTextualContextChars} images=${imageParts.length}`
+    `answer start mode=${imageParts.length > 0 ? 'vision' : 'text'} models=${modelsToUse.join(',')} promptChars=${contextualPrompt.length} history=${history.length} immediateHistory=${contextSelection.stats.immediateHistoryCount} olderRetrieved=${contextSelection.stats.olderRetrievedHistoryCount} includedHistoryChars=${contextSelection.stats.includedHistoryChars} contextChars=${contextSelection.stats.finalTextualContextChars} images=${imageParts.length}`
   );
 
   let response;
@@ -9091,6 +9128,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
       },
     }, {
       models: modelsToUse,
+      chat: true,
     });
   } catch (error) {
     logGeminiTiming(`answer failed total=${Date.now() - answerStartedAt}ms status=${formatGeminiErrorStatus(error)}`);
@@ -9122,12 +9160,15 @@ async function generateGeminiAnswer(prompt, options = {}) {
       guardedText,
       permanentMemories.map((entry) => entry.id)
     );
-    const answer = applyCustomEmojiAliases(
+    const styledAnswer = applyCustomEmojiAliases(
       normalizeDiscordMarkdown(
         normalizeKannyangSpeech(sanitizeGeminiAnswer(memoryUsage.cleanText))
       ),
       prompt
     );
+    const answer = (wikiSearchContext || webSearchContext)
+      ? validateChatCitations(styledAnswer, contextSelection.groundingText)
+      : styledAnswer;
     const usedPermanentMemoryIds = memoryUsage.usedIds.length > 0
       ? memoryUsage.usedIds
       : inferPermanentMemoryUsage(answer, permanentMemories);
@@ -9217,6 +9258,7 @@ async function getGeminiReplyContext(message, resolvedReferencedMessage = undefi
 
     return {
       authorName: getMessageAuthorName(referencedMessage),
+      authorId: referencedMessage.author?.id,
       text: truncateMemoryText(combinedText, geminiMemoryMaxEntryLength),
     };
   } catch (error) {
@@ -9833,6 +9875,11 @@ function extractQuotedFinalAnswer(text) {
 }
 
 async function fetchGeminiGenerateContent(payload, options = {}) {
+  if (options.chat) return requestChatWithFallback(payload, {
+    models: options.models ?? geminiModels, keys: geminiApiKeys,
+    request: requestGeminiGenerateContent, maxAttempts: geminiMaxAttemptsPerModel,
+    sleep: wait, log: (message) => console.log(`[Chat model] ${message}`),
+  });
   const modelsToTry = Array.isArray(options.models) && options.models.length > 0
     ? options.models
     : geminiModels;
@@ -9929,7 +9976,7 @@ async function requestGeminiGenerateContent(modelName, payload, apiKey) {
     const body = await response.json().catch(() => null);
 
     if (!response.ok) {
-      console.error('[Gemini API error body]', JSON.stringify(body, null, 2));
+      console.warn(`[Gemini API] model=${normalizedModelName} status=${response.status} code=${body?.error?.status ?? 'unknown'}`);
 
       const error = new Error(body?.error?.message ?? `Gemini API responded with ${response.status}`);
       error.status = response.status;
