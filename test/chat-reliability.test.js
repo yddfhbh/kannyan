@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { answerClockQuestion, getChatClock, calculateAge, getAgeReferenceDate } from '../src/chat-clock.js';
 import { createGeminiChatContents } from '../src/gemini-memory.js';
 import { selectGeminiContextSections } from '../src/gemini-context.js';
-import { shouldUseWebSearch, searchWeb } from '../src/web-search.js';
+import { shouldUseWebSearch, classifyWebSearchIntent, searchWeb } from '../src/web-search.js';
 import { buildPyhokWikiSearchData, parsePyhokWikiSearchResponse, answerWikiAgeQuestion, derivePyhokWikiSearchQuery, extractWikiBirthDate, wikiSearchUnavailableReply } from '../src/pyhok-wiki-search.js';
 import { requestChatWithFallback, classifyChatRequestError } from '../src/gemini-chat-request.js';
 import { selectRelevantSearchResults, validateChatCitations } from '../src/chat-evidence.js';
@@ -60,9 +60,9 @@ test('actual included memory count is separate from stored count', () => {
   assert.equal((result.prompt.match(/\[화자=/g) ?? []).length, result.stats.immediateHistoryCount + result.stats.olderRetrievedHistoryCount);
 });
 
-test('search first for factual attributes; avoid translation, casual chat, provided summaries, calculation', () => {
+test('legacy factual lookup helper and deferred ordinary source decisions retain evidence checks', () => {
   for (const q of ['파이호크 나이', '아이유 생년월일', 'node 최신 버전', '삼성전자 주가', '사진 속 제품 최신 가격 검색해줘']) assert.equal(shouldUseWebSearch(q), true, q);
-  for (const q of ['안녕', '오늘 좀 피곤하다', '이 문장을 번역해줘', '제공한 글 요약해줘', '2+2', '2+2는 뭐야?', '계산해줘 3*5', '오늘 내 생일이야']) assert.equal(shouldUseWebSearch(q), false, q);
+  for (const q of ['안녕', '오늘 좀 피곤하다', '이 문장을 번역해줘', '제공한 글 요약해줘', '2+2', '2+2는 뭐야?', '계산해줘 3*5', '오늘 내 생일이야']) assert.equal(classifyWebSearchIntent(q).reason, 'model-source-plan', q);
   assert.deepEqual(selectRelevantSearchResults('파이호크 나이', [{title:'유명인 김철수 생일',snippet:'2000년 1월 1일'}]), []);
   assert.equal(validateChatCitations('검색 결과에 따르면 20살 https://fake.test', 'URL: https://source.test'), '제공된 자료에서 답변의 출처를 확인하지 못했다냥.');
   assert.equal(validateChatCitations('20살이다냥. https://fake.test', '잘려서 URL이 없는 문맥'), '제공된 자료에서 답변의 출처를 확인하지 못했다냥.');

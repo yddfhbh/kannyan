@@ -1,3 +1,4 @@
+import { chatSourcePlanGuidance, resolveChatSourcePlan } from './chat-source-plan.js';
 import { selectRelevantSearchResults, buildVerifiedWebAgeReply, validateChatCitations } from './chat-evidence.js';
 import { answerClockQuestion, getChatClock } from './chat-clock.js';
 import { requestChatWithFallback } from './gemini-chat-request.js';
@@ -8142,8 +8143,21 @@ const chessAnalysis =
     const shouldRestrictToWikiSources = isExplicitPyhokWikiPrompt(rawPrompt);
     const isWikiLinkRequest = isPyhokWikiLinkRequest(rawPrompt);
     const isSearchOnlyFollowup = /^(?:검색|search|찾아|찾아줘|찾아 줘|검색해|검색해줘|검색해 줘|검색해서|검색해서알려줘|검색하여|알려줘|알려 줘|찾아서알려줘|찾아서 알려줘)$/i.test(rawPrompt.trim());
-    const initialSearchIntent = classifyWebSearchIntent(rawPrompt);
-    const shouldSearchPreviousWebContext = !initialSearchIntent.hasLocalAnswer && Boolean(followupWebSearchQuery)
+    let initialSearchIntent = classifyWebSearchIntent(rawPrompt);
+    let plannedAnswer = null;
+    const webPageData = shouldRestrictToWikiSources ? { context: '', pages: [] } : await buildWebPageReferenceContext(rawPrompt);
+    if (!isChessPrompt && !prioritizeChessImageAnalysis && geminiApiKeys.length) {
+      const draft = await generateGeminiAnswer(prompt, {
+        planSearch: true, now: requestNow, history, replyContext, mentionContext,
+        currentUserContext, contextDependentPrompt, permanentMemories, promptControl,
+        currentAuthorId: message.author?.id, imageParts,
+        webSearchContext: webPageData.context,
+      });
+      const planned = resolveChatSourcePlan(draft, rawPrompt, initialSearchIntent);
+      initialSearchIntent = planned.intent;
+      plannedAnswer = planned.result;
+    }
+    const shouldSearchPreviousWebContext = !plannedAnswer && !initialSearchIntent.hasLocalAnswer && Boolean(followupWebSearchQuery)
       && !replyContext
       && (isSearchOnlyFollowup || /(?:그|이|저)\s*(?:거|건|곡|사람)|방금|아까/.test(rawPrompt))
       && imageParts.length === 0
@@ -8156,7 +8170,7 @@ const chessAnalysis =
     console.log(`[Chat search] reason=${searchIntent.reason} external=${searchIntent.requiresExternal} local=${searchIntent.hasLocalAnswer} followup=${shouldSearchPreviousWebContext} chess=${shouldForceChessWebSearch}`);
     const webSearchPrompt = shouldSearchPreviousWebContext
       ? (isSearchOnlyFollowup ? previousWebSearchQuery : followupWebSearchQuery)
-      : searchIntent.externalPrompt || rawPrompt;
+      : searchIntent.query || searchIntent.externalPrompt || rawPrompt;
 
     await Promise.all([
       ((shouldAttemptExternalSearch || shouldForceChessWebSearch)
@@ -8166,7 +8180,7 @@ const chessAnalysis =
             }
             try {
               webSearchData = await tryBuildWebSearchData(webSearchPrompt, {
-                force: shouldForceChessWebSearch || shouldSearchPreviousWebContext,
+                force: Boolean(plannedAnswer) || shouldForceChessWebSearch || shouldSearchPreviousWebContext,
               });
             } catch (error) {
               console.warn(`[Chat search] failed status=${error?.status ?? error?.name ?? 'unknown'}`);
@@ -8176,7 +8190,11 @@ const chessAnalysis =
         : Promise.resolve()),
       (shouldAttemptExternalSearch
         ? (async () => {
-            wikiSearchData = await tryBuildPyhokWikiSearchData(searchIntent.externalPrompt || rawPrompt);
+            try {
+              wikiSearchData = await tryBuildPyhokWikiSearchData(searchIntent.externalPrompt || rawPrompt, { force: Boolean(plannedAnswer) });
+            } catch {
+              wikiSearchData = { status: 'failed', failed: true, results: [], context: '' };
+            }
           })()
         : Promise.resolve()),
     ]);
@@ -8198,7 +8216,7 @@ const chessAnalysis =
       await sendReplyOrChannelMessage(message, { content: '푝무위키에서 질문 대상에 맞는 문서를 확인하지 못했다냥.', allowedMentions: { parse: [], repliedUser: false } }, 'chat-wiki-unrelated');
       return true;
     }
-    const wikiAgeAnswer = shouldRestrictToWikiSources && !searchIntent.hasLocalAnswer ? answerWikiAgeQuestion(rawPrompt, wikiSearchData, requestNow) : '';
+    const wikiAgeAnswer = shouldRestrictToWikiSources && !searchIntent.hasLocalAnswer ? answerWikiAgeQuestion(searchIntent.externalPrompt || rawPrompt, wikiSearchData, requestNow) : '';
     if (wikiAgeAnswer) {
       await sendChatFactReply(message, rawPrompt, wikiAgeAnswer, requestNow, 'chat-wiki-age');
       return true;
@@ -8232,8 +8250,6 @@ const chessAnalysis =
       await sendChatFactReply(message, rawPrompt, ageReply, requestNow, 'chat-internal-person');
       return true;
     }
-    const webPageData = shouldRestrictToWikiSources ? { context: '', pages: [] } : await buildWebPageReferenceContext(rawPrompt);
-
     const evidenceDecision = resolveChatEvidence(searchIntent, { webSearchData, wikiSearchData, webPageData });
     if (evidenceDecision.blockWholeAnswer && !isChessPrompt && !imageParts.length) {
       console.log(`[Chat evidence] blocked reason=no-external-evidence status=${webSearchData?.status ?? wikiSearchData?.status ?? 'none'}`);
@@ -8315,6 +8331,8 @@ const chessAnalysis =
       searchIntent: isChessPrompt ? null : searchIntent,
       evidenceDecision,
       verifiedExternalAnswer,
+      plannedAnswer,
+      originalPrompt: rawPrompt,
       now: requestNow,
       history,
       replyContext,
@@ -9094,7 +9112,9 @@ async function generateGeminiAnswer(prompt, options = {}) {
   const clock = getChatClock(options.now ?? new Date());
   const contextSelection = selectGeminiContextSections({
     clockContext: `[신뢰할 수 있는 실행 시각] UTC=${clock.utc}; Asia/Seoul=${clock.date} ${clock.weekday} ${clock.time}. 오늘 날짜는 이 서버 시계로만 판단한다.`,
-    prompt,
+    prompt: options.externalOnly && options.originalPrompt
+      ? `[현재 사용자 전체 요청]\n${options.originalPrompt}\n\n[이번 생성에서 답할 외부 부분]\n${prompt}`
+      : prompt,
     history,
     replyContext,
     mentionContext,
@@ -9122,6 +9142,8 @@ async function generateGeminiAnswer(prompt, options = {}) {
     '사용자가 기뻐하거나 축하받을 일, 들뜬 반응, 강한 감정 표현을 분명하게 보였을 때만 happy, very_happy, excited를 쓴다.',
     '답변 분위기가 시큰둥함, 귀찮음, 툭툭거리는 짜증, 장난스럽게 콱 무는 듯한 반응이면 neutral보다 bored를 우선한다.',
     'JSON 바깥의 설명, 코드 블록, 마크다운, 서문은 절대 출력하지 않는다.',
+    ...(options.planSearch ? [chatSourcePlanGuidance] : []),
+    ...(options.externalOnly ? ['answer에는 지정된 외부 요청에 관한 내용만 쓴다. 제공 근거로 확인한 주장에는 출처 URL을 인용하고, 확인 못한 사실만 유보한다. 자체 설정·대화 답변을 다시 쓰지 않는다.'] : []),
     ...(imageParts.length > 0 ? [
       '',
       '[이미지 판독 규칙]',
@@ -9167,7 +9189,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
 
   if (text) {
     const parsedAnswer = parseGeminiAnswerPayload(text);
-    const guardedText = parsedAnswer.answer || text;
+    const guardedText = options.planSearch ? parsedAnswer.answer : parsedAnswer.answer || text;
     const requestMeta = response._requestMeta ?? null;
     const responseGuard = classifyPromptControlResponse(guardedText, {
       promptRiskScore: promptControl?.score ?? 0,
@@ -9188,13 +9210,13 @@ async function generateGeminiAnswer(prompt, options = {}) {
       guardedText,
       permanentMemories.map((entry) => entry.id)
     );
-    const styledAnswer = applyCustomEmojiAliases(
+    const styledAnswer = options.planSearch && !guardedText.trim() ? '' : applyCustomEmojiAliases(
       normalizeDiscordMarkdown(
         normalizeKannyangSpeech(sanitizeGeminiAnswer(memoryUsage.cleanText))
       ),
       prompt
     );
-    const answer = (wikiSearchContext || webSearchContext)
+    const answer = !options.planSearch && (wikiSearchContext || webSearchContext)
       ? validateChatCitations(styledAnswer, contextSelection.groundingText)
       : styledAnswer;
     const usedPermanentMemoryIds = memoryUsage.usedIds.length > 0
@@ -9203,6 +9225,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     logGeminiTiming(`answer ready total=${Date.now() - answerStartedAt}ms rawChars=${text.length} outputChars=${answer.length}`);
     return {
       answer,
+      sourcePlan: parsedAnswer.sourcePlan,
       emotion: parsedAnswer.emotion,
       requestMeta,
       usedPermanentMemoryIds,

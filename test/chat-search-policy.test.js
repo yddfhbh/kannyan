@@ -15,16 +15,11 @@ const localPrompts = ['넌 뭐야', '너 누구야', '이름이 뭐야', '누가
 const externalPrompts = ['너 TETR.IO가 뭐야?', '삼성전자 요약해줘', '삼성전자 최신 가격', '오늘 부산 날씨 어때?', 'TETR.IO가 뭐야?', '파이호크 나이',
   '너 누구야 검색해줘', '푝무위키 파이호크 나이', '명시적으로 웹 검색해줘'];
 
-test('settings, conversation, memory and supplied material differ from external claims', () => {
-  for (const prompt of localPrompts) assert.equal(shouldUseWebSearch(prompt), false, prompt);
-  for (const prompt of externalPrompts) assert.equal(shouldUseWebSearch(prompt), true, prompt);
-  for (const prompt of ['너 누구고 오늘 부산 날씨 어때?', '너 이름이 뭐야? 삼성전자 최신 가격 알려줘',
-    '이 글 요약하고 오늘 부산 날씨 알려줘', '뭐 할 수 있고 오늘 날씨 어때?']) {
+test('ordinary wording defers meaning to the answer model instead of regex exceptions', () => {
+  for (const prompt of [...localPrompts, '번역 서비스 DeepL이 무엇인지 알려줘', '삼성전자 요약해줘']) {
+    if (prompt === '너 누구야 검색해줘') continue;
     const intent = classifyWebSearchIntent(prompt);
-    assert.equal(intent.requiresExternal, true, prompt);
-    assert.equal(intent.hasLocalAnswer, true, prompt);
-    assert.doesNotMatch(intent.externalPrompt, /누구야|이름이|요약/);
-    if (prompt.includes('요약')) assert.match(intent.localPrompt, /요약해줘/);
+    assert.equal(intent.reason, 'model-source-plan', prompt);
   }
 });
 
@@ -60,7 +55,7 @@ test('long user conditions survive memory question with no search evidence', asy
 
 test('mixed request preserves local answer on empty, failed and invalid external evidence', async () => {
   const prompt = '너 누구고 오늘 부산 날씨 어때?';
-  const intent = classifyWebSearchIntent(prompt);
+  const intent = {requiresExternal:true,hasLocalAnswer:true,localPrompt:'너 누구야',externalPrompt:'오늘 부산 날씨 어때?'};
   for (const status of ['success','empty','failed']) {
     const data = {status,failed:status==='failed',results:status==='success'?[{title:'부산 날씨'}]:[]};
     const decision = resolveChatEvidence(intent,{webSearchData:data});
@@ -83,15 +78,11 @@ test('mixed request preserves local answer on empty, failed and invalid external
   }
 });
 
-test('external-only and explicit wiki requests keep evidence gating', () => {
-  for(const prompt of externalPrompts) {
-    const intent=classifyWebSearchIntent(prompt);
-    assert.equal(intent.hasLocalAnswer,false,prompt);
-    for(const status of ['empty','failed']) assert.equal(resolveChatEvidence(intent,{webSearchData:{status,results:[]}}).blockWholeAnswer,true,prompt);
-  }
-  const intent=classifyWebSearchIntent('넌 뭐야? 푝무위키 파이호크 알려줘');
+test('external plans and explicit wiki requests keep evidence gating', () => {
+  const intent = {requiresExternal:true,hasLocalAnswer:false,externalPrompt:'푝무위키 파이호크 나이'};
   assert.equal(resolveChatEvidence(intent,{webSearchData:{results:[{}]},wikiSearchData:{results:[{strongTitleMatch:false}]}}).hasEvidence,false);
   assert.equal(resolveChatEvidence(intent,{wikiSearchData:{results:[{strongTitleMatch:true}]}}).hasEvidence,true);
+  assert.equal(resolveChatEvidence(intent,{webSearchData:{results:[]}}).blockWholeAnswer,true);
 });
 
 test('public configuration questions stay distinct from prompt disclosure and identity override', () => {

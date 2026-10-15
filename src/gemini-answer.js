@@ -256,6 +256,7 @@ export function parseGeminiAnswerPayload(text) {
   return {
     answer,
     emotion: normalizeGeminiEmotionLabel(parsed?.emotion),
+    ...(parsed && Object.hasOwn(parsed, 'sourcePlan') ? { sourcePlan: parsed.sourcePlan } : {}),
   };
 }
 

@@ -17,15 +17,18 @@ export async function answerChatBySource(prompt, options, generate) {
   const { searchIntent: intent, evidenceDecision: decision } = options;
   if (!intent) return generate(prompt, options);
   const localOptions = { ...options, searchIntent: null, wikiSearchContext: '', webSearchContext: options.providedPageContext ?? '' };
-  if (!intent.requiresExternal) return generate(prompt, localOptions);
-  if (!intent.hasLocalAnswer) return generate(prompt, options);
+  if (!intent.requiresExternal) return options.plannedAnswer ?? generate(prompt, localOptions);
+  if (!intent.hasLocalAnswer) {
+    if (!decision.hasEvidence) return { answer: decision.unavailable, usedPermanentMemoryIds: [] };
+    return generate(intent.externalPrompt || prompt, { ...options, externalOnly: true });
+  }
   // Separate generation also keeps missing/invalid external citations from erasing
   // a valid self-introduction, translation, or memory answer.
-  const local = await generate(intent.localPrompt, localOptions);
+  const local = options.plannedAnswer ?? await generate(intent.localPrompt, localOptions);
   const external = decision.hasEvidence
     ? options.verifiedExternalAnswer
       ? { answer: options.verifiedExternalAnswer, usedPermanentMemoryIds: [] }
-      : await generate(intent.externalPrompt, { ...options, searchIntent: null })
+      : await generate(intent.externalPrompt, { ...options, searchIntent: null, externalOnly: true })
     : { answer: decision.unavailable, usedPermanentMemoryIds: [] };
   return { ...local, answer: [local.answer, external.answer].filter(Boolean).join('\n\n'),
     usedPermanentMemoryIds: [...new Set([...(local.usedPermanentMemoryIds ?? []), ...(external.usedPermanentMemoryIds ?? [])])] };

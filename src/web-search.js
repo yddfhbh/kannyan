@@ -115,44 +115,22 @@ export function parseDuckDuckGoHtmlResults(html) {
   return results;
 }
 
-// Classify each task by its source of truth, rather than by question words alone.
-const publicBotQuestion = /^(?:(?:너|넌|너는|네|니|당신|깐냥|깐냥이|이 봇|봇)(?:의|은|는)?\s*)?(?:뭐야|누구(?:야|세요|니|고)?|무엇(?:이야|인가요)?|이름(?:이|은)?\s*(?:뭐|무엇)|정체(?:가|는)?|자기소개|소개해|누가\s*(?:만들|제작)|제작자|만든\s*(?:사람|이)|(?:뭐|뭘|무엇을)\s*(?:할|하는)|무슨\s*기능|어떤\s*기능|할\s*수\s*있|기능(?:이|은)|말투|왜\s*냥|성격|캐릭터)/i;
-const addressedBot = /^(?:너|넌|너는|네|니|당신|깐냥|깐냥이|이 봇|봇)(?:의|은|는)?\s*/;
-const localTask = /(?:번역|translate|다듬어|교정|소설|이야기.*써|시.*써|계산해|내가\s*(?:준|말한|보낸|정한)|(?:아까|방금|이전|우리)\s*(?:대화|말|조건|이야기)|(?:제공한|첨부한|이|위|아래|사진\s*속|이미지\s*속)\s*(?:글|문장|자료|사진|이미지|내용|표).*?(?:설명|보여|읽|뭐|있|분석)|기억(?:해|나|하))/i;
-const casualTask = /^(?:안녕|고마워|감사|잘자|잘 자|반가워|오늘.*피곤|심심해|슬퍼|기뻐|힘들어|외로워|위로해|놀아|그래|응|왜\s*그래)/;
-
+// Only explicit directives are application-level search decisions. Ordinary
+// language is resolved by the answer model with the actual conversation context.
 export function classifyWebSearchIntent(prompt) {
   const text = normalizeSearchText(prompt);
-  // Korean connected self-introductions need a boundary even without punctuation.
-  const sourceBoundary = text.search(/[:："“「]/);
-  const directive = sourceBoundary >= 0 ? text.slice(0, sourceBoundary) : text;
-  const suppliedTransform = /번역|translate|요약|교정|다듬어/i.test(directive)
-    && (sourceBoundary >= 0 || /번역|translate|교정|다듬어|(?:제공|첨부|보낸|이|그|위|아래|다음).*?(?:글|문장|내용|자료|원문)|^요약/i.test(directive))
-    && !explicitSearchPattern.test(directive)
-    && !/(?:그리고|하고|한 뒤|후에).*?(?:최신|날씨|주가|가격|조회)/.test(directive);
-  const clauses = (suppliedTransform ? [text] : text.replace(/(요약|번역|설명)하고\s*/g, '$1해줘? ').replace(/(해|알려)주고\s*/g, '$1줘? ').replace(/(할\s*수)\s*있고\s*/g, '$1 있어? ').replace(/^(그럼|그래서)\s+/, '').replace(/^(안녕|고마워|심심해)\s+/, '$1? ').replace(/(누구|뭐)(?:이고|고)\s*/g, '$1야? ')
-    .split(/[?？!;\n]+|,\s*|\s+(?:그리고|그런데|또한)\s+/))
-    .map((s) => s.trim()).filter(Boolean);
-  const local = [], external = [];
-  for (const clause of clauses) {
-    const explicit = !suppliedTransform && (explicitSearchPattern.test(clause) || /푝무위키|우리 위키|pyhok(?:\.com)?/i.test(clause));
-    const transformation = /번역|translate|요약|교정|다듬어/i.test(clause);
-    // A quoted passage mentioning prices/weather is still supplied material.
-    const suppliedOnly = suppliedTransform || (transformation && !explicit && /(?:제공|첨부|이|그|위|아래|다음).*?(?:글|문장|내용|자료|원문)/.test(clause));
-    const externalCue = strongTimeSensitivePattern.test(clause) || /나이|생년월일|국적|소속/.test(clause);
-    const publicQuestion = publicBotQuestion.test(clause) || /^(?:제작자는|이름은|기능은)/.test(clause) || (addressedBot.test(clause) && /^(?:어떤\s*(?:봇|존재)|이름|정체|소개|제작|만들|말투|기능|성격|캐릭터)/.test(clause.replace(addressedBot, '')));
-    const localQuestion = suppliedOnly || (!explicit && !externalCue && (publicQuestion || localTask.test(clause) || casualTask.test(clause)));
-    if (localQuestion) local.push(clause);
-    else if (explicit || shouldSearchExternalClause(clause)) external.push(clause);
-    else local.push(clause);
-  }
-  return { requiresExternal: external.length > 0, hasLocalAnswer: local.length > 0,
-    localPrompt: local.join(' / '), externalPrompt: external.join(' / '),
-    reason: external.length ? (local.length ? 'mixed' : 'external-fact-or-explicit-search') : 'settings-conversation-or-provided-material' };
+  const explicit = /^(?:검색|search)\s*[:： ]/i.test(text)
+    || /(?:검색해\s*줘|검색해봐|검색해서\s*요약해\s*줘|찾아\s*줘|찾아봐)[.!?？]*$/i.test(text)
+    || /푝무위키|우리 위키|pyhok(?:\.com)?/i.test(text);
+  return { requiresExternal: explicit, hasLocalAnswer: !explicit,
+    localPrompt: explicit ? '' : text, externalPrompt: explicit ? text : '',
+    reason: explicit ? 'explicit-search' : 'model-source-plan' };
 }
 
 export function shouldUseWebSearch(prompt) {
-  return classifyWebSearchIntent(prompt).requiresExternal;
+  // Legacy standalone search helpers retain query enrichment; normal chat uses
+  // a validated model plan and invokes retrieval with force=true.
+  return shouldSearchExternalClause(prompt);
 }
 
 function shouldSearchExternalClause(prompt) {
