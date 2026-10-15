@@ -31,8 +31,32 @@ export function buildVerifiedWebAgeReply(prompt, data, now) {
 
 
 export function validateChatCitations(answer, evidence) {
-  const urls = (text) => (String(text).match(/https?:\/\/[^\s<>"'\])]+/g) ?? []).map((url) => url.replace(/[.,;!?]+$/, ''));
+  const urls = (text) => (String(text).match(/https?:\/\/[^\s<>"'\]]+/g) ?? []).map((value) => {
+    let url = value.replace(/[.,;!?]+$/, '');
+    // Markdown's closing parenthesis is not part of the URL; balanced URL
+    // parentheses (common in wiki titles) must remain intact.
+    while (url.endsWith(')') && (url.match(/\)/g) ?? []).length > (url.match(/\(/g) ?? []).length) url = url.slice(0, -1);
+    try { return decodeURI(new URL(url).href); } catch { return url; }
+  });
   const allowed = new Set(urls(evidence));
+  const sources = new Map();
+  const ambiguousIds = new Set();
+  for (const match of String(evidence).matchAll(/^\[(\d+|문서 \d+)\][^\n]*\n((?:[^\n]*\n?){1,3})/gm)) {
+    const sourceUrls = urls(match[2]);
+    if (sourceUrls.length === 1) {
+      if (sources.has(match[1]) && sources.get(match[1]) !== sourceUrls[0]) ambiguousIds.add(match[1]);
+      sources.set(match[1], sourceUrls[0]);
+    }
+  }
+  // Numeric references are meaningful only when this request's delivered
+  // context contains an unambiguous mapping. Never reuse a previous manifest.
+  let invalidId = false;
+  answer = String(answer).replace(/\[(\d+|문서 \d+)\](?!\()/g, (reference, id) => {
+    const url = sources.get(id);
+    if (!url || ambiguousIds.has(id) || !allowed.has(url)) { invalidId = true; return reference; }
+    return `${reference}(${url})`;
+  });
+  if (invalidId) return '제공된 자료에서 답변의 출처를 확인하지 못했다냥.';
   const cited = urls(answer);
   if (cited.some((url) => !allowed.has(url))) return '제공된 자료에서 답변의 출처를 확인하지 못했다냥.';
   if (!cited.length && !/확인.*못|확인되지|알 수 없|근거.*부족|자료.*없/.test(answer)) {

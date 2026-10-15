@@ -71,8 +71,12 @@ test('legacy factual lookup helper and deferred ordinary source decisions retain
 });
 
 test('web network failure, blocking and genuine empty results stay distinct', async () => {
-  const empty = await searchWeb('test', {fetchImpl: async () => new Response('<html></html>')});
+  const empty = await searchWeb('test', {fetchImpl: async () => new Response('<html>No results found 검색 결과가 없습니다</html>')});
   assert.equal(empty.status, 'empty');
+  const unrecognized = await searchWeb('test', {fetchImpl: async () => new Response('<html></html>')});
+  assert.equal(unrecognized.status, 'parse-error');
+  assert.equal(unrecognized.failed, true);
+  assert.equal(unrecognized.attempts[0].httpStatus, 200);
   const blocked = await searchWeb('test', {fetchImpl: async () => new Response('', {status:403})});
   assert.equal(blocked.status, 'blocked');
   assert.equal(blocked.failed, true);
@@ -143,4 +147,34 @@ test('fallback tries another key on the same model before lowering quality; cont
   let count=0;
   await assert.rejects(requestChatWithFallback(payload,{models:['primary','fallback'],keys:['a','b'],request:async()=>{count++;const e=new Error('bad payload');e.status=400;throw e;}}));
   assert.equal(count,1);
+});
+
+test('citation validation accepts equivalent encoded wiki URLs, balanced parentheses and current source IDs', () => {
+  const url = 'https://pyhok.com/w/인물(문서)';
+  const evidence = `[1] 제목: 인물\nURL: ${url}\n요약: 공개 자료`;
+  const encoded = 'https://pyhok.com/w/%EC%9D%B8%EB%AC%BC(%EB%AC%B8%EC%84%9C)';
+  const answer = `확인했다냥. [자료](${encoded})`;
+  assert.equal(validateChatCitations(answer, evidence), answer);
+  assert.match(validateChatCitations('확인했다냥. [1]', evidence), /https:\/\/pyhok.com/);
+  assert.match(validateChatCitations('확인했다냥. [2]', evidence), /출처를 확인하지 못/);
+  assert.match(validateChatCitations('확인했다냥. [1]', '새 질문의 자료에는 출처 ID가 없다'), /출처를 확인하지 못/);
+  assert.match(validateChatCitations('확인했다냥. https://pyhok.com/w/다른문서', evidence), /출처를 확인하지 못/);
+});
+
+test('grounding budget preserves complete source URLs with source excerpts', () => {
+  const url = 'https://source.test/a-very-long-path?document=123&lang=ko';
+  const result = selectGeminiContextSections({prompt:'질문',maxContextLength:2000,
+    webSearchContext:`[1] 제목: 질문\nURL: ${url}\n요약: ${'관련 본문 '.repeat(2000)}`});
+  assert.ok(result.groundingText.includes(url));
+  assert.match(result.groundingText,/관련 본문/);
+  assert.ok(result.prompt.length <= 2000);
+});
+
+test('normal Naver captcha API configuration is not a blocking challenge', async () => {
+  const html = '<title>검색 : 네이버 검색</title><script>const captchaApi="https://captcha.nid.naver.com/api"</script><a class="fender-ui_link" href="https://source.test">최신 AI 뉴스 기사</a>';
+  const result = await searchWeb('AI 뉴스', {fetchImpl:async (url) => new Response(String(url).includes('duckduckgo')?'<div class="anomaly-modal"></div>':html)});
+  assert.equal(result.status,'success');
+  assert.equal(result.results[0].url,'https://source.test/');
+  assert.equal(result.attempts[0].status,'blocked');
+  assert.equal(result.attempts[1].status,'success');
 });

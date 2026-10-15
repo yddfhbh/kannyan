@@ -78,7 +78,9 @@ export function selectGeminiContextSections(options = {}) {
         rows.unshift(...groupRows);
       }
       if (rows.length) text = `${section.text}\n${rows.join('\n')}`;
-    } else text = relevantContextText(section.text, limit, options.prompt);
+    } else text = key === 'grounding'
+      ? selectGroundingText(section.text, limit)
+      : relevantContextText(section.text, limit, options.prompt);
     if (!text) return;
     selected.push({ ...section, text, entryCount });
     remaining -= text.length + 2;
@@ -108,6 +110,28 @@ export function selectGeminiContextSections(options = {}) {
       finalTextualContextChars: promptText.length,
     },
   };
+}
+
+// Keep each source URL whole and next to its excerpt. Generic relevance windows
+// can detach URLs from claims or cut a URL halfway through its path.
+export function selectGroundingText(text, limit) {
+  if (text.length <= limit) return text;
+  const blocks = text.split(/\n(?=\[(?:\d+\]|문서 |주 문서|정확))/);
+  const selected = [];
+  let remaining = limit;
+  for (let i = 0; i < blocks.length; i += 1) {
+    const lines = blocks[i].split('\n');
+    const headers = lines.filter((line) => /https?:\/\/|^\[|^(?:제목|검색어|검색 시각):/.test(line));
+    const header = headers.join('\n');
+    const budget = Math.floor(remaining / (blocks.length - i));
+    if (header.length + 24 > budget) continue;
+    const body = lines.filter((line) => !headers.includes(line)).join('\n');
+    const excerpt = relevantContextText(body, budget - header.length - 20);
+    const block = `${header}\n${excerpt}`;
+    selected.push(block);
+    remaining -= block.length + 2;
+  }
+  return selected.join('\n\n');
 }
 
 function createContextSections(options) {

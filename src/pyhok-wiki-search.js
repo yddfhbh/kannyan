@@ -336,6 +336,7 @@ export async function searchPyhokWiki(query, options = {}) {
       results,
       context,
       status: results.length ? 'success' : 'empty',
+      httpStatus: response.status,
     };
   } catch (error) {
     const durationMs = Date.now() - startedAt;

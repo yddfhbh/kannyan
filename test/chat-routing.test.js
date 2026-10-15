@@ -13,51 +13,7 @@ import { isLikelyContextDependentPrompt } from '../src/gemini-followup.js';
 import { analyzePromptSecurity } from '../src/prompt-security.js';
 import { classifyPromptControlAttempt } from '../src/gemini-prompt-guard.js';
 
-// Execute actual entry functions without logging in to Discord or loading data files.
-const source = fs.readFileSync(new URL('../src/index.js', import.meta.url), 'utf8');
-function declaration(name) {
-  const start = source.search(new RegExp(`^(?:async )?function ${name}\\(`, 'm'));
-  assert.ok(start >= 0, name);
-  const rest = source.slice(start);
-  const end = rest.slice(1).search(/\n(?:async )?function /);
-  return end < 0 ? rest : rest.slice(0, end + 1);
-}
-function runtime({ images = [], history = [], wiki = null, search = null, reply = null, plan = {mode:'local'}, localAnswer = '자체 문맥으로 답했다냥.', page = {context:'',pages:[]} } = {}) {
-  const sent=[], queries=[], generated=[], stored=[];
-  const context = vm.createContext({
-    classifyWebSearchIntent, resolveChatSourcePlan, resolveChatEvidence, answerChatBySource, buildVerifiedWebAgeReply,
-    answerClockQuestion, shouldUseWebSearch, deriveWebSearchQuery, shouldIncludeWebSearchSources,
-    isExplicitPyhokWikiPrompt, isPyhokWikiLinkRequest, wikiSearchUnavailableReply, answerWikiAgeQuestion,
-    isLikelyContextDependentPrompt, analyzePromptSecurity, classifyPromptControlAttempt,
-    Date, console, parseChessImageAnalysisPrompt:()=>null,
-    collectEmojiOnlyTextDetails:()=>({matchedTextCount:0}),
-    getCanonicalPercentCommand:()=>null,
-    ensureGeminiMemoryLoaded:async()=>{}, getGeminiSessionKey:()=> 'g:c',
-    getMessageAuthorName:(m)=>m.author.username,
-    appendGeminiMemoryEntry:(_key,e)=>stored.push(e), saveGeminiMemory:async()=>{},
-    sendReplyOrChannelMessage:async(_m,p)=>sent.push(p.content),
-    normalizeDiscordTextForGemini:(_m,p)=>p,
-    getGeminiMentionContext:()=>'',getGeminiCurrentUserContext:()=> 'bob',
-    extractHexColorPreviewRequest:()=>null,isUnsupportedEmojiPrompt:()=>false,
-    safeSendTyping:async()=>{},geminiApiKeys:['mock-key'],
-    geminiPermanentMemory:{ensureLoaded:async()=>{},search:async()=>[]},
-    getGeminiSessionHistory:()=>history,resolveReferencedMessageChain:async()=>[],
-    getGeminiReplyContext:async()=>reply,createPermanentMemoryScope:()=> 'g',
-    getGeminiImageParts:async()=>images,shouldUseReplyImagesForGeminiPrompt:()=>true,
-    getChessImageAnalysisContext:async()=>({context:'',detectedChessboard:false}),
-    looksLikeChessTopicPrompt:()=>false,shouldForceWebSearchForChessPrompt:()=>false,
-    tryBuildWebSearchData:async(q,opts)=>{if(opts.force||shouldUseWebSearch(q)){queries.push(q);if(search?.status==='throws') throw new Error('search offline');return search ?? {query:q,status:'success',results:[{title:q,url:'https://source.test'}],context:'URL: https://source.test'};}return null;},
-    tryBuildPyhokWikiSearchData:async()=>wiki,
-    finalizeGeminiSearchReferenceData:(data)=>data,
-    buildWebPageReferenceContext:async()=>page,
-    shouldRequireStockfishForChessPrompt:()=>false,
-    generateGeminiAnswer:async(q,opts)=>{generated.push({q,opts});return {sourcePlan:plan,answer:opts.planSearch?localAnswer:'확인한 내용이다냥. https://source.test',emotion:'neutral',usedPermanentMemoryIds:[]};},
-    sendGeminiChatUsageLog:async()=>{},getGeminiEmotionReplyFiles:()=>[],formatPermanentMemoryAttribution:()=>'',
-    chunkDiscordMessage:(text)=>[text],getGeminiUserErrorMessage:(e)=>{throw e;},
-  });
-  for (const name of ['parseGeminiFallbackPrompt','getImmediatePreviousWebSearchQuery','sendChatFactReply','handleGeminiFallbackMessage','createWebSearchResponse']) vm.runInContext(declaration(name),context);
-  return {context,sent,queries,generated,stored};
-}
+import { runtime } from '../scripts/lib/chat-verification-runtime.js';
 const now = new Date('2026-10-14T15:00:00Z');
 const message=(content)=>({content,author:{id:'bob',username:'Bob'},guildId:'g',channelId:'c',client:{user:{username:'깐냥'}},attachments:new Map(),channel:{send:async()=>{}}});
 
@@ -222,4 +178,13 @@ test('provided text and quoted search instructions are answered in one call with
     assert.match(r.generated[0].opts.webSearchContext,/제공한 원문/);
     assert.match(r.sent[0],/제공한 글로/);
   }
+});
+
+test('invalid source plan triggers exactly one repair and never exposes the unverified draft', async () => {
+  const r = runtime({plan:{mode:'search',query:[]},localAnswer:'검증되지 않은 외부 사실'});
+  await r.context.handleGeminiFallbackMessage(message('%외부 정보 질문'),{now});
+  assert.equal(r.generated.length,2);
+  assert.equal(r.generated[1].opts.repairPlan,true);
+  assert.match(r.sent[0],/근거 계획을 읽지 못/);
+  assert.doesNotMatch(r.sent[0],/검증되지 않은 외부 사실/);
 });

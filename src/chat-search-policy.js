@@ -6,10 +6,15 @@ export function resolveChatEvidence(intent, { webSearchData, wikiSearchData, web
     ? wikiResults.some((r) => r.strongTitleMatch)
     : Boolean(webSearchData?.results?.length || wikiResults.length || webPageData?.pages?.length);
   const failed = webSearchData?.failed || ['failed', 'timeout', 'blocked', 'unauthorized', 'http-error', 'disabled'].includes(wikiSearchData?.status);
+  const failures = {
+    blocked: '검색 서비스가 접근을 차단해 요청한 사실을 확인하지 못했다냥.',
+    timeout: '검색 요청 시간이 초과되어 요청한 사실을 확인하지 못했다냥.',
+    'parse-error': '검색 서비스 응답 형식을 읽지 못해 요청한 사실을 확인하지 못했다냥.',
+  };
   const unavailable = wikiOnly
     ? '푝무위키에서 질문 대상에 맞는 근거를 확인하지 못했다냥.'
-    : failed ? '검색 연결 실패나 차단으로 요청한 사실을 확인하지 못했다냥.'
-      : '검색에서 질문 대상과 일치하는 근거를 확인하지 못했다냥.';
+    : failures[webSearchData?.status] ?? (failed ? '검색 연결 실패나 차단으로 요청한 사실을 확인하지 못했다냥.'
+      : '검색에서 질문 대상과 일치하는 근거를 확인하지 못했다냥.');
   return { hasEvidence, unavailable, blockWholeAnswer: intent.requiresExternal && !intent.hasLocalAnswer && !hasEvidence };
 }
 

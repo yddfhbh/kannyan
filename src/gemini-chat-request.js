@@ -1,7 +1,7 @@
 export function classifyChatRequestError(error) {
   const reasons = (error?.details?.details ?? []).map((d) => d.reason ?? '').join(' ');
   if ([401, 403].includes(error?.status) || (error?.status === 400 && /API_KEY_INVALID|API_KEY_EXPIRED/.test(reasons))) return 'key';
-  if (error?.status === 400 && /(?:responseMimeType|systemInstruction|response_schema|JSON mode).*(?:unsupported|not supported)|(?:unsupported|not supported).*(?:responseMimeType|systemInstruction|JSON)/i.test(error.message ?? '')) return 'model';
+  if (error?.status === 400 && /(?:responseMimeType|responseSchema|systemInstruction|response_schema|JSON mode).*(?:unsupported|not supported)|(?:unsupported|not supported).*(?:responseMimeType|responseSchema|systemInstruction|JSON)/i.test(error.message ?? '')) return 'model';
   if (error?.status === 429) return 'quota';
   if ([404, 500, 502, 503, 504].includes(error?.status) || error?.name === 'AbortError') return 'model';
   // An invalid payload cannot be repaired by changing API keys.

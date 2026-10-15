@@ -11,7 +11,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inspect, promisify } from 'node:util';
 import sharp from 'sharp';
-import { generateCloudflareImage } from './cloudflare-image.js';
 import {
   getGeminiEmotionAssetPath,
   parseGeminiAnswerPayload,
@@ -238,12 +237,6 @@ import {
   inferGeminiImageMimeType,
   isGeminiSupportedImageAttachment,
 } from './gemini-image.js';
-import {
-  buildImageGenerationPrompt,
-  inferImageGenerationPromptFromContext,
-  parseImageGenerationRequest,
-  shouldClarifyImageGenerationPrompt,
-} from './image-generation-request.js';
 import { normalizeDiscordMath, normalizeDiscordMarkdown } from './discord-markdown.js';
 import {
   buildGeminiCurrentUserPromptSection,
@@ -386,7 +379,7 @@ const geminiPermanentMemory = new PermanentMemoryStore(geminiPermanentMemoryPath
 const geminiSystemInstruction = [
   '너는 밝고 다정한 고양이귀 미소녀 스타일의 가상 챗봇이다.',
   '너의 이름은 "깐냥"이고, CODEX에 의해 만들어졌다.',
-  '이 봇은 %명령으로 그림을 생성하는 기능이 있다.',
+  '이미지 첨부·답장 이미지를 분석할 수 있다. 그림 생성 기능은 제공하지 않는다.',
   chatSourceGuidance,
   '',
   '[고정 정체성 및 출력 불변 규칙]',
@@ -676,221 +669,6 @@ const liveRatingTypes = {
 if (!DISCORD_TOKEN) {
   console.error('DISCORD_TOKEN must be set in .env');
   process.exit(1);
-}
-
-const imageGenerationCooldowns = new Map();
-const imageGenerationInFlight = new Set();
-
-const imageGenerationCooldownMs = 15_000;
-
-async function handleImageGenerationMessage(message, rawPrompt) {
-  const userId = message.author.id;
-  const now = Date.now();
-  const cooldownUntil = imageGenerationCooldowns.get(userId) ?? 0;
-
-  if (cooldownUntil > now) {
-    const remainingSeconds = Math.ceil((cooldownUntil - now) / 1000);
-
-    await message.reply({
-      content: `이미지는 ${remainingSeconds}초 뒤에 다시 만들 수 있다냥.`,
-      allowedMentions: { repliedUser: false },
-    });
-    return;
-  }
-
-  if (imageGenerationInFlight.has(userId)) {
-    await message.reply({
-      content: '이미 깐냥이가 이미지를 그리고 있다냥. 잠시만 기다려달라냥.',
-      allowedMentions: { repliedUser: false },
-    });
-    return;
-  }
-
-  const prompt = String(rawPrompt ?? '').trim();
-
-  await ensureGeminiMemoryLoaded();
-  const sessionKey = getGeminiSessionKey(message);
-  const history = getGeminiSessionHistory(sessionKey);
-  const referencedMessages = await resolveReferencedMessageChain(message, {
-    maxDepth: 1,
-    onError(error, sourceMessage) {
-      console.error(
-        `Failed to fetch referenced message for image generation ${sourceMessage.reference?.messageId}:`
-      );
-      console.error(error);
-    },
-  });
-  const replyContext = await getGeminiReplyContext(
-    message,
-    referencedMessages[0] ?? null
-  );
-  const resolvedPrompt = inferImageGenerationPromptFromContext(prompt, {
-    replyContext: replyContext?.text ?? '',
-    history,
-  });
-
-  if (!resolvedPrompt) {
-    await message.reply({
-      content:
-        '뭘 그릴지도 같이 말해달라냥. '
-        + '예: `%비 오는 부산의 네온 골목을 그려줘`',
-      allowedMentions: { repliedUser: false },
-    });
-    return;
-  }
-
-  if (shouldClarifyImageGenerationPrompt(resolvedPrompt, {
-    replyContext: replyContext?.text ?? '',
-    history,
-  })) {
-    await message.reply({
-      content: replyContext?.text
-        ? '답장 맥락은 봤는데 무엇을 어떻게 그릴지 한 번만 더 또렷하게 말해달라냥.'
-        : '무엇을 그릴지 조금만 더 구체적으로 말해달라냥.',
-      allowedMentions: { repliedUser: false },
-    });
-    return;
-  }
-
-  imageGenerationInFlight.add(userId);
-  imageGenerationCooldowns.set(
-    userId,
-    now + imageGenerationCooldownMs
-  );
-
-  try {
-    await message.channel.sendTyping();
-
-    const composedPrompt = buildImageGenerationPrompt(resolvedPrompt, {
-      replyContext: replyContext?.text ?? '',
-      history,
-    });
-    const rewrittenPrompt = await rewriteImageGenerationPromptWithGemini(resolvedPrompt, {
-      replyContext: replyContext?.text ?? '',
-      history,
-      fallbackPrompt: composedPrompt,
-    });
-    const { buffer, contentType } =
-      await generateCloudflareImage(rewrittenPrompt);
-
-    const extension =
-      contentType.includes('png') ? 'png' : 'jpg';
-
-    const attachment = new AttachmentBuilder(buffer, {
-      name: `kannyan-image-${Date.now()}.${extension}`,
-    });
-
-    await message.reply({
-      content: '깐냥이가 그려봤다냥! 🎨',
-      files: [attachment],
-      allowedMentions: { repliedUser: false },
-    });
-
-    appendGeminiMemoryEntry(sessionKey, {
-      role: 'user',
-      authorId: message.author?.id,
-      authorName: getMessageAuthorName(message),
-      text: replyContext?.text
-        ? `[이미지 생성 요청]\n답장 원본: ${replyContext.authorName}\n${replyContext.text}\n\n현재 요청: ${resolvedPrompt}`
-        : `[이미지 생성 요청] ${resolvedPrompt}`,
-      timestamp: Date.now(),
-    });
-    appendGeminiMemoryEntry(sessionKey, {
-      role: 'model',
-      authorName: message.client.user?.username ?? 'Bot',
-      text: `[이미지 생성 완료]\n요청: ${resolvedPrompt}\n생성 프롬프트: ${rewrittenPrompt}`,
-      timestamp: Date.now(),
-    });
-    await saveGeminiMemory();
-  } catch (error) {
-    console.error('[Image generation] failed:', error);
-
-    const quotaExceeded =
-      /(?:quota|limit|exceed|429)/i.test(String(error?.message));
-
-    await message.reply({
-      content: quotaExceeded
-        ? '오늘 이미지 생성 무료 할당량을 다 사용한 것 같다냥.'
-        : '이미지를 만드는 중 오류가 발생했다냥. 잠시 후 다시 시도해달라냥.',
-      allowedMentions: { repliedUser: false },
-    });
-  } finally {
-    imageGenerationInFlight.delete(userId);
-  }
-}
-
-async function rewriteImageGenerationPromptWithGemini(prompt, options = {}) {
-  const fallbackPrompt = String(options.fallbackPrompt ?? '').trim();
-  const replyContext = String(options.replyContext ?? '').trim();
-  const history = Array.isArray(options.history)
-    ? options.history
-        .map((entry) => {
-          const text = String(entry?.text ?? '').trim();
-          if (!text) {
-            return '';
-          }
-
-          const authorName = String(entry?.authorName ?? '').trim();
-          return authorName ? `${authorName}: ${text}` : text;
-        })
-        .filter(Boolean)
-        .slice(-4)
-    : [];
-
-  if (geminiApiKeys.length === 0) {
-    return fallbackPrompt || prompt;
-  }
-
-  const requestText = String(prompt ?? '').trim();
-  const rewriteInstruction = [
-    'You convert chat-based drawing requests into a concise English prompt for a text-to-image model.',
-    'Return JSON only.',
-    'Format: {"prompt":"..."}',
-    'Use the latest user request as the highest priority.',
-    'Use reply context and recent conversation only to resolve omitted subjects or pronouns.',
-    'Do not invent an unrelated place, street, sky, building, or background if the user asked for a specific object or character.',
-    'If no style was specified, prefer a clean digital illustration.',
-    'Keep the prompt under 180 English words.',
-    'Do not include markdown or explanations.',
-  ].join('\n');
-
-  const userPrompt = [
-    `[latest request]\n${requestText}`,
-    replyContext ? `[reply context]\n${replyContext}` : '',
-    history.length > 0 ? `[recent conversation]\n${history.join('\n')}` : '',
-    fallbackPrompt ? `[fallback prompt]\n${fallbackPrompt}` : '',
-  ].filter(Boolean).join('\n\n');
-
-  try {
-    const response = await fetchGeminiGenerateContent({
-      system_instruction: {
-        parts: [{ text: rewriteInstruction }],
-      },
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: userPrompt }],
-        },
-      ],
-      generationConfig: {
-        maxOutputTokens: 256,
-        temperature: 0.25,
-        topP: 0.8,
-        responseMimeType: 'application/json',
-      },
-    }, {
-      models: geminiModels,
-    });
-
-    const rewrittenText = extractGeminiResponseText(response);
-    const parsed = parseJsonObjectText(rewrittenText);
-    const rewrittenPrompt = String(parsed?.prompt ?? '').trim();
-
-    return rewrittenPrompt || fallbackPrompt || requestText;
-  } catch (error) {
-    console.error('[Image generation] prompt rewrite failed:', error);
-    return fallbackPrompt || requestText;
-  }
 }
 
 let discordReady = false;
@@ -1755,17 +1533,6 @@ client.on(Events.MessageCreate, async (message) => {
 
   const dailyPuzzleHandled = await handleDailyPuzzleMessage(message);
   if (dailyPuzzleHandled) {
-    return;
-  }
-
-  const imageGenerationRequest =
-    parseImageGenerationRequest(message);
-
-  if (imageGenerationRequest) {
-    await handleImageGenerationMessage(
-      message,
-      imageGenerationRequest.prompt
-    );
     return;
   }
 
@@ -8147,13 +7914,24 @@ const chessAnalysis =
     let plannedAnswer = null;
     const webPageData = shouldRestrictToWikiSources ? { context: '', pages: [] } : await buildWebPageReferenceContext(rawPrompt);
     if (!isChessPrompt && !prioritizeChessImageAnalysis && geminiApiKeys.length) {
-      const draft = await generateGeminiAnswer(prompt, {
+      let draft = await generateGeminiAnswer(prompt, {
         planSearch: true, now: requestNow, history, replyContext, mentionContext,
         currentUserContext, contextDependentPrompt, permanentMemories, promptControl,
         currentAuthorId: message.author?.id, imageParts,
         webSearchContext: webPageData.context,
       });
-      const planned = resolveChatSourcePlan(draft, rawPrompt, initialSearchIntent);
+      let planned = resolveChatSourcePlan(draft, rawPrompt, initialSearchIntent);
+      if (!planned.valid) {
+        console.warn('[Chat plan] invalid; attempting one structured repair');
+        draft = await generateGeminiAnswer(prompt, {
+          planSearch: true, repairPlan: true, now: requestNow, history, replyContext,
+          mentionContext, currentUserContext, contextDependentPrompt, permanentMemories,
+          promptControl, currentAuthorId: message.author?.id, imageParts,
+          webSearchContext: webPageData.context,
+        });
+        planned = resolveChatSourcePlan(draft, rawPrompt, initialSearchIntent);
+        console.log(`[Chat plan] repair valid=${planned.valid}`);
+      }
       initialSearchIntent = planned.intent;
       plannedAnswer = planned.result;
     }
@@ -8814,6 +8592,7 @@ async function tryBuildWebSearchData(prompt, options = {}) {
   if (!searchResult.results.length) {
     return {
       query: searchResult.query,
+      attempts: searchResult.attempts,
       results: [],
       status: searchResult.status,
       failed: searchResult.failed,
@@ -8834,6 +8613,7 @@ async function tryBuildWebSearchData(prompt, options = {}) {
 
   return {
     status: searchResult.status,
+    attempts: searchResult.attempts,
     query: searchResult.query,
     results: searchResult.results,
     searchedAtText,
@@ -9143,6 +8923,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     '답변 분위기가 시큰둥함, 귀찮음, 툭툭거리는 짜증, 장난스럽게 콱 무는 듯한 반응이면 neutral보다 bored를 우선한다.',
     'JSON 바깥의 설명, 코드 블록, 마크다운, 서문은 절대 출력하지 않는다.',
     ...(options.planSearch ? [chatSourcePlanGuidance] : []),
+    ...(options.repairPlan ? ['이전 응답에서 필수 sourcePlan을 파싱하지 못했다. 현재 요청과 문맥으로 계획을 다시 판단하고 필수 형식을 정확히 반환한다.'] : []),
     ...(options.externalOnly ? ['answer에는 지정된 외부 요청에 관한 내용만 쓴다. 제공 근거로 확인한 주장에는 출처 URL을 인용하고, 확인 못한 사실만 유보한다. 자체 설정·대화 답변을 다시 쓰지 않는다.'] : []),
     ...(imageParts.length > 0 ? [
       '',
@@ -9175,6 +8956,18 @@ async function generateGeminiAnswer(prompt, options = {}) {
         temperature: 0.55,
         topP: 0.9,
         responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'OBJECT',
+          properties: {
+            answer: { type: 'STRING' }, emotion: { type: 'STRING' },
+            ...(options.planSearch ? { sourcePlan: {
+              type: 'OBJECT', properties: {
+                mode: { type: 'STRING', enum: ['local', 'search'] },
+                query: { type: 'STRING' }, purpose: { type: 'STRING' }, externalPrompt: { type: 'STRING' },
+              }, required: ['mode', 'query', 'purpose', 'externalPrompt'],
+            } } : {}),
+          }, required: ['answer', 'emotion', ...(options.planSearch ? ['sourcePlan'] : [])],
+        },
       },
     }, {
       models: modelsToUse,

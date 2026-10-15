@@ -47,6 +47,8 @@ test('actual answer payload retains settings, question, history, memory, reply, 
   for(const value of ['너 누구고 부산 날씨 어때?','Example Phone 5','15만원 이하','원문 자료','사용자 제공 글']) assert.ok(input.includes(value),value);
   assert.equal(payload.contents[0].parts[1].inline_data.data,'image');
   assert.equal(payload.generationConfig.responseMimeType,'application/json');
+  assert.ok(payload.generationConfig.responseSchema.required.includes('sourcePlan'));
+  assert.deepEqual(Array.from(payload.generationConfig.responseSchema.properties.sourcePlan.required),['mode','query','purpose','externalPrompt']);
   assert.equal(payload.tools,undefined);
   assert.equal(opts.chat,true);
 });

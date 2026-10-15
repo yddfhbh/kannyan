@@ -51,23 +51,38 @@ export async function searchWeb(query, options = {}) {
     const queryVariants = buildSearchQueryVariants(normalizedQuery, preferredDomains);
     const queryResults = [];
     const failures = [];
+    const attempts = [];
     let successfulRequests = 0;
-    const collect = async (operation) => {
-      try { const results = await operation(); successfulRequests += 1; return results; }
-      catch (error) { failures.push(error); return []; }
+    const collect = async (provider, searchQuery, operation) => {
+      const attempt = { provider, query: searchQuery, httpStatus: null };
+      attempts.push(attempt);
+      const fetchImpl = async (...args) => {
+        const response = await (options.fetchImpl ?? fetch)(...args);
+        attempt.httpStatus = response.status;
+        return response;
+      };
+      try {
+        const results = await operation(fetchImpl); successfulRequests += 1;
+        Object.assign(attempt, { status: results.length ? 'success' : 'empty', count: results.length });
+        return results;
+      } catch (error) {
+        failures.push(error);
+        Object.assign(attempt, { status: error.name === 'AbortError' ? 'timeout' : error.kind ?? ([403, 429].includes(error.status) ? 'blocked' : 'failed'), count: 0 });
+        return [];
+      }
     };
 
     for (const searchQuery of queryVariants) {
-      let results = await collect(() => performDuckDuckGoHtmlSearch(searchQuery, {
+      let results = await collect('duckduckgo', searchQuery, (fetchImpl) => performDuckDuckGoHtmlSearch(searchQuery, {
         region: options.region,
         signal: controller.signal,
-        fetchImpl: options.fetchImpl,
+        fetchImpl,
       }));
 
       if (results.length === 0) {
-        results = await collect(() => performNaverSearch(searchQuery, {
+        results = await collect('naver', searchQuery, (fetchImpl) => performNaverSearch(searchQuery, {
           signal: controller.signal,
-        fetchImpl: options.fetchImpl,
+        fetchImpl,
         }));
       }
 
@@ -80,8 +95,9 @@ export async function searchWeb(query, options = {}) {
     return {
       query: normalizedQuery,
       results: mergedResults,
-      status: mergedResults.length ? 'success' : successfulRequests ? 'empty' : controller.signal.aborted ? 'timeout' : failures.some((e) => [403, 429].includes(e.status)) ? 'blocked' : 'failed',
-      failed: !mergedResults.length && successfulRequests === 0,
+      attempts,
+      status: mergedResults.length ? 'success' : controller.signal.aborted ? 'timeout' : failures.some((e) => [403, 429].includes(e.status)) ? 'blocked' : failures.some((e) => e.kind === 'parse-error') ? 'parse-error' : successfulRequests ? 'empty' : 'failed',
+      failed: !mergedResults.length && failures.length > 0,
     };
   } finally {
     clearTimeout(timeout);
@@ -276,10 +292,10 @@ async function performDuckDuckGoHtmlSearch(query, options = {}) {
     throw error;
   }
 
-  if (/anomaly-modal|challenge-form|captcha/i.test(html)) {
+  if (isSearchChallenge(html)) {
     const error = new Error('Search blocked by challenge'); error.status = 403; throw error;
   }
-  return parseDuckDuckGoHtmlResults(html);
+  return requireRecognizedResults(parseDuckDuckGoHtmlResults(html), html, /no-results|No results found|검색 결과가 없/i);
 }
 
 function buildSearchQueryVariants(query, preferredDomains) {
@@ -316,10 +332,25 @@ async function performNaverSearch(query, options = {}) {
     throw error;
   }
 
-  if (/captcha|자동입력\s*방지/i.test(html)) {
+  if (isSearchChallenge(html)) {
     const error = new Error('Search blocked by challenge'); error.status = 403; throw error;
   }
-  return parseNaverSearchResults(html);
+  return requireRecognizedResults(parseNaverSearchResults(html), html, /검색결과가? 없|검색 결과가? 없|검색한 결과를 찾을 수 없|no results/i);
+}
+
+function isSearchChallenge(html) {
+  const { document } = new JSDOM(String(html)).window;
+  // Normal Naver search pages contain captcha API URLs inside JavaScript.
+  // Those configuration strings do not mean that the search was blocked.
+  return Boolean(document.querySelector('.anomaly-modal, #challenge-form, #captchaimg, #captcha_form, form[action*="captcha"]'))
+    || /접근\s*제한|자동입력\s*방지|security verification|access denied/i.test(document.title);
+}
+
+function requireRecognizedResults(results, html, emptyPattern) {
+  if (results.length || emptyPattern.test(html)) return results;
+  const error = new Error('Unrecognized search response markup');
+  error.kind = 'parse-error';
+  throw error;
 }
 
 function parseNaverSearchResults(html) {
