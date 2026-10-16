@@ -1,0 +1,10 @@
+{
+  "provenance": "Maintainer repository descriptions checked 2026-10-15. Excerpts are paraphrased fixture data, not live bot search results. Aster Quill existence is unverified; its name is not a claim of nonexistence.",
+  "reportedQuestion": "gpt 6 sol vs gpt 6.1 sol",
+  "officialResults": [
+    {"title":"llamafile", "url":"https://github.com/mozilla-ai/llamafile", "snippet":"llamafile distributes and runs LLMs with a single file."},
+    {"title":"llama.cpp", "url":"https://github.com/ggml-org/llama.cpp", "snippet":"llama.cpp provides LLM inference in C/C++."},
+    {"title":"llama-cpp-python", "url":"https://github.com/abetlen/llama-cpp-python", "snippet":"llama-cpp-python provides Python bindings for llama.cpp."}
+  ],
+  "questions": ["gpt 6 sol vs gpt 6.1 sol", "llamafile vs llama.cpp", "llama.cpp vs llama-cpp-python", "Aster Quill 97 sol vs Aster Quill 97 luna", "llamafile sol vs llamafile luna"]
+}

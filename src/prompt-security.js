@@ -231,3 +231,28 @@ export function sanitizeContextTextForModel(value) {
   const { sanitizedText, shouldBlock } = analyzePromptSecurity(value);
   return shouldBlock ? '' : sanitizedText;
 }
+
+// External sources are independent records, not one instruction. Inspecting the
+// concatenation lets unrelated words in different articles trigger an override
+// pattern and erase every source. Keep the guard on each line instead.
+export function sanitizeReferenceTextForModel(value) {
+  return sanitizePromptInjectionText(value)
+    .split(/\n(?=\[(?:\d+\]|문서 |주 문서|정확|Page \d+\]))/)
+    .map((block) => {
+      const lines = block.split('\n');
+      const rejected = new Set(lines.flatMap((line, index) => analyzePromptSecurity(line).shouldBlock ? [index] : []));
+      // Preserve detection of directives split over adjacent lines, without
+      // joining unrelated article records or arbitrary distant keywords.
+      for (let i = 0; i < lines.length; i += 1) {
+        for (let size = 2; size <= 3 && i + size <= lines.length; size += 1) {
+          if (lines.slice(i, i + size).some((_, offset) => rejected.has(i + offset))) continue;
+          const span = lines.slice(i, i + size).join(' ');
+          if (!/지시|규칙|프롬프트|instructions?|system\s+prompt/i.test(span)) continue;
+          if (analyzePromptSecurity(span).shouldBlock) {
+            for (let j = i; j < i + size; j += 1) rejected.add(j);
+          }
+        }
+      }
+      return lines.filter((_, index) => !rejected.has(index)).join('\n');
+    }).filter(Boolean).join('\n');
+}

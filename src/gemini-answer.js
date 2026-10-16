@@ -257,6 +257,8 @@ export function parseGeminiAnswerPayload(text) {
     answer,
     emotion: normalizeGeminiEmotionLabel(parsed?.emotion),
     ...(parsed && Object.hasOwn(parsed, 'sourcePlan') ? { sourcePlan: parsed.sourcePlan } : {}),
+    ...(parsed?.searchRefinement ? { searchRefinement: parsed.searchRefinement } : {}),
+    ...(Array.isArray(parsed?.evidenceReviews) ? { evidenceReviews: parsed.evidenceReviews } : {}),
   };
 }
 

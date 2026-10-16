@@ -1,0 +1,20 @@
+{
+  "status": "unverified",
+  "reason": "No configured model API keys in this runtime",
+  "questions": [
+    "gpt 6 sol vs gpt 6.1 sol",
+    "llamafile vs llama.cpp",
+    "llama.cpp vs llama-cpp-python",
+    "Aster Quill 97 sol vs Aster Quill 97 luna",
+    "llamafile sol vs llamafile luna"
+  ],
+  "limits": {
+    "modelRequests": 12,
+    "httpRequests": 36,
+    "durationMs": 180000
+  },
+  "counts": {
+    "modelRequests": 0,
+    "httpRequests": 0
+  }
+}

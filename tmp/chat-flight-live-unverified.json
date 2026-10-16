@@ -1,0 +1,26 @@
+{
+  "worktreeIdentity": {
+    "codeSha256": "0f4fc894328b3ef113f580e002c73afebef947392cc02f2f1945044c550ed3f9",
+    "head": "fb8ebbb23e22f6382afc5f67671191774c68725b",
+    "dirty": true
+  },
+  "status": "unverified",
+  "reason": "No configured model API keys in this runtime",
+  "questions": [
+    "naia to pus flight time"
+  ],
+  "questionLimits": {
+    "modelRequests": 6,
+    "httpRequests": 36,
+    "durationMs": 90000
+  },
+  "limits": {
+    "modelRequests": 20,
+    "httpRequests": 36,
+    "durationMs": 180000
+  },
+  "counts": {
+    "modelRequests": 0,
+    "httpRequests": 0
+  }
+}

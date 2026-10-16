@@ -31,6 +31,10 @@ export function buildVerifiedWebAgeReply(prompt, data, now) {
 
 
 export function validateChatCitations(answer, evidence) {
+  return validateChatCitationsWithStatus(answer, evidence).answer;
+}
+
+export function validateChatCitationsWithStatus(answer, evidence) {
   const urls = (text) => (String(text).match(/https?:\/\/[^\s<>"'\]]+/g) ?? []).map((value) => {
     let url = value.replace(/[.,;!?]+$/, '');
     // Markdown's closing parenthesis is not part of the URL; balanced URL
@@ -56,11 +60,11 @@ export function validateChatCitations(answer, evidence) {
     if (!url || ambiguousIds.has(id) || !allowed.has(url)) { invalidId = true; return reference; }
     return `${reference}(${url})`;
   });
-  if (invalidId) return '제공된 자료에서 답변의 출처를 확인하지 못했다냥.';
+  if (invalidId) return { answer: '제공된 자료에서 답변의 출처를 확인하지 못했다냥.', valid: false };
   const cited = urls(answer);
-  if (cited.some((url) => !allowed.has(url))) return '제공된 자료에서 답변의 출처를 확인하지 못했다냥.';
+  if (cited.some((url) => !allowed.has(url))) return { answer: '제공된 자료에서 답변의 출처를 확인하지 못했다냥.', valid: false };
   if (!cited.length && !/확인.*못|확인되지|알 수 없|근거.*부족|자료.*없/.test(answer)) {
-    return '제공된 자료만으로 답변의 근거를 특정하지 못했다냥.';
+    return { answer: '제공된 자료만으로 답변의 근거를 특정하지 못했다냥.', valid: false };
   }
-  return answer;
+  return { answer, valid: true };
 }

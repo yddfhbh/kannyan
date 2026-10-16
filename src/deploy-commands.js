@@ -19,6 +19,13 @@ const adminOnlyPermission = PermissionsBitField.Flags.Administrator;
 function buildSlashCommands() {
   return [
   new SlashCommandBuilder()
+    .setName('리오로그인')
+    .setDescription('지정 운영자가 Discord 유저의 TETR.IO 계정을 수동 연동합니다.')
+    .setDefaultMemberPermissions(0)
+    .addUserOption((option) => option.setName('유저').setDescription('연동할 Discord 유저').setRequired(true))
+    .addStringOption((option) => option.setName('닉네임').setDescription('TETR.IO 닉네임').setRequired(true))
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('도움말')
     .setDescription('사용 가능한 명령어를 보여줍니다.')
     .toJSON(),

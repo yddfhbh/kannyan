@@ -1,0 +1,21 @@
+{
+  "status": "unverified",
+  "reason": "No configured model API keys in this runtime",
+  "questions": [
+    "gpt 6 sol vs gpt 6.1 sol"
+  ],
+  "questionLimits": {
+    "modelRequests": 5,
+    "httpRequests": 36,
+    "durationMs": 40000
+  },
+  "limits": {
+    "modelRequests": 20,
+    "httpRequests": 36,
+    "durationMs": 180000
+  },
+  "counts": {
+    "modelRequests": 0,
+    "httpRequests": 0
+  }
+}

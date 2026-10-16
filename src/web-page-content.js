@@ -111,7 +111,11 @@ async function fetchWebPageTextWithinDeadline(input, options = {}) {
       url = new URL(location, url);
       continue;
     }
-    if (!response.ok) throw new Error(`Page responded with HTTP ${response.status}.`);
+    if (!response.ok) {
+      const error = new Error(`Page responded with HTTP ${response.status}.`);
+      error.status = response.status;
+      throw error;
+    }
 
     const contentType = response.headers.get('content-type') ?? '';
     if (!/\b(text\/html|application\/xhtml\+xml)\b/i.test(contentType)) {
@@ -131,18 +135,54 @@ export function extractReadablePageText(html, maxTextLength = defaultMaxTextLeng
   const dom = new JSDOM(String(html ?? ''));
   try {
     const document = dom.window.document;
-    document.querySelectorAll('script, style, noscript, template, svg, canvas, iframe, nav, menu, header, footer, aside, form, dialog, [role="navigation"], [role="banner"], [role="contentinfo"], .nav, .navbar, .menu, .sidebar, .footer, .header, .advertisement, .ads, .cookie, .modal').forEach((node) => node.remove());
-    const root = document.querySelector('article, main, [role="main"], .article, .post, .entry-content') ?? document.body;
+    const articleMetadata = extractArticleMetadata(document);
+    const metadataText = [...document.querySelectorAll('time[datetime], meta[property="og:title"], meta[property="og:updated_time"], meta[name="date"], meta[itemprop="dateModified"]')]
+      .map((node) => [node.getAttribute('datetime') || node.getAttribute('content'), normalizeText(node.textContent)].filter(Boolean).join(' ')).join('\n');
+    document.querySelectorAll('script, style, noscript, template, svg, canvas, iframe, nav, menu, header, footer, aside, form, dialog, [role="navigation"], [role="banner"], [role="contentinfo"], .nav, .navbar, .menu, .sidebar, .footer, .header, .advertisement, .ads, .cookie, .modal, .related, .related-news, .recommend, .recommendations, [class*="related-"], [class*="recommend-"], ytd-guide-renderer, ytd-masthead, #footer').forEach((node) => node.remove());
+    const root = ['[itemprop="articleBody"]', '.article-body', '.article_body', '#articleBody', '#article-view-content-div', '.newsct_article', '.entry-content', 'article', 'main', '[role="main"]', '.article', '.post'].map((selector) => document.querySelector(selector)).find(Boolean) ?? document.body;
+    const links = [...(root?.querySelectorAll('a[href]') ?? [])]
+      .map((a) => ({ url: a.getAttribute('href'), title: normalizeText(a.textContent) }))
+      .filter((link) => link.title.length >= 8).slice(0, 30);
     const textContainer = document.createElement('div');
-    textContainer.innerHTML = String(root?.innerHTML ?? '').replace(/<\/?(?:address|article|blockquote|br|div|figcaption|h[1-6]|li|p|pre|section|table|tr|ul|ol)\b[^>]*>/gi, ' ');
+    textContainer.innerHTML = String(root?.innerHTML ?? '').replace(/<\/?(?:address|article|blockquote|br|div|figcaption|h[1-6]|li|p|pre|section|table|tr|td|th|dl|dt|dd|ul|ol)\b[^>]*>/gi, ' ');
     const text = normalizeText(textContainer.textContent ?? '');
     return {
       title: normalizeText(document.title),
+      metadataText,
       text: truncateText(text, maxTextLength),
+      bodyQuality: text.length >= 120 && (text.match(/[\p{Letter}\p{Number}]/gu)?.length ?? 0) >= 80 ? 'substantive' : 'insufficient',
+      canonicalUrl: document.querySelector('link[rel="canonical"]')?.href || articleMetadata.articleUrl || '',
+      ...articleMetadata,
+      links,
     };
   } finally {
     dom.window.close();
   }
+}
+
+function extractArticleMetadata(document) {
+  const articles = [];
+  const visit = (node) => {
+    if (Array.isArray(node)) return node.forEach(visit);
+    if (!node || typeof node !== 'object') return;
+    const types = [].concat(node['@type'] ?? []);
+    if (types.some((type) => /^(?:NewsArticle|Article|BlogPosting|ReportageNewsArticle|TechArticle)$/.test(type))) articles.push(node);
+    if (node['@graph']) visit(node['@graph']);
+    if (node.mainEntity) visit(node.mainEntity);
+  };
+  for (const script of document.querySelectorAll('script[type="application/ld+json"]')) {
+    try { visit(JSON.parse(script.textContent)); } catch { /* Malformed metadata is not evidence. */ }
+  }
+  const article = articles.length === 1 ? articles[0] : null;
+  const metaDate = document.querySelector('meta[property="article:published_time"], meta[name="datePublished"], meta[itemprop="datePublished"]')?.content;
+  const timeDate = document.querySelector('article time[datetime], main time[datetime]')?.getAttribute('datetime');
+  return {
+    articleUrl: typeof article?.url === 'string' ? article.url : '',
+    articleTitle: normalizeText(article?.headline || document.querySelector('h1')?.textContent),
+    publishedAt: String(article?.datePublished || metaDate || timeDate || ''),
+    publicationEvidence: article?.datePublished ? 'datePublished' : metaDate ? 'article:published_time' : timeDate ? 'time[datetime]' : '',
+    isArticle: articles.length <= 1 && Boolean(article || document.querySelector('meta[property="og:type"][content="article"]') || (document.querySelector('article h1') && timeDate)),
+  };
 }
 
 export function isTrustedSourceUrl(value) {

@@ -1,3 +1,6 @@
+import { answerSupplementaryWikiFacts } from '../../src/evidence-review.js';
+import { renderWeatherEvidence } from '../../src/web-evidence.js';
+import { answerVerifiedNews } from '../../src/news-evidence.js';
 import { resolveChatSourcePlan } from '../../src/chat-source-plan.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -24,7 +27,7 @@ export function declaration(name) {
 export function runtime({ images = [], history = [], wiki = null, search = null, reply = null, plan = {mode:'local'}, localAnswer = '자체 문맥으로 답했다냥.', page = {context:'',pages:[]} } = {}) {
   const sent=[], queries=[], generated=[], stored=[];
   const context = vm.createContext({
-    classifyWebSearchIntent, resolveChatSourcePlan, resolveChatEvidence, answerChatBySource, buildVerifiedWebAgeReply,
+    answerSupplementaryWikiFacts, renderWeatherEvidence, answerVerifiedNews, classifyWebSearchIntent, resolveChatSourcePlan, resolveChatEvidence, answerChatBySource, buildVerifiedWebAgeReply,
     answerClockQuestion, shouldUseWebSearch, deriveWebSearchQuery, shouldIncludeWebSearchSources,
     isExplicitPyhokWikiPrompt, isPyhokWikiLinkRequest, wikiSearchUnavailableReply, answerWikiAgeQuestion,
     isLikelyContextDependentPrompt, analyzePromptSecurity, classifyPromptControlAttempt,
@@ -50,7 +53,13 @@ export function runtime({ images = [], history = [], wiki = null, search = null,
     finalizeGeminiSearchReferenceData:(data)=>data,
     buildWebPageReferenceContext:async()=>page,
     shouldRequireStockfishForChessPrompt:()=>false,
-    generateGeminiAnswer:async(q,opts)=>{generated.push({q,opts});return {sourcePlan:plan,answer:opts.planSearch?localAnswer:'확인한 내용이다냥. https://source.test',emotion:'neutral',usedPermanentMemoryIds:[]};},
+    generateGeminiAnswer:async(q,opts)=>{
+      generated.push({q,opts});
+      const external = '확인한 내용이다냥. https://source.test';
+      return {sourcePlan:plan,answer:opts.planSearch || opts.localOnly ? localAnswer
+        : opts.completeAnswer ? [localAnswer,external].filter(Boolean).join('\n\n') : external,
+        emotion:'neutral',usedPermanentMemoryIds:[]};
+    },
     sendGeminiChatUsageLog:async()=>{},getGeminiEmotionReplyFiles:()=>[],formatPermanentMemoryAttribution:()=>'',
     chunkDiscordMessage:(text)=>[text],getGeminiUserErrorMessage:(e)=>{throw e;},
   });

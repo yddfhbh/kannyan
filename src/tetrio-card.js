@@ -188,7 +188,10 @@ export async function findTetrioUsername(input) {
 
   try {
     const response = await fetchTetrioJson(`/users/${encodeURIComponent(normalizedUsername)}`, { sessionId });
-    return response.data?.username ?? normalizedUsername;
+    if (typeof response.data?.username !== 'string' || !response.data.username.trim()) {
+      throw new Error('Invalid TETR.IO user lookup response');
+    }
+    return response.data.username;
   } catch (error) {
     if (error.status === 404) {
       return null;
@@ -218,9 +221,11 @@ export async function findTetrioUsernameByDiscordId(discordUserId) {
     { sessionId },
   );
 
-  const users = Array.isArray(response.data?.users)
-    ? response.data.users
-    : [];
+  if (!Array.isArray(response.data?.users) || response.data.users.some((user) =>
+    typeof user?.username !== 'string' || !user.username.trim())) {
+    throw new Error('Invalid TETR.IO Discord search response');
+  }
+  const users = response.data.users;
 
   return users[0]?.username ?? null;
 }

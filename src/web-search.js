@@ -236,8 +236,11 @@ export function formatWebSearchContext(query, results, options = {}) {
         `URL: ${result.url}`,
       ];
 
+      if (result.publishedAt) lines.push(`게시일: ${result.publishedAt}`);
+
+      if (result.bodyReview) lines.push(`근거 범위: ${result.evidenceKind === 'search-snippet' ? '검색 스니펫의 명시된 부분만 확인; 본문·현재 상태 확인 아님' : '질문 관련 본문 발췌 확인'}. 공식 출처 여부는 별도 확인이 필요하다.`);
       if (result.pageText) lines.push(`확인한 본문: ${truncateText(result.pageText, 4000)}`);
-      if (result.snippet) {
+      if (result.snippet && !result.bodyReview) {
         lines.push(`요약: ${truncateText(result.snippet, 1200)}`);
       }
 

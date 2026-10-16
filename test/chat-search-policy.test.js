@@ -70,8 +70,8 @@ test('mixed request preserves local answer on empty, failed and invalid external
       assert.match(result.answer,/CODEX가 만든 깐냥/);
       assert.equal(calls.length,status==='success'?2:1);
       assert.equal(calls[0],'너 누구야');
-      if(status==='failed') assert.match(result.answer,/검색 연결 실패/);
-      if(status==='empty') assert.match(result.answer,/일치하는 근거/);
+      if(status==='failed') assert.match(result.answer,/검색 요청 중 연결 오류/);
+      if(status==='empty') assert.match(result.answer,/검색 요청은 완료.*결과가 없어/);
       if(status==='success' && !validCitation) assert.match(result.answer,/출처를 확인하지 못/);
       assert.deepEqual(result.usedPermanentMemoryIds,['local']);
     }

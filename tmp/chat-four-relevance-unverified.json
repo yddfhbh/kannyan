@@ -1,0 +1,19 @@
+{
+  "status": "unverified",
+  "reason": "No configured model API keys in this runtime",
+  "questions": [
+    "너 누구고 오늘 부산 날씨는 어때?",
+    "최신 AI 뉴스 검색해서 요약해줘",
+    "푝무위키 파이호크 나이",
+    "gpt 6 sol vs gpt 6.1 sol"
+  ],
+  "limits": {
+    "modelRequests": 12,
+    "httpRequests": 36,
+    "durationMs": 180000
+  },
+  "counts": {
+    "modelRequests": 0,
+    "httpRequests": 0
+  }
+}

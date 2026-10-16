@@ -34,3 +34,7 @@ discord-bot-vm-deploy.sh
 preview-*.png
 preview-*.svg
 tmp/varchive-font-prototype/
+
+# Private TETR.IO account mappings (including atomic write files)
+**/tetrio-user-links.json
+**/tetrio-user-links.json.*.tmp
