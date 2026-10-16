@@ -35,7 +35,9 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
   const originalQuestion = options.originalPrompt || query;
   const anchors = searchIdentityAnchors(query);
   const groups = anchors.map((a) => [a]);
-  const reads = [], searches = [], selections = [], reviews = [], decisions = [], aliases = [], refinements = [];
+  const attributeTerms = terms(String(query).replace(/^(?:from\s+)?(.+?)\s+(?:to|→|->)\s+(.+?)(?=\s+(?:flight|travel|journey|duration|time|distance)\b|$)/i, ''));
+  const reads = [], searches = [], selections = [], reviews = [], decisions = [], aliases = [], aliasReviews = [], refinements = [];
+  const queue = [];
   const seen = new Set(), searched = new Set([normalize(query)]);
   const started = Date.now();
   const limits = { searches: 2, reads: 4, durationMs: 25_000 };
@@ -49,22 +51,76 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
     if (b.external && (b.external.httpRequests < 2 || b.external.modelRequests < 3 || b.external.durationMs <= 0)) return 'external-budget-reserved-for-answer';
     return '';
   };
-  function acceptRefinement(value, sources) {
+  const queryRejection = (q) => {
+    if (typeof q !== 'string') return 'invalid-query-type';
+    if (!q.trim() || q.length > 300 || /[\u0000-\u001f]/.test(q)) return 'invalid-query-text';
+    if (searched.has(normalize(q.trim()))) return 'duplicate-search';
+    if (queue.some((entry) => normalize(entry.query) === normalize(q.trim()))) return 'duplicate-queued-query';
+    if (groups.length === 2) {
+      const positions = groups.map((g) => g.map((a) => normalize(q).indexOf(normalize(a))).filter((p) => p >= 0));
+      if (!positions.every((p) => p.length)) return 'unverified-endpoint';
+      if (Math.min(...positions[0]) >= Math.min(...positions[1])) return 'reversed-endpoints';
+    } else if (!anchors.every((a) => contains(q, a))) return 'unverified-identity';
+    return '';
+  };
+  function enqueue(q, round, origin, index) {
+    const reason = queryRejection(q);
+    const trace = { query:q, round, origin, index, accepted:!reason,
+      reason:reason || 'identity-and-direction-preserved', status:reason ? 'rejected' : 'queued' };
+    refinements.push(trace);
+    if (reason) return;
+    const usesAlias = groups.some((g) => g.slice(1).some((a) => contains(q, a)));
+    const preservesAttribute = attributeTerms.some((term) => terms(q).includes(term));
+    const priority = origin === 'official-fallback' ? 0 : usesAlias && preservesAttribute ? 2 : 1;
+    Object.assign(trace, {usesVerifiedAlias:usesAlias, preservesAttribute, priority});
+    queue.push({ subject:query, query:q.trim(), trace, priority });
+    queue.sort((a,b) => b.priority - a.priority);
+  }
+  function acceptRefinement(value, sources, round) {
     refinement = value;
-    // Build a supported alias graph, including multi-hop mappings, without a name dictionary.
+    // Identity evidence is independent of whether a source answers the requested attribute.
     const pending = Array.isArray(value?.aliases) ? value.aliases.slice(0, 24) : [];
-    for (let pass = 0; pass < pending.length; pass++) {
-      for (const a of pending) {
-        if (!a.from?.trim() || !a.to?.trim() || !a.quote?.trim() || a.quote.length > 600) continue;
-        const source = sources[a.sourceId];
-        const text = source && [source.title, source.metadataText, source.pageText].filter(Boolean).join('\n');
-        if (!text?.includes(a.quote) || !contains(a.quote, a.from) || !contains(a.quote, a.to)) continue;
-        const group = groups.find((g) => g.some((name) => normalize(name) === normalize(a.from)));
-        if (!group || group.some((name) => normalize(name) === normalize(a.to))) continue;
-        // Never merge the original two endpoints into one identity.
-        if (groups.some((g) => g !== group && g.some((name) => normalize(name) === normalize(a.to)))) continue;
-        group.push(a.to.trim()); aliases.push({ ...a, url: source.url, evidenceKind: source.evidenceKind });
+    // Expand only an explicit local name/alias + labeled-code construction in a cited quote.
+    // This does not infer codes from a model's memory or a different part of the page.
+    for (const a of [...pending]) {
+      if (typeof a?.quote !== 'string') continue;
+      const relation = a.quote.match(/^([^()\n]+?)\s+or\s+([\p{Letter}\p{Number}-]+)\s*\((IATA:\s*[A-Z]{3}(?:,\s*ICAO:\s*[A-Z]{4})?)\)/u);
+      if (!relation || ![relation[1], relation[2]].some((name) => normalize(name.trim()) === normalize(a.from))) continue;
+      for (const code of relation[3].matchAll(/(IATA|ICAO):\s*([A-Z]{3,4})/g)) {
+        pending.push({ from:a.from, to:code[2], sourceId:a.sourceId, quote:a.quote, relation:code[1], derived:'explicit-labeled-code' });
       }
+    }
+    const checks = pending.map((a) => ({ ...a, round, accepted:false, reason:'unconnected-identity' }));
+    for (let pass = 0; pass < pending.length; pass++) {
+      for (let index = 0; index < pending.length; index++) {
+        const a = pending[index], check = checks[index];
+        if (check.accepted) continue;
+        if (![a?.from,a?.to,a?.quote].every((v) => typeof v === 'string' && v.trim()) || a.quote.length > 600) { check.reason='invalid-alias-shape'; continue; }
+        const source = Number.isInteger(a.sourceId) && sources[a.sourceId];
+        const text = source && [source.title, source.metadataText, source.pageText].filter(Boolean).join('\n');
+        if (!text?.includes(a.quote)) { check.reason='quote-not-in-source'; continue; }
+        if (!contains(a.quote, a.from) || !contains(a.quote, a.to)) { check.reason='alias-not-in-quote'; continue; }
+        const group = groups.find((g) => g.some((name) => normalize(name) === normalize(a.from)));
+        if (!group) continue;
+        if (groups.some((g) => g !== group && g.some((name) => normalize(name) === normalize(a.to)))) { check.reason='endpoint-identity-conflict'; continue; }
+        check.accepted=true; check.reason='quoted-identity';
+        if (group.some((name) => normalize(name) === normalize(a.to))) continue;
+        group.push(a.to.trim()); aliases.push({ ...a, round, url: source.url, evidenceKind: source.evidenceKind });
+      }
+    }
+    aliasReviews.push(...checks);
+    if (Array.isArray(value?.queries)) value.queries.forEach((q, index) => {
+      if (index < 8) enqueue(q, round, 'model', index);
+      else refinements.push({query:q, round, origin:'model', index, accepted:false, status:'rejected', reason:'candidate-limit'});
+    });
+    // Reuse the original attribute with the best verified endpoint labels before adding "official".
+    if (groups.length === 2 && groups.some((g) => g.length > 1)) {
+      let improved = query;
+      for (const group of groups) {
+        const alias = aliases.find((a) => a.relation === 'IATA' && group.includes(a.to))?.to || group[1];
+        if (alias) improved = improved.replace(new RegExp(group[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), () => alias);
+      }
+      enqueue(improved, round, 'verified-alias-attribute');
     }
   }
   async function collect(items, round) {
@@ -91,32 +147,21 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
     }
     if (!sources.length) return;
     try {
-      const batch = await reviewSourceBodies(`기준일: ${new Date(options.now ?? Date.now()).toISOString()}\n질문 원문: ${originalQuestion}\n실제 검색어: ${query}`, sources, generate, { onRefinement: acceptRefinement });
+      const batch = await reviewSourceBodies(`기준일: ${new Date(options.now ?? Date.now()).toISOString()}\n질문 원문: ${originalQuestion}\n실제 검색어: ${query}`, sources, generate, { onRefinement: (value, sources) => acceptRefinement(value, sources, round) });
       reviewed.push(...batch);
       reviews.push(...batch.map((s) => ({ round, url:s.url, evidenceKind:s.evidenceKind, ...s.bodyReview })));
       reviewFailure ||= batch.some((s) => s.bodyReview.status === 'invalid-review');
     } catch (error) { reviewFailure = true; reviewError = classifyChatError(error); }
   }
-  await collect(initial.results ?? [], 0);
   const subjects = String(query).split(/\s+vs\.?\s+|\s+versus\s+/i).map((s) => s.trim()).filter(Boolean);
+  await collect(initial.results ?? [], 0);
   const accepted = () => reviewed.filter((s) => s.bodyReview.relevant);
-  // Legacy reviewers without a completeness field retain their partial evidence.
   const insufficient = () => !accepted().length || refinement?.requestedSatisfied === false;
-  const validQuery = (q) => {
-    if (typeof q !== 'string' || !q.trim() || q.length > 300 || /[\u0000-\u001f]/.test(q) || searched.has(normalize(q))) return false;
-    if (groups.length === 2) {
-      const positions = groups.map((g) => g.map((a) => normalize(q).indexOf(normalize(a))).filter((p) => p >= 0));
-      return positions.every((p) => p.length) && Math.min(...positions[0]) < Math.min(...positions[1]);
-    }
-    return anchors.every((a) => contains(q, a));
-  };
-  const suggested = (Array.isArray(refinement?.queries) ? refinement.queries : []).slice(0, 8).filter((q) => {
-    const accepted = validQuery(q);
-    refinements.push({ query:q, accepted, reason:accepted ? 'identity-and-direction-preserved' : 'invalid-duplicate-or-unverified-identity' });
-    return accepted;
-  }).slice(0, 2);
-  const queue = subjects.length === 2 ? subjects.map((s) => ({ subject:s, query:`"${s}" official documentation` }))
-    : [...suggested.map((q) => ({subject:query, query:q})), {subject:query, query:`${query} official`}];
+  if (subjects.length === 2) {
+    for (const entry of queue) Object.assign(entry.trace, {status:'not-executed', executionReason:'comparison-subject-search'});
+    queue.length = 0;
+    queue.push(...subjects.map((s) => ({ subject:s, query:`"${s}" official documentation` })));
+  } else enqueue(`${query} official`, 0, 'official-fallback');
   let stopReason = 'requested-evidence-found';
   while (subjects.length === 2 ? searches.length < 2 : insufficient()) {
     const condition = accepted().length ? 'requested-attribute-insufficient' : reviewFailure ? 'review-error' : reviewed.length ? 'review-rejected' : 'no-reviewable-material';
@@ -124,10 +169,14 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
     if (stopReason) { decisions.push({ condition, action:'stop', reason:stopReason, remaining:remaining() }); break; }
     const next = queue.shift();
     if (!next) { stopReason = 'no-safe-query-refinement'; decisions.push({ condition, action:'stop', reason:stopReason, remaining:remaining() }); break; }
-    if (searched.has(normalize(next.query))) continue;
+    if (searched.has(normalize(next.query))) {
+      if (next.trace) Object.assign(next.trace, {status:'not-executed', executionReason:'duplicate-search'});
+      continue;
+    }
+    if (next.trace) Object.assign(next.trace, {status:'executed', executionReason:'search-dispatched'});
     searched.add(normalize(next.query));
     decisions.push({ condition, action:'search', query:next.query, remaining:remaining() });
-    const trace = { ...next, remainingBefore:remaining(), status:'pending' }; searches.push(trace);
+    const trace = { subject:next.subject, query:next.query, remainingBefore:remaining(), status:'pending' }; searches.push(trace);
     try {
       const retry = await search(next.query, { maxResults: 8, timeoutMs: 5000 });
       retryFailed ||= Boolean(retry.failed);
@@ -139,6 +188,9 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
     stopReason = insufficient() ? budgetReason() || 'no-safe-query-refinement' : 'requested-evidence-found';
     decisions.push({ condition:insufficient() ? 'requested-attribute-insufficient' : 'requested-evidence-sufficient', action:'stop', reason:stopReason, remaining:remaining() });
   }
+  for (const entry of queue) {
+    if (entry.trace) Object.assign(entry.trace, {status:'not-executed', executionReason:stopReason});
+  }
   const results = accepted().map((s) => ({ ...s, pageText:s.bodyReview.quote }));
   const retrievalFailed = !results.length && (retryFailed || (!reviewed.length && reads.some((r) => r.status === 'read-failed')));
   const status = results.length ? (reviewFailure || retryFailed || initial.failed ? 'partial-success' : 'success')
@@ -147,7 +199,7 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
         : reviewed.length ? 'insufficient-evidence' : initial.status || 'empty';
   return { ...initial, query: initial.query || query, results, status,
     retrievalStatus:initial.status, failed: !results.length && Boolean(initial.failed || reviewFailure || retrievalFailed),
-    bodyVerification: { originalQuestion, query, retrievalStatus:initial.status, reads, searches, selections, aliases, refinements, decisions,
+    bodyVerification: { originalQuestion, query, retrievalStatus:initial.status, reads, searches, selections, aliases, aliasReviews, identityGroups:groups, refinements, decisions,
       limits, remaining:remaining(), stopReason, requestedSatisfied:refinement?.requestedSatisfied, error:reviewError, reviews } };
 }
 

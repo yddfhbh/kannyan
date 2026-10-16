@@ -333,7 +333,7 @@ test('omitted local plan does not send the original mixed request as the retry s
 test('production retrieval review schema and parser retain bounded refinement and alias proof',async()=>{
   const {reviewSourceBodies}=await import('../src/evidence-review.js');
   const quote='QRX is Harbor Airport (HBR).';
-  const refinement={requestedSatisfied:false,aliases:[{from:'QRX',to:'HBR',sourceId:0,quote}],queries:['HBR to UVZ flight duration']};
+  const refinement={requestedSatisfied:false,aliases:[{from:'QRX',to:'HBR',sourceId:0,quote}],queries:['qrx to uvz flight time','HBR to UVZ flight duration']};
   const g=generator([{answer:'',emotion:'neutral',evidenceReviews:[{id:0,relevant:true,quote,reason:'identity only',region:'',validTime:'',kind:'unknown',dataType:'prose',weatherFields:[]}],searchRefinement:refinement}]);
   let received;
   await reviewSourceBodies('qrx to uvz flight time',[{title:'Identity',url:'https://sample.test/id',pageText:quote}],g.generate,{onRefinement:value=>{received=value;}});

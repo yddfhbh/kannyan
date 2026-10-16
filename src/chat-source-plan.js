@@ -48,8 +48,8 @@ export function resolveChatSourcePlan(result, prompt, explicitIntent) {
       // Self-contained requests retain their identity; only referential followups
       // need the planner to resolve a subject from conversation.
       query: validSearch ? preserveOriginalSearchQuery(prompt, plan.query) : prompt,
-      identityTrace: { original: prompt, proposedQuery: plan?.query || '', proposedExternalPrompt: plan?.externalPrompt || '', effectiveExternalPrompt: validSearch ? preserveOriginalIdentityPrompt(prompt, plan.externalPrompt) : prompt, effectiveQuery: validSearch ? preserveOriginalSearchQuery(prompt, plan.query) : prompt, anchors: searchIdentityAnchors(prompt) },
-      purpose: validSearch ? plan.purpose.trim() : '명시적 검색 요청 확인',
+      identityTrace: { original: prompt, proposedQuery: plan?.query || '', proposedPurpose: plan?.purpose || '', proposedExternalPrompt: plan?.externalPrompt || '', effectiveExternalPrompt: validSearch ? preserveOriginalIdentityPrompt(prompt, plan.externalPrompt) : prompt, effectiveQuery: validSearch ? preserveOriginalSearchQuery(prompt, plan.query) : prompt, anchors: searchIdentityAnchors(prompt) },
+      purpose: validSearch ? (searchIdentityAnchors(prompt).length === 2 ? prompt : plan.purpose.trim()) : '명시적 검색 요청 확인',
       reason: validSearch ? 'model-search-plan' : validLocal ? 'model-local-answer' : 'invalid-source-plan' },
   };
 }

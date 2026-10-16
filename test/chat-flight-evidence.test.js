@@ -12,7 +12,10 @@ const message = (q) => ({content:`%${q}`,author:{id:'test',username:'test'},guil
 
 test('directional identity survives majority-overlap rewrites and traces both endpoint changes', () => {
   for (const [original, proposed] of [[question,plan.query], ['qrx to uvz flight time','QRT to uvz flight time'], ['alpha port to beta bay travel time','different port to beta bay travel time']]) {
-    const { intent } = resolveChatSourcePlan({answer:'18~25시간',sourcePlan:{...plan,query:proposed}}, original, {});
+    const purpose = 'Unverified departure city flight duration';
+    const { intent } = resolveChatSourcePlan({answer:'18~25시간',sourcePlan:{...plan,query:proposed,purpose}}, original, {});
+    assert.equal(intent.purpose, original);
+    assert.equal(intent.identityTrace.proposedPurpose, purpose);
     assert.equal(intent.query, original);
     assert.equal(intent.externalPrompt, original);
     assert.equal(intent.identityTrace.original,original);
@@ -128,4 +131,68 @@ test('flight-time failure does not append a universal existence disclaimer',()=>
   const result=resolveChatEvidence({requiresExternal:true,hasLocalAnswer:false,externalPrompt:question},{webSearchData:{status:'insufficient-evidence',results:[]}});
   assert.doesNotMatch(result.unavailable,/존재하지/);
   assert.match(result.unavailable,/확인하지 못/);
+});
+
+test('duplicate first proposal does not hide the second proposal from a later identity-only review', async () => {
+  const q = 'abcx to uvz flight time';
+  const identity = 'Example Harbor International Airport or ABCX (IATA: HBR, ICAO: XHBR)';
+  const queries = [];
+  let calls = 0;
+  const result = await collectWebBodyEvidence(q, {status:'success',results:[{title:'ABCX archive',url:'https://sample.test/archive',snippet:'ABCX archive'}]}, async () => {
+    if (++calls === 1) return {evidenceReviews:[{id:0,relevant:false,quote:'',reason:'archive'}],searchRefinement:{requestedSatisfied:false,aliases:[],queries:[q]}};
+    return {evidenceReviews:[{id:0,relevant:false,quote:'',reason:'No flight duration'}],searchRefinement:{requestedSatisfied:false,aliases:[
+      {from:'abcx',to:'Example Harbor International Airport',sourceId:0,quote:identity},
+      {from:'abcx',to:'Guess City',sourceId:0,quote:identity},
+    ],queries:[q,'HBR to uvz flight duration',42]}};
+  }, {readPage:async url=>({url,text:''}),search:async query=>{
+    queries.push(query);
+    return query.endsWith('official') ? {status:'success',results:[{title:'ABCX identity',url:'https://sample.test/identity',snippet:identity}]} : {status:'empty',results:[]};
+  }});
+  assert.deepEqual(queries,[`${q} official`,'HBR to uvz flight duration']);
+  assert.equal(result.results.length,0); // Identity is useful for search, not a duration answer.
+  assert.ok(result.bodyVerification.aliases.some(a=>a.from==='abcx' && a.to==='HBR' && a.quote===identity));
+  assert.ok(!result.bodyVerification.aliases.some(a=>a.to==='Guess City'));
+  const traces=result.bodyVerification.refinements;
+  assert.ok(traces.some(r=>r.query===q && r.reason==='duplicate-search'));
+  assert.ok(traces.some(r=>r.query==='HBR to uvz flight duration' && r.status==='executed' && r.round===1));
+  assert.ok(traces.some(r=>r.query===42 && r.reason==='invalid-query-type'));
+  assert.ok(traces.every(r=>r.status!=='queued'));
+});
+
+test('verified alias and requested attribute take priority over official fallback, with unused reasons', async () => {
+  const q='abcx to uvz flight time';
+  const identity='Example Harbor International Airport or ABCX (IATA: HBR, ICAO: XHBR)';
+  const queries=[];
+  const result=await collectWebBodyEvidence(q,{status:'success',results:[{title:'ABCX identity',url:'https://sample.test/identity',snippet:identity}]},async()=>({
+    evidenceReviews:[{id:0,relevant:false,quote:'',reason:'Identity only'}],
+    searchRefinement:{requestedSatisfied:false,aliases:[{from:'abcx',to:'Example Harbor International Airport',sourceId:0,quote:identity}],queries:[q,'HBR to uvz flight duration']},
+  }),{readPage:async url=>({url,text:''}),search:async query=>{queries.push(query);return {status:'empty',results:[]};},getRemainingBudget:()=>({httpRequests:1,modelRequests:2,durationMs:10000})});
+  assert.deepEqual(queries,[]);
+  assert.ok(result.bodyVerification.refinements.some(r=>r.query==='HBR to uvz flight duration' && r.accepted && r.status==='not-executed' && r.executionReason==='external-budget-reserved-for-answer'));
+  await collectWebBodyEvidence(q,{status:'success',results:[{title:'ABCX identity',url:'https://sample.test/identity',snippet:identity}]},async()=>({evidenceReviews:[{id:0,relevant:false,quote:'',reason:'Identity only'}],searchRefinement:{requestedSatisfied:false,aliases:[{from:'abcx',to:'Example Harbor International Airport',sourceId:0,quote:identity}],queries:[q,'HBR to uvz flight duration']}}),{readPage:async url=>({url,text:''}),search:async query=>{queries.push(query);return {status:'empty',results:[]};}});
+  assert.equal(queries[0],'HBR to uvz flight duration');
+});
+
+test('rejected body identity supports second query after duplicate first, without accepting invented quotes', async () => {
+  const q='abcx to uvz flight time';
+  const identity='Example Harbor International Airport or ABCX (IATA: HBR, ICAO: XHBR)';
+  const duration='HBR to UVZ scheduled flight duration: 2h 10m (synthetic timetable).';
+  const queries=[];
+  let round=0;
+  const result=await collectWebBodyEvidence(q,{status:'success',results:[{title:'ABCX airport',url:'https://sample.test/identity'}]},async()=>++round===1 ? {
+    evidenceReviews:[{id:0,relevant:false,quote:'',reason:'No duration in airport identity body'}],
+    searchRefinement:{requestedSatisfied:false,aliases:[
+      {from:'abcx',to:'Example Harbor International Airport',sourceId:0,quote:identity},
+      {from:'abcx',to:'ZZZ',sourceId:0,quote:'ABCX is ZZZ'},
+    ],queries:[q,'HBR to uvz flight duration','ZZZ to uvz flight duration','uvz to HBR flight duration']},
+  } : {evidenceReviews:[{id:0,relevant:true,quote:duration,reason:'Synthetic duration only'}],searchRefinement:{requestedSatisfied:true,aliases:[],queries:[]}}, {
+    readPage:async url=>({url,text:url.endsWith('identity')?identity:duration}),
+    search:async query=>{queries.push(query);return {status:'success',results:[{title:'HBR to UVZ flight duration',url:'https://sample.test/duration'}]};},
+  });
+  assert.deepEqual(queries,['HBR to uvz flight duration']);
+  assert.deepEqual(result.results.map(s=>s.pageText),[duration]);
+  assert.ok(result.bodyVerification.aliasReviews.some(a=>a.to==='ZZZ' && a.reason==='quote-not-in-source'));
+  assert.ok(result.bodyVerification.refinements.some(r=>r.query.startsWith('ZZZ') && r.reason==='unverified-endpoint'));
+  assert.ok(result.bodyVerification.refinements.some(r=>r.query.startsWith('uvz') && r.reason==='reversed-endpoints'));
+  assert.ok(result.bodyVerification.refinements.some(r=>r.status==='not-executed' && r.executionReason==='requested-evidence-found'));
 });

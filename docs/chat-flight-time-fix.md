@@ -1,3 +1,41 @@
+## 현재 후보 처리 수정 (2026-10-16)
+
+상태: **회귀 검증 통과, 사용자 제공 실제 로그에서 첫 조회 항공시간 응답 성공 확인, 최종 검토·배포 진행**. 아래 이전 기록은 과거 결과다. 이번 점검 시작 시 현재 관리 브랜치 `agent-hebi/task/discord-bot-5fa4e30c85594ea39537f639f91152a7`의 HEAD, 로컬 `origin/main`, GitHub 읽기 전용 조회 결과는 모두 `16dc2f7a60d90e105b7d3d546dedd88a9c008b3e`였고 미커밋 변경은 없었다. 운영 HEAD 읽기는 서버 콘솔에서 Permission denied로 실패했다. 이전 배포 결과를 현재 운영 SHA로 간주하지 않는다. PM2 조회는 online이었다. Workstation 기준점·브랜치 변경, Push, 배포, 슬래시 등록은 실행하지 않았다.
+
+현재 코드에서 첫 후보 거절 자체는 다음 후보 평가를 막지 않았다. 재현된 결함은 최초 검증 때만 후보 큐를 만들고, **후속 조회에서 반환된 새 후보는 큐에 추가하거나 기록하지 않는 것**이었다. 또한 모델이 정식명만 별칭으로 반환하면 같은 인용에 명시된 코드가 정체성 그룹에 연결되지 않았다. 이 재현은 제공된 실제 로그의 정확한 내부 원인을 확정하는 것은 아니다.
+
+- 매 조회의 후보를 평가·기록·정렬한다. `refinements`는 원본 후보 값, round, origin, index, accepted, reason, status 및 executionReason을 보존한다. 중복, 형식 오류, 미검증 대상, 역방향, 후보 수 제한을 구별한다. 수락한 뒤 예산·답변 확보 등으로 실행하지 않은 이유도 기록한다. 파서는 후보 배열을 정제 없이 전달하며 실제 생성기·스키마·파서 회귀에서도 첫 중복과 두 번째 후보 보존을 확인했다.
+- `relevant=false`는 답변 근거 판정이다. 별칭 근거는 별도 인용으로 검사한다. 실제 제공 자료에 정확한 인용이 있어야 하며 양쪽 이름이 포함되어야 한다. `이름 or 약어 (IATA: 코드, ICAO: 코드)`처럼 인용에 명시된 대응은 코드별 구조로 연결한다. 특정 공항·노선 사전은 없다. `aliases`, `aliasReviews`, `identityGroups`에서 인용, 출처, 자료 종류, 수락·거절 근거를 추적한다. 임의 코드·도시를 생성하지 않는다.
+- 검증된 별칭과 원래 요청 속성을 함께 사용하는 후보를 단순 official 추가보다 먼저 실행한다. 코드 후보가 모델 응답에서 빠져도 인용에 명시된 코드와 원래 속성으로 후보를 만든다. 기존 조회·모델·시간 예산은 유지한다.
+- 방향 요청의 유효 purpose는 원래 질문을 사용한다. 모델의 추측 purpose는 `identityTrace.proposedPurpose`에만 남겨 원문 대상과 조회에서 확인한 `identityGroups`를 구별한다.
+
+검증: 전체 **317개 통과**, `tmp/chat-flight-candidate-full-tests.log`. 최종 검토에서도 전체 **317개 통과**(`tmp/chat-flight-final-tests.log`); 기본 샌드박스의 하위 프로세스 테스트 실패 후 승인된 권한 확장 실행에서 통과했다. 구문 검사, `git diff --check`, 검증 파일 해시 검사도 통과했다. 중복 첫 후보+유효한 두 번째 후보를 최초·후속 검증 모두에서 확인했다. 항공시간이 없는 본문의 별칭 사용, 모델이 정식명만 반환한 인용에서 코드 연결, 허위 인용 거절, 역방향 거절, 예산 및 답변 확보 후 미실행 사유를 합성 자료로 검증했다. 실제 노선의 항공시간 근거가 아니다.
+
+### 현재 수정본 실제 검증 명령
+
+운영 설정을 읽을 수 있는 ubuntu SSH 콘솔에서 실행한다. 아래 작업 경로의 **미커밋 수정본**을 검사하며 운영 코드를 바꾸지 않는다. 기존 baseCommit/옛 HEAD 일치 검사를 사용하지 않는다. preflight가 실패하면 중단하고 권한을 우회하지 않는다. 파일 해시는 이번 수정본으로 갱신했다.
+
+```bash
+(
+  set -euo pipefail
+  cd /home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/5fa4e30c85594ea39537f639f91152a7
+  git status --short
+  git branch --show-current
+  git rev-parse HEAD
+  sha256sum --check docs/chat-live-verification.sha256
+  /usr/bin/node scripts/check-chat-live-environment.js
+  env -i PATH=/usr/bin:/bin \
+    DOTENV_CONFIG_PATH=/home/ubuntu/discord-bot-new/.env \
+    timeout --signal=TERM --kill-after=5s 190s \
+    /usr/bin/node scripts/verify-chat-live.js --flight-time-only \
+    | tee "tmp/chat-flight-candidate-live-$(date +%Y%m%d-%H%M%S).json"
+)
+```
+
+이번 수정본의 실제 실행은 사용자가 제공한 로그와 검토 결과로 확인했다. 최종 답변의 직항 **3시간 35분~4시간**이 전달된 근거 문장과 일치하고 `failures`는 비어 있다. **첫 조회에서 근거를 확보한 성공**이며, 후속 후보 큐 경로의 실제 실행 성공을 입증하는 사례는 아니다. 후속 후보 큐는 위 합성 회귀 테스트로만 검증했으며 실검증은 미확인이다. 이번 최종 검토에서 실제 모델 조회를 다시 실행하지 않았고, 다른 실제 사례의 통과로 확대하지 않는다. `completed-needs-review`는 실행 완료 표시이며 정확성 합격이 아니다. API 키가 없으면 `unverified`·요청 0회·종료 코드 2다. 항공시간을 답하지 못한 결과는 해결 완료로 처리하지 않는다.
+
+---
+
 # NAIA → PUS 비행시간 실패 사례
 
 ## 후속 수정: 자료 선별과 재검색 (2026-10-15)
@@ -54,7 +92,6 @@ API 키가 없으면 요청 0회·`unverified`·종료 코드 2가 정상이다.
   set -euo pipefail
   test "$(id -un)" = ubuntu
   cd /home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/5fa4e30c85594ea39537f639f91152a7
-  test "$(git rev-parse HEAD)" = fb8ebbb23e22f6382afc5f67671191774c68725b
   sha256sum --check docs/chat-live-verification.sha256
   /usr/bin/node scripts/check-chat-live-environment.js
   env -i HOME=/home/ubuntu PATH=/usr/bin:/bin \
