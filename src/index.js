@@ -247,7 +247,7 @@ import {
   buildGeminiCurrentUserPromptSection,
   geminiStyleRequestHandlingSystemInstructionLines,
 } from './gemini-style-guidance.js';
-import { normalizeKannyangSpeech } from './kannyang-speech.js';
+import { normalizeKannyangSpeech, transformKannyangProse } from './kannyang-speech.js';
 import {
   loadLichessPlayerOpeningBookCache,
   warmLichessPlayerOpeningBook,
@@ -9041,12 +9041,12 @@ async function generateGeminiAnswer(prompt, options = {}) {
       guardedText,
       permanentMemories.map((entry) => entry.id)
     );
-    const styledAnswer = (options.planSearch || options.localOnly) && !guardedText.trim() ? '' : applyCustomEmojiAliases(
+    const styledAnswer = (options.planSearch || options.localOnly) && !guardedText.trim() ? '' : transformKannyangProse(sanitizeGeminiAnswer(memoryUsage.cleanText), (prose) => applyCustomEmojiAliases(
       normalizeDiscordMarkdown(
-        normalizeKannyangSpeech(sanitizeGeminiAnswer(memoryUsage.cleanText))
+        normalizeKannyangSpeech(prose)
       ),
       prompt
-    );
+    ));
     const citationResult = !options.planSearch && !options.localOnly && (wikiSearchContext || webSearchContext)
       ? validateChatCitationsWithStatus(styledAnswer, contextSelection.groundingText)
       : { answer: styledAnswer, valid: true };

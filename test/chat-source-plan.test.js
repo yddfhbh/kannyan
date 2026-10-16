@@ -1,4 +1,4 @@
-import { normalizeKannyangSpeech } from '../src/kannyang-speech.js';
+import { normalizeKannyangSpeech, transformKannyangProse } from '../src/kannyang-speech.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -30,7 +30,7 @@ function generator(responses) {
     fetchGeminiGenerateContent:async(payload,opts)=>{payloads.push({payload,opts});return {text:JSON.stringify(responses.shift())};},
     extractGeminiResponseText:(r)=>r.text,classifyPromptControlResponse:()=>({blocked:false}),
     extractPermanentMemoryUsage:(text)=>({cleanText:text,usedIds:[]}),
-    applyCustomEmojiAliases:identity,normalizeDiscordMarkdown:identity,normalizeKannyangSpeech,sanitizeGeminiAnswer:(v)=>v || '먀... 다시 말해줄 수 있냥?',
+    applyCustomEmojiAliases:identity,normalizeDiscordMarkdown:identity,normalizeKannyangSpeech,transformKannyangProse,sanitizeGeminiAnswer:(v)=>v || '먀... 다시 말해줄 수 있냥?',
     inferPermanentMemoryUsage:()=>[],
   });
   vm.runInContext(source.slice(start,end),context);
