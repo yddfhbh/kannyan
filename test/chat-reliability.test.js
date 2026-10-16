@@ -66,6 +66,7 @@ test('legacy factual lookup helper and deferred ordinary source decisions retain
   assert.deepEqual(selectRelevantSearchResults('파이호크 나이', [{title:'유명인 김철수 생일',snippet:'2000년 1월 1일'}]), []);
   assert.equal(validateChatCitations('검색 결과에 따르면 20살 https://fake.test', 'URL: https://source.test'), '제공된 자료에서 답변의 출처를 확인하지 못했다냥.');
   assert.equal(validateChatCitations('20살이다냥. https://fake.test', '잘려서 URL이 없는 문맥'), '제공된 자료에서 답변의 출처를 확인하지 못했다냥.');
+  assert.equal(validateChatCitations('20살이다냥.', '[1] 제목: 인물\nURL: https://source.test\n확인한 본문: 20살'), '20살이다냥.\n\n출처: https://source.test/');
   assert.equal(validateChatCitations('20살이다냥.', ''), '제공된 자료만으로 답변의 근거를 특정하지 못했다냥.');
   assert.equal(validateChatCitations('생년월일을 확인하지 못했다냥.', ''), '생년월일을 확인하지 못했다냥.');
 });

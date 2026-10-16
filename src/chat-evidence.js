@@ -64,6 +64,15 @@ export function validateChatCitationsWithStatus(answer, evidence) {
   const cited = urls(answer);
   if (cited.some((url) => !allowed.has(url))) return { answer: '제공된 자료에서 답변의 출처를 확인하지 못했다냥.', valid: false };
   if (!cited.length && !/확인.*못|확인되지|알 수 없|근거.*부족|자료.*없/.test(answer)) {
+    // A model can correctly use the supplied material without reproducing a
+    // URL. Do not discard that answer merely because citation syntax was
+    // omitted: attach the bounded source manifest from this request. URLs
+    // are taken only from the delivered evidence, never invented.
+    const manifest = [...allowed].slice(0, 3);
+    const structuredEvidence = /(?:^|\n)\[\d+\] 제목:|확인한 본문:|근거 범위:/.test(String(evidence));
+    if (manifest.length && structuredEvidence) {
+      return { answer: `${answer}\n\n출처: ${manifest.join(', ')}`, valid: true };
+    }
     return { answer: '제공된 자료만으로 답변의 근거를 특정하지 못했다냥.', valid: false };
   }
   return { answer, valid: true };

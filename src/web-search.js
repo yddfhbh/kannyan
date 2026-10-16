@@ -135,8 +135,16 @@ export function parseDuckDuckGoHtmlResults(html) {
 // language is resolved by the answer model with the actual conversation context.
 export function classifyWebSearchIntent(prompt) {
   const text = normalizeSearchText(prompt);
+  // `%토플 응시료 검색` and equivalent noun phrases are explicit lookup
+  // requests even when the user does not use the longer "검색해줘" form.
+  // Quoted text is excluded so translation/quotation requests do not trigger
+  // an unrelated external lookup.
+  const unquoted = text.replace(/(['“"‘「『])(.*?)(['”"’」』])/g, ' ');
+  const hasTrailingSearchCommand = /\S+\s+(?:검색|search)[.!?？]*$/i.test(unquoted)
+    || /^(?:검색|search)\s+\S+/i.test(unquoted);
   const explicit = /^(?:검색|search)\s*[:： ]/i.test(text)
     || /(?:검색해\s*줘|검색해봐|검색해서\s*요약해\s*줘|찾아\s*줘|찾아봐)[.!?？]*$/i.test(text)
+    || hasTrailingSearchCommand
     || /푝무위키|우리 위키|pyhok(?:\.com)?/i.test(text);
   return { requiresExternal: explicit, hasLocalAnswer: !explicit,
     localPrompt: explicit ? '' : text, externalPrompt: explicit ? text : '',

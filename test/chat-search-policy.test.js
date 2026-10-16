@@ -15,6 +15,16 @@ const localPrompts = ['넌 뭐야', '너 누구야', '이름이 뭐야', '누가
 const externalPrompts = ['너 TETR.IO가 뭐야?', '삼성전자 요약해줘', '삼성전자 최신 가격', '오늘 부산 날씨 어때?', 'TETR.IO가 뭐야?', '파이호크 나이',
   '너 누구야 검색해줘', '푝무위키 파이호크 나이', '명시적으로 웹 검색해줘'];
 
+test('noun-style explicit lookup commands enter the external path', () => {
+  for (const prompt of ['토플 응시료 검색', '%토플 응시료 검색', 'TOEFL registration fee search', '검색 부산 날씨']) {
+    const intent = classifyWebSearchIntent(prompt);
+    assert.equal(intent.requiresExternal, true, prompt);
+    assert.equal(intent.hasLocalAnswer, false, prompt);
+    assert.equal(intent.reason, 'explicit-search', prompt);
+  }
+  assert.equal(classifyWebSearchIntent('다음 문장을 번역해줘: "웹 검색해줘"').requiresExternal, false);
+});
+
 test('ordinary wording defers meaning to the answer model instead of regex exceptions', () => {
   for (const prompt of [...localPrompts, '번역 서비스 DeepL이 무엇인지 알려줘', '삼성전자 요약해줘']) {
     if (prompt === '너 누구야 검색해줘') continue;
