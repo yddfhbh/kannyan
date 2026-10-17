@@ -24,6 +24,12 @@ export const chatSourcePlanGuidance = [
   'query는 300자 이하, purpose는 400자 이하, externalPrompt는 2000자 이하의 문자열이다. URL 방문·명령 실행·도구 이름을 지시하지 말고 검색어만 제안한다.',
 ].join('\n');
 
+export function independentPlannedAnswer(answer) {
+  return String(answer || '').split(/(?<=[.!?。])\s+/).filter((line) =>
+    /(?:나는|깐냥|챗봇|제작자|만들어진)/.test(line) &&
+    !/검색|날씨|기온|응시료|달러|\$|\d+\s*만?\s*원|찾아|잠시|기다려|알려주겠|알려 주겠|확인해\s*주겠|정보.*(?:없|확인되지)|확인(?:이)?\s*(?:필요|불가)|확인하지 못/.test(line)).join(' ').trim();
+}
+
 export function resolveChatSourcePlan(result, prompt, explicitIntent) {
   const plan = result?.sourcePlan;
   const bounded = (v, max) => typeof v === 'string' && v.trim().length > 0
@@ -34,15 +40,24 @@ export function resolveChatSourcePlan(result, prompt, explicitIntent) {
   const explicit = Boolean(explicitIntent?.requiresExternal);
   const requiresExternal = validSearch || explicit;
   // Malformed/legacy JSON must never expose an unverified external answer.
-  const answer = (validSearch || (validLocal && !explicit)) ? result.answer : '';
+  // Recover an independently answerable identity clause even if the model
+  // forgot localPrompt. Never preserve its search promises or external claims.
+  const identityRequest = /너(?:는|의)?\s*(?:누구|이름)|(?:넌|너는)\s*뭐야|(?:네|너의)\s*역할|자기소개/.test(prompt);
+  const localDraft = validSearch && identityRequest ? independentPlannedAnswer(result.answer).split(/(?<=[.!?。])\s+/)
+    .filter((line) => /(?:나는|깐냥|챗봇|제작자|만들어진)/.test(line) && !/날씨|검색|찾아|잠시|확인.*필요/.test(line)).join(' ') : '';
+  const inferredLocal = identityRequest ? '너는 누구야?' : /(?:넌|너는)\s*뭐야/.test(prompt) ? '넌 뭐야?' :
+    prompt.match(/^(.+?(?:번역|조건을 다시 적|역할을 설명|한국어로 옮긴))(?:하고|고|은 다음| 다음|하면서|면서)/)?.[1] || '';
+  const localPrompt = plan?.localPrompt?.trim() || inferredLocal;
+  const safeDraft = requiresExternal ? (identityRequest ? localDraft : '') : result.answer;
+  const answer = (validSearch || (validLocal && !explicit)) ? safeDraft : '';
   return {
     valid: Boolean(validSearch || validLocal),
-    result: { ...result, answer: answer || (requiresExternal ? '' : '답변에 필요한 근거 계획을 읽지 못했다냥. 다시 질문해달라냥.') },
+    result: { ...result, answer: localDraft || answer || (requiresExternal ? '' : '답변에 필요한 근거 계획을 읽지 못했다냥. 다시 질문해달라냥.') },
     intent: {
       additionalExternalPrompt: typeof plan?.additionalExternalPrompt === 'string' ? plan.additionalExternalPrompt.trim().slice(0, 2000) : '',
-      independentLocalPrompt: typeof plan?.localPrompt === 'string' ? plan.localPrompt.trim().slice(0, 2000) : '',
+      independentLocalPrompt: localPrompt.slice(0, 2000),
       originalPrompt: prompt, plannedQuery: validSearch ? plan.query.trim() : '', requiresExternal,
-      hasLocalAnswer: validSearch && typeof plan.localPrompt === 'string' ? Boolean(plan.localPrompt.trim()) : Boolean(answer),
+      hasLocalAnswer: validSearch ? Boolean(localPrompt || answer) : Boolean(answer),
       localPrompt: prompt,
       externalPrompt: validSearch ? preserveOriginalIdentityPrompt(prompt, plan.externalPrompt) : requiresExternal ? prompt : '',
       // Self-contained requests retain their identity; only referential followups
@@ -77,7 +92,7 @@ function preserveOriginalSearchQuery(prompt, query) {
   if (/\s+(?:vs\.?|versus)\s+/i.test(original)) return original;
   // Reject topic contamination from previous plans, while allowing a focused
   // subset of the current question (including when localPrompt is missing).
-  const terms = proposed.toLowerCase().match(/[\p{Letter}\p{Number}.]+/gu) || [];
+  const terms = proposed.toLowerCase().replace(/\d{4}년\s*\d{1,2}월\s*\d{1,2}일|\d{4}-\d{2}-\d{2}/g, '').match(/[\p{Letter}\p{Number}.]+/gu) || [];
   const overlap = terms.filter((term) => original.toLowerCase().includes(term)).length;
   return terms.length && overlap > terms.length / 2 ? proposed : original;
 }

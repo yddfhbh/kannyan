@@ -16,7 +16,7 @@ test('live verifier without credentials makes no requests and reports unverified
   assert.equal(result.status, 2, result.stderr);
   const report = JSON.parse(result.stdout);
   assert.equal(report.status, 'unverified');
-  assert.deepEqual(report.questions, ['너 누구고 오늘 부산 날씨는 어때?', '최신 AI 뉴스 검색해서 요약해줘', '푝무위키 파이호크 나이', 'gpt 6 sol vs gpt 6.1 sol']);
+  assert.deepEqual(report.questions, ['너 누구고 오늘 부산 날씨는 어때?', '토플 응시료가 얼마야?', '토플 응시료 검색해줘', '너 누구고 기억하는 게 있어?', '최신 AI 뉴스 검색해서 요약해줘', '푝무위키 파이호크 나이', 'gpt 6 sol vs gpt 6.1 sol', '오늘 부산 날씨는 어때?']);
   assert.deepEqual(report.counts, { modelRequests: 0, httpRequests: 0 });
 });
 
@@ -38,7 +38,7 @@ test('live verifier caps real request attempts across all model fallbacks', () =
     GEMINI_FALLBACK_MODELS: Array.from({ length: 20 }, (_, i) => `test-${i}`).join(','),
   });
   assert.equal(result.status, 1, result.stderr);
-  assert.match(result.stdout, /"modelRequests": 5/);
+  assert.match(result.stdout, /"modelRequests": 7/);
   assert.doesNotMatch(result.stdout, /verification-fake-secret/);
 });
 
@@ -61,6 +61,16 @@ test('reported model comparison can run alone without consuming the other fixtur
   assert.deepEqual(report.questions,['gpt 6 sol vs gpt 6.1 sol']);
   assert.equal(report.questionLimits.httpRequests,36);
   assert.equal(report.limits.httpRequests,36);
+});
+
+test('a selected case receives the full verifier HTTP budget', () => {
+  const result = run(`globalThis.fetch = () => { throw new Error('unexpected-network'); };`, {}, ['--case', 'weather']);
+  assert.equal(result.status, 2, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.questions, ['오늘 부산 날씨는 어때?']);
+  assert.equal(report.questionLimits.httpRequests, 36);
+  assert.deepEqual(report.verificationLimits, report.limits);
+  assert.equal(report.operationalLimits.httpRequests, 'production-configured');
 });
 
 test('model generation errors remain failed even when chat handler emits an error reply',()=>{

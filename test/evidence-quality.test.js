@@ -1,3 +1,4 @@
+import { formatChatDisplayAnswer } from '../src/chat-display.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { extractReadablePageText } from '../src/web-page-content.js';
@@ -21,7 +22,7 @@ test('reported unrelated subjects stay rejected despite fresh dates, full bodies
   const data = await collectNewsEvidence('최신 AI 뉴스',{status:'success',results:unrelated}, {
     now,readPage:async(url)=>unrelated.find(s=>s.url===url),search:async()=>({status:'empty',results:[]}),
     reviewSources:(sources)=>reviewSourceBodies('최신 AI 뉴스',sources,async(prompt,options)=>{
-      assert.match(prompt,/주된 내용/);
+      assert.match(options.evidenceReviewInstructions,/주된 내용/);
       assert.match(options.webSearchContext,/컬러강판/);
       return {evidenceReviews:sources.map((_,id)=>({id,relevant:false,quote:'',reason:'핵심은 인공지능이 아닌 다른 사건이다.'}))};
     }),
@@ -38,7 +39,7 @@ test('reported unrelated subjects stay rejected despite fresh dates, full bodies
 
 test('list links are topic-filtered and discovery, final URL, title and body provenance stay connected',async()=>{
   const reads=[];
-  const url='https://news.test/newsroom';
+  const url='https://news.test/discovery-post';
   const good={...unrelated[0],url:'https://news.test/new-model',articleTitle:'AI 모델 공개',text:'새 AI 모델의 추론 기능과 학습 방식이 공개되었다. 개발사가 언어 모델 평가 결과와 API 제공 계획을 발표했다. '.repeat(4)};
   const data=await collectNewsEvidence('최신 AI 뉴스',{status:'success',results:[{url,title:'AI 뉴스룸'}]}, {
     now,search:async()=>({status:'empty',results:[]}),readPage:async(u)=>{
@@ -103,21 +104,21 @@ test('actual handler replaces the reported contradictory wiki draft with verifie
     assert.equal(r.sent.length,1);
     assert.match(r.sent[0],/2007-09-14/);
     assert.doesNotMatch(r.sent[0],/확인되지 않는다|정보.*없/);
-    assert.equal(prompts.length,2);
+    assert.equal(prompts.length,independent?2:1);
     if(independent) { assert.equal(prompts[1].prompt,independent); assert.match(r.sent[0],/나는 깐냥/); }
   }
 });
 
 test('weather retains actual district, forecast and target time through final handler assembly',async()=>{
   const quote='부산광역시 남구 용당동의 10월 15일 18시 시간별 예보는 기온 20도이며 강수확률 10퍼센트이다. 실제 관측값과는 구분해서 제공한다.';
-  const data={status:'success',results:[{url:'https://weather.test/district',title:'용당동',pageText:quote,bodyReview:{region:'부산광역시 남구 용당동',validTime:'10월 15일 18시',kind:'forecast',quote,relevant:true}}],context:quote};
+  const data={status:'success',results:[{url:'https://weather.test/district',title:'용당동',pageText:quote,bodyReview:{region:'부산광역시 남구 용당동',validTime:'10월 15일 18시',kind:'forecast',quote,relevant:true,dataType:'weather',weatherFields:['기온 20도','강수확률 10퍼센트']}}],context:quote};
   const r=runtime({search:data,localAnswer:'날씨 정보를 확인하지 못했다냥.',plan:{mode:'search',query:'부산 날씨',purpose:'확인',externalPrompt:'부산 날씨',localPrompt:'너 누구야'}});
   r.context.generateGeminiAnswer=async(prompt,options)=>options.planSearch?{answer:'자기소개와 날씨를 알려주겠다냥.',sourcePlan:{mode:'search',query:'부산 날씨',purpose:'확인',externalPrompt:'부산 날씨',localPrompt:'너 누구야'}}:{answer:'나는 깐냥이다냥.'};
-  await r.context.handleGeminiFallbackMessage(message('너 누구고 오늘 부산 날씨는 어때?'));
+  await r.context.handleGeminiFallbackMessage(message('너 누구고 오늘 부산 날씨는 어때?'), {now: new Date(now)});
   assert.equal(r.sent.length,1);
-  assert.ok(r.sent[0].includes(renderWeatherEvidence(data)));
-  assert.match(r.sent[0],/용당동 · 예보/);
-  assert.match(r.sent[0],/자료 대상 시각: 10월 15일 18시/);
+  assert.ok(r.sent[0].includes(formatChatDisplayAnswer(renderWeatherEvidence(data))));
+  assert.match(r.sent[0],/용당동 10월 15일 18시 예보/);
+  assert.match(r.sent[0],/10월 15일 18시/);
   assert.doesNotMatch(r.sent[0],/현재 부산.*20도|확인하지 못/);
 });
 
@@ -132,7 +133,7 @@ test('compound wiki facts use a separate supported excerpt and arbitrary identit
     if(options.localOnly) return {answer:''};
     assert.equal(options.evidenceReview,true);
     assert.match(prompt,/예제인물 활동/);
-    assert.match(prompt,/1994-11-20/);
+    assert.match(options.webSearchContext,/1994-11-20/);
     reviewSeen=true;
     return {evidenceReviews:[{id:0,relevant:true,quote,kind:'unknown'}]};
   };
@@ -159,7 +160,7 @@ test('empty planner local fields preserve settings, conversation and supplied te
       calls.push({prompt,options});
       if(options.planSearch) return {answer:'',sourcePlan:{mode:'search',query:question.includes('부산')?'부산 날씨':'오늘 환율',purpose:'외부 사실 확인',externalPrompt:'외부 사실 확인',localPrompt:''}};
       assert.equal(options.localOnly,true);
-      assert.equal(prompt,question);
+      assert.ok(prompt && !/날씨|환율|기온/.test(prompt));
       assert.equal(options.history[0].text,history[0].text);
       assert.equal(options.replyContext.text,'제공 자료: hello');
       assert.equal(options.webSearchContext,'제공한 원문: hello');
@@ -177,14 +178,14 @@ test('empty planner local fields preserve settings, conversation and supplied te
 test('short weather tables retain title region, actual time, kind and fields without article length thresholds',async()=>{
   const page=extractReadablePageText('<title>부산광역시 남구 용당동 날씨</title><main><time datetime="2026-10-15T18:00:00+09:00">2026년 10월 15일 18시 관측</time><table><tr><td>17°C 구름많음</td><td>체감온도 15°C</td><td>습도 73%</td></tr></table></main>');
   assert.equal(page.bodyQuality,'insufficient');
-  const data=await collectWebBodyEvidence('부산 날씨',{status:'success',results:[{url:'https://weather.test/busan'}]},async(_prompt,options)=>{
+  const data=await collectWebBodyEvidence('부산 날씨',{status:'success',results:[{url:'https://weather.test/busan',title:'부산광역시 남구 용당동 날씨'}]},async(_prompt,options)=>{
     assert.match(options.webSearchContext,/부산광역시 남구 용당동/);
     assert.match(options.webSearchContext,/2026-10-15T18:00:00\+09:00/);
     return {evidenceReviews:[{id:0,relevant:true,dataType:'weather',quote:page.text,region:'부산광역시 남구 용당동',validTime:'2026-10-15T18:00:00+09:00',kind:'observation',weatherFields:['17°C 구름많음','체감온도 15°C','습도 73%']}]};
   },{now,readPage:async()=>({...page,url:'https://weather.test/busan'}),search:async()=>{throw Error('short data must not cause a retry');}});
   assert.equal(data.status,'success');
   assert.equal(data.bodyVerification.reads[0].status,'body-extracted');
-  assert.match(renderWeatherEvidence(data),/용당동 · 관측 자료/);
+  assert.match(renderWeatherEvidence(data),/용당동 .* 관측/);
   assert.match(renderWeatherEvidence(data),/2026-10-15T18:00:00\+09:00/);
   assert.match(renderWeatherEvidence(data),/습도 73%/);
 });
@@ -193,9 +194,8 @@ test('weather numbers with missing or invented metadata never become confirmed c
   for(const metadata of [{}, {region:'부산',validTime:'2026-10-15 18:00',kind:'observation'}]) {
     const body='17°C 구름많음 체감온도 15°C 습도 73%';
     const data=await collectWebBodyEvidence('부산 현재 날씨',{status:'success',results:[{url:'https://weather.test/unknown'}]},async()=>({evidenceReviews:[{id:0,relevant:true,dataType:'weather',quote:body,weatherFields:['17°C'],...metadata}]}),{readPage:async()=>({url:'https://weather.test/unknown',title:'날씨',text:body})});
-    assert.equal(data.results[0].bodyReview.region,'');
-    assert.equal(data.results[0].bodyReview.validTime,'');
-    assert.match(renderWeatherEvidence(data),/현재 날씨로 확인할 수 없다/);
+    assert.equal(data.results.length,0);
+    assert.equal(renderWeatherEvidence(data),'');
   }
 });
 
@@ -224,7 +224,7 @@ test('verified article quotations produce a supported paraphrase and never repla
       assert.match(options.webSearchContext,/API/);
       return options.evidenceReview ? {evidenceReviews:[{id:0,relevant:true,quote}]} : {answer,citationsValid:true};
     });
-    assert.equal(calls,2);
+    assert.equal(calls,answer===summary ? 2 : 1);
     assert.match(final,/1건뿐|최근 14일/);
     assert.doesNotMatch(final,/핵심 본문 발췌/);
     if(answer===summary) { assert.ok(final.includes(summary)); assert.ok(!final.includes(quote)); }

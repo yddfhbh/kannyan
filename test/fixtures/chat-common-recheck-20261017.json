@@ -1,0 +1,150 @@
+{
+  "mixed": {
+    "identity": {
+      "codeSha256": "9afc1aef84a7cfcc71299463009ff1d47056e470bd5cad0d94f214b3ea0fccca",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "너 누구고 오늘 부산 날씨는 어때?",
+    "now": "2026-10-17T13:31:03.583Z",
+    "reads": [
+      {
+        "requestedUrl": "https://www.weather.go.kr/w/forecast/notice.do?stnId=159",
+        "searchTitle": "예보 통보문(부산·울산·경남)새 창 열림",
+        "round": 0,
+        "status": "body-extracted",
+        "remainingBefore": {
+          "searches": 2,
+          "reads": 4,
+          "durationMs": 24996,
+          "external": {
+            "modelRequests": 2,
+            "httpRequests": 28,
+            "reservedEvidenceRequests": 2,
+            "reservedModelRequests": 4,
+            "reservedHttpRequests": 4,
+            "durationMs": 34460
+          }
+        },
+        "fetchedUrl": "https://www.weather.go.kr/w/forecast/notice.do?stnId=159",
+        "extractedTitle": "예보 통보문 - 기상청 날씨누리",
+        "extractedBody": "예보 통보문 전국 서울·인천·경기 부산·울산·경남 대구·경북 전남광주통합특별시 전북특별자치도 대전·세종·충남 충북 강원특별자치도 제주특별자치도 통보문 다운로드 2026년 10월 17일 (토)요일 17:00 발표 (예보관: 양호정) 오늘(10월 17일)~그글피(10월 21일) □ (종합) 내일 오후~모레 아침 부산, 울산, 경상남도 비, 돌풍.천둥.번개, 강풍, 풍랑 유의○ (오늘, 17일) 가끔 구름많다가 밤부터 흐려짐○ (내일, 18일) 흐림. 오후(12~18시)부터 부산, 울산, 경상남도 비○ (모레, 19일) 흐리다가 오전부터 맑아짐. 아침(06~09시)까지 부산, 울산, 경상남도 비○ (글피, 20일) 구름많다가 아침부터 흐려짐. 늦은 오후(15~18시)부터 부산, 울산, 경상남도 비○ (그글피, 21일) 흐리다가 늦은 새벽부터 차차 맑아짐. 이른 새벽(00~03시)까지 부산, 울산, 경상남도 비 * 예상 강수량(18~19일)- 부산, 울산, 경상남도: 10~50mm 선택한 지역의 최저기온/최고기온/파고 예보 정보를 평년/어제/오늘/내일/모레/글피의 기간에 따라 확인할 수 있는 표입니다. 예보요소 평년(오늘) 어제(16일) 오늘(17일) 내일(18일) 모레(19일) 글피(20일) 그글피(21일) 최저기온 (℃) 5.7 ~ 14.0 5.6 ~ 15.2 7.4 ~ 17.9 14 ~ 21 15 ~ 20 12 ~ 17 11 ~ 17 최고기온 (℃) 20.9 ~ 22.9 23.2 ~ 27.1 23.7 ~ 27.3 23 ~ 26 22 ~ 25 21 ~ 23 19 ~ 22 파고(m) 부산 앞바다 0.5~1.5 1.0~2.5 0.5~2.5 0.5~1.0 0.5~2.0 경남중부남해 앞바다 0.5 0.5 0.5 0.5 0.5 경남서부남해 앞바다 0.5~1.5 0.5~2.0 0.5~2.0 0.5~1.0 0.5~1.5 거제시동부 앞바다 0.5~1.5 0.5~2.0 0.5~2.0 0.5~1.0 0.5~2.0 울산 앞바다 0.5~2.0 1.0~3.0 0.5~3.0 0.5~1.5 0.5~2.0 ※ 최저/최고기온 설명 11시 발표 : 오늘의 최저기온은 03시~09시 사이에 관측된 아침 최저기온이며, 최고는 예보된 낮 최고기온임 17시 발표 : 오늘의 최저/최고기온은 관측된 아침최저/낮최고 기온이며, 아침 최저기온은 03시~09시 사이 가장 낮은 기온, 낮최고기온은 09시 이후 통보시(17시)까지 가장 높은 기온임 평년과 어제의 최저/최고기온은 일최저기온/일최고기온임 ※ 체감온도: 기온에 습도, 바람 등의 영향이 더해져 사람이 느끼는 더위나 추위를 정량적으로 나타낸 온도, 습도 10%p 증가시마다 체감온도 1℃ 가량 증가하는 특징",
+        "bodyQuality": "substantive",
+        "extractedMetadata": "기상청 날씨누리"
+      },
+      {
+        "requestedUrl": "https://www.kma.go.kr/busan/html/info/business02.jsp",
+        "searchTitle": "예보업무새 창 열림",
+        "round": 0,
+        "status": "body-extracted",
+        "remainingBefore": {
+          "searches": 2,
+          "reads": 3,
+          "durationMs": 24698,
+          "external": {
+            "modelRequests": 2,
+            "httpRequests": 27,
+            "reservedEvidenceRequests": 2,
+            "reservedModelRequests": 4,
+            "reservedHttpRequests": 4,
+            "durationMs": 34162
+          }
+        },
+        "fetchedUrl": "https://www.kma.go.kr/busan/html/info/business02.jsp",
+        "extractedTitle": "부산지방기상청",
+        "extractedBody": "기관 소개 기관장 소개 기관장 인사말 역대기관장 기관장과의 대화 기관 연혁 조직·직원 찾아오시는 길 주요 업무 관측업무 예보업무 기후서비스업무 부울경 기후전망 부울경 기후자료실 정보 공개 정보공개제도 안내 정보공개 청구 사전정보 공개 업무추진비 수의 계약 정보 알림·소식 공지사항 보도자료 소속기관안내 울산기상대 창원기상대 100년 관측소(부산) 날씨누리 바로가기 기상청 행정 바로가기 전자민원발급 (기상자료제공신청) 사이트맵 기관 소개 기관장 소개 기관장 인사말 역대기관장 기관장과의 대화 기관 연혁 조직·직원 찾아오시는 길 주요 업무 관측업무 예보업무 기후서비스업무 부울경 기후전망 부울경 기후자료실 정보 공개 정보공개제도 안내 정보공개 청구 사전정보 공개 업무추진비 수의 계약 정보 알림·소식 공지사항 보도자료 소속기관안내 울산기상대 창원기상대 날씨누리 기상청 행정 전자민원발급 기관 소개 기관장 소개 기관장 인사말 역대기관장 기관장과의 대화 기관 연혁 조직·직원 찾아오시는 길 주요 업무 관측업무 예보업무 기후서비스업무 부울경 기후전망 부울경 기후자료실 정보 공개 정보공개제도 안내 정보공개 청구 사전정보 공개 업무추진비 수의 계약 정보 알림·소식 공지사항 보도자료 소속기관안내 울산기상대 창원기상대 100년 관측소(부산) 날씨누리 바로가기 기상청 행정 바로가기 전자민원발급 (기상자료제공신청) 예보업무 홈 > 주요 업무 > 예보업무 관측업무 예보업무 기후서비스업무 국내 기상관측자료뿐만 아니라 전 세계 기상관측자료를 세계기상통신망(GTS)을 통해 받아 슈퍼컴퓨터에 입력합니다. 슈퍼컴퓨터는 자연법칙을 계산해 다양한 수치모델 결과물을 생산합니다. 전문지식과 경험을 겸비한 예보관이 관측자료를 바탕으로 현재의 기상실황을 파악하고, 슈퍼컴퓨터가 만든 수치예보모델 결과를 종합적으로 분석합니다. 이후, 전국의 예보관이 영상회의를 통해 의견을 교환하고 합의해 예보를 최종 결정합니다. 기상자료 활용 퀵 매뉴얼 예보의 종류 예보 종류별 예보기간을 구분과, 예보기간으로 나타낸 표입니다. 구 분 예보기간 초단기예보 현재 실황에서부터 6시간 이내의 기상상황을 1시간 간격으로 발표(갱신주기: 10분)한다. 기온, 강수량, 강수형태, 상대습도, 풍향, 풍속 등 6개의 기상실황과 강수형태, 강수량, 하늘상태, 낙뢰, 기온, 습도, 풍향, 풍속 등 8개의 예보요소를 발표하고 있다. ※ 강수량은 실황에서부터 12시간까지 10분 단위로 발표(갱신주기: 10분) 단기예보 (동네예보) 정시기온, 최고·최저기온, 강수형태, 강수확률, 강수량, 적설, 하늘상태, 풍향, 풍속, 습도, 파고 등 12개 요소를 1시간 단위로 최장 그글피까지의 예보 (일 8회 발표: 02, 05, 08, 11, 14, 17, 20, 23시) 중기예보 단기예보 이후 향후 10일까지의 기상전망, 육상·해상 날씨, 최고·최저기온, 파고를 오전/오후로 나누어(8~10일은 하루단위) 예보 (일 2회 발표: 06, 18시) 장기예보 1개월 전망 4주간의 주별 기압계 전망, 기온 및 강수량 예보 (매주 목요일 발표) 3개월 전망 3개월간의 월별 기압계 전망, 기온 및 강수량 예보 (월 23일 발표) 기후전망 계절기후전망 발표일 다음다음 계절의 평균기온과 강수량, 엘니뇨/라니냐를 전망 (연 4회 발표) 연기후전망 발표일 다음 해의 평균기온과 강수량, 엘니뇨/라니냐를 전망 (연 1회발표) 예보구역 구분 지역 및 해역 육상 국지(20) 부산·울산·경남 20개 시·군 해상 광역(3) 남해동부앞바다, 남해동부먼바다, 동해남부앞바다, 동해남부남쪽먼바다 국지(5) 부산앞바다, 경남중부남해앞바다, 거제시동부앞바다, 경남서부남해앞바다, 울산앞바다 특정관리해역(12) 평수구역 7개 ⓐ 경남서부남해앞바다 중 서부평수구역 ⓑ 경남서부남해앞바다 중 동부평수구역 ⓒ 경남서부남해앞바다 중 남부평수구역 ⓓ 경남중부남해앞바다 중 평수구역 ⓔ 부산앞바다 중 서부평수구역 ⓕ 부산앞바다 중 동부평수구역 ⓖ 울산앞바다 중 평수구역 연안바다 5개 ① 경남서부남해앞바다 중 남해군연안바다 ② 거제시동부앞바다 중 연안바다 ③ 경남중부남해앞바다 중 연안바다 ④ 부산앞바다 중 연안바다 ⑤ 울산앞바다 중 연안바다 기상특보 위험기상 발생이 예상될 때는 ‘기상특보’를 발표한다. 기상특보는 강풍, 풍랑, 호우, 대설, 건조, 폭풍해일, 태풍, 황사, 폭염, 한파의 10종에 대하여 단계별로 주의보와 경보를 발표한다. 특보발표기준 자세히보기 기상정보 기상청은 정규예보 외에도 갑작스러운 기상변화가 예상되거나, 국민들에게 더욱 상세하게 날씨 변화에 대해 알려 줄 필요성이 있을 경우에는 ‘기상정보’를 발표한다. 날씨해설 기상현황과 전망, 원인, 날씨변동 가능성 등 예보 관련사항을 일반인이 이해하기 쉽도록 정기적으로 설명하는 정보이다. 담당관리: 부산지방기상청 문의: 051-718-0200",
+        "bodyQuality": "substantive",
+        "extractedMetadata": ""
+      },
+      {
+        "requestedUrl": "https://www.weather.go.kr/neng/index.do",
+        "searchTitle": "Home - Korea Meteorological Administration새 창 열림",
+        "round": 1,
+        "status": "body-extracted",
+        "remainingBefore": {
+          "searches": 1,
+          "reads": 2,
+          "durationMs": 19934,
+          "external": {
+            "modelRequests": 2,
+            "httpRequests": 24,
+            "reservedEvidenceRequests": 1,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 29398
+          }
+        },
+        "fetchedUrl": "https://www.weather.go.kr/neng/index.do",
+        "extractedTitle": "Home - Korea Meteorological Administration",
+        "extractedBody": "Goto Menu Goto Content KMA English 한국어 日本語 中文 English English 한국어 日本語 中文 Search Settings Menu Weather Loading... Eup/Myeon/Dong search Search Select Eup/Myeon/Dong Find my location Loading... Toggle my area Help Click the star to register or delete an my area. Weather Map Close Help Click the star to register or delete an my area. Find my location Loading... Toggle my area Help Click the star to register or delete an my area. Weather Map Close Help Click the star to register or delete an my area. Icon info Weather Icon and Description Icon Description Icon Description Clear Clear (Night) Mostly Cloudy (Day) Mostly Cloudy (Night) Cloudy Showers Rain Occasional Rain Snow Occasional Snow Rain or Snow Occasional Rain or Snow Snow or Rain Occasional Snow or Rain Thunderstorm Smog Fog Mist Asian Dust Precipitation Icon Classification Guide Weather Icon works are available under the terms \"Korea Public Open Government Licence\" Source Indication - Commercial Use Prohibition - No Change. Search Select Eup/Myeon/Dong Select Eup/Myeon/Dong Si/Do Si/Gu/Gun Eup/Myeon/Dong Select Si/Do Gu/Gun Eup/Myeon/Dong Road name search All Ga Na Da Ra Ma Ba Sa A Ja Cha Ka Ta Pa Ha Select Settings Display Display Default GIS Map Wind speed m/s km/h Hourly Forecast 3Hours Interval 1Hours Interval Save Cancel Site map 한국어 | 中文 | 日本語 Forecast Current Severe Weather Status Impact-based Forecasts Current Weather in Korea Short-Range Forecasts Medium-Range Forecasts Long-Range Forecasts - 1-Month Outlook - 3-Month Outlook El Nino / La Nina - El Nino / La Nina Forecast - El Nino / La Nina Monitoring Charts & Images Weather Map Satellite Images Weather Radar Lightning Weather Chart - Analysis Chart - Forecast Chart Typhoon Information Satellite Imagery Typhoon Track Prediction Earthquake Current Earthquake Information (Korea) Current Earthquake Information (Worldwide) Search Earthquakes (Korea) Search Earthquakes (Worldwide) Earthquake Trends KMA Introduction Greeting Brief History Mission & Vision Organization Location Link",
+        "bodyQuality": "substantive",
+        "extractedMetadata": "Korea Meteorological Administration"
+      }
+    ],
+    "responses": [
+      {
+        "stage": "planning",
+        "raw": "{\n  \"answer\": \"나는 CODEX가 만든 고양이귀 미소녀 챗봇 깐냥이다냥. 부산 날씨는 확인해 줄 테니까 조금만 기다려달라냥.\",\n  \"emotion\": \"neutral\",\n  \"sourcePlan\": {\n    \"mode\": \"search\",\n    \"query\": \"부산 날씨\",\n    \"purpose\": \"오늘 부산의 실제 날씨 정보를 확인하기 위함\",\n    \"externalPrompt\": \"부산의 오늘 날씨를 알려줘\",\n    \"localPrompt\": \"\",\n    \"additionalExternalPrompt\": \"\"\n  }\n}"
+      },
+      {
+        "stage": "evidence-review",
+        "raw": "{\n  \"evidenceReviews\": [\n    {\n      \"id\": 0,\n      \"relevant\": true,\n      \"requestSatisfied\": true,\n      \"quote\": \"예보 통보문 전국 서울·인천·경기 부산·울산·경남 대구·경북 전남광주통합특별시 전북특별자치도 대전·세종·충남 충북 강원특별자치도 제주특별자치도 통보문 다운로드 2026년 10월 17일 (토)요일 17:00 발표 (예보관: 양호정) 오늘(10월 17일)~그글피(10월 21일) □ (종합) 내일 오후~모레 아침 부산, 울산, 경상남도 비, 돌풍.천둥.번개, 강풍, 풍랑 유의○ (오늘, 17일) 가끔 구름많다가 밤부터 흐려짐○ (내일, 18일) 흐림. 오후(12~18시)부터 부산, 울산, 경상남도 비\",\n      \"reason\": \"부산의 날씨 예보 정보와 10월 17일 기준 발표 내용을 포함하고 있다.\",\n      \"region\": \"부산, 울산, 경상남도\",\n      \"validTime\": \"2026년 10월 17일 17:00 발표 (오늘~그글피)\",\n      \"kind\": \"forecast\",\n      \"dataType\": \"prose\",\n      \"weatherFields\": [\n        \"오늘(10월 17일) 가끔 구름많다가 밤부터 흐려짐\",\n        \"내일(10월 18일) 흐림. 오후(12~18시)부터 부산, 울산, 경상남도 비\"\n      ]\n    },\n    {\n      \"id\": 1,\n      \"relevant\": false,\n      \"requestSatisfied\": false,\n      \"quote\": \"\",\n      \"reason\": \"기관 소개와 예보 업무 안내 내용으로 부산의 구체적인 날씨 상태를 담고 있지 않다.\",\n      \"region\": \"\",\n      \"validTime\": \"\",\n      \"kind\": \"unknown\",\n      \"dataType\": \"prose\",\n      \"weatherFields\": []\n    },\n    {\n      \"id\": 2,\n      \"relevant\": true,\n      \"requestSatisfied\": true,\n      \"quote\": \"영남 지방에선 대구와 부산이 25도로 오늘과 비슷하겠습니다.\",\n      \"reason\": \"부산의 기온 관련 날씨 정보를 포함하고 있다.\",\n      \"region\": \"부산\",\n      \"validTime\": \"내일\",\n      \"kind\": \"forecast\",\n      \"dataType\": \"prose\",\n      \"weatherFields\": [\n        \"부산이 25도로 오늘과 비슷하겠습니다\"\n      ]\n    },\n    {\n      \"id\": 3,\n      \"relevant\": true,\n      \"requestSatisfied\": true,\n      \"quote\": \"주말의 부산은 낮기온이 25도를 웃돌며 늦더위가 이어졌습니다.\",\n      \"reason\": \"부산의 주말 낮 기온 및 날씨 상황을 포함하고 있다.\",\n      \"region\": \"부산\",\n      \"validTime\": \"주말\",\n      \"kind\": \"observation\",\n      \"dataType\": \"prose\",\n      \"weatherFields\": [\n        \"주말의 부산은 낮기온이 25도를 웃돌며 늦더위가 이어졌습니다\"\n      ]\n    }\n  ],\n  \"searchRefinement\": {\n    \"requestedSatisfied\": true,\n    \"aliases\": [],\n    \"queries\": [\n      \"부산 날씨\"\n    ]\n  }\n}"
+      },
+      {
+        "stage": "evidence-review",
+        "raw": "{\n  \"evidenceReviews\": [\n    {\n      \"id\": 0,\n      \"relevant\": false,\n      \"requestSatisfied\": false,\n      \"quote\": \"\",\n      \"reason\": \"부산 날씨에 대한 구체적인 관측값이나 예보 정보가 없다냥.\",\n      \"region\": \"\",\n      \"validTime\": \"\",\n      \"kind\": \"unknown\",\n      \"dataType\": \"prose\",\n      \"weatherFields\": []\n    },\n    {\n      \"id\": 1,\n      \"relevant\": false,\n      \"requestSatisfied\": false,\n      \"quote\": \"\",\n      \"reason\": \"특정 주말의 날씨 언급일 뿐 부산 지역의 날씨 정보를 포함하지 않는다냥.\",\n      \"region\": \"\",\n      \"validTime\": \"\",\n      \"kind\": \"unknown\",\n      \"dataType\": \"prose\",\n      \"weatherFields\": []\n    }\n  ],\n  \"searchRefinement\": {\n    \"requestedSatisfied\": false,\n    \"aliases\": [],\n    \"queries\": [\n      \"부산 날씨\"\n    ]\n  }\n}"
+      }
+    ],
+    "final": [
+      "나는 CODEX가 만든 고양이귀 미소녀 챗봇 깐냥이다냥.\n\n확보한 검색 후보와 안전한 후속 검색으로 요청 조건을 확인하지 못했다냥."
+    ]
+  },
+  "toefl-fact": {
+    "identity": {
+      "codeSha256": "9afc1aef84a7cfcc71299463009ff1d47056e470bd5cad0d94f214b3ea0fccca",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "토플 응시료가 얼마야?",
+    "now": "2026-10-17T13:31:09.730Z",
+    "reads": [
+      {
+        "requestedUrl": "https://www.kr.ets.org/toefl/test-takers/ibt/register/fees.html",
+        "searchTitle": "토efl iBT 시험 수수료새 창 열림",
+        "round": 0,
+        "status": "body-extracted",
+        "remainingBefore": {
+          "searches": 2,
+          "reads": 4,
+          "durationMs": 24996,
+          "external": {
+            "modelRequests": 2,
+            "httpRequests": 28,
+            "reservedEvidenceRequests": 2,
+            "reservedModelRequests": 4,
+            "reservedHttpRequests": 4,
+            "durationMs": 36540
+          }
+        },
+        "fetchedUrl": "https://www.kr.ets.org/toefl/test-takers/ibt/register/fees.html",
+        "extractedTitle": "토efl iBT 시험 수수료",
+        "extractedBody": "TOEFL iBT 시험 등록비 등록비를 확인하려면 시험 장소를 선택하세요. \\r\\n &nbsp; \"}}\" id=\"text-5b05b67ecd\" class=\"cmp-text\"> 등록비를 확인하려면 시험 장소를 선택하세요. 참고: TOEFL iBT 가격은 부가가치세(VAT)나 기타 적용 가능한 세금을 제외하며, EU 국가는 예외입니다. \"}}\" id=\"text-2f773ad89a\" class=\"cmp-text\"> 참고: TOEFL iBT 가격은 부가가치세(VAT)나 기타 적용 가능한 세금을 제외하며, EU 국가는 예외입니다. 기타 수수료 TOEFL iBT&nbsp;시험 및 서비스 수수료를 확인하세요. \\r\\n &nbsp; \"}}\" id=\"text-081bb72444\" class=\"cmp-text\"> TOEFL iBT 시험 및 서비스 수수료를 확인하세요. \\r\\n 항목 \\r\\n 수업료 \\r\\n 신속 등록 (시험일로부터 7일 이내) \\r\\n 미화 49달러 \\r\\n 일정 재조정 \\r\\n 69달러 \\r\\n 취소된 악보 복원 \\r\\n 미화 20달러 \\r\\n 추가 점수 보고서(기관별 또는 기관별 ) \\r\\n 개당 29달러 \\r\\n 말하기 또는 작문 섹션 점수 검토 \\r\\n 80달러 \\r\\n 말하기 및 작문 섹션 점수 검토 \\r\\n 미화 160달러 \\r\\n 반환된 결제 \\r\\n 미화 30달러 \\r\\n 익스프레스 스코어링 \\r\\n 미화 129달러 \\r\\n \\r\\n &nbsp; \"}}\" id=\"text-ac1a4c2a2b\" class=\"cmp-text\"> 항목 수업료 신속 등록 (시험일로부터 7일 이내) 미화 49달러 일정 재조정 69달러 취소된 악보 복원 미화 20달러 추가 점수 보고서(기관별 또는 기관별 ) 개당 29달러 말하기 또는 작문 섹션 점수 검토 80달러 말하기 및 작문 섹션 점수 검토 미화 160달러 반환된 결제 미화 30달러 익스프레스 스코어링 미화 129달러 참고:&nbsp;표의 가격에는 부가가치세(VAT)나 기타 적용 가능한 세금은 포함되어 있지 않습니다 \"}}\" id=\"text-75b614fdb7\" class=\"cmp-text\"> 참고: 표의 가격에는 부가가치세(VAT)나 기타 적용 가능한 세금은 포함되어 있지 않습니다 &nbsp; \\r\\n 정책 및 절차, 마감일 및 수수료에 대한 자세한 내용은 TOEFL iBT®&nbsp;정보 게시판 (PDF)을 참조하십시오&nbsp;. \\r\\n &nbsp; \"}}\" id=\"text-19de826454\" class=\"cmp-text\"> 정책 및 절차, 마감일 및 수수료에 대한 자세한 내용은 TOEFL iBT® 정보 게시판 (PDF)을 참조하십시오 . 결제 방법 허용되는 결제 방법은 등록 방법에 따라 다릅니다: \\r\\n \\r\\n ETS 계좌: 신용/직불카드, 전자 수표(전자 수표), PayPal® 또는 Alipay® \\r\\n 전화: 신용/직불카드 또는 전자 수표(전자 수표) \\r\\n 우편: 신용/직불카드 \\r\\n \\r\\n 허용 가능한 결제 방식 사용에 관한 안내는 게시판&nbsp;을&nbsp;참조하세요. \\r\\n 수수료 감면 서비스 \\r\\n \\r\\n TOEFL 수수료 감면 서비스는 미국에서 경제적 어려움이 있는 고등학교 3학년 학생들이 TOEFL 점수가 권장되거나 요구되는 대학에 지원하는 것을 위해 설계되었습니다. \\r\\n 수수료 감면 바우처는 정규 시험비의 50%를 보장합니다. 자세한 내용은 수수료 감면 지침&nbsp;(PDF)&nbsp;과&nbsp;수수료 감면 바우처 요청서&nbsp;(PDF&nbsp;)를 참고&nbsp;하시기 바랍니다. \\r\\n \"}}\" id=\"text-acc88650b5\" class=\"cmp-text\"> 허용되는 결제 방법은 등록 방법에 따라 다릅니다: ETS 계좌: 신용/직불카드, 전자 수표(전자 수표), PayPal® 또는 Alipay® 전화: 신용/직불카드 또는 전자 수표(전자 수표) 우편: 신용/직불카드 허용 가능한 결제 방식 사용에 관한 안내는 게시판 을 참조하세요. 수수료 감면 서비스 TOEFL 수수료 감면 서비스는 미국에서 경제적 어려움이 있는 고등학교 3학년 학생들이 TOEFL 점수가 권장되거나 요구되는 대학에 지원하는 것을 위해 설계되었습니다. 수수료 감면 바우처는 정규 시험비의 50%를 보장합니다. 자세한 내용은 수수료 감면 지침 (PDF) 과 수수료 감면 바우처 요청서 (PDF )를 참고 하시기 바랍니다.",
+        "bodyQuality": "substantive",
+        "extractedMetadata": "토efl iBT 시험 수수료"
+      }
+    ],
+    "responses": [
+      {
+        "stage": "planning",
+        "raw": "{\"answer\":\"\",\"emotion\":\"neutral\",\"sourcePlan\":{\"mode\":\"search\",\"query\":\"토플 응시료\",\"purpose\":\"토플 응시료의 최신 가격 확인\",\"externalPrompt\":\"토플 응시료가 얼마인지 알려줘\",\"localPrompt\":\"\",\"additionalExternalPrompt\":\"\"}}"
+      },
+      {
+        "stage": "evidence-review",
+        "raw": "{\"evidenceReviews\":[{\"id\":0,\"relevant\":false,\"requestSatisfied\":false,\"quote\":\"\",\"reason\":\"토플 iBT 시험의 기본 등록비(응시료) 액수 자체가 명시되어 있지 않고 추가 수수료만 있어 정보가 부족하다냥.\"}],\"searchRefinement\":{\"requestedSatisfied\":false,\"aliases\":[],\"queries\":[\"토플 응시료\",\"TOEFL iBT 등록비\"]}}"
+      }
+    ],
+    "final": [
+      "ETS 공식 안내에서 TOEFL iBT 등록비는 시험 장소를 선택해야 확인할 수 있다는 범위까지 확인했다냥. 한국의 현재 기본 응시료 금액은 확인하지 못했다냥. 응시할 국가·지역을 알려달라냥.\n공식 원문: “등록비를 확인하려면 시험 장소를 선택하세요.”\nhttps://www.kr.ets.org/toefl/test-takers/ibt/register/fees.html"
+    ]
+  }
+}

@@ -1,3 +1,4 @@
+import { chatStageTimeout } from '../src/chat-time-budget.js';
 import { normalizeKannyangSpeech, transformKannyangProse } from '../src/kannyang-speech.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -121,7 +122,7 @@ test('production news discovery, verification and assembly deliver article field
     webSearchMaxResults:10,Date,formatKstTime:()=> '2026-10-15',
     searchWeb:async()=>({status:'success',query:'AI 뉴스',results:[portal]}),
     collectNewsEvidence:(query,initial)=>collectNewsEvidence(query,initial,{
-      now:'2026-10-15',search:async()=>({status:'empty',results:[]}),
+      now:'2026-10-15',search:async()=>({status:'success',results:[{url,title:'새 AI 모델 공개',publishedAt:'2026-10-14'}]}),
       readPage:async(pageUrl)=>pageUrl===portal.url?{url:pageUrl,links:[{url,title:'새 AI 모델 공개'}]}:{
         url:pageUrl,articleTitle:'새 AI 모델 공개',publishedAt:'2026-10-14',publicationEvidence:'datePublished',isArticle:true,
         text:'확인한 AI 기술 기사 본문. '.repeat(20),
@@ -138,7 +139,7 @@ test('production news discovery, verification and assembly deliver article field
   for(const text of ['새 AI 모델 공개',url,'게시일: 2026-10-14','확인한 AI 기술 기사 본문']) assert.ok(payload.includes(text),text);
   assert.doesNotMatch(payload,/URL: https:\/\/publisher.test\/newsroom/);
   let httpBody;
-  const transport=vm.createContext({
+  const transport=vm.createContext({chatStageTimeout,
     AbortController,setTimeout,clearTimeout,geminiRequestTimeoutMs:1000,
     geminiApiBaseUrl:'https://api.test',
     fetch:async(_url,options)=>{httpBody=JSON.parse(options.body);return new Response('{}');},
@@ -250,8 +251,8 @@ test('empty, unrelated, blocked and failed product searches never turn an unknow
       localAnswer:'',search:{status,failed:status==='failed',results:[],context:''}});
     await r.context.handleGeminiFallbackMessage(productMessage(products.reportedQuestion));
     assert.equal(r.queries.length,1,status);
-    assert.equal(r.generated.length,2,status);
-    assert.equal(r.generated[1].opts.localOnly,true); // No ungrounded final generation.
+    assert.equal(r.generated.length,1,status);
+    assert.equal(r.generated[0].opts.planSearch,true); // No ungrounded final generation.
     assert.match(r.sent[0],/확인하지 못/,status);
     assert.doesNotMatch(r.sent[0],/미출시|가상|존재하지 않/,status);
   }
@@ -326,7 +327,7 @@ test('omitted local plan does not send the original mixed request as the retry s
   await r.context.handleGeminiFallbackMessage(productMessage(original));
   assert.deepEqual(searches,['부산 날씨','부산 날씨 official']);
   assert.equal(verification.bodyVerification.searches[0].subject,'부산 날씨');
-  assert.equal(r.generated[1].q,original);
+  assert.equal(r.generated[1].q,'너는 누구야?');
   assert.equal(r.generated[1].opts.localOnly,true);
 });
 
@@ -337,7 +338,7 @@ test('production retrieval review schema and parser retain bounded refinement an
   const g=generator([{answer:'',emotion:'neutral',evidenceReviews:[{id:0,relevant:true,quote,reason:'identity only',region:'',validTime:'',kind:'unknown',dataType:'prose',weatherFields:[]}],searchRefinement:refinement}]);
   let received;
   await reviewSourceBodies('qrx to uvz flight time',[{title:'Identity',url:'https://sample.test/id',pageText:quote}],g.generate,{onRefinement:value=>{received=value;}});
-  assert.deepEqual(JSON.parse(JSON.stringify(received)),refinement);
+  assert.deepEqual(JSON.parse(JSON.stringify(received)),{...refinement,modelRequestedSatisfied:false});
   const schema=g.payloads[0].payload.generationConfig.responseSchema;
   assert.ok(schema.required.includes('searchRefinement'));
   assert.ok(schema.properties.searchRefinement.required.includes('requestedSatisfied'));

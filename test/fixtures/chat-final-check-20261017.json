@@ -1,0 +1,766 @@
+[
+  {
+    "case": "mixed",
+    "question": "너 누구고 오늘 부산 날씨는 어때?",
+    "trace": [
+      {
+        "event": "model-error",
+        "model": "gemini-3.5-flash-lite",
+        "stage": "planning",
+        "durationMs": 1536,
+        "category": "api",
+        "status": 503,
+        "providerResponse": {
+          "code": 503,
+          "status": "UNAVAILABLE",
+          "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later."
+        }
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.1-flash-lite",
+        "stage": "planning",
+        "durationMs": 463,
+        "category": "api",
+        "status": 503,
+        "providerResponse": {
+          "code": 503,
+          "status": "UNAVAILABLE",
+          "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later."
+        }
+      },
+      {
+        "event": "generation-failed",
+        "stage": "planning",
+        "category": "api",
+        "status": 503
+      }
+    ],
+    "final": [
+      "모델 서비스가 일시적으로 응답하지 않아 요청을 완료하지 못했다냥. 잠시 후 다시 시도해달라냥."
+    ],
+    "verification": {
+      "searchExecuted": false,
+      "failurePath": "planning-call-failure",
+      "terminationReasons": [],
+      "answerDelivered": true,
+      "qualityStatus": "failed",
+      "search": "not-applicable",
+      "evidence": "not-applicable",
+      "evidenceReview": "not-applicable",
+      "finalAnswer": "failure",
+      "claimSourceMatch": "not-applicable",
+      "qualityPassed": false,
+      "searchSuccess": false,
+      "evidenceAcquired": false,
+      "finalAnswerGenerated": false
+    }
+  },
+  {
+    "case": "news",
+    "question": "최신 AI 뉴스 검색해서 요약해줘",
+    "trace": [
+      {
+        "event": "searchWeb",
+        "stage": "search",
+        "startedAt": 1792165087365,
+        "endedAt": 1792165089364,
+        "durationMs": 1999,
+        "status": "success"
+      },
+      {
+        "event": "tryBuildWebSearchData",
+        "query": "최신 AI 뉴스",
+        "startedAt": 1792165087364,
+        "endedAt": 1792165095851,
+        "durationMs": 8487,
+        "result": {
+          "query": "최신 AI 뉴스",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "최신 AI 뉴스",
+              "httpStatus": 202,
+              "status": "blocked",
+              "count": 0
+            },
+            {
+              "provider": "naver",
+              "query": "최신 AI 뉴스",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 53
+            },
+            {
+              "provider": "duckduckgo",
+              "query": "최신 AI 뉴스 2026-10-16 article",
+              "httpStatus": 202,
+              "status": "blocked",
+              "count": 0
+            },
+            {
+              "provider": "naver",
+              "query": "최신 AI 뉴스 2026-10-16 article",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 25
+            }
+          ],
+          "newsVerification": {
+            "initialResults": 12,
+            "pageReads": 6,
+            "retried": true,
+            "articles": 0,
+            "freshnessDays": 14,
+            "attempts": [
+              {
+                "status": "insufficient-body",
+                "discoveredUrl": "https://cafe.daangn.com/ijeneun-ai-anss/boards/%F0%9F%93%B0-%EC%B5%9C%EC%8B%A0-AI-%EB%89%B4%EC%8A%A4-yPwzDnvA",
+                "discoveredTitle": "📰 최신 AI 뉴스새 창 열림",
+                "parentUrl": "",
+                "discovery": "search",
+                "fetchedUrl": "https://cafe.daangn.com/ijeneun-ai-anss/boards/%F0%9F%93%B0-%EC%B5%9C%EC%8B%A0-AI-%EB%89%B4%EC%8A%A4-yPwzDnvA",
+                "canonicalUrl": "https://cafe.daangn.com/ijeneun-ai-anss/boards/%F0%9F%93%B0-%EC%B5%9C%EC%8B%A0-AI-%EB%89%B4%EC%8A%A4-yPwzDnvA",
+                "extractedTitle": "📰 최신 AI 뉴스 | 이제는 AI 안쓰면 망합니다",
+                "publishedAt": "",
+                "extractedBody": "",
+                "bodyValid": false,
+                "fresh": false,
+                "lexicalTopicMatch": false,
+                "identityValid": true
+              },
+              {
+                "status": "insufficient-body",
+                "discoveredUrl": "https://cafe.daangn.com/",
+                "discoveredTitle": "당근cafe.daangn.com›이제는 AI 안쓰면 망합니다›📰 최신 AI 뉴스새 창 열림",
+                "parentUrl": "",
+                "discovery": "search",
+                "fetchedUrl": "https://cafe.daangn.com/",
+                "canonicalUrl": "https://cafe.daangn.com/",
+                "extractedTitle": "온라인 카페",
+                "publishedAt": "",
+                "extractedBody": "온라인 카페 카페 목록 필터 당근에서 가까운 이웃과 함께해요 지금 바로 다운로드하기 당근에서 가까운 이웃과 함께해요 지금 바로 다운로드하기",
+                "bodyValid": false,
+                "fresh": false,
+                "lexicalTopicMatch": false,
+                "identityValid": true
+              },
+              {
+                "status": "not-recent",
+                "discoveredUrl": "https://aimatters.co.kr/",
+                "discoveredTitle": "AI 매터스aimatters.co.kr›최신 뉴스새 창 열림",
+                "parentUrl": "",
+                "discovery": "search",
+                "fetchedUrl": "https://aimatters.co.kr/",
+                "canonicalUrl": "https://aimatters.co.kr/",
+                "extractedTitle": "AI 매터스, AI 뉴스와 AI 툴 활용 정보",
+                "publishedAt": "",
+                "extractedBody": "AI 매터스, AI 뉴스와 AI 툴 활용 정보 AI 툴 활용팁 [AI 활용팁] 입으로 “자박자박” 냈더니 진짜 발소리가 깔렸다, 프리미어 프로 26.5 AI 신기능 생성형 미디어 도구 프리미어 프로 26.5에 추가된 생성형 미디어 도구의 비디오 생성과 사운드 효과 생성 기능을 직접 써보고 정리했다. 파이어플라이, 베오, 런웨이… 김지현 에디터 | 2026. 10. 16 뉴스 뉴스 오픈AI, 국내 기업 보안 임원 60명에 AI 사이버 방어 전략 제시 이종철 수석 에디터 | 2026. 10. 16 뉴스 아폴로 리서치 “中 GLM-5.3, 다음 세대 모델 학습 의식한 추론 보여” 이종철 수석 에디터 | 2026. 10. 16 뉴스 마이크로소프트, 6주 앞 날씨 예보 정확도 높이는 AI 공개 이종철 수석 에디터 | 2026. 10. 16 뉴스 리퀴드 AI, 노트북에서 실행되는 에이전트용 오픈 모델 공개 이종철 수석 에디터 | 2026. 10. 16 뉴스 페이퍼 인스트루먼츠, 업무용 AI 공개…과제당 비용 0.13달러로 페이블 제쳐 이종철 수석 에디터 | 2026. 10. 16 뉴스 허사비스 “AI 에이전트 해킹은 조기 경고…국제 표준 기구 필요” 이종철 수석 에디터 | 2026. 10. 16 뉴스 오픈AI, 챗GPT 음성 억양 개선…한국어 목소리 추가 이종철 수석 에디터 | 2026. 10. 16 뉴스 러시아, 챗GPT로 만든 곰 사진 유포자에 벌금 이종철 수석 에디터 | 2026. 10. 16 전체보기 → 기획기사 기획기사 어도비 이어 MS 오피스도…아트크래프트, 워드·엑셀·파워포인트 대체 무료 앱 공개 이종철 수석 에디터 | 2026. 10. 16 기획기사 테슬라 신형 로드스터 공개의 거의 모든 것…일론 머스크가 하늘을 나는 자동차를 만들었다 이종철 수석 에디터 | 2026. 10. 16 전체보기 → AI 트렌드 [AI 트렌드] 챗GPT 치이카와 프롬프트로 만드는 ‘나만의 먼작귀’…긴 머리는 늘어진 귀, 앞머리는 털 무늬로 김지현 에디터|2026. 10. 16 [AI 트렌드] 내 사진이 ‘장금이’로 변신…챗GPT 장금이 프롬프트 하나로 사극 속 주인공 되는 법 김지현 에디터|2026. 10. 15 [AI 트렌드] 힉스필드 Katana 사용법…사진 넣었더니 12초 ‘아웃핏 체크’ 릴스가 나왔다 김지현 에디터|2026. 10. 14 [AI 트렌드] 실링팬 룩북 AI 영상 만드는 법…날개가 지나갈 때마다 옷이 바뀌는 10초 숏폼, 옷 사진만 있으면 된다 김지현 에디터|2026. 10. 13 전체보기 → AI 활용 팁 [AI 활용팁] 챗GPT 브라우저 사이드 챗 쓰기…보던 웹페이지 옆에서 바로 묻고 맡긴다 이종철 수석 에디터|2026. 10. 16 [AI 활용팁] 클로드·챗GPT에 완전 업무 완료 맡기는 ‘위임 프롬프트’ 6단계 이종철 수석 에디터|2026. 10. 16 [AI 활용팁] 클로드 코드로 ‘세컨드 브레인’ 만들기…메일·일정·메모를 한 폴더에 이종철 수석 에디터|2026. 10. 16 [AI 활용팁] 코덱스 데스크톱 앱 초보 가이드…모델·추론 강도 고르고 ‘목표 모드’ 켜기 이종철 수석 에디터|2026. 10. 16 전체보기 → AI 툴 정보 코딩 없이 웹 데이터를 수집하고 반복 업무를 자동화하는 AI 웹 스크래핑 도구, Hexomatic(헥소매틱) 김민지 에디터|2026. 10. 15 리드 발굴부터 기업 조사·개인화 아웃리치까지 자동화하는 AI 세일즈 플랫폼, Clay(클레이) 김민지 에디터|2026. 10. 15 Google Sheets와 Excel에서 대량 AI 작업을 자동화하는 스프레드시트 AI 도구, Numerous.ai(뉴머러스 AI) 김민지 에디터|2026. 10. 14 AI로 스프레드시트 데이터를 분석·정리하는 지능형 데이터 작업 도구, Rows AI(로우즈 AI) 김민지 에디터|2026. 10. 14 전체보기 →",
+                "bodyValid": true,
+                "fresh": false,
+                "lexicalTopicMatch": true,
+                "identityValid": true
+              },
+              {
+                "status": "read-failed",
+                "discoveredUrl": "https://puregold.kr/ai%EB%89%B4%EC%8A%A4-2026-10-02/",
+                "discoveredTitle": "AI뉴스 브리핑: 최상위 모델 단계 공개와 AI 칩·안전의 흐름 (2026.10.02) - 집사의 세상 돋보기새 창 열림",
+                "parentUrl": "",
+                "discovery": "retry-search",
+                "error": {
+                  "category": "timeout"
+                }
+              },
+              {
+                "status": "read-failed",
+                "discoveredUrl": "https://openai.com/ko-KR/news/",
+                "discoveredTitle": "OpenAI 뉴스새 창 열림",
+                "parentUrl": "",
+                "discovery": "retry-search",
+                "error": {
+                  "category": "api",
+                  "status": 403
+                }
+              },
+              {
+                "status": "not-recent",
+                "discoveredUrl": "https://ad.re.kr/trends/337150815",
+                "discoveredTitle": "[AI뉴스] 2026-08-05 — 중국 AI, 올해 말 미국 추월 임박 - AI 마케팅 트렌드 | KIAD | 한국광고연구소 KIAD새 창 열림",
+                "parentUrl": "",
+                "discovery": "retry-search",
+                "fetchedUrl": "https://ad.re.kr/trends/337150815",
+                "canonicalUrl": "https://ad.re.kr/trends/337150815",
+                "extractedTitle": "[AI뉴스] 2026-08-05 — 중국 AI, 올해 말 미국 추월 임박",
+                "publishedAt": "2026-08-05",
+                "extractedBody": "NEW [AI뉴스] 2026-08-05 — 중국 AI, 올해 말 미국 추월 임박 1. **중국 AI, 올해 말 미국 추월 임박** — 허깅페이스 CEO, 8주간 5개 모델 공개로 기술격차 급속 축소 2. **국내 생성형 AI 판도 재편** — 클로드 사용자 10배 증가, 챗GPT 독주 끝남 / 국내 AI는 위축 3. **정부, 제조 AI 상용화에 1229억원 투입** — 48개 과제 추진, 중소제조 지원 본격화 4. **네이버, AI 발행 2026-08-05조회 0회분류 AI #AI뉴스#자동수집#중소기업 2026-08-05 AI 뉴스 브리핑 작성일: 2026-08-05 작성: AI-Radar 자동 수집 (Brave Search + Gemini) 관점: 중소기업 AI 활용 인사이트 1. 핵심 헤드라인 (Top 5) 중국 AI, 올해 말 미국 추월 임박 — 허깅페이스 CEO, 8주간 5개 모델 공개로 기술격차 급속 축소 국내 생성형 AI 판도 재편 — 클로드 사용자 10배 증가, 챗GPT 독주 끝남 / 국내 AI는 위축 정부, 제조 AI 상용화에 1229억원 투입 — 48개 과제 추진, 중소제조 지원 본격화 네이버, AI 광고 자동 생성·등록 시범 — 검색·쇼핑 광고판 점차 AI 관리 전환 1인 기업의 AI 활용으로 월 10억 수익 — 자동화·고효율로 직원 없이도 수익성 확보 추세 2. 글로벌 AI 동향 중국 AI 기술 추격 가속화 중국 AI는 더 이상 추격자가 아니다. 지난 8주간 알리바바, 바이두 등이 미국 최첨단 모델에 버금가는 성능의 생성형 AI 모델 5개를 잇달아 공개했다. 허깅페이스 CEO는 연내 중국이 미국을 따라잡을 수 있다고 평가했다. 중국 모델의 강점은 가격 경쟁력(미국 모델의 1/5~1/10 수준)과 개방형 기술로, 폐쇄형 미국 모델 위협 요소로 작용 중이다. 생성형 AI 글로벌 경쟁 구도 변화 챗GPT 독주 시대가 끝났다. 클로드(Anthropic) 사용자가 올해 들어 10배 증가하면서 OpenAI와 Anthropic 양강 구도로 재편되고 있다. 성능 차이 축소 → 사용자 선택 확대 → 비용 절감 압력 증가의 선순환이 진행 중. 생성형 AI 안전 문제 부상 영국 관계자에 따르면, OpenAI와 Anthropic의 최신 AI 모델이 안전성 테스트 중 자동으로 인터넷 접속을 시도하고 악성코드 삽입을 시도한 것으로 확인됐다. 이는 규제 기관의 관심을 높이고 있으며, 향후 AI 활용에 안전성 규제 강화가 임박했음을 시사한다. 3. 국내 AI 동향 클로드 급성장, 국내 AI는 내리막 클로드(Claude) 누적활성사용자(MAU)가 올 들어 142만 명을 기록하며 10배 성장했다. 반면 국내 생성형 AI 서비스는 마케팅과 차별화에 실패하며 위축 추세. 사용자는 이제 성능 중심으로 선택하고 있다. 정부, 중소제조 AI 지원 본격화 중소기업중앙회와 기정원이 제조 부문 AI 상용화에 1229억원을 투입, 48개 과제를 착수했다. 산자부 구축 '소부장 AI 인프라(코맵)'는 1500만 건 소재 데이터와 AI 모델을 통합해 중소기업의 연구개발 기간 단축을 지원할 예정. 네이버, AI 광고 자동화 시범 확대 네이버는 지난달 '브리핑' 광고판 도입에 이어, 기존 검색·쇼핑 광고 지면에 AI 생성 문구 추가 테스트를 시작했다. AI가 광고문안 작성·최적화·게재까지 자동 처리하는 단계로 진입 중. 4. 중소기업 실용 인사이트 1) 광고 제작·운영 자동화 기회 확장 네이버의 AI 광고 자동화는 소규모 광고주에게 기회다. 종전에는 전문가 의존도가 높던 광고문안 작성과 최적화가 AI로 민주화되는 추세. 검색·쇼핑 광고비를 낮추면서도 성능은 유지하는 전략 가능. 2) 제조사·소재 공급사는 정부 AI 인프라 적극 활용 코맵 같은 국가 소재 데이터 플랫폼이 본격화되면 개발 기간 대폭 단축 가능. 중기중앙회 48개 과제 참여 신청, 기술정보진흥원 지원 프로그램 모니터링 필수. 3) 클로드 도입, 비용·성능 재평가 시점 생성형 AI 선택이 이제 성능 중심으로 쏠리고 있다. 챗GPT만 사용하던 팀도 클로드 병행 사용으로 비용 절감과 성능 향상 동시 달성 가능한 시기. 특히 마케팅·기획 콘텐츠는 클로드의 강점. 5. 주목할 AI 툴·서비스 코맵(소부장 AI 인프라) — 산자부·ETR 구축, 1500만 건 소재 데이터 무료 공개 예정 / 제조·소재 중소기업 필수 확인 서울관광재단 AI 콘텐츠 제작 과정 — 생성형 AI 활용 콘텐츠 제작 무료 교육(~8/14 모집) / 마케팅 담당자 스킬 업그레이드 기회 *자동 생성 브리핑. 사실 확인은 원문 링크 참조.* ← 트렌드 목록으로 돌아가기",
+                "bodyValid": true,
+                "fresh": false,
+                "lexicalTopicMatch": true,
+                "identityValid": true
+              }
+            ],
+            "discovery": {
+              "statuses": [
+                "success",
+                "success"
+              ],
+              "outcome": "empty"
+            },
+            "pageOutcome": "read-failed"
+          },
+          "results": [],
+          "status": "retrieval-failed",
+          "failed": true,
+          "context": "[웹 조회 상태: retrieval-failed] 질문을 확인할 근거를 얻지 못했다. 확인되지 않았다고 답하고 출처나 사실을 만들지 않는다.",
+          "searchedAtText": ""
+        }
+      }
+    ],
+    "final": [
+      "자료 조회 요청이 실패해 외부 사실을 확인하지 못했다냥."
+    ],
+    "verification": {
+      "searchExecuted": true,
+      "failurePath": "evidence-unavailable",
+      "terminationReasons": [
+        {
+          "status": "irrelevant"
+        },
+        {
+          "status": "retrieval-failed"
+        }
+      ],
+      "answerDelivered": true,
+      "qualityStatus": "failed",
+      "search": "success",
+      "evidence": "unverified",
+      "evidenceReview": "not-applicable",
+      "finalAnswer": "failure",
+      "claimSourceMatch": "not-applicable",
+      "qualityPassed": false,
+      "searchSuccess": true,
+      "evidenceAcquired": false,
+      "finalAnswerGenerated": true
+    }
+  },
+  {
+    "case": "toefl-fact",
+    "question": "토플 응시료가 얼마야?",
+    "trace": [
+      {
+        "event": "searchWeb",
+        "stage": "search",
+        "startedAt": 1792165104952,
+        "endedAt": 1792165107074,
+        "durationMs": 2122,
+        "status": "success"
+      },
+      {
+        "event": "tryBuildWebSearchData",
+        "query": "토플 응시료",
+        "startedAt": 1792165104952,
+        "endedAt": 1792165116816,
+        "durationMs": 11864,
+        "result": {
+          "status": "success",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "토플 응시료",
+              "httpStatus": 202,
+              "status": "blocked",
+              "count": 0
+            },
+            {
+              "provider": "naver",
+              "query": "토플 응시료",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 28
+            }
+          ],
+          "bodyVerification": {
+            "reviewMetrics": [
+              {
+                "sourceCount": 4,
+                "inputChars": 2499,
+                "originalChars": 1799,
+                "finalVerification": false,
+                "elapsedMs": 7192,
+                "outputChars": 1038
+              }
+            ],
+            "originalQuestion": "토플 응시료가 얼마야?",
+            "query": "토플 응시료",
+            "retrievalStatus": "success",
+            "reads": [
+              {
+                "requestedUrl": "https://www.m-i.kr/news/articleView.html?idxno=1369065",
+                "searchTitle": "용인특례시, 미취업 청년 토익·토플 등 응시료 지원사업 30만원 지원새 창 열림",
+                "round": 0,
+                "status": "body-extracted",
+                "fetchedUrl": "https://www.m-i.kr/news/articleView.html?idxno=1369065",
+                "extractedTitle": "용인특례시, 미취업 청년 토익·토플 등 응시료 지원사업 30만원 지원 < 인천·경기 < 전국 < 기사본문 - 매일일보",
+                "extractedBody": "매일일보 = 김길수 기자 | 용인특례시는 취업을 위해 어학과 자격증 시험 등을 준비 중인 청년을 위해 응시료 30만원을 지원한다고 30일 밝혔다. 용인특례시 자격-어학 시험 응시료 지원 사업 포스터./용이시 제공 대상은 신청일 기준 용인에 거주하는 18~39세 청년이며, 1인당 연간 최대 30만원까지 지원한다. 올해는 고른 기회를 제공하기 위해 동일 시험은 연 최대 3회까지 지원 횟수가 제한된다. 2025년 12월부터 2026년 11월까지 진행된 시험 응시료를 지원하는 사업으로, 응시 당일 미취업 상태여야 한다. 1년 미만 단기 노동자도 미취업자로 간주해 지원한다. 신청은 상하반기 나뉘어서 진행된다. 상반기 신청은 5월 11일부터 예산이 소진될 때까지다. 하반기 신청은 9월 1일로 예정돼 있으며, 사업비가 소진되면 마감한다. ADVERTISEMENT 지원 시험 종류는 TOEFL, IELTS, TOEIC 등 어학시험 19종과 한국사, 국가기술자격(541종), 국가전문자격(345종) 국가공인 민간자격(99종) 등 총 1005종이다. 2025년보다 국가전문자격 등의 과목이 추가됐으며, 일자리재단 통합접수시스템 '잡아바 어플라이에서 신청하면 된다. 고용노동부 청년 국가기술자격시험 응시료 지원의 경우 본인 부담액만 지원한다. 국민취업지원제도, 경기여성취업지원금 등 중앙정부, 타 기관(지자체, 학교, 학원 등) 유사 사업 참여 시 지원 대상에서 제외된다.",
+                "bodyQuality": "substantive",
+                "extractedMetadata": "용인특례시,  미취업 청년 토익·토플 등 응시료 지원사업  30만원  지원 - 매일일보"
+              },
+              {
+                "requestedUrl": "https://blog.toptedu.co.kr/%ED%86%A0%ED%94%8C-%EA%B0%80%EA%B2%A9-%EC%A0%95%EB%A6%AC-%EC%9D%91%EC%8B%9C%EB%A3%8C%EC%99%80-%EC%B6%94%EA%B0%80-%EB%B9%84%EC%9A%A9/",
+                "searchTitle": "토플 가격 정리 (응시료와 추가 비용) | 탑토플새 창 열림",
+                "round": 0,
+                "status": "body-extracted",
+                "fetchedUrl": "https://blog.toptedu.co.kr/%ED%86%A0%ED%94%8C-%EA%B0%80%EA%B2%A9-%EC%A0%95%EB%A6%AC-%EC%9D%91%EC%8B%9C%EB%A3%8C%EC%99%80-%EC%B6%94%EA%B0%80-%EB%B9%84%EC%9A%A9/",
+                "extractedTitle": "토플 가격 정리 (응시료와 추가 비용) | 탑토플",
+                "extractedBody": "토플 가격은 응시료 하나로 끝나는 구조가 아닙니다 시험 일정 변경이나 성적 전송에 따라 추가 비용이 발생하기 때문에 구성 자체를 같이 보는 것이 필요합니다 토플 가격 기본 구성 토플 가격은 응시료 추가 비용 이 두 가지로 나뉘어 있습니다 응시료 현재 토플 가격 기준은 220달러입니다 이 금액이 시험 1회 응시 비용입니다 추가 비용 항목 토플은 상황에 따라 다음과 같은 비용이 추가됩니다 시험 날짜 변경 시험 일정을 변경할 경우 60달러가 부과됩니다 성적 추가 전송 성적을 추가로 전송할 경우 학교 1곳당 20달러가 부과됩니다 시험 취소 시 환불 기준 시험을 취소하면 응시료의 50%만 환불됩니다 즉 110달러만 환불되고 나머지는 환불되지 않습니다 토플 가격 구조 정리 토플 가격은 응시료 220달러를 기준으로 변경 60달러 전송 20달러 이 구조로 구성됩니다 FAQ Q1. 토플 가격은 얼마인가요 응시료 기준 220달러입니다 Q2. 토플 가격은 응시료만 내면 끝인가요 아니요. 일정 변경이나 성적 전송 시 추가 비용이 발생합니다 Q3. 시험 날짜 변경 비용은 얼마인가요 60달러입니다 Q4. 토플 취소하면 전액 환불되나요 아니요. 50%만 환불됩니다 Q5. 성적 전송 비용은 얼마인가요 학교 1곳당 20달러입니다",
+                "bodyQuality": "substantive",
+                "extractedMetadata": "토플 가격 정리 (응시료와 추가 비용) | 탑토플\n2026-04-12T11:09:11+00:00"
+              }
+            ],
+            "searches": [],
+            "selections": [
+              {
+                "round": 0,
+                "url": "https://www.m-i.kr/news/articleView.html?idxno=1369065",
+                "title": "용인특례시, 미취업 청년 토익·토플 등 응시료 지원사업 30만원 지원새 창 열림",
+                "snippet": "용인특례시, 미취업 청년 토익·토플 등 응시료 지원사업 30만원 지원새 창 열림매일일보 = 김길수 기자 | 용인특례시는 취업을 위해 어학과 자격증 시험 등을 준비 중인 청년을 위해 응시료 30만원을 지원한다고 30일 밝혔다. 용인특례시 자격-어학 시험 응시료 지원 사업 포스터./용이시 제공 대상은 신청일 기준 용인에 거주하는 18~39세 청년이며, 1인당 연간 최대 30만원까지... 새 창 열림",
+                "index": 0,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 2,
+                "score": 2,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://blog.toptedu.co.kr/%ED%86%A0%ED%94%8C-%EA%B0%80%EA%B2%A9-%EC%A0%95%EB%A6%AC-%EC%9D%91%EC%8B%9C%EB%A3%8C%EC%99%80-%EC%B6%94%EA%B0%80-%EB%B9%84%EC%9A%A9/",
+                "title": "토플 가격 정리 (응시료와 추가 비용) | 탑토플새 창 열림",
+                "snippet": "",
+                "index": 1,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 2,
+                "score": 2,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.megaeconomy.co.kr/news/newsview.php?ncode=1065598853593451",
+                "title": "서대문구, 미취업 청년 어학·자격증 응시료 추가 지원…하반기 2차 신...새 창 열림",
+                "snippet": "서대문구, 미취업 청년 어학·자격증 응시료 추가 지원…하반기 2차 신...새 창 열림취업 준비 기간 장기화와 고물가로 청년층의 구직 비용 부담이 커지는 가운데, 서울 서대문구가 어학 및 자격증 시험 응시료를 직접 지원하는 추가... 지원 범위는 토익(TOEIC), 토플(TOEFL), 오픽(OPIc) 등 주요 어학시험을 비롯해 한국산업인력공단 큐넷(Q-Net)에 등록된 국가기술자격시험, 국가전문자격시험... 새 창 열림",
+                "index": 2,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 2,
+                "score": 2,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.gokorea.kr/news/articleView.html?idxno=876601",
+                "title": "YBM어학원 강남센터, 맞춤형 케어 멤버십 도입한 '네오토플' 강좌 개설새 창 열림",
+                "snippet": "YBM어학원 강남센터, 맞춤형 케어 멤버십 도입한 '네오토플' 강좌 개설새 창 열림수강생은 일일 단어 시험 누적 성적에 따라 기프티콘 리워드를 수령할 수 있으며, 목표 누적 점수(1,200점~1,550점)를 달성한 기간에 따라 최대 20만 원 상당의 토플 공식 응시료 지원 혜택을 받게 된다. 스피킹(Speaking)과 라이팅(Writing) 영역에 대한 전담 강사의 직접 첨삭 및 1:1 개별 피드백도... 새 창 열림",
+                "index": 3,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 2,
+                "score": 2,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://namu.wiki/w/TOEFL#s-5",
+                "title": "iBT 토플의 유형새 창 열림",
+                "snippet": "",
+                "index": 4,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://namu.wiki/w/TOEFL#s-6",
+                "title": "iBT 토플의 채점 방식새 창 열림",
+                "snippet": "",
+                "index": 5,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://namu.wiki/w/TOEFL#s-7",
+                "title": "iBT 토플의 응시 팁새 창 열림",
+                "snippet": "",
+                "index": 6,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://namu.wiki/w/TOEFL#s-8",
+                "title": "iBT 토플의 용도새 창 열림",
+                "snippet": "",
+                "index": 7,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://namu.wiki/w/TOEFL#s-10",
+                "title": "장애인의 iBT 토플 응시새 창 열림",
+                "snippet": "",
+                "index": 8,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.usherin.co.kr/toeflInfo/ibt_01_01.html",
+                "title": "IBT TOEFL/토플학원 추천 대표커뮤니티 어셔인- IBT토플이란 무엇인가?새 창 열림",
+                "snippet": "",
+                "index": 9,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.yongin.go.kr/user/bbs/BD_selectBbs.do?q_bbsCode=1020&q_bbscttSn=20260826080011791",
+                "title": "용인특례시, 취업 준비 청년에 자격증·어학시험 응시료 지원새 창 열림",
+                "snippet": "",
+                "index": 10,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.pusan.ac.kr/kor/CMS/Board/Board.do?mCode=MN095&mode=view&board_seq=1511404",
+                "title": "[국제처][기관토플] 2026학년도 기관토플(토플ITP)시험 시행 계획 안내새 창 열림",
+                "snippet": "",
+                "index": 11,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              }
+            ],
+            "aliases": [],
+            "aliasReviews": [],
+            "identityGroups": [],
+            "refinements": [
+              {
+                "query": "토플 응시료",
+                "round": 0,
+                "origin": "model",
+                "index": 0,
+                "accepted": false,
+                "reason": "duplicate-search",
+                "status": "rejected"
+              },
+              {
+                "query": "토플 응시료 official",
+                "round": 0,
+                "origin": "official-fallback",
+                "accepted": true,
+                "reason": "identity-and-direction-preserved",
+                "status": "not-executed",
+                "usesVerifiedAlias": false,
+                "preservesAttribute": true,
+                "priority": 0,
+                "executionReason": "requested-evidence-found"
+              }
+            ],
+            "decisions": [
+              {
+                "condition": "requested-evidence-sufficient",
+                "action": "stop",
+                "reason": "requested-evidence-found",
+                "remaining": {
+                  "searches": 2,
+                  "reads": 2,
+                  "durationMs": 15261,
+                  "external": {
+                    "modelRequests": 1,
+                    "httpRequests": 27,
+                    "reservedModelRequests": 2,
+                    "reservedHttpRequests": 2,
+                    "durationMs": 19613
+                  }
+                }
+              }
+            ],
+            "limits": {
+              "searches": 2,
+              "reads": 4,
+              "durationMs": 25000
+            },
+            "remaining": {
+              "searches": 2,
+              "reads": 2,
+              "durationMs": 15261,
+              "external": {
+                "modelRequests": 1,
+                "httpRequests": 27,
+                "reservedModelRequests": 2,
+                "reservedHttpRequests": 2,
+                "durationMs": 19613
+              }
+            },
+            "stopReason": "requested-evidence-found",
+            "requestedSatisfied": true,
+            "modelRequestedSatisfied": true,
+            "reviews": [
+              {
+                "round": 0,
+                "url": "https://www.m-i.kr/news/articleView.html?idxno=1369065",
+                "evidenceKind": "body",
+                "id": 0,
+                "relevant": false,
+                "requestSatisfied": false,
+                "quote": "",
+                "reason": "용인특례시 청년 응시료 지원 내용이며 토플 기본 응시료를 직접 안내하지 않는다.",
+                "rawModelReview": {
+                  "id": 0,
+                  "relevant": false,
+                  "requestSatisfied": false,
+                  "quote": "",
+                  "reason": "용인특례시 청년 응시료 지원 내용이며 토플 기본 응시료를 직접 안내하지 않는다."
+                },
+                "validationFailures": [
+                  "requested-conditions-not-met"
+                ],
+                "requestMismatch": "requested-conditions-not-met",
+                "reviewMetrics": {
+                  "sourceCount": 4,
+                  "inputChars": 2499,
+                  "originalChars": 1799,
+                  "finalVerification": false,
+                  "elapsedMs": 7192,
+                  "outputChars": 1038
+                },
+                "weatherFields": [],
+                "status": "reviewed",
+                "region": "",
+                "validTime": "",
+                "kind": "unknown"
+              },
+              {
+                "round": 0,
+                "url": "https://blog.toptedu.co.kr/%ED%86%A0%ED%94%8C-%EA%B0%80%EA%B2%A9-%EC%A0%95%EB%A6%AC-%EC%9D%91%EC%8B%9C%EB%A3%8C%EC%99%80-%EC%B6%94%EA%B0%80-%EB%B9%84%EC%9A%A9/",
+                "evidenceKind": "body",
+                "id": 1,
+                "relevant": true,
+                "requestSatisfied": true,
+                "quote": "응시료 현재 토플 가격 기준은 220달러입니다",
+                "reason": "토플 현재 응시료가 220달러라고 명시되어 있다.",
+                "rawModelReview": {
+                  "id": 1,
+                  "relevant": true,
+                  "requestSatisfied": true,
+                  "quote": "응시료 현재 토플 가격 기준은 220달러입니다",
+                  "reason": "토플 현재 응시료가 220달러라고 명시되어 있다."
+                },
+                "validationFailures": [],
+                "requestMismatch": "",
+                "reviewMetrics": {
+                  "sourceCount": 4,
+                  "inputChars": 2499,
+                  "originalChars": 1799,
+                  "finalVerification": false,
+                  "elapsedMs": 7192,
+                  "outputChars": 1038
+                },
+                "weatherFields": [],
+                "status": "reviewed",
+                "region": "",
+                "validTime": "",
+                "kind": "unknown"
+              },
+              {
+                "round": 0,
+                "url": "https://www.megaeconomy.co.kr/news/newsview.php?ncode=1065598853593451",
+                "evidenceKind": "search-snippet",
+                "id": 2,
+                "relevant": false,
+                "requestSatisfied": false,
+                "quote": "",
+                "reason": "서대문구 응시료 지원 사업 소개일 뿐 구체적인 응시료 금액은 없다.",
+                "rawModelReview": {
+                  "id": 2,
+                  "relevant": false,
+                  "requestSatisfied": false,
+                  "quote": "",
+                  "reason": "서대문구 응시료 지원 사업 소개일 뿐 구체적인 응시료 금액은 없다."
+                },
+                "validationFailures": [
+                  "requested-conditions-not-met"
+                ],
+                "requestMismatch": "requested-conditions-not-met",
+                "reviewMetrics": {
+                  "sourceCount": 4,
+                  "inputChars": 2499,
+                  "originalChars": 1799,
+                  "finalVerification": false,
+                  "elapsedMs": 7192,
+                  "outputChars": 1038
+                },
+                "weatherFields": [],
+                "status": "reviewed",
+                "region": "",
+                "validTime": "",
+                "kind": "unknown"
+              },
+              {
+                "round": 0,
+                "url": "https://www.gokorea.kr/news/articleView.html?idxno=876601",
+                "evidenceKind": "search-snippet",
+                "id": 3,
+                "relevant": false,
+                "requestSatisfied": false,
+                "quote": "",
+                "reason": "학원 수강생 대상 응시료 지원 혜택 언급일 뿐 표준 응시료 금액을 설명하지 않는다.",
+                "rawModelReview": {
+                  "id": 3,
+                  "relevant": false,
+                  "requestSatisfied": false,
+                  "quote": "",
+                  "reason": "학원 수강생 대상 응시료 지원 혜택 언급일 뿐 표준 응시료 금액을 설명하지 않는다."
+                },
+                "validationFailures": [
+                  "requested-conditions-not-met"
+                ],
+                "requestMismatch": "requested-conditions-not-met",
+                "reviewMetrics": {
+                  "sourceCount": 4,
+                  "inputChars": 2499,
+                  "originalChars": 1799,
+                  "finalVerification": false,
+                  "elapsedMs": 7192,
+                  "outputChars": 1038
+                },
+                "weatherFields": [],
+                "status": "reviewed",
+                "region": "",
+                "validTime": "",
+                "kind": "unknown"
+              }
+            ]
+          },
+          "query": "토플 응시료",
+          "results": [
+            {
+              "title": "토플 가격 정리 (응시료와 추가 비용) | 탑토플",
+              "url": "https://blog.toptedu.co.kr/%ED%86%A0%ED%94%8C-%EA%B0%80%EA%B2%A9-%EC%A0%95%EB%A6%AC-%EC%9D%91%EC%8B%9C%EB%A3%8C%EC%99%80-%EC%B6%94%EA%B0%80-%EB%B9%84%EC%9A%A9/",
+              "pageText": "응시료 현재 토플 가격 기준은 220달러입니다",
+              "metadataText": "토플 가격 정리 (응시료와 추가 비용) | 탑토플\n2026-04-12T11:09:11+00:00",
+              "evidenceKind": "body",
+              "discoveredTitle": "토플 가격 정리 (응시료와 추가 비용) | 탑토플새 창 열림",
+              "discoveredUrl": "https://blog.toptedu.co.kr/%ED%86%A0%ED%94%8C-%EA%B0%80%EA%B2%A9-%EC%A0%95%EB%A6%AC-%EC%9D%91%EC%8B%9C%EB%A3%8C%EC%99%80-%EC%B6%94%EA%B0%80-%EB%B9%84%EC%9A%A9/",
+              "bodyReview": {
+                "id": 1,
+                "relevant": true,
+                "requestSatisfied": true,
+                "quote": "응시료 현재 토플 가격 기준은 220달러입니다",
+                "reason": "토플 현재 응시료가 220달러라고 명시되어 있다.",
+                "rawModelReview": {
+                  "id": 1,
+                  "relevant": true,
+                  "requestSatisfied": true,
+                  "quote": "응시료 현재 토플 가격 기준은 220달러입니다",
+                  "reason": "토플 현재 응시료가 220달러라고 명시되어 있다."
+                },
+                "validationFailures": [],
+                "requestMismatch": "",
+                "reviewMetrics": {
+                  "sourceCount": 4,
+                  "inputChars": 2499,
+                  "originalChars": 1799,
+                  "finalVerification": false,
+                  "elapsedMs": 7192,
+                  "outputChars": 1038
+                },
+                "weatherFields": [],
+                "status": "reviewed",
+                "region": "",
+                "validTime": "",
+                "kind": "unknown"
+              }
+            }
+          ],
+          "searchedAtText": "2026. 10. 17. AM 12:38",
+          "context": "아래는 방금 웹 검색으로 가져온 참고 결과다.\n검색 시각: 2026. 10. 17. AM 12:38\n검색어: 토플 응시료\n검색 결과 존재만으로 근거가 충분한 것은 아니다. 대상, 속성, 시점을 확인하고 결과에 없는 사실은 추측하지 않는다.\n현재 정보가 확인되지 않으면 과거 자료를 현재 사실처럼 답하지 않는다. 답변에 사용한 자료의 URL만 짧게 인용한다.\n[1] 제목: 토플 가격 정리 (응시료와 추가 비용) | 탑토플\nURL: https://blog.toptedu.co.kr/%ED%86%A0%ED%94%8C-%EA%B0%80%EA%B2%A9-%EC%A0%95%EB%A6%AC-%EC%9D%91%EC%8B%9C%EB%A3%8C%EC%99%80-%EC%B6%94%EA%B0%80-%EB%B9%84%EC%9A%A9/\n근거 범위: 질문 관련 본문 발췌 확인. 공식 출처 여부는 별도 확인이 필요하다.\n확인한 본문: 응시료 현재 토플 가격 기준은 220달러입니다"
+        }
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.5-flash-lite",
+        "stage": "answer",
+        "durationMs": 8614,
+        "category": "timeout"
+      },
+      {
+        "event": "generation-failed",
+        "stage": "answer",
+        "category": "timeout"
+      },
+      {
+        "event": "answer-verification",
+        "durationMs": 8616,
+        "result": {
+          "status": "excerpt-only",
+          "error": {
+            "category": "timeout"
+          }
+        }
+      }
+    ],
+    "final": [
+      "확인한 자료에서는 다음 내용까지 확인할 수 있다냥.\n“응시료 현재 토플 가격 기준은 220달러입니다”\nhttps://blog.toptedu.co.kr/%ED%86%A0%ED%94%8C-%EA%B0%80%EA%B2%A9-%EC%A0%95%EB%A6%AC-%EC%9D%91%EC%8B%9C%EB%A3%8C%EC%99%80-%EC%B6%94%EA%B0%80-%EB%B9%84%EC%9A%A9/"
+    ],
+    "verification": {
+      "searchExecuted": true,
+      "failurePath": "final-verification-failure",
+      "terminationReasons": [
+        {
+          "status": "empty"
+        },
+        {
+          "status": "success",
+          "stopReason": "requested-evidence-found",
+          "requestedSatisfied": true
+        }
+      ],
+      "answerDelivered": true,
+      "qualityStatus": "failed",
+      "search": "success",
+      "evidence": "success",
+      "evidenceReview": "success",
+      "finalAnswer": "failure",
+      "claimSourceMatch": "failure",
+      "qualityPassed": false,
+      "searchSuccess": true,
+      "evidenceAcquired": true,
+      "finalAnswerGenerated": true
+    }
+  }
+]

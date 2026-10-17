@@ -1,4 +1,7 @@
+import { chatTimeRemaining } from './chat-time-budget.js';
 import { JSDOM } from 'jsdom';
+import { compactEvidenceText } from './evidence-review.js';
+import { rankNewsCandidates } from './news-candidates.js';
 
 const duckDuckGoHtmlOrigin = 'https://html.duckduckgo.com';
 const duckDuckGoHtmlUrl = `${duckDuckGoHtmlOrigin}/html/`;
@@ -45,7 +48,7 @@ export async function searchWeb(query, options = {}) {
   const timeoutMs = clampInteger(options.timeoutMs, 1_000, 60_000, defaultSearchTimeoutMs);
   const preferredDomains = normalizePreferredDomains(options.preferredDomains);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const timeout = setTimeout(() => controller.abort(), Math.max(1, Math.min(timeoutMs, chatTimeRemaining() - 14_000)));
 
   try {
     const queryVariants = buildSearchQueryVariants(normalizedQuery, preferredDomains);
@@ -89,15 +92,20 @@ export async function searchWeb(query, options = {}) {
       queryResults.push(results);
     }
 
-    const mergedResults = mergeAndRankSearchResults(queryResults.flat(), normalizedQuery, preferredDomains)
-      .slice(0, maxResults);
+    const ranked = mergeAndRankSearchResults(queryResults.flat(), normalizedQuery, preferredDomains);
+    const newsSelection = /뉴스|기사|\bnews\b/i.test(normalizedQuery) ? rankNewsCandidates(ranked, options.now) : null;
+    const mergedResults = (newsSelection ? newsSelection.filter(r => r.eligible).map(r => r.candidate) : ranked).slice(0, maxResults);
 
     return {
       query: normalizedQuery,
       results: mergedResults,
+      // Display limits must not discard candidates before body selection.
+      candidates: ranked.slice(0, 100),
+      resultCounts: { discovered: queryResults.flat().length, unique: ranked.length, returned: mergedResults.length, retained: Math.min(ranked.length, 100) },
       attempts,
-      status: mergedResults.length ? 'success' : controller.signal.aborted ? 'timeout' : failures.some((e) => [403, 429].includes(e.status)) ? 'blocked' : failures.some((e) => e.kind === 'parse-error') ? 'parse-error' : successfulRequests ? 'empty' : 'failed',
-      failed: !mergedResults.length && failures.length > 0,
+      ...(newsSelection ? { candidateSelection: newsSelection.map(({candidate, ...r}) => ({url:candidate.url, ...r})) } : {}),
+      status: ranked.length ? 'success' : controller.signal.aborted ? 'timeout' : failures.some((e) => e.kind === 'parse-error') ? 'parse-error' : failures.some((e) => [202, 403, 429].includes(e.status)) ? 'blocked' : successfulRequests ? 'empty' : 'failed',
+      failed: !ranked.length && failures.length > 0,
     };
   } finally {
     clearTimeout(timeout);
@@ -246,8 +254,9 @@ export function formatWebSearchContext(query, results, options = {}) {
 
       if (result.publishedAt) lines.push(`게시일: ${result.publishedAt}`);
 
+      if (result.bodyReview?.feeApplicability?.scope === 'estimate') lines.push('금액 근거의 한계: 블로그 등의 대략값이다. 현재 공식 응시료·확정 요금으로 단정하지 말고 국가·시험 종류·출처의 추정치와 현재 공식 금액 미확인을 함께 밝힌다.');
       if (result.bodyReview) lines.push(`근거 범위: ${result.evidenceKind === 'search-snippet' ? '검색 스니펫의 명시된 부분만 확인; 본문·현재 상태 확인 아님' : '질문 관련 본문 발췌 확인'}. 공식 출처 여부는 별도 확인이 필요하다.`);
-      if (result.pageText) lines.push(`확인한 본문: ${truncateText(result.pageText, 4000)}`);
+      if (result.pageText) lines.push(`확인한 본문: ${truncateText(result.bodyReview ? compactEvidenceText(normalizedQuery, result, 1800) : result.pageText, result.bodyReview ? 1800 : 4000)}`);
       if (result.snippet && !result.bodyReview) {
         lines.push(`요약: ${truncateText(result.snippet, 1200)}`);
       }
@@ -297,6 +306,9 @@ async function performDuckDuckGoHtmlSearch(query, options = {}) {
   });
 
   const html = await response.text();
+  if (response.status === 202) {
+    const error = new Error('Search request challenged'); error.status = 202; error.kind = 'blocked'; throw error;
+  }
   if (!response.ok) {
     const error = new Error(`DuckDuckGo HTML search failed with ${response.status}`);
     error.status = response.status;

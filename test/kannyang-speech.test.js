@@ -1,3 +1,4 @@
+import { formatChatDisplayAnswer } from '../src/chat-display.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -85,8 +86,13 @@ test('actual model-to-Discord path preserves natural speech, cleans malformed le
     '맞습니다냥. 있구나냥. 알려줄게냥냥!', ...literals].join('\n');
   const { final, request } = await responsePath(raw);
   assert.ok(final.startsWith('나는 깐냥이다냥. 여기에 있다냥. 알려줄게냥!\n맞다냥. 있네냥. 알려줄게냥!'));
-  for (const literal of literals) assert.ok(final.includes(literal), literal);
-  assert.equal(normalizeKannyangSpeech(final), final);
+  for (const literal of literals) {
+    const displayed = formatChatDisplayAnswer(literal);
+    if (!/https?:/.test(literal)) assert.ok(final.includes(displayed), literal);
+  }
+  assert.doesNotMatch(final,/https?:\/\//);
+  // Display formatting runs after speech normalization and removes link markup.
+  assert.ok(final.includes("있구나냥"));
   const system = request.payload.system_instruction.parts[0].text;
   for (const rule of ['깐냥', 'CODEX', '현대 한국어', '하오체', '~다오냥', '~하오냥', '문장 전체',
     '모든 문장에 무조건', '물어봐도 된다냥', '출처 표기와 직접 인용 원문']) assert.ok(system.includes(rule), rule);

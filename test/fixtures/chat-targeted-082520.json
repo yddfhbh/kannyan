@@ -1,0 +1,1198 @@
+{
+  "mixed": {
+    "identity": {
+      "codeSha256": "789df65f975fe454e3186da5868db1edd66381e21fe8fb078083a6e8ab15f6e1",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "너 누구고 오늘 부산 날씨는 어때?",
+    "now": "2026-10-16T23:25:09.181Z",
+    "final": [
+      "나는 CODEX에 의해 만들어진 고양이귀 미소녀 챗봇 \"깐냥\"이다냥.\n\n자료의 관련성 검증 중 오류가 발생해 외부 사실을 검증하지 못했다냥."
+    ],
+    "data": {
+      "query": "부산 날씨",
+      "attempts": [
+        {
+          "provider": "duckduckgo",
+          "query": "부산 날씨",
+          "httpStatus": 202,
+          "status": "blocked",
+          "count": 0
+        },
+        {
+          "provider": "naver",
+          "query": "부산 날씨",
+          "httpStatus": 200,
+          "status": "success",
+          "count": 27
+        }
+      ],
+      "bodyVerification": {
+        "reviewMetrics": [
+          {
+            "sourceCount": 3,
+            "inputChars": 2641,
+            "originalChars": 2370,
+            "finalVerification": false,
+            "elapsedMs": 3682,
+            "outputChars": 1450
+          },
+          {
+            "sourceCount": 2,
+            "inputChars": 2388,
+            "originalChars": 5371,
+            "finalVerification": false,
+            "elapsedMs": 3021,
+            "outputChars": 951
+          }
+        ],
+        "originalQuestion": "너 누구고 오늘 부산 날씨는 어때?",
+        "query": "부산 날씨",
+        "retrievalStatus": "success",
+        "reads": [
+          {
+            "requestedUrl": "https://www.weather.go.kr/w/forecast/notice.do?stnId=159",
+            "searchTitle": "예보 통보문(부산·울산·경남)새 창 열림",
+            "round": 0,
+            "status": "body-extracted",
+            "fetchedUrl": "https://www.weather.go.kr/w/forecast/notice.do?stnId=159",
+            "extractedTitle": "예보 통보문 - 기상청 날씨누리",
+            "extractedBody": "예보 통보문 전국 서울·인천·경기 부산·울산·경남 대구·경북 전남광주통합특별시 전북특별자치도 대전·세종·충남 충북 강원특별자치도 제주특별자치도 통보문 다운로드 2026년 10월 17일 (토)요일 05:00 발표 (예보관: 김태희) 오늘(10월 17일)~글피(10월 20일) □ (종합) 내일 오후~모레 아침 부산, 울산, 경상남도 돌풍.천둥.번개 동반 강한 비, 강풍.풍랑 유의○ (오늘, 17일) 가끔 구름많다가 밤부터 흐려짐○ (내일, 18일) 흐림. 오후(12~18시)부터 부산, 울산, 경상남도 비○ (모레, 19일) 흐리다가 오전부터 맑아짐. 아침(06~09시)까지 부산, 울산, 경상남도 비○ (글피, 20일) 구름많다가 아침부터 흐려짐. 오후(12~18시)부터 밤(18~24시) 사이 부산, 울산, 경상남도 가끔 비 * 예상 강수량(18~19일)- 부산, 울산, 경상남도: 10~50mm 선택한 지역의 최저기온/최고기온/파고 예보 정보를 평년/어제/오늘/내일/모레/글피의 기간에 따라 확인할 수 있는 표입니다. 예보요소 평년(오늘) 어제(16일) 오늘(17일) 내일(18일) 모레(19일) 글피(20일) 최저기온 (℃) 5.7 ~ 14.0 5.6 ~ 15.2 - 13 ~ 19 14 ~ 20 12 ~ 17 최고기온 (℃) 20.9 ~ 22.9 23.2 ~ 27.1 24 ~ 26 23 ~ 26 22 ~ 24 20 ~ 22 파고(m) 부산 앞바다 0.5~1.5 1.0~2.5 0.5~2.5 0.5~1.0 경남중부남해 앞바다 0.5 0.5~1.0 0.5~1.0 0.5 경남서부남해 앞바다 0.5~1.5 0.5~2.0 0.5~2.0 0.5~1.0 거제시동부 앞바다 0.5~1.5 0.5~2.0 0.5~2.0 0.5~1.0 울산 앞바다 0.5~2.0 1.0~3.0 0.5~3.0 0.5~1.5 ※ 최저/최고기온 설명 11시 발표 : 오늘의 최저기온은 03시~09시 사이에 관측된 아침 최저기온이며, 최고는 예보된 낮 최고기온임 17시 발표 : 오늘의 최저/최고기온은 관측된 아침최저/낮최고 기온이며, 아침 최저기온은 03시~09시 사이 가장 낮은 기온, 낮최고기온은 09시 이후 통보시(17시)까지 가장 높은 기온임 평년과 어제의 최저/최고기온은 일최저기온/일최고기온임 ※ 체감온도: 기온에 습도, 바람 등의 영향이 더해져 사람이 느끼는 더위나 추위를 정량적으로 나타낸 온도, 습도 10%p 증가시마다 체감온도 1℃ 가량 증가하는 특징",
+            "bodyQuality": "substantive",
+            "extractedMetadata": "기상청 날씨누리"
+          },
+          {
+            "requestedUrl": "https://www.weather.go.kr/w/index.do",
+            "searchTitle": "기상청 날씨누리www.kma.go.kr›busan새 창 열림",
+            "round": 0,
+            "status": "body-extracted",
+            "fetchedUrl": "https://www.weather.go.kr/w/index.do",
+            "extractedTitle": "홈 - 기상청 날씨누리",
+            "extractedBody": "날씨 로딩중... 행정동검색 검색 읍면동으로 선택 현재위찾기 로딩중... 관심지역토글 선택해제됨 도움말 별표를 누르면 관심지역으로 등록 또는 삭제할 수 있습니다 닫기 도움말 별표를 누르면 관심지역으로 등록 또는 삭제할 수 있습니다 현재위찾기 로딩중... 관심지역토글 선택해제됨 도움말 별표를 누르면 관심지역으로 등록 또는 삭제할 수 있습니다 날씨지도 닫기 도움말 별표를 누르면 관심지역으로 등록 또는 삭제할 수 있습니다 날씨기호 설명 옙TV 유튜브 엑스 네이버블로그 전국 어제 현재 예보 날씨기호 설명 밀물·썰물 정보 해와 달이 뜨고지는 시각 기후정보포털 기상자료개방포털 기상기후빅데이터 대기질예·경보 날씨해설 (유튜브) 기상청 행정누리집 산악날씨 한강홍수통제소 해양기상정보포털 항공기상청 날씨기호 설명 아이콘, 설명으로 날씨 아이콘을 설명하는 표입니다. 날씨기호 설명 날씨기호 설명 맑음 맑음 맑음 (밤) 맑음 (밤) 구름많음 (낮) 구름많음 (낮) 구름많음 (밤) 구름많음 (밤) 흐림 흐림 소나기 소나기 비 비 가끔 비, 한때 비 가끔 비, 한때 비 눈 눈 가끔 눈, 한때 눈 가끔 눈, 한때 눈 비 또는 눈 비 또는 눈 가끔 비 또는 눈, 한때 비 또는 눈 가끔 비 또는 눈, 한때 비 또는 눈 눈 또는 비 눈 또는 비 가끔 눈또는 비, 한때 눈 또는 비 가끔 눈 또는 비, 한때 눈 또는 비 낙뢰 빗방울 빗방울 연무 연무 눈날림 눈날림 안개 안개 박무 (엷은 안개) 박무 (엷은 안개) 황사 황사 날씨 아이콘 저작물은 \"공공누리\" 출처표시-상업적이용금지-변경금지 조건에 따라 이용 할 수 있습니다. 지역검색 창 닫기 검색 읍면동으로 선택 기상청, 스마트폰 ‘날씨알리미‘ 앱 서비스 개시 내 위치의 위험기상·지진정보를 실시간으로 알려주는 앱 서비스를 시작합니다. 안드로이드용 앱 가기 아이폰용 앱 가기 7일 간 보지 않기 닫기",
+            "bodyQuality": "substantive",
+            "extractedMetadata": "기상청 날씨누리"
+          },
+          {
+            "requestedUrl": "https://www.kma.go.kr/busan/html/main/index.jsp",
+            "searchTitle": "부산지방기상청새 창 열림",
+            "round": 1,
+            "status": "body-extracted",
+            "fetchedUrl": "https://www.kma.go.kr/busan/html/main/index.jsp",
+            "extractedTitle": "부산지방기상청",
+            "extractedBody": "기관 소개 기관장 소개 기관장 인사말 역대기관장 기관장과의 대화 기관 연혁 조직·직원 찾아오시는 길 주요 업무 관측업무 예보업무 기후서비스업무 부울경 기후전망 부울경 기후자료실 정보 공개 정보공개제도 안내 정보공개 청구 사전정보 공개 업무추진비 수의 계약 정보 알림·소식 공지사항 보도자료 소속기관안내 울산기상대 창원기상대 100년 관측소(부산) 날씨누리 바로가기 기상청 행정 바로가기 전자민원발급 (기상자료제공신청) 사이트맵 기관 소개 기관장 소개 기관장 인사말 역대기관장 기관장과의 대화 기관 연혁 조직·직원 찾아오시는 길 주요 업무 관측업무 예보업무 기후서비스업무 부울경 기후전망 부울경 기후자료실 정보 공개 정보공개제도 안내 정보공개 청구 사전정보 공개 업무추진비 수의 계약 정보 알림·소식 공지사항 보도자료 소속기관안내 울산기상대 창원기상대 날씨누리 기상청 행정 전자민원발급 기관 소개 기관장 소개 기관장 인사말 역대기관장 기관장과의 대화 기관 연혁 조직·직원 찾아오시는 길 주요 업무 관측업무 예보업무 기후서비스업무 부울경 기후전망 부울경 기후자료실 정보 공개 정보공개제도 안내 정보공개 청구 사전정보 공개 업무추진비 수의 계약 정보 알림·소식 공지사항 보도자료 소속기관안내 울산기상대 창원기상대 100년 관측소(부산) 날씨누리 바로가기 기상청 행정 바로가기 전자민원발급 (기상자료제공신청) 현재날씨 예보 날씨 기온 풍향 풍속 강수유무 1시간강수 일강수 거창 합천 부산 남해 통영 거제 울산 창원 거창 합천 부산 남해 통영 거제 울산 창원 거창 합천 부산 남해 통영 거제 울산 창원 거창 합천 부산 남해 통영 거제 울산 창원 거창 합천 부산 남해 통영 거제 울산 창원 거창 합천 부산 남해 통영 거제 울산 창원 거창 합천 부산 남해 통영 거제 울산 창원 거창 합천 부산 남해 울산 거제 창원 통영 거창 합천 부산 남해 울산 거제 창원 통영 거창 합천 부산 남해 울산 거제 창원 통영 거창 합천 부산 남해 울산 거제 창원 통영 거창 합천 부산 남해 울산 거제 창원 통영 거창 합천 부산 남해 울산 거제 창원 통영 거창 합천 부산 남해 울산 거제 창원 통영 단기예보 통보문 중기예보 통보문 로딩중... 행정동검색 검색 현재위찾기 로딩중... 관심지역토글 도움말 별표를 누르면 관심지역으로 등록 또는 삭제할 수 있습니다 날씨지도 닫기 도움말 별표를 누르면 관심지역으로 등록 또는 삭제할 수 있습니다 기관소개 주요 업무 조직·직원 자료제공 부울경 1개월전망 기상자료개방포털 체험학습 체험학습처 소개 기상홍보관 견학 공지사항 더보기 보도자료 더보기 제9회 기상·기후테크 창업 아이디어 공모전 최종결과 공지 2026/07/13 제9회 기상·기후테크 창업 아이디어 공모전 서류심사 결과 공지 및 발표심사 안내 2026/06/15 2026년 여름철 방재기상정책 시행 알림 2026/05/26 2026년 제9회 기상·기후테크 창업 아이디어 공모전 개최 알림 2026/04/30 제3회 구름낙서 콘테스트 공모전 개최 알림 2026/01/26 [보도자료] 조선시대 기상과학을 알아보는 국립밀양기상과학관 제6회 기상민속촌 개최 2026/09/28 [설명자료] 2026년 부울경 추석 연휴 기상전망 2026/09/22 [보도자료] 부산 기후테크 생태계 조성 및 활성화 방안 모색_´2026년 부산기후변화협의체 주관 세미나´ 최 2026/09/16 [보도자료] 2026년 여름철 부울경 기후특성 2026/09/03 [보도자료] 제27대 홍기만 부산지방기상청장 취임 2026/08/18 알림판 play stop previous next 공익캠페인 play stop previous next 기상자료 퀵 매뉴얼 날씨 해설 옙TV 부산지방기상청 페이스북 기후샘 블로그 기상청 날씨알리미 new! 대교맞춤형 강풍정보 new! 맞춤형 폭염영향예보 new! 부산시티투어 날씨정보 해양기상정보 산악날씨정보 부산갈맷길 기상정보 미세먼지정보",
+            "bodyQuality": "substantive",
+            "extractedMetadata": ""
+          },
+          {
+            "requestedUrl": "http://www.breaknews.com/969566",
+            "searchTitle": "주말 날씨, 전국 곳곳 비 또는 소나기..고속도로 교통량↑새 창 열림",
+            "round": 1,
+            "status": "body-extracted",
+            "fetchedUrl": "http://www.breaknews.com/969566",
+            "extractedTitle": "주말 날씨, 전국 곳곳 비 또는 소나기..고속도로 교통량↑:브레이크뉴스",
+            "extractedBody": "▲ 8일 오후 서울 중구 서울시청 인근에서 우산을 쓴 시민들이 발걸음을 옮기고 있다. 2023.06.08. © 뉴시스 브레이크뉴스 노보림 기자= 오는 10~11일 주말 날씨는 전국 곳곳에 비 또는 소나기가 예보됐으며 고속도로 교통량도 평소대비 증가할 것으로 전망됐다. 9일 기상청에 따르면 북쪽을 지나는 기압골의 영향으로 오는 10일 토요일 오전부터 수도권과 강원 영서, 충남권에 비가 오는 곳이 있겠으며 같은날 오후부터는 강원 영동, 충북, 전북, 경북 북부 내륙에 비가 오는 곳이 있겠다. 10일 예상 강수량은 수도권과 충청권에서 10~50㎜, 강원 영서, 전북, 경북 북부 내륙에는 5~30㎜ 정도 비가 내릴 전망이다. 강원 영동에는 5㎜ 내외의 적은 비 또는 소나기가 오겠다. 비나 소나기는 일요일인 11일 오전까지 이어지는 곳도 있겠다. 기상청은 \"11일까지 비나 소나기가 내리는 지역에선 돌풍과 함께 천둥, 번개 또는 우박이 떨어지는 곳도 있겠으니 시설물 관리, 안전사고, 농작물 관리에 유의해달라\"고 당부했다. ▲ 9일 한국도로공사에 따르면 6월 두 번째 주말 고속도로 교통량은 평년기온을 웃도는 날씨에 평소보다 증가할 것으로 전망했다. 교통상황은 주말 나들이 차량으로 인해 다소 혼잡한 수준일 것으로 전망했다. © 뉴시스 아울러 이번 주말 고속도로 교통량은 평소보다 증가할 것으로 전망됐다. 이날 한국도로공사에 따르면 이번 주말 고속도로 교통량은 토요일(10일) 535만대, 일요일(11일) 470만대로 예상됐다. 최근 4주 평균 교통량은 토요일 530만대, 일요일 465만대로, 이번 주말은 5만대씩 많은 편이다. 이에 따라 토요일 최대 예상 소요시간은 ▲서울~대전 3시간 ▲서울~부산 6시간30분 ▲서울~광주 4시간20분 ▲서울~목포 5시간 ▲서울~강릉 4시간20분 ▲남양주~양양 2시간50분 등이다. 일요일 서울방향으로는 ▲대전~서울 2시간40분 ▲부산~서울 5시간30분 ▲광주~서울 4시간10분 ▲목포~서울 4시간50분 ▲강릉~서울 3시간50분 ▲양양~남양주 3시간30분 등이다. 도로공사 관계자는 \"이번 주말 비 또는 소나기가 내릴 것으로 예상된 만큼, 빗길 운전 시 제동거리가 길어지기 때문에 평소보다 20~50% 감속운전을 하고 전조등을 점등하며 전 좌석 안전띠를 착용하는 등 안전운전에 유의해 달라\"고 전했다. Weekend weather, rain or showers all over the country..Highway traffic ↑ Rain or showers are forecast throughout the country for the weekend from the 10th to the 11th, and highway traffic is expected to increase compared to usual. According to the Korea Meteorological Administration on the 9th, it will rain in the Seoul metropolitan area, Gangwon Yeongseo, and Chungnam from Saturday morning on the 10th, and in Yeongdong, Chungbuk, Jeonbuk, and northern Gyeongsangbuk-do from the afternoon of the same day. The expected precipitation on the 10th is expected to be 10-50mm in the Seoul metropolitan area and Chungcheong area, and 5-30mm in the inland areas of Gangwon Yeongseo, Jeonbuk and northern Gyeongsangbuk-do. Yeongdong, Gangwon-do, will receive less rain or showers of about 5mm. Rain or showers may continue until Sunday morning on the 11th. The Korea Meteorological Administration said, \"In areas where rain or showers fall until the 11th, thunder, lightning, or hail will fall along with gusts of wind, so please pay attention to facility management, safety accidents, and crop management.\" In addition, highway traffic is expected to increase this weekend than usual. According to the Korea Expressway Corporation, 5.35 million units of highway traffic were expected on Saturday (10th) and 4.7 million units on Sunday (11th). The average traffic volume for the past four weeks is 5.3 million on Saturday, 4.65 million on Sunday, and 50,000 on this weekend. Accordingly, the maximum expected time on Saturday is ▲ 3 hours from Seoul to Daejeon ▲ 6 hours and 30 minutes from Seoul to Busan ▲ 4 hours and 20 minutes from Seoul to Gwangju ▲ 5 hours from Seoul to Mokpo ▲ 4 hours and 20 minutes from Seoul to Gangneung ▲ 2 hours and 50 minutes from Namyangju to Yangyang. On Sunday, in the direction of Seoul, it is ▲ Daejeon-Seoul 2 hours and 40 minutes ▲ Busan-Seoul 5 hours and 30 minutes ▲ Gwangju-Seoul 4 hours and 10 minutes ▲ Mokpo-Seoul 4 hours and 50 minutes ▲ Gangneung-Seoul 3 hours and 50 minutes ▲Yangyang-Namyangju 3 hours and 30 minutes. An official from the Korea Expressway Corporation said, \"As rain or showers are expected this weekend, please pay attention to safe driving, such as driving at a slower speed of 20 to 50% than usual, lighting headlights, and wearing seat belts in all seats.\"",
+            "bodyQuality": "substantive",
+            "extractedMetadata": "≪브레이크뉴스≫ 주말 날씨, 전국 곳곳 비 또는 소나기..고속도로 교통량↑"
+          }
+        ],
+        "searches": [
+          {
+            "subject": "부산 날씨",
+            "query": "부산 날씨 official",
+            "remainingBefore": {
+              "searches": 2,
+              "reads": 2,
+              "durationMs": 20811,
+              "external": {
+                "modelRequests": 1,
+                "httpRequests": 27,
+                "reservedModelRequests": 2,
+                "reservedHttpRequests": 2,
+                "durationMs": 29325
+              }
+            },
+            "status": "success",
+            "attempts": [
+              {
+                "provider": "duckduckgo",
+                "query": "부산 날씨 official",
+                "httpStatus": 202,
+                "status": "blocked",
+                "count": 0
+              },
+              {
+                "provider": "naver",
+                "query": "부산 날씨 official",
+                "httpStatus": 200,
+                "status": "success",
+                "count": 22
+              }
+            ]
+          }
+        ],
+        "selections": [
+          {
+            "round": 0,
+            "url": "https://www.weather.go.kr/w/forecast/notice.do?stnId=159",
+            "title": "예보 통보문(부산·울산·경남)새 창 열림",
+            "snippet": "",
+            "index": 9,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 81,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 0,
+            "url": "https://www.weather.go.kr/w/index.do",
+            "title": "기상청 날씨누리www.kma.go.kr›busan새 창 열림",
+            "snippet": "",
+            "index": 7,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 41,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 0,
+            "url": "https://www.kma.go.kr/busan/html/main/index.jsp",
+            "title": "부산지방기상청새 창 열림",
+            "snippet": "",
+            "index": 8,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 41,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 0,
+            "url": "http://www.economytalk.kr/news/articleView.html?idxno=424714",
+            "title": "[30호 태풍 참피 경로 등 전국 오늘의 날씨 및 주말날씨]내일 전국, 모레...새 창 열림",
+            "snippet": "[30호 태풍 참피 경로 등 전국 오늘의 날씨 및 주말날씨]내일 전국, 모레...새 창 열림북동산지, 부산.울산.경남: 10~50mm/ 대구.경북남부내륙.경북동해안, 울릉도.독도: 5~40mm - (제주도) 제주도: 10~60mm ○ (강수 집중시간 및 구역, 시간당... 중기 날씨 전망(10월 17일부터 20일까지. 기상청 예보 전문) *서울-인천-경기 <예비특보 현황> ○ 강풍 예비특보: 서해5도(백령도.대청도)(17일 밤(18~24시)... 새 창 열림",
+            "index": 0,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 0,
+            "url": "http://www.sisunnews.co.kr/news/articleView.html?idxno=247924",
+            "title": "10월 17일 토요일, 오늘의 날씨와 미세먼지 농도 [인포그래픽]새 창 열림",
+            "snippet": "10월 17일 토요일, 오늘의 날씨와 미세먼지 농도 [인포그래픽]새 창 열림25 / 미세먼지 : 좋음 [대구] 최저기온 : 13 / 최고기온 : 24 / 미세먼지 : 좋음 [광주] 최저기온 : 14 / 최고기온 : 27 / 미세먼지 : 좋음 [전주] 최저기온 : 13 / 최고기온 : 26 / 미세먼지 : 좋음 [부산] 최저기온 : 17 / 최고기온 : 24 / 미세먼지 : 좋음 [제주] 최저기온 : 19 / 최고기온 : 25 / 미세먼지 : 좋음새 창 열림",
+            "index": 2,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 0,
+            "url": "https://www.accuweather.com/ko/kr/busan/222888/hourly-weather-forecast/222888",
+            "title": "부산광역시, 부산시, 대한민국 시간별 날씨새 창 열림",
+            "snippet": "",
+            "index": 3,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 0,
+            "url": "https://www.badatime.com/1/hour-cast",
+            "title": "부산 시간별 날씨, 부산 지역 날씨 예보새 창 열림",
+            "snippet": "",
+            "index": 4,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 0,
+            "url": "https://www.lecturernews.com/news/articleView.html?idxno=212114",
+            "title": "[오늘 전국 날씨예보] 기상청 날씨누리, \"17일, 내일 전국, 모레 남부 강...새 창 열림",
+            "snippet": "[오늘 전국 날씨예보] 기상청 날씨누리, \"17일, 내일 전국, 모레 남부 강...새 창 열림한국강사신문1시간 전",
+            "index": 6,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 0,
+            "url": "https://www.weatheri.co.kr/",
+            "title": "웨더아이www.weatheri.co.kr›부산새 창 열림",
+            "snippet": "",
+            "index": 10,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 0,
+            "url": "https://www.kma.go.kr/busan/html/info/affiliated1.jsp",
+            "title": "울산기상대새 창 열림",
+            "snippet": "",
+            "index": 11,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 0,
+            "score": 40,
+            "reason": "weather-target-or-attribute-mismatch"
+          },
+          {
+            "round": 0,
+            "url": "https://www.ajunews.com/view/20261017080702923",
+            "title": "[날씨] 토요일 맑다가 밤부터 구름…일교차 15도 안팎, 강한 바람새 창 열림",
+            "snippet": "[날씨] 토요일 맑다가 밤부터 구름…일교차 15도 안팎, 강한 바람새 창 열림전국은 대체로 맑은 날씨를 보이다가 밤부터 차차 구름이 많아지겠다. 서울과 인천, 수원, 춘천, 청주, 전주, 광주 등은 오전에 맑다가 오후부터 구름이 많아지겠고, 강릉과 대전·세종은 오후 들어 흐려지겠다. 대구와 부산, 울산, 창원은 하루 종일 대체로 맑겠다. 제주도는 오전부터 구름이 많겠다.... 새 창 열림",
+            "index": 1,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "weather-target-or-attribute-mismatch"
+          },
+          {
+            "round": 0,
+            "url": "https://www.topstarnews.net/news/articleView.html?idxno=16249400",
+            "title": "[오늘의 날씨] 전국 시간당 30mm 강한 비 예고…18~19일 돌풍·천둥·번개...새 창 열림",
+            "snippet": "[오늘의 날씨] 전국 시간당 30mm 강한 비 예고…18~19일 돌풍·천둥·번개...새 창 열림톱스타뉴스3시간 전",
+            "index": 5,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "weather-target-or-attribute-mismatch"
+          },
+          {
+            "round": 1,
+            "url": "https://www.weather.go.kr/w/index.do",
+            "title": "기상청 날씨누리www.weather.go.kr›neng새 창 열림",
+            "snippet": "",
+            "index": 4,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 41,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 1,
+            "url": "https://www.kma.go.kr/busan/html/main/index.jsp",
+            "title": "부산지방기상청새 창 열림",
+            "snippet": "",
+            "index": 6,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 41,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 1,
+            "url": "http://www.breaknews.com/969566",
+            "title": "주말 날씨, 전국 곳곳 비 또는 소나기..고속도로 교통량↑새 창 열림",
+            "snippet": "주말 날씨, 전국 곳곳 비 또는 소나기..고속도로 교통량↑새 창 열림브레이크뉴스 노보림 기자= 오는 10~11일 주말 날씨는 전국 곳곳에 비 또는 소나기가 예보됐으며 고속도로 교통량도... An official from the Korea Expressway Corporation said, \"As rain or showers are expected this weekend, please pay attention to safe driving, such as... 새 창 열림",
+            "index": 1,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 1,
+            "url": "https://www.youtube.com/watch?v=jkCltOVCfhM",
+            "title": "[슴올 비하인드] 날씨요정 우발라 멤버들의 여름 페스티벌☀️💛 | 부산원아시아페스티벌 Behind새 창 열림",
+            "snippet": "",
+            "index": 2,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "weather-target-or-attribute-mismatch"
+          },
+          {
+            "round": 1,
+            "url": "http://www.breaknews.com/1220370",
+            "title": "탄자니아 관광청, 부산서 ‘데스티네이션 로드쇼’ 개최...\"기억해요 탄...새 창 열림",
+            "snippet": "탄자니아 관광청, 부산서 ‘데스티네이션 로드쇼’ 개최...\"기억해요 탄...새 창 열림탄자니아 관광청와 주한탄자니아 대사관이 부산에서 관광 홍보 및 비즈니스 네트워킹 행사를 성황리 개최했다.... In his welcoming remarks, Ambassador Noel Emmanuel Kaganda highlighted the official slogan, \"Unforgettable Tanzania,\" and emphasized that South Korea is a highly... 새 창 열림",
+            "index": 0,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "weather-target-or-attribute-mismatch"
+          },
+          {
+            "round": 1,
+            "url": "http://san.chosun.com/news/articleView.html?idxno=26157",
+            "title": "무심히 대문을 열어준 섬, 청산도 [독자산행기]새 창 열림",
+            "snippet": "무심히 대문을 열어준 섬, 청산도 [독자산행기]새 창 열림무더운 날씨에 많이 걷고 계속 언덕을 오르는 여정이다 보니 어디든 들러 뭐라도 좀 사 먹고 싶었지만 막상 돈을 쓸 곳이 없었다. 목마름조차 채울 곳... 힐링숲길 명상, 도봉산 일출산행, 할로윈 낙산 산책 등 단체 프로그램 단체산행 참여방법: 인스타그램(@seoulhikingtourism_official) 공지 확인 후 링크에 신청폼 제출새 창 열림",
+            "index": 3,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "weather-target-or-attribute-mismatch"
+          },
+          {
+            "round": 1,
+            "url": "https://newneek.co/@gosum_beat/article/46261",
+            "title": "날씨도 선선해졌는데, 주말에 갈 박람회·팝업 없나? 🔮 [이 주의 트렌드 ❤️🔥]새 창 열림",
+            "snippet": "",
+            "index": 5,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "weather-target-or-attribute-mismatch"
+          },
+          {
+            "round": 1,
+            "url": "https://www.tiktok.com/",
+            "title": "TikTokwww.tiktok.com›@busanunnie_official새 창 열림",
+            "snippet": "",
+            "index": 7,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 0,
+            "score": 0,
+            "reason": "weather-target-or-attribute-mismatch"
+          }
+        ],
+        "aliases": [],
+        "aliasReviews": [],
+        "identityGroups": [],
+        "refinements": [
+          {
+            "query": "부산 날씨",
+            "round": 0,
+            "origin": "model",
+            "index": 0,
+            "accepted": false,
+            "reason": "duplicate-search",
+            "status": "rejected"
+          },
+          {
+            "query": "부산 날씨 official",
+            "round": 0,
+            "origin": "official-fallback",
+            "accepted": true,
+            "reason": "identity-and-direction-preserved",
+            "status": "executed",
+            "usesVerifiedAlias": false,
+            "preservesAttribute": true,
+            "priority": 0,
+            "executionReason": "search-dispatched"
+          },
+          {
+            "query": "부산 날씨",
+            "round": 1,
+            "origin": "model",
+            "index": 0,
+            "accepted": false,
+            "reason": "duplicate-search",
+            "status": "rejected"
+          }
+        ],
+        "decisions": [
+          {
+            "condition": "review-error",
+            "action": "search",
+            "query": "부산 날씨 official",
+            "remaining": {
+              "searches": 2,
+              "reads": 2,
+              "durationMs": 20811,
+              "external": {
+                "modelRequests": 1,
+                "httpRequests": 27,
+                "reservedModelRequests": 2,
+                "reservedHttpRequests": 2,
+                "durationMs": 29325
+              }
+            }
+          },
+          {
+            "condition": "review-error",
+            "action": "stop",
+            "reason": "external-budget-reserved-for-answer",
+            "remaining": {
+              "searches": 1,
+              "reads": 0,
+              "durationMs": 14733,
+              "external": {
+                "modelRequests": 0,
+                "httpRequests": 22,
+                "reservedModelRequests": 2,
+                "reservedHttpRequests": 2,
+                "durationMs": 23247
+              }
+            }
+          }
+        ],
+        "limits": {
+          "searches": 2,
+          "reads": 4,
+          "durationMs": 25000
+        },
+        "remaining": {
+          "searches": 1,
+          "reads": 0,
+          "durationMs": 14733,
+          "external": {
+            "modelRequests": 0,
+            "httpRequests": 22,
+            "reservedModelRequests": 2,
+            "reservedHttpRequests": 2,
+            "durationMs": 23247
+          }
+        },
+        "stopReason": "external-budget-reserved-for-answer",
+        "requestedSatisfied": false,
+        "modelRequestedSatisfied": false,
+        "reviews": [
+          {
+            "round": 0,
+            "url": "https://www.weather.go.kr/w/forecast/notice.do?stnId=159",
+            "evidenceKind": "body",
+            "id": 0,
+            "relevant": false,
+            "requestSatisfied": false,
+            "quote": "",
+            "reason": "quote-not-contiguous-in-body, weather-fields-not-verbatim-or-incomplete",
+            "region": "부산·울산·경남",
+            "validTime": "2026년 10월 17일",
+            "kind": "forecast",
+            "dataType": "prose",
+            "weatherFields": [],
+            "rawModelReview": {
+              "id": 0,
+              "relevant": true,
+              "requestSatisfied": true,
+              "quote": "부산·울산·경남 통보문 다운로드 2026년 10월 17일 (토)요일 05:00 발표 (예보관: 김태희) 오늘(10월 17일)~글피(10월 20일) □ (종합) 내일 오후~모레 아침 부산, 울산, 경상남도 돌풍.천둥.번개 동반 강한 비, 강풍.풍랑 유의○ (오늘, 17일) 가끔 구름많다가 밤부터 흐려짐",
+              "reason": "부산 지역의 2026년 10월 17일 날씨 예보 내용이 포함되어 있다.",
+              "region": "부산·울산·경남",
+              "validTime": "2026년 10월 17일",
+              "kind": "forecast",
+              "dataType": "prose",
+              "weatherFields": [
+                "오늘(10월 17일) 가끔 구름많다가 밤부터 흐려짐"
+              ]
+            },
+            "validationFailures": [
+              "quote-not-contiguous-in-body",
+              "weather-fields-not-verbatim-or-incomplete"
+            ],
+            "requestMismatch": "",
+            "reviewMetrics": {
+              "sourceCount": 3,
+              "inputChars": 2641,
+              "originalChars": 2370,
+              "finalVerification": false,
+              "elapsedMs": 3682,
+              "outputChars": 1450
+            },
+            "status": "invalid-review"
+          },
+          {
+            "round": 0,
+            "url": "https://www.weather.go.kr/w/index.do",
+            "evidenceKind": "body",
+            "id": 1,
+            "relevant": false,
+            "requestSatisfied": false,
+            "quote": "",
+            "reason": "날씨 로딩중 및 메뉴 안내 페이지로 부산 날씨 정보가 없다.",
+            "region": "",
+            "validTime": "",
+            "kind": "unknown",
+            "dataType": "weather",
+            "weatherFields": [],
+            "rawModelReview": {
+              "id": 1,
+              "relevant": false,
+              "requestSatisfied": false,
+              "quote": "",
+              "reason": "날씨 로딩중 및 메뉴 안내 페이지로 부산 날씨 정보가 없다.",
+              "region": "",
+              "validTime": "",
+              "kind": "unknown",
+              "dataType": "weather",
+              "weatherFields": []
+            },
+            "validationFailures": [
+              "requested-conditions-not-met",
+              "weather-fields-not-verbatim-or-incomplete"
+            ],
+            "requestMismatch": "requested-conditions-not-met",
+            "reviewMetrics": {
+              "sourceCount": 3,
+              "inputChars": 2641,
+              "originalChars": 2370,
+              "finalVerification": false,
+              "elapsedMs": 3682,
+              "outputChars": 1450
+            },
+            "status": "reviewed"
+          },
+          {
+            "round": 0,
+            "url": "http://www.economytalk.kr/news/articleView.html?idxno=424714",
+            "evidenceKind": "search-snippet",
+            "id": 2,
+            "relevant": false,
+            "requestSatisfied": false,
+            "quote": "",
+            "reason": "weather-time-is-not-observation-or-forecast, weather-fields-not-verbatim-or-incomplete",
+            "region": "부산.울산.경남",
+            "validTime": "",
+            "kind": "forecast",
+            "dataType": "prose",
+            "weatherFields": [
+              "북동산지, 부산.울산.경남: 10~50mm"
+            ],
+            "rawModelReview": {
+              "id": 2,
+              "relevant": true,
+              "requestSatisfied": true,
+              "quote": "북동산지, 부산.울산.경남: 10~50mm/ 대구.경북남부내륙.경북동해안, 울릉도.독도: 5~40mm",
+              "reason": "부산·경남 지역 강수 정보가 포함되어 있다.",
+              "region": "부산.울산.경남",
+              "validTime": "2026년 10월 17일",
+              "kind": "forecast",
+              "dataType": "prose",
+              "weatherFields": [
+                "북동산지, 부산.울산.경남: 10~50mm"
+              ]
+            },
+            "validationFailures": [
+              "weather-time-is-not-observation-or-forecast",
+              "weather-fields-not-verbatim-or-incomplete"
+            ],
+            "requestMismatch": "weather-time-is-not-observation-or-forecast",
+            "reviewMetrics": {
+              "sourceCount": 3,
+              "inputChars": 2641,
+              "originalChars": 2370,
+              "finalVerification": false,
+              "elapsedMs": 3682,
+              "outputChars": 1450
+            },
+            "status": "reviewed"
+          },
+          {
+            "round": 1,
+            "url": "https://www.kma.go.kr/busan/html/main/index.jsp",
+            "evidenceKind": "body",
+            "id": 0,
+            "relevant": false,
+            "requestSatisfied": false,
+            "quote": "",
+            "reason": "부산 날씨의 구체적인 관측값이나 예보 상태가 기재되어 있지 않다.",
+            "region": "",
+            "validTime": "",
+            "kind": "unknown",
+            "dataType": "prose",
+            "weatherFields": [],
+            "rawModelReview": {
+              "id": 0,
+              "relevant": false,
+              "requestSatisfied": false,
+              "quote": "",
+              "reason": "부산 날씨의 구체적인 관측값이나 예보 상태가 기재되어 있지 않다.",
+              "region": "",
+              "validTime": "",
+              "kind": "unknown",
+              "dataType": "prose",
+              "weatherFields": []
+            },
+            "validationFailures": [
+              "requested-conditions-not-met",
+              "weather-fields-not-verbatim-or-incomplete"
+            ],
+            "requestMismatch": "requested-conditions-not-met",
+            "reviewMetrics": {
+              "sourceCount": 2,
+              "inputChars": 2388,
+              "originalChars": 5371,
+              "finalVerification": false,
+              "elapsedMs": 3021,
+              "outputChars": 951
+            },
+            "status": "reviewed"
+          },
+          {
+            "round": 1,
+            "url": "http://www.breaknews.com/969566",
+            "evidenceKind": "body",
+            "id": 1,
+            "relevant": false,
+            "requestSatisfied": false,
+            "quote": "",
+            "reason": "2023년 6월 기사로 현재 시점(2026년)의 날씨 정보가 아니다.",
+            "region": "",
+            "validTime": "",
+            "kind": "unknown",
+            "dataType": "prose",
+            "weatherFields": [],
+            "rawModelReview": {
+              "id": 1,
+              "relevant": false,
+              "requestSatisfied": false,
+              "quote": "",
+              "reason": "2023년 6월 기사로 현재 시점(2026년)의 날씨 정보가 아니다.",
+              "region": "",
+              "validTime": "",
+              "kind": "unknown",
+              "dataType": "prose",
+              "weatherFields": []
+            },
+            "validationFailures": [
+              "requested-conditions-not-met",
+              "weather-fields-not-verbatim-or-incomplete"
+            ],
+            "requestMismatch": "requested-conditions-not-met",
+            "reviewMetrics": {
+              "sourceCount": 2,
+              "inputChars": 2388,
+              "originalChars": 5371,
+              "finalVerification": false,
+              "elapsedMs": 3021,
+              "outputChars": 951
+            },
+            "status": "reviewed"
+          }
+        ]
+      },
+      "results": [],
+      "status": "review-failed",
+      "failed": true,
+      "context": "[웹 조회 상태: review-failed] 질문을 확인할 근거를 얻지 못했다. 확인되지 않았다고 답하고 출처나 사실을 만들지 않는다.",
+      "searchedAtText": ""
+    },
+    "responses": [
+      {
+        "event": "model-response",
+        "stage": "planning",
+        "startedAt": 1792193092461,
+        "endedAt": 1792193095655,
+        "durationMs": 3194,
+        "model": "gemini-3.5-flash-lite",
+        "responseModel": "gemini-3.5-flash-lite",
+        "raw": "{\"answer\": \"나는 CODEX에 의해 만들어진 고양이귀 미소녀 챗봇 \\\"깐냥\\\"이다냥. 부산 날씨를 확인하기 위해 검색을 해볼 테니 잠시만 기다려달라냥.\", \"emotion\": \"neutral\", \"sourcePlan\": {\"mode\": \"search\", \"query\": \"부산 날씨\", \"purpose\": \"오늘 부산 지역의 날씨 정보를 확인하기 위함\", \"externalPrompt\": \"오늘 부산 날씨 어때?\", \"localPrompt\": \"나는 CODEX에 의해 만들어진 고양이귀 미소녀 챗봇 \\\"깐냥\\\"이다냥.\", \"additionalExternalPrompt\": \"\"}}"
+      },
+      {
+        "event": "model-response",
+        "stage": "evidence-review",
+        "startedAt": 1792193099427,
+        "endedAt": 1792193103098,
+        "durationMs": 3671,
+        "model": "gemini-3.5-flash-lite",
+        "responseModel": "gemini-3.5-flash-lite",
+        "raw": "{\"evidenceReviews\":[{\"id\":0,\"relevant\":true,\"requestSatisfied\":true,\"quote\":\"부산·울산·경남 통보문 다운로드 2026년 10월 17일 (토)요일 05:00 발표 (예보관: 김태희) 오늘(10월 17일)~글피(10월 20일) □ (종합) 내일 오후~모레 아침 부산, 울산, 경상남도 돌풍.천둥.번개 동반 강한 비, 강풍.풍랑 유의○ (오늘, 17일) 가끔 구름많다가 밤부터 흐려짐\",\"reason\":\"부산 지역의 2026년 10월 17일 날씨 예보 내용이 포함되어 있다.\",\"region\":\"부산·울산·경남\",\"validTime\":\"2026년 10월 17일\",\"kind\":\"forecast\",\"dataType\":\"prose\",\"weatherFields\":[\"오늘(10월 17일) 가끔 구름많다가 밤부터 흐려짐\"]},{\"id\":1,\"relevant\":false,\"requestSatisfied\":false,\"quote\":\"\",\"reason\":\"날씨 로딩중 및 메뉴 안내 페이지로 부산 날씨 정보가 없다.\",\"region\":\"\",\"validTime\":\"\",\"kind\":\"unknown\",\"dataType\":\"weather\",\"weatherFields\":[]},{\"id\":2,\"relevant\":true,\"requestSatisfied\":true,\"quote\":\"북동산지, 부산.울산.경남: 10~50mm/ 대구.경북남부내륙.경북동해안, 울릉도.독도: 5~40mm\",\"reason\":\"부산·경남 지역 강수 정보가 포함되어 있다.\",\"region\":\"부산.울산.경남\",\"validTime\":\"2026년 10월 17일\",\"kind\":\"forecast\",\"dataType\":\"prose\",\"weatherFields\":[\"북동산지, 부산.울산.경남: 10~50mm\"]}],\"searchRefinement\":{\"requestedSatisfied\":true,\"aliases\":[],\"queries\":[\"부산 날씨\"]}}"
+      },
+      {
+        "event": "model-response",
+        "stage": "evidence-review",
+        "startedAt": 1792193106161,
+        "endedAt": 1792193109179,
+        "durationMs": 3018,
+        "model": "gemini-3.5-flash-lite",
+        "responseModel": "gemini-3.5-flash-lite",
+        "raw": "{\n  \"evidenceReviews\": [\n    {\n      \"id\": 0,\n      \"relevant\": false,\n      \"requestSatisfied\": false,\n      \"quote\": \"\",\n      \"reason\": \"부산 날씨의 구체적인 관측값이나 예보 상태가 기재되어 있지 않다.\",\n      \"region\": \"\",\n      \"validTime\": \"\",\n      \"kind\": \"unknown\",\n      \"dataType\": \"prose\",\n      \"weatherFields\": []\n    },\n    {\n      \"id\": 1,\n      \"relevant\": false,\n      \"requestSatisfied\": false,\n      \"quote\": \"\",\n      \"reason\": \"2023년 6월 기사로 현재 시점(2026년)의 날씨 정보가 아니다.\",\n      \"region\": \"\",\n      \"validTime\": \"\",\n      \"kind\": \"unknown\",\n      \"dataType\": \"prose\",\n      \"weatherFields\": []\n    }\n  ],\n  \"searchRefinement\": {\n    \"requestedSatisfied\": false,\n    \"aliases\": [],\n    \"queries\": [\n      \"부산 날씨\"\n    ]\n  }\n}"
+      }
+    ]
+  },
+  "toefl-fact": {
+    "identity": {
+      "codeSha256": "789df65f975fe454e3186da5868db1edd66381e21fe8fb078083a6e8ab15f6e1",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "토플 응시료가 얼마야?",
+    "now": "2026-10-16T23:25:20.004Z",
+    "final": [
+      "자료 조회 요청이 실패해 외부 사실을 확인하지 못했다냥."
+    ],
+    "data": {
+      "query": "토플 응시료",
+      "attempts": [
+        {
+          "provider": "duckduckgo",
+          "query": "토플 응시료",
+          "httpStatus": 202,
+          "status": "blocked",
+          "count": 0
+        },
+        {
+          "provider": "naver",
+          "query": "토플 응시료",
+          "httpStatus": 200,
+          "status": "success",
+          "count": 28
+        }
+      ],
+      "bodyVerification": {
+        "reviewMetrics": [],
+        "originalQuestion": "토플 응시료가 얼마야?",
+        "query": "토플 응시료",
+        "retrievalStatus": "success",
+        "reads": [
+          {
+            "requestedUrl": "https://blog.toptedu.co.kr/%ED%86%A0%ED%94%8C-%EA%B0%80%EA%B2%A9-%EC%A0%95%EB%A6%AC-%EC%9D%91%EC%8B%9C%EB%A3%8C%EC%99%80-%EC%B6%94%EA%B0%80-%EB%B9%84%EC%9A%A9/",
+            "searchTitle": "토플 가격 정리 (응시료와 추가 비용) | 탑토플새 창 열림",
+            "round": 0,
+            "status": "read-failed",
+            "error": {
+              "category": "timeout"
+            }
+          }
+        ],
+        "searches": [
+          {
+            "subject": "토플 응시료",
+            "query": "토플 응시료 site:ets.org/toefl/test-takers/ibt/register/fees TOEFL registration fees",
+            "remainingBefore": {
+              "searches": 2,
+              "reads": 3,
+              "durationMs": 22495,
+              "external": {
+                "modelRequests": 1,
+                "httpRequests": 28,
+                "reservedModelRequests": 3,
+                "reservedHttpRequests": 3,
+                "durationMs": 31955
+              }
+            },
+            "status": "blocked",
+            "attempts": [
+              {
+                "provider": "duckduckgo",
+                "query": "토플 응시료 site:ets.org/toefl/test-takers/ibt/register/fees TOEFL registration fees",
+                "httpStatus": 202,
+                "status": "blocked",
+                "count": 0
+              },
+              {
+                "provider": "naver",
+                "query": "토플 응시료 site:ets.org/toefl/test-takers/ibt/register/fees TOEFL registration fees",
+                "httpStatus": 200,
+                "status": "parse-error",
+                "count": 0
+              }
+            ]
+          },
+          {
+            "subject": "토플 응시료",
+            "query": "토플 응시료 official",
+            "remainingBefore": {
+              "searches": 1,
+              "reads": 3,
+              "durationMs": 21387,
+              "external": {
+                "modelRequests": 1,
+                "httpRequests": 26,
+                "reservedModelRequests": 3,
+                "reservedHttpRequests": 3,
+                "durationMs": 30847
+              }
+            },
+            "status": "success",
+            "attempts": [
+              {
+                "provider": "duckduckgo",
+                "query": "토플 응시료 official",
+                "httpStatus": 202,
+                "status": "blocked",
+                "count": 0
+              },
+              {
+                "provider": "naver",
+                "query": "토플 응시료 official",
+                "httpStatus": 200,
+                "status": "success",
+                "count": 29
+              }
+            ]
+          }
+        ],
+        "selections": [
+          {
+            "round": 0,
+            "url": "https://blog.toptedu.co.kr/%ED%86%A0%ED%94%8C-%EA%B0%80%EA%B2%A9-%EC%A0%95%EB%A6%AC-%EC%9D%91%EC%8B%9C%EB%A3%8C%EC%99%80-%EC%B6%94%EA%B0%80-%EB%B9%84%EC%9A%A9/",
+            "title": "토플 가격 정리 (응시료와 추가 비용) | 탑토플새 창 열림",
+            "snippet": "",
+            "index": 1,
+            "eligible": true,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "partial-identity-or-topic-ranking"
+          },
+          {
+            "round": 0,
+            "url": "https://www.m-i.kr/news/articleView.html?idxno=1369065",
+            "title": "용인특례시, 미취업 청년 토익·토플 등 응시료 지원사업 30만원 지원새 창 열림",
+            "snippet": "용인특례시, 미취업 청년 토익·토플 등 응시료 지원사업 30만원 지원새 창 열림매일일보 = 김길수 기자 | 용인특례시는 취업을 위해 어학과 자격증 시험 등을 준비 중인 청년을 위해 응시료 30만원을 지원한다고 30일 밝혔다. 용인특례시 자격-어학 시험 응시료 지원 사업 포스터./용이시 제공 대상은 신청일 기준 용인에 거주하는 18~39세 청년이며, 1인당 연간 최대 30만원까지... 새 창 열림",
+            "index": 0,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "fee-subsidy-tuition-or-other-exam"
+          },
+          {
+            "round": 0,
+            "url": "https://www.megaeconomy.co.kr/news/newsview.php?ncode=1065598853593451",
+            "title": "서대문구, 미취업 청년 어학·자격증 응시료 추가 지원…하반기 2차 신...새 창 열림",
+            "snippet": "서대문구, 미취업 청년 어학·자격증 응시료 추가 지원…하반기 2차 신...새 창 열림취업 준비 기간 장기화와 고물가로 청년층의 구직 비용 부담이 커지는 가운데, 서울 서대문구가 어학 및 자격증 시험 응시료를 직접 지원하는 추가... 지원 범위는 토익(TOEIC), 토플(TOEFL), 오픽(OPIc) 등 주요 어학시험을 비롯해 한국산업인력공단 큐넷(Q-Net)에 등록된 국가기술자격시험, 국가전문자격시험... 새 창 열림",
+            "index": 2,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "fee-subsidy-tuition-or-other-exam"
+          },
+          {
+            "round": 0,
+            "url": "https://www.gokorea.kr/news/articleView.html?idxno=876601",
+            "title": "YBM어학원 강남센터, 맞춤형 케어 멤버십 도입한 '네오토플' 강좌 개설새 창 열림",
+            "snippet": "YBM어학원 강남센터, 맞춤형 케어 멤버십 도입한 '네오토플' 강좌 개설새 창 열림수강생은 일일 단어 시험 누적 성적에 따라 기프티콘 리워드를 수령할 수 있으며, 목표 누적 점수(1,200점~1,550점)를 달성한 기간에 따라 최대 20만 원 상당의 토플 공식 응시료 지원 혜택을 받게 된다. 스피킹(Speaking)과 라이팅(Writing) 영역에 대한 전담 강사의 직접 첨삭 및 1:1 개별 피드백도... 새 창 열림",
+            "index": 3,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "fee-subsidy-tuition-or-other-exam"
+          },
+          {
+            "round": 0,
+            "url": "https://namu.wiki/w/TOEFL#s-5",
+            "title": "iBT 토플의 유형새 창 열림",
+            "snippet": "",
+            "index": 4,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          },
+          {
+            "round": 0,
+            "url": "https://namu.wiki/w/TOEFL#s-6",
+            "title": "iBT 토플의 채점 방식새 창 열림",
+            "snippet": "",
+            "index": 5,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          },
+          {
+            "round": 0,
+            "url": "https://namu.wiki/w/TOEFL#s-7",
+            "title": "iBT 토플의 응시 팁새 창 열림",
+            "snippet": "",
+            "index": 6,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          },
+          {
+            "round": 0,
+            "url": "https://namu.wiki/w/TOEFL#s-8",
+            "title": "iBT 토플의 용도새 창 열림",
+            "snippet": "",
+            "index": 7,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          },
+          {
+            "round": 0,
+            "url": "https://namu.wiki/w/TOEFL#s-10",
+            "title": "장애인의 iBT 토플 응시새 창 열림",
+            "snippet": "",
+            "index": 8,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          },
+          {
+            "round": 0,
+            "url": "https://www.yongin.go.kr/user/bbs/BD_selectBbs.do?q_bbsCode=1020&q_bbscttSn=20260826080011791",
+            "title": "용인특례시, 취업 준비 청년에 자격증·어학시험 응시료 지원새 창 열림",
+            "snippet": "",
+            "index": 9,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "fee-subsidy-tuition-or-other-exam"
+          },
+          {
+            "round": 0,
+            "url": "https://www.usherin.co.kr/toeflInfo/ibt_01_01.html",
+            "title": "IBT TOEFL/토플학원 추천 대표커뮤니티 어셔인- IBT토플이란 무엇인가?새 창 열림",
+            "snippet": "",
+            "index": 10,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          },
+          {
+            "round": 0,
+            "url": "https://www.pusan.ac.kr/kor/CMS/Board/Board.do?mCode=MN095&mode=view&board_seq=1511404",
+            "title": "[국제처][기관토플] 2026학년도 기관토플(토플ITP)시험 시행 계획 안내새 창 열림",
+            "snippet": "",
+            "index": 11,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "fee-subsidy-tuition-or-other-exam"
+          },
+          {
+            "round": 2,
+            "url": "http://www.breaknews.com/1194919",
+            "title": "군위군, 학생 영어역량 진단 ‘주니어 토플’ 전면 지원새 창 열림",
+            "snippet": "군위군, 학생 영어역량 진단 ‘주니어 토플’ 전면 지원새 창 열림응시 대상은 관내 초등학교 1학년부터 고등학교 2학년까지로, 희망 학생은 누구나 참여할 수 있으며 응시료는 전액... An official from the Gunwi County Education Development Committee stated, \"This is intended to objectively verify students' English proficiency levels... 새 창 열림",
+            "index": 0,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "fee-subsidy-tuition-or-other-exam"
+          },
+          {
+            "round": 2,
+            "url": "http://www.breaknews.com/949761",
+            "title": "완도군, 청년 자격증 응시료 연 최대 10만 원 지원새 창 열림",
+            "snippet": "완도군, 청년 자격증 응시료 연 최대 10만 원 지원새 창 열림응시료 지원 시험은 ▲어학 8종(토익, 토익 스피킹, 토플, 아이엘츠, 오픽, 템스, 지텔프, 플렉스) ▲한국사 능력... A military official said, “I hope that the certification application fee support project will help young people acquire licenses according to their job... 새 창 열림",
+            "index": 1,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "fee-subsidy-tuition-or-other-exam"
+          },
+          {
+            "round": 2,
+            "url": "http://www.breaknews.com/866789",
+            "title": "인천 서구, 인천 최초 자격증 등 응시료 지원새 창 열림",
+            "snippet": "인천 서구, 인천 최초 자격증 등 응시료 지원새 창 열림시험응시료를 지원한다. 서구는 만19~39세 청년 1,600여 명을 대상으로 각종 자격시험 응시 비용을 1인당 연 1회, 최대 10만 원까지 지원한다. 지원 대상 시험은 토익, 토플 등 어학 시험 8종과 한국사능력검정시험, 국가공인자격증 1... 새 창 열림",
+            "index": 2,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 2,
+            "score": 2,
+            "reason": "fee-subsidy-tuition-or-other-exam"
+          },
+          {
+            "round": 2,
+            "url": "https://wiki1.kr/index.php/%ED%86%A0%ED%94%8C",
+            "title": "토플 - 위키원새 창 열림",
+            "snippet": "",
+            "index": 3,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          },
+          {
+            "round": 2,
+            "url": "https://wiki1.kr/index.php/%EB%8C%80%EB%AC%B8",
+            "title": "위키원wiki1.kr›토플새 창 열림",
+            "snippet": "",
+            "index": 4,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          },
+          {
+            "round": 2,
+            "url": "https://namu.wiki/w/TOEFL#s-5",
+            "title": "iBT 토플의 유형새 창 열림",
+            "snippet": "",
+            "index": 5,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          },
+          {
+            "round": 2,
+            "url": "https://namu.wiki/w/TOEFL#s-6",
+            "title": "iBT 토플의 채점 방식새 창 열림",
+            "snippet": "",
+            "index": 6,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          },
+          {
+            "round": 2,
+            "url": "https://namu.wiki/w/TOEFL#s-7",
+            "title": "iBT 토플의 응시 팁새 창 열림",
+            "snippet": "",
+            "index": 7,
+            "eligible": false,
+            "targetMatches": [],
+            "attributeMatches": 1,
+            "score": 1,
+            "reason": "no-base-exam-fee-in-metadata"
+          }
+        ],
+        "aliases": [],
+        "aliasReviews": [],
+        "identityGroups": [],
+        "refinements": [
+          {
+            "query": "토플 응시료 official",
+            "round": 0,
+            "origin": "official-fallback",
+            "accepted": true,
+            "reason": "identity-and-direction-preserved",
+            "status": "executed",
+            "usesVerifiedAlias": false,
+            "preservesAttribute": true,
+            "priority": 0,
+            "executionReason": "search-dispatched"
+          },
+          {
+            "query": "토플 응시료 site:ets.org/toefl/test-takers/ibt/register/fees TOEFL registration fees",
+            "round": 0,
+            "origin": "publisher-fees",
+            "accepted": true,
+            "reason": "identity-and-direction-preserved",
+            "status": "executed",
+            "usesVerifiedAlias": false,
+            "preservesAttribute": true,
+            "priority": 3,
+            "executionReason": "search-dispatched"
+          }
+        ],
+        "decisions": [
+          {
+            "condition": "no-reviewable-material",
+            "action": "search",
+            "query": "토플 응시료 site:ets.org/toefl/test-takers/ibt/register/fees TOEFL registration fees",
+            "remaining": {
+              "searches": 2,
+              "reads": 3,
+              "durationMs": 22495,
+              "external": {
+                "modelRequests": 1,
+                "httpRequests": 28,
+                "reservedModelRequests": 3,
+                "reservedHttpRequests": 3,
+                "durationMs": 31955
+              }
+            }
+          },
+          {
+            "condition": "no-reviewable-material",
+            "action": "search",
+            "query": "토플 응시료 official",
+            "remaining": {
+              "searches": 1,
+              "reads": 3,
+              "durationMs": 21387,
+              "external": {
+                "modelRequests": 1,
+                "httpRequests": 26,
+                "reservedModelRequests": 3,
+                "reservedHttpRequests": 3,
+                "durationMs": 30847
+              }
+            }
+          },
+          {
+            "condition": "no-reviewable-material",
+            "action": "stop",
+            "reason": "search-budget-exhausted",
+            "remaining": {
+              "searches": 0,
+              "reads": 3,
+              "durationMs": 20335,
+              "external": {
+                "modelRequests": 1,
+                "httpRequests": 24,
+                "reservedModelRequests": 3,
+                "reservedHttpRequests": 3,
+                "durationMs": 29795
+              }
+            }
+          }
+        ],
+        "limits": {
+          "searches": 2,
+          "reads": 4,
+          "durationMs": 25000
+        },
+        "remaining": {
+          "searches": 0,
+          "reads": 3,
+          "durationMs": 20334,
+          "external": {
+            "modelRequests": 1,
+            "httpRequests": 24,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 29794
+          }
+        },
+        "stopReason": "search-budget-exhausted",
+        "requestedSatisfied": false,
+        "reviews": []
+      },
+      "results": [],
+      "status": "retrieval-failed",
+      "failed": true,
+      "context": "[웹 조회 상태: retrieval-failed] 질문을 확인할 근거를 얻지 못했다. 확인되지 않았다고 답하고 출처나 사실을 만들지 않는다.",
+      "searchedAtText": ""
+    },
+    "responses": [
+      {
+        "event": "model-response",
+        "stage": "planning",
+        "startedAt": 1792193109833,
+        "endedAt": 1792193113306,
+        "durationMs": 3473,
+        "model": "gemini-3.5-flash-lite",
+        "responseModel": "gemini-3.5-flash-lite",
+        "raw": "{\n  \"answer\": \"\",\n  \"emotion\": \"neutral\",\n  \"sourcePlan\": {\n    \"mode\": \"search\",\n    \"query\": \"토플 응시료\",\n    \"purpose\": \"토플(TOEFL)의 최신 응시료 확인\",\n    \"externalPrompt\": \"토플 응시료가 얼만지 알려줘냥.\",\n    \"localPrompt\": \"\",\n    \"additionalExternalPrompt\": \"\"\n  }\n}"
+      }
+    ]
+  },
+  "archiveSha256": "be03798a9bbe77ee39b04aa46b08f2713dc2cfd5592e98ba1b6030e28882fbd1"
+}

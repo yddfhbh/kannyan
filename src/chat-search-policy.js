@@ -1,5 +1,8 @@
+import { independentPlannedAnswer } from './chat-source-plan.js';
+import { chatTimeRemaining } from './chat-time-budget.js';
 import { classifyChatError } from './chat-errors.js';
-import { reviewSourceBodies } from './evidence-review.js';
+import { reviewSourceBodies, isExamFeeRequest } from './evidence-review.js';
+import { renderWeatherEvidence } from './web-evidence.js';
 
 // Search outcomes constrain only the part of a request that needs external facts.
 export function resolveChatEvidence(intent, { webSearchData, wikiSearchData, webPageData } = {}) {
@@ -22,75 +25,135 @@ export function resolveChatEvidence(intent, { webSearchData, wikiSearchData, web
     timeout: '검색 요청 시간이 초과되어 요청한 사실을 확인하지 못했다냥.',
     'parse-error': '검색 서비스 응답 형식을 읽지 못해 요청한 사실을 확인하지 못했다냥.',
   };
-  const unavailable = wikiOnly
+  let unavailable = wikiOnly
     ? '푝무위키에서 질문 대상에 맞는 근거를 확인하지 못했다냥.'
     : failures[webSearchData?.status] ?? (failed ? '조회 또는 검증 과정이 완료되지 않아 요청한 사실을 확인하지 못했다냥.'
       : '검색에서 질문 대상과 일치하는 근거를 확인하지 못했다냥.');
-  return { hasEvidence, unavailable, blockWholeAnswer: intent.requiresExternal && !intent.hasLocalAnswer && !hasEvidence };
+  if (!wikiOnly && webSearchData?.status === 'no-verified-articles' && webSearchData.newsVerification?.failures?.pageReads) {
+    unavailable += ` 일부 후보의 본문 조회도 ${webSearchData.newsVerification.failures.pageReads}건 실패했다냥.`;
+  }
+  const body = webSearchData?.bodyVerification;
+  const scope = !wikiOnly && body?.scopeEvidence?.find(s => s.scope === 'location-dependent-registration-fee');
+  if (!wikiOnly && !hasEvidence && body) {
+    const termination = {
+      'search-budget-exhausted': '검색 횟수 한도에 도달했지만 요청 조건을 확인할 근거를 확보하지 못했다냥.',
+      'read-budget-exhausted': '본문 조회 횟수 한도에 도달했지만 요청 조건을 확인할 근거를 확보하지 못했다냥.',
+      'time-budget-exhausted': '자료 확인 시간 한도에 도달해 요청 조건을 검증하지 못했다냥.',
+      'external-budget-reserved-for-answer': '답변을 위한 호출 예약 때문에 추가 근거 검토를 중단해 요청 조건을 확인하지 못했다냥.',
+      'model-budget-reserved-for-answer': '답변·최종 검증용으로 남겨 둔 모델 호출을 제외하면 추가 근거 검토에 사용할 모델 호출이 없다냥.',
+      'model-budget-exhausted': '모델 호출 횟수 한도에 도달해 추가 근거 검토를 진행하지 못했다냥.',
+      'http-budget-reserved-for-answer': '답변용 HTTP 호출 예약 때문에 추가 자료 확인을 진행하지 못했다냥.',
+      'http-budget-exhausted': 'HTTP 요청 횟수 한도에 도달해 추가 자료 확인을 진행하지 못했다냥.',
+      'completion-time-reserved': '답변을 마칠 시간을 남겨 두기 위해 추가 자료 확인을 중단했다냥.',
+      'no-safe-query-refinement': '확보한 검색 후보와 안전한 후속 검색으로 요청 조건을 확인하지 못했다냥.',
+    }[body.stopReason];
+    if (termination) unavailable = termination;
+    if (body.exhaustedBudgets?.includes('searches') && body.exhaustedBudgets?.includes('reads')) unavailable = '내부 검색 횟수와 본문 조회 횟수 한도에 도달했지만 요청 조건을 확인할 근거를 확보하지 못했다냥.';
+    if (scope) {
+      const country = [body.originalQuestion, intent.externalPrompt].filter(Boolean).join('\n').match(/한국|대한민국|미국|일본|중국|South Korea|United States|Japan|China/i)?.[0];
+      unavailable = `ETS 공식 안내에서 TOEFL iBT 등록비는 시험 장소를 선택해야 확인할 수 있다는 범위까지 확인했다냥. ${country ? `${country}의 현재 기본 응시료 금액은 확인하지 못했다냥.` : '현재 기본 응시료 금액은 확인하지 못했다냥. 응시할 국가·지역을 알려달라냥.'}\n공식 원문: “${scope.quote}”\n${scope.url}`;
+    }
+    if (body.error?.status === 503 || body.reviewCalls?.some(e => e.error?.status === 503) || body.reviews?.some(r => r.repairError?.status === 503)) unavailable += ' 확보한 자료의 근거 검토 중 검토 모델이 일시적으로 응답하지 못했다냥(503).';
+    if (body.reviews?.some(r => r.validationFailures?.includes('missing-or-duplicate-review'))) unavailable += ' 일부 자료는 검토 응답에서 ID가 누락되거나 중복되어 채택하지 못했다냥.';
+    if (body.reads?.some(r => r.error?.category === 'timeout')) unavailable += ' 일부 후보의 본문 조회는 시간 초과로 실패했다냥.';
+    if (body.failureEvents?.some(e => e.stage === 'search' && e.status === 'parse-error')) unavailable += ' 일부 검색 응답은 결과 형식을 해석하지 못했다냥.';
+  }
+  return { hasEvidence, hasPartialEvidence: Boolean(scope), unavailable,
+    ...(!hasEvidence && scope ? { answerVerification: {status:'sourced-partial', requestedAmountVerified:false, sources:[scope]} } : {}),
+    blockWholeAnswer: intent.requiresExternal && !intent.hasLocalAnswer && !hasEvidence && !scope };
 }
 
 export async function answerChatBySource(prompt, options, generate) {
   const { searchIntent: intent, evidenceDecision: decision } = options;
+  options = { ...options, plannedAnswer: options.plannedAnswer ? { ...options.plannedAnswer, answer: intent?.requiresExternal ? independentPlannedAnswer(options.plannedAnswer.answer) : options.plannedAnswer.answer } : null };
   if (!intent) return generate(prompt, options);
   const originalGenerate = generate;
   generate = async (request, config) => {
     if (config.localOnly && !intent.independentLocalPrompt && intent.identityTrace?.anchors?.length) return { answer: '', usedPermanentMemoryIds: [] };
-    const result = await originalGenerate(request, config);
-    if (!config.completeAnswer || !options.webEvidence?.length || result.citationsValid === false) return result;
+    const evidenceExcerpt = () => options.webEvidence.filter((s) => s.bodyReview?.relevant === true && s.bodyReview?.quote).map((s) => `“${s.bodyReview.quote}”\n${s.url}`).join('\n\n');
+    let result;
+    try {
+      if (config.completeAnswer && options.webEvidence?.length && chatTimeRemaining() < 5000) throw new Error('Answer time reserved');
+      result = await originalGenerate(request, config);
+    } catch (error) {
+      if (!config.completeAnswer || !options.webEvidence?.length) throw error;
+      if (isExamFeeRequest(options.originalPrompt || prompt)) return {
+        answer: '현재 적용되는 응시료의 국가·시험 종류·적용 시점을 검증하지 못했다냥. 응시 국가와 시험 종류를 알려주면 그 조건으로 확인해야 한다냥.',
+        usedPermanentMemoryIds: [], answerVerification: {status:'review-failed', error:classifyChatError(error)},
+      };
+      return { answer: `확인한 자료에서는 다음 내용까지 확인할 수 있다냥.\n${evidenceExcerpt()}`,
+        usedPermanentMemoryIds: [], answerVerification: { status: 'excerpt-only', error: classifyChatError(error) } };
+    }
+    if (result.citationsValid === false) return { ...result, answerVerification: { status: 'citation-rejected' } };
+    if (!config.completeAnswer || !options.webEvidence?.length || isPureEvidenceAbstention(result.answer)) return result;
+    const estimatesOnly = isExamFeeRequest(options.originalPrompt || prompt)
+      && options.webEvidence.every(s => s.bodyReview?.feeApplicability?.scope === 'estimate');
+    if (estimatesOnly && (!/블로그|비공식|자료/.test(result.answer)
+        || !/대략|약|전후|추정/.test(result.answer)
+        || !/(?:현재|공식).{0,30}(?:미확인|확인하지 못|확인되지 않|확인할 수 없)/.test(result.answer))) {
+      return { ...result, answer: '확보한 자료로 현재 공식 응시료를 확인하지 못했다냥.', answerVerification: { status: 'rejected', reason: 'fee-estimate-expanded-to-current-price' } };
+    }
     let accepted = false;
     let answerVerification = { status: 'review-failed' };
     try {
       const reviewed = await reviewSourceBodies(options.originalPrompt || prompt, options.webEvidence, originalGenerate, {
-        constraints: `검증할 최종 답변: ${result.answer}\n답변의 모든 외부 주장이 이 자료들로 뒷받침되는지 검사한다. 원래 대상의 약어·별칭·코드 대응, 수치, 직항 여부, 시간 종류, 현재성, 조건을 추측해 확장한 주장이 하나라도 있으면 모든 자료에 relevant=false로 답하고 reason에 이유를 적는다. 일부 확인만으로 답변 전체가 확인된 것으로 처리하지 않는다. 자체 설정 부분은 검사 대상에서 제외한다.`,
+        finalVerification: true, now: options.now,
+        constraints: `검증할 최종 답변: ${result.answer}\n답변의 모든 외부 주장이 이 자료들로 뒷받침되는지 검사한다. 원래 대상의 약어·별칭·코드 대응, 수치, 직항 여부, 시간 종류, 현재성, 국가·지역, 시험/제품 종류·버전, 조건을 추측해 확장한 주장이 하나라도 있으면 모든 자료에 relevant=false로 답하고 reason에 이유를 적는다. 일부 확인만으로 답변 전체가 확인된 것으로 처리하지 않는다. 가격 자료가 특정 국가·시험 종류·유효 시점을 명시하지 않으면 현재의 일반 요금으로 단정하지 않는다. 자료가 안내한 금액과 미확인 조건을 구분한 제한적 설명은 허용한다. 자체 설정 부분은 검사 대상에서 제외한다.`,
       });
       answerVerification = { status: 'reviewed', reviews: reviewed.map((s) => ({ url: s.url, ...s.bodyReview })) };
       accepted = reviewed.some((r) => r.bodyReview.relevant) && !reviewed.some((r) => r.bodyReview.status === 'invalid-review');
       answerVerification.status = accepted ? 'success' : reviewed.some((s) => s.bodyReview.status === 'invalid-review') ? 'review-failed' : 'rejected';
-    } catch (error) { answerVerification = { status: 'review-failed', error: classifyChatError(error) }; }
+    } catch (error) { answerVerification = { status: 'review-failed', error: { ...classifyChatError(error), reviewMetrics: error.reviewMetrics } }; }
     if (accepted) return { ...result, answerVerification };
-    return { ...result, answerVerification, answer: (answerVerification.status === 'rejected' ? '답변에 자료로 뒷받침하지 못한 내용이 있어 확인된 자료 범위만 제시한다냥.' : '답변 검증 중 오류가 있어 확인된 자료 범위만 제시한다냥.') + ' 아래 인용 외의 항목·현재 상태는 확인하지 못했다냥.\n' + options.webEvidence.map((s) => `자료 종류: ${s.evidenceKind || 'body'}\n“${s.pageText}”\n${s.url}`).join('\n\n') };
+    if (answerVerification.status === 'review-failed' && !isExamFeeRequest(options.originalPrompt || prompt)) return {
+      ...result, answer: `최종 답변 검토를 완료하지 못해 이미 검증한 원문만 제공한다냥.\n${evidenceExcerpt()}`,
+      answerVerification: { ...answerVerification, status: 'excerpt-only', generatedAnswerAccepted: false },
+    };
+    // A failed verifier cannot authorize a different answer or resurrect a planner draft.
+    return { ...result, answerVerification, answer: isPureEvidenceAbstention(result.answer) ? result.answer : '확보한 자료로 요청한 사실을 검증하지 못했다냥.' };
   };
   const localOptions = { ...options, searchIntent: null, wikiSearchContext: '', webSearchContext: options.providedPageContext ?? '' };
   if (!intent.requiresExternal) return options.plannedAnswer ?? generate(prompt, localOptions);
   if (options.verifiedExternalAnswer) {
+    const weather = renderWeatherEvidence({results:options.webEvidence}, options.originalPrompt || prompt, options.now);
+    const answerVerification = weather && weather === options.verifiedExternalAnswer ? {
+      status:'success', method:'validated-weather-excerpt',
+      reviews:options.webEvidence.filter(s => s.bodyReview?.relevant).map(s => ({url:s.url, ...s.bodyReview})),
+    } : undefined;
     // The planner's draft may deny evidence we have since verified. Never append
     // verified facts to that draft or regenerate the original external question.
-    const local = await generate(intent.independentLocalPrompt || prompt, { ...localOptions, localOnly: true });
-    return { answer: [local?.answer, options.verifiedExternalAnswer].filter(Boolean).join('\n\n'),
-      usedPermanentMemoryIds: local?.usedPermanentMemoryIds ?? [] };
-  }
-  if (options.plannedAnswer && intent.hasLocalAnswer) {
-    // A search-plan draft is never a deliverable: it can contain a promise or
-    // repeat what the final model already answers. Give completion of the whole
-    // request to one generation, including its independent local part.
-    if (decision.hasEvidence && !options.verifiedExternalAnswer) {
-      const completed = await generate(prompt, { ...options, completeAnswer: true });
-      if (completed.citationsValid !== false) return completed;
-      const local = await generate(intent.independentLocalPrompt || prompt, { ...localOptions, localOnly: true });
-      return { ...local, answer: [local.answer, completed.answer].filter(Boolean).join('\n\n') };
+    if (!intent.independentLocalPrompt) {
+      return { answer: options.verifiedExternalAnswer, usedPermanentMemoryIds: [], answerVerification };
     }
-    const local = await generate(intent.independentLocalPrompt || prompt, { ...localOptions, localOnly: true });
-    return { ...local, answer: [local.answer, options.verifiedExternalAnswer || decision.unavailable].filter(Boolean).join('\n\n') };
+    const local = options.plannedAnswer?.answer ? options.plannedAnswer : await generate(intent.independentLocalPrompt, { ...localOptions, localOnly: true });
+    return { answer: [local?.answer, options.verifiedExternalAnswer].filter(Boolean).join('\n\n'),
+      usedPermanentMemoryIds: local?.usedPermanentMemoryIds ?? [], answerVerification };
+  }
+  if (options.plannedAnswer?.answer && intent.hasLocalAnswer) {
+    const external = decision.hasEvidence
+      ? await generate(prompt, { ...options, completeAnswer: true })
+      : { answer: decision.unavailable, answerVerification:decision.answerVerification };
+    return { ...external, answer: external.answer?.includes(options.plannedAnswer.answer) ? external.answer : [options.plannedAnswer.answer, external.answer].filter(Boolean).join('\n\n') };
   }
   if (!intent.hasLocalAnswer) {
     if (!decision.hasEvidence) {
-      const local = await generate(prompt, { ...localOptions, localOnly: true });
-      return { ...local, answer: [local.answer, decision.unavailable].filter(Boolean).join('\n\n') };
+      return { answer: decision.unavailable, usedPermanentMemoryIds: [], answerVerification:decision.answerVerification };
     }
     const completed = await generate(prompt, { ...options, completeAnswer: true });
     if (completed.citationsValid !== false) return completed;
-    const local = await generate(prompt, { ...localOptions, localOnly: true });
+    if (!intent.independentLocalPrompt) return completed;
+    const local = options.plannedAnswer?.answer ? options.plannedAnswer : await generate(intent.independentLocalPrompt, { ...localOptions, localOnly: true });
     return { ...local, answer: [local.answer, completed.answer].filter(Boolean).join('\n\n') };
   }
   // Separate generation also keeps missing/invalid external citations from erasing
   // a valid self-introduction, translation, or memory answer.
-  const local = options.plannedAnswer ?? await generate(intent.localPrompt, localOptions);
+  const local = options.plannedAnswer?.answer ? options.plannedAnswer : await generate(intent.independentLocalPrompt || intent.localPrompt, { ...localOptions, localOnly: true });
   const external = decision.hasEvidence
     ? options.verifiedExternalAnswer
       ? { answer: options.verifiedExternalAnswer, usedPermanentMemoryIds: [] }
-      : await generate(intent.externalPrompt, { ...options, searchIntent: null, externalOnly: true })
-    : { answer: decision.unavailable, usedPermanentMemoryIds: [] };
-  return { ...local, answer: [local.answer, external.answer].filter(Boolean).join('\n\n'),
+      : await generate(prompt, { ...options, completeAnswer: true, externalOnly: true })
+    : { answer: decision.unavailable, usedPermanentMemoryIds: [], answerVerification:decision.answerVerification };
+  return { ...local, answerVerification: external.answerVerification, answer: [local.answer, external.answer].filter(Boolean).join('\n\n'),
     usedPermanentMemoryIds: [...new Set([...(local.usedPermanentMemoryIds ?? []), ...(external.usedPermanentMemoryIds ?? [])])] };
 }
 
@@ -108,3 +171,11 @@ export const chatSourceGuidance = [
   '날씨는 자료의 실제 지역과 관측/예보 대상 시각을 밝힌다. 동 단위 자료를 시 전체의 관측값으로 확대하지 않는다. 시간별 예보는 현재 관측이 아니다. 조회 시각은 자료 시각이 아니다.',
   '비교 자료가 확보되면 확인한 차이까지 실제로 비교한다. 일부만 확인되면 그 부분만 비교하고 나머지는 확인 불가로 남긴다. 공식 설명, 조건이 명시된 측정 평가, 추정을 구분하고 스펙·가격·성능을 추측해서 채우지 않는다.',
 ].join('\n');
+
+// Only standalone statements of missing evidence may survive a failed review.
+// Numeric estimates, URLs, additional assertions and planner text cannot enter.
+export function isPureEvidenceAbstention(answer) {
+  const text = String(answer || '').trim();
+  return text.length <= 300 && !/[\d$]|https?:|하지만|그러나|일반적으로|대략|보통/.test(text)
+    && text.split(/(?<=[.!?。])\s+/).every((sentence) => /^(?:제공된|확보한|현재|검색|이 자료|해당 자료).*(?:확인할 수 없|확인하지 못|확인되지 않|알 수 없)[^.!?。]*[.!?。]?$/.test(sentence));
+}

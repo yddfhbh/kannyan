@@ -24,17 +24,17 @@ test('article metadata and related links are extracted before JSON-LD removal',(
   assert.equal(extractReadablePageText('<title>뉴스룸</title><main>최신 기사 목록</main>').isArticle,false);
 });
 
-test('newsroom discovery follows bounded related links and only supplies verified articles',async()=>{
+test('an unverified story follows bounded related links and only supplies verified articles',async()=>{
   const reads=[];
   const result=await collectNewsEvidence('최신 AI 뉴스',{
-    status:'success',results:[{title:'AI 뉴스룸',url:'https://publisher.test/newsroom'}],
+    status:'success',results:[{title:'AI 뉴스룸',url:'https://publisher.test/discovery-post'}],
   },{now,search:async()=>({status:'empty',results:[]}),readPage:async(url)=>{
     reads.push(url);
-    if(url.endsWith('/newsroom')) return {url,text:'뉴스룸 목록',links:[{url:'/stories/new-ai',title:'AI 발표 기사'},{url:'/tag/ai',title:'AI 태그'}]};
+    if(url.endsWith('/discovery-post')) return {url,text:'뉴스룸 목록',links:[{url:'/stories/new-ai',title:'AI 발표 기사'},{url:'/tag/ai',title:'AI 태그'}]};
     return article(url);
   }});
   assert.equal(result.results.length,1);
-  assert.deepEqual(reads,['https://publisher.test/newsroom','https://publisher.test/stories/new-ai']);
+  assert.deepEqual(reads,['https://publisher.test/discovery-post','https://publisher.test/stories/new-ai']);
   assert.equal(result.results[0].url,'https://publisher.test/stories/new-ai');
   const context=formatWebSearchContext('AI 뉴스',result.results);
   const selected=selectGeminiContextSections({prompt:'요약해줘',webSearchContext:context}).groundingText;
@@ -71,7 +71,7 @@ test('undated, stale, future, unrelated, category pages and unreadable bodies ca
     status:'success',results:pages.slice(0,3),
   },{now,search:async()=>{searches++;return {status:'success',results:pages.slice(3)};},readPage:async(url)=>pages.find(p=>p.url===url)});
   assert.equal(searches,1);
-  assert.equal(result.newsVerification.pageReads,6);
+  assert.equal(result.newsVerification.pageReads,2);
   assert.equal(result.status,'no-verified-articles');
   assert.equal(result.failed,false);
   assert.deepEqual(result.results,[]);
@@ -100,7 +100,7 @@ test('news fetch keeps existing private address and redirect protection',async()
 });
 
 
-test('actual news final output retains one article date, title, summary, URL and scope', async () => {
+test('actual news delivery retains date, title, summary and scope with URLs only in internal evidence', async () => {
   const { runtime } = await import('../scripts/lib/chat-verification-runtime.js');
   const verified = {status:'success',results:[{title:'새 AI 모델 공개',publishedAt:'2026-10-14T09:00:00Z',pageText:'새 AI 모델이 공개됐다. 개발사는 해당 모델의 언어 처리 기능과 제공 범위를 소개했다. 공개 시점의 지원 항목은 기사에 설명한 범위에 한정된다.',url:'https://publisher.test/stories/new-ai'}], newsVerification:{articles:1,freshnessDays:14},context:'기사 근거'};
   const r = runtime({search:verified,localAnswer:'',plan:{mode:'search',query:'AI 뉴스',purpose:'최신 기사 요약',externalPrompt:'AI 뉴스 요약'}});
@@ -113,7 +113,10 @@ test('actual news final output retains one article date, title, summary, URL and
   };
   await r.context.handleGeminiFallbackMessage({content:'%최신 AI 뉴스 검색해서 요약해줘',author:{id:'test',username:'test'},guildId:'g',channelId:'c',client:{user:{username:'깐냥'}},attachments:new Map(),channel:{send:async()=>{}}});
   assert.equal(r.sent.length,1);
-  for (const value of ['1건뿐','최근 14일','새 AI 모델 공개','게시일: 2026-10-14T09:00:00Z','요약: 새 모델 공개','https://publisher.test/stories/new-ai']) assert.ok(r.sent[0].includes(value),value);
+  for (const value of ['1건뿐','최근 14일','새 AI 모델 공개','게시일: 2026-10-14T09:00:00Z','요약: 새 모델 공개']) assert.ok(r.sent[0].includes(value),value);
+  assert.doesNotMatch(r.sent[0],/https?:\/\//);
+  assert.match(r.stored.at(-1).text,/https:\/\/publisher.test/);
+  assert.equal(verified.results[0].url,'https://publisher.test/stories/new-ai');
   const fallback = await answerVerifiedNews(verified, async()=>({answer:'지원되지 않는 주장',citationsValid:false}));
   assert.match(fallback,/요약 검증에 실패/);
   assert.doesNotMatch(fallback,/지원되지 않는 주장/);

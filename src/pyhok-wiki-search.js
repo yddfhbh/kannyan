@@ -1,3 +1,4 @@
+import { chatTimeRemaining } from './chat-time-budget.js';
 import { calculateAge, getAgeReferenceDate } from './chat-clock.js';
 import {
   analyzePromptSecurity,
@@ -277,7 +278,7 @@ export async function searchPyhokWiki(query, options = {}) {
   const logger = options.logger ?? console;
   const requestUrl = new URL(`/indexes/${encodeURIComponent(meiliIndex)}/search`, `${meiliUrl}/`);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const timeout = setTimeout(() => controller.abort(), Math.max(1, Math.min(timeoutMs, chatTimeRemaining() - 14_000)));
   const startedAt = Date.now();
 
   safeLog(logger, 'log', '[Wiki search] start');

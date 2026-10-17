@@ -50,23 +50,24 @@ test('a short snippet supports only its explicit fields even when body extractio
   assert.equal(resolveChatEvidence({requiresExternal:true},{webSearchData:data}).hasEvidence,true);
 });
 
-test('valid partial evidence survives a different invalid review and unreviewed snippet text is not delivered',async()=>{
+test('reviewed body supersedes its duplicate unreviewed snippet',async()=>{
   const quote='QRX = Example Harbor Airport';
   const data=await collectWebBodyEvidence('qrx airport',{status:'success',results:[{title:'QRX',url:'https://sample.test/airport',snippet:'unreviewed unrelated assertion'}]},async()=>({evidenceReviews:[{id:0,relevant:true,quote,reason:'identity only'}]}),{readPage:async(url)=>({url,title:'QRX',text:quote})});
-  assert.equal(data.status,'partial-success');
+  assert.equal(data.status,'success');
   assert.equal(data.results.length,1);
   assert.equal(data.failed,false);
   assert.doesNotMatch(formatWebSearchContext('qrx airport',data.results),/unreviewed unrelated/);
 });
 
-test('a cited answer with unsupported duration falls back to the already accepted identity evidence',async()=>{
+test('a cited answer with unsupported duration is withheld without substituting identity evidence',async()=>{
   const source={url:'https://sample.test/identity',title:'Identity',pageText:'QRX = Example Harbor Airport',evidenceKind:'search-snippet',bodyReview:{relevant:true}};
   const {intent}=resolveChatSourcePlan({answer:'18~25시간',sourcePlan:{...plan,query:'qrx to uvz flight time'}},'qrx to uvz flight time',{});
   const result=await answerChatBySource('qrx to uvz flight time',{searchIntent:intent,evidenceDecision:{hasEvidence:true},webEvidence:[source]},async(_q,options)=>options.evidenceReview
     ? {evidenceReviews:[{id:0,relevant:false,quote:'',reason:'No duration, direct service or connection time in evidence'}]}
     : {answer:'직항이 없고 18~25시간이다냥. https://sample.test/identity',citationsValid:true});
   assert.doesNotMatch(result.answer,/18|25|직항이 없/);
-  assert.match(result.answer,/QRX = Example Harbor Airport/);
+  assert.doesNotMatch(result.answer,/QRX = Example Harbor Airport/);
+  assert.match(result.answer,/검증하지 못/);
   assert.equal(result.answerVerification.reviews[0].reason,'No duration, direct service or connection time in evidence');
 });
 
@@ -122,7 +123,7 @@ test('a snippet alone no longer suppresses retry after relevance rejection, and 
   assert.equal(retried.bodyVerification.stopReason,'no-safe-query-refinement');
   const blocked=await collectWebBodyEvidence('qrx to uvz flight time',initial,generate,{...options,getRemainingBudget:()=>({httpRequests:20,modelRequests:2,durationMs:40000})});
   assert.deepEqual(blocked.bodyVerification.searches,[]);
-  assert.equal(blocked.bodyVerification.stopReason,'external-budget-reserved-for-answer');
+  assert.equal(blocked.bodyVerification.stopReason,'model-budget-reserved-for-answer');
   assert.equal(blocked.bodyVerification.decisions[0].remaining.external.httpRequests,20);
   assert.equal(blocked.bodyVerification.decisions[0].condition,'review-rejected');
 });
@@ -168,7 +169,7 @@ test('verified alias and requested attribute take priority over official fallbac
     searchRefinement:{requestedSatisfied:false,aliases:[{from:'abcx',to:'Example Harbor International Airport',sourceId:0,quote:identity}],queries:[q,'HBR to uvz flight duration']},
   }),{readPage:async url=>({url,text:''}),search:async query=>{queries.push(query);return {status:'empty',results:[]};},getRemainingBudget:()=>({httpRequests:1,modelRequests:2,durationMs:10000})});
   assert.deepEqual(queries,[]);
-  assert.ok(result.bodyVerification.refinements.some(r=>r.query==='HBR to uvz flight duration' && r.accepted && r.status==='not-executed' && r.executionReason==='external-budget-reserved-for-answer'));
+  assert.ok(result.bodyVerification.refinements.some(r=>r.query==='HBR to uvz flight duration' && r.accepted && r.status==='not-executed' && r.executionReason==='completion-time-reserved'));
   await collectWebBodyEvidence(q,{status:'success',results:[{title:'ABCX identity',url:'https://sample.test/identity',snippet:identity}]},async()=>({evidenceReviews:[{id:0,relevant:false,quote:'',reason:'Identity only'}],searchRefinement:{requestedSatisfied:false,aliases:[{from:'abcx',to:'Example Harbor International Airport',sourceId:0,quote:identity}],queries:[q,'HBR to uvz flight duration']}}),{readPage:async url=>({url,text:''}),search:async query=>{queries.push(query);return {status:'empty',results:[]};}});
   assert.equal(queries[0],'HBR to uvz flight duration');
 });

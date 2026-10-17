@@ -67,6 +67,7 @@ test('legacy factual lookup helper and deferred ordinary source decisions retain
   assert.equal(validateChatCitations('검색 결과에 따르면 20살 https://fake.test', 'URL: https://source.test'), '제공된 자료에서 답변의 출처를 확인하지 못했다냥.');
   assert.equal(validateChatCitations('20살이다냥. https://fake.test', '잘려서 URL이 없는 문맥'), '제공된 자료에서 답변의 출처를 확인하지 못했다냥.');
   assert.equal(validateChatCitations('20살이다냥.', '[1] 제목: 인물\nURL: https://source.test\n확인한 본문: 20살'), '20살이다냥.\n\n출처: https://source.test/');
+  assert.equal(validateChatCitations('런던의 현재 날씨는 맑다냥.', '[1] 제목: 부산 날씨\nURL: https://source.test\n확인한 본문: 부산의 예보는 흐리다.'), '제공된 자료만으로 답변의 근거를 특정하지 못했다냥.');
   assert.equal(validateChatCitations('20살이다냥.', ''), '제공된 자료만으로 답변의 근거를 특정하지 못했다냥.');
   assert.equal(validateChatCitations('생년월일을 확인하지 못했다냥.', ''), '생년월일을 확인하지 못했다냥.');
 });
@@ -172,10 +173,10 @@ test('grounding budget preserves complete source URLs with source excerpts', () 
 });
 
 test('normal Naver captcha API configuration is not a blocking challenge', async () => {
-  const html = '<title>검색 : 네이버 검색</title><script>const captchaApi="https://captcha.nid.naver.com/api"</script><a class="fender-ui_link" href="https://source.test">최신 AI 뉴스 기사</a>';
+  const html = '<title>검색 : 네이버 검색</title><script>const captchaApi="https://captcha.nid.naver.com/api"</script><a class="fender-ui_link" href="https://source.test/stories/ai">최신 AI 뉴스 기사</a>';
   const result = await searchWeb('AI 뉴스', {fetchImpl:async (url) => new Response(String(url).includes('duckduckgo')?'<div class="anomaly-modal"></div>':html)});
   assert.equal(result.status,'success');
-  assert.equal(result.results[0].url,'https://source.test/');
+  assert.equal(result.results[0].url,'https://source.test/stories/ai');
   assert.equal(result.attempts[0].status,'blocked');
   assert.equal(result.attempts[1].status,'success');
 });

@@ -66,7 +66,7 @@ test('failed or unrelated ordinary search does not ask the model to invent an an
   for (const status of ['failed','irrelevant']) {
     const r=runtime({plan:{mode:'search',query:'node 최신 버전',purpose:'현재 버전',externalPrompt:'node 최신 버전'},localAnswer:'',search:{status,failed:status==='failed',results:[],context:'자료 없음'}});
     await r.context.handleGeminiFallbackMessage(message('%node 최신 버전'),{now});
-    assert.equal(r.generated.length,2);assert.equal(r.generated[1].opts.localOnly,true);assert.match(r.sent[0],/확인하지 못/);
+    assert.equal(r.generated.length,1);assert.match(r.sent[0],/확인하지 못/);
   }
 });
 
@@ -76,12 +76,11 @@ test('ordinary percent wiki age route uses exact document evidence and stores th
   const r = runtime({ localAnswer:'', plan:{mode:'search',query:'파이호크',purpose:'생년월일 확인',externalPrompt:prompt}, wiki: { status: 'success', results, context: '검증용 가상 생일' } });
   await r.context.handleGeminiFallbackMessage(message(`%${prompt}`), { now });
   assert.match(r.sent[0], /만 26세/);
-  assert.match(r.sent[0], /https:\/\/pyhok.com/);
+  assert.doesNotMatch(r.sent[0], /https?:\/\//);
   assert.equal(r.queries.length, 0);
-  assert.equal(r.generated.length, 2);
-  assert.equal(r.generated[1].opts.localOnly, true);
+  assert.equal(r.generated.length, 1);
   assert.equal(r.stored.length, 2);
-  assert.equal(r.stored[1].text, r.sent[0]);
+  assert.match(r.stored[1].text, /https:\/\/pyhok.com/);
 });
 
 test('actual percent handler sends local questions to generation without searching, even after a web conversation', async () => {
@@ -103,16 +102,15 @@ test('actual percent handler sends local questions to generation without searchi
 
 test('actual percent handler completes mixed tasks once and regenerates only local content when evidence is missing', async () => {
   for(const status of ['success','empty','failed']) {
-    const r=runtime({plan:{mode:'search',query:'부산 날씨',purpose:'오늘 기상 확인',externalPrompt:'오늘 부산 날씨 어때?'},search:{status,failed:status==='failed',results:status==='success'?[{title:'부산 날씨'}]:[],context:status==='success'?'URL: https://source.test':'자료 없음'}});
+    const r=runtime({plan:{mode:'search',query:'부산 날씨',purpose:'오늘 기상 확인',externalPrompt:'오늘 부산 날씨 어때?'},localAnswer:'나는 깐냥 챗봇이다냥.',search:{status,failed:status==='failed',results:status==='success'?[{title:'부산 날씨'}]:[],context:status==='success'?'URL: https://source.test':'자료 없음'}});
     await r.context.handleGeminiFallbackMessage(message('%너 누구고 오늘 부산 날씨 어때?'),{now});
     assert.equal(r.queries.length,1);
     assert.ok(r.queries[0].includes('부산 날씨'));
     assert.equal(r.generated[0].q,'너 누구고 오늘 부산 날씨 어때?');
     assert.equal(r.generated[0].opts.webSearchContext,'');
-    assert.equal(r.generated.length,2);
-    assert.equal(r.generated[1].opts.completeAnswer,status==='success'?true:undefined);
-    assert.equal(r.generated[1].opts.localOnly,status==='success'?undefined:true);
-    assert.match(r.sent[0],/자체 문맥/);
+    assert.equal(r.generated.length,status==='success'?2:1);
+    if(status==='success') assert.equal(r.generated[1].opts.completeAnswer,true);
+    assert.match(r.sent[0],/나는 깐냥/);
     if(status!=='success') assert.match(r.sent[0],/확인하지 못/);
   }
 });
@@ -121,12 +119,11 @@ test('mixed wiki age keeps exact-document deterministic verification; unrelated 
   const q='넌 뭐야? 푝무위키 파이호크 나이';
   for(const title of ['파이호크','다른사람']) {
     const results=parsePyhokWikiSearchResponse({hits:[{title,content:'생년월일: 2000-10-15',anyoneReadable:true}]},{query:'파이호크',originalQuery:q});
-    const r=runtime({plan:{mode:'search',query:'파이호크',purpose:'생년월일',externalPrompt:'푝무위키 파이호크 나이',localPrompt:'넌 뭐야?'},wiki:{status:'success',results,context:'검증 자료'}});
+    const r=runtime({plan:{mode:'search',query:'파이호크',purpose:'생년월일',externalPrompt:'푝무위키 파이호크 나이',localPrompt:'넌 뭐야?'},localAnswer:'나는 깐냥 챗봇이다냥.',wiki:{status:'success',results,context:'검증 자료'}});
     await r.context.handleGeminiFallbackMessage(message(`%${q}`),{now});
-    assert.equal(r.generated.length,2);
-    assert.equal(r.generated[1].opts.localOnly,true);
+    assert.equal(r.generated.length,1);
     assert.equal(r.queries.length,0);
-    assert.match(r.sent[0],/자체 문맥/);
+    assert.match(r.sent[0],/나는 깐냥/);
     if(title==='파이호크') assert.match(r.sent[0],/만 26세/);
     else assert.doesNotMatch(r.sent[0],/만 26세/);
   }
@@ -162,13 +159,13 @@ test('paraphrases and mixed transformations retain context in a single final com
       assert.equal(r.generated[0].opts.replyContext.text,'원문: hello world',q);
       assert.equal(r.queries.length,1,q);
       assert.ok(r.queries[0] === q || r.queries[0] === query,q);
-      assert.equal(r.generated.length,2,q);
+      assert.equal(r.generated.length,q.startsWith('자료를') ? (status==='success'?3:2) : (status==='success'?2:1),q);
       if(localAnswer) assert.ok(r.sent[0].includes(localAnswer),q);
       if(status==='success') {
-        assert.equal(r.generated[1].q,q,q);
-        if(localAnswer) assert.equal(r.generated[1].opts.completeAnswer,true,q);
-        else assert.equal(r.generated[1].opts.completeAnswer,true,q);
-        assert.match(r.generated[1].opts.webSearchContext,/https:\/\/source.test/);
+        assert.equal(r.generated.at(-1).q,q,q);
+        if(localAnswer) assert.equal(r.generated.at(-1).opts.completeAnswer,true,q);
+        else assert.equal(r.generated.at(-1).opts.completeAnswer,true,q);
+        assert.match(r.generated.at(-1).opts.webSearchContext,/https:\/\/source.test/);
         assert.equal(r.generated[1].opts.history[0].text,history[0].text);
       } else assert.match(r.sent[0],/확인하지 못/,q);
     }

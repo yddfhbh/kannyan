@@ -1,3 +1,4 @@
+import { formatChatDisplayAnswer } from '../src/chat-display.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -60,7 +61,8 @@ test('actual handler delivers the completed weather answer once through local tr
   };
   await r.context.handleGeminiFallbackMessage({content:`%${fixture.weather.question}`,author:{id:'test',username:'test'},guildId:'g',channelId:'c',client:{user:{username:'깐냥'}},attachments:new Map(),channel:{send:async()=>{}}});
   assert.equal(calls,2);
-  assert.deepEqual(r.sent,[fixture.weather.final]);
+  assert.deepEqual(r.sent,[formatChatDisplayAnswer(fixture.weather.final)]);
+  assert.match(r.stored.at(-1).text,/https:\/\/weather.test/);
 });
 
 

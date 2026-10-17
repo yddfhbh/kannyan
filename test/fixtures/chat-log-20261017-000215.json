@@ -1,0 +1,2231 @@
+[
+  {
+    "worktreeIdentity": {
+      "codeSha256": "9c8ab726ff20058d1f8f7d90f5a04f6ff0c7b1a50339324f9ae61f619cda182d",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "너 누구고 오늘 부산 날씨는 어때?",
+    "category": "mixed",
+    "status": "failed",
+    "now": "2026-10-16T15:03:04.552Z",
+    "timings": {
+      "elapsedMs": 20047,
+      "planningMs": 7366,
+      "searchMs": 3401,
+      "evidenceCollectionMs": 12629,
+      "evidenceCollectionWorkMs": 21938,
+      "evidenceReviewMs": 8520,
+      "finalVerificationMs": 0,
+      "finalAnswerMs": 0,
+      "answerVerificationMs": 0,
+      "serviceUnavailableMs": 0
+    },
+    "verification": {
+      "search": "success",
+      "evidence": "success",
+      "evidenceReview": "unverified",
+      "finalAnswer": "success",
+      "claimSourceMatch": "unverified",
+      "qualityPassed": false,
+      "searchSuccess": true,
+      "evidenceAcquired": true,
+      "finalAnswerGenerated": true
+    },
+    "trace": [
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 0,
+          "httpRequests": 0,
+          "remaining": {
+            "modelRequests": 2,
+            "httpRequests": 33,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39948
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39948
+          }
+        }
+      },
+      {
+        "event": "model-response",
+        "stage": "planning",
+        "startedAt": 1792162964541,
+        "endedAt": 1792162971907,
+        "durationMs": 7366,
+        "model": "gemini-3.5-flash-lite",
+        "responseModel": "gemini-3.5-flash-lite",
+        "raw": "{\n  \"answer\": \"나는 CODEX가 만든 고양이귀 미소녀 챗봇 깐냥이다냥. 부산 날씨는 지금 바로 확인할 수 없으니 잠시만 기다려달라냥.\",\n  \"emotion\": \"neutral\",\n  \"sourcePlan\": {\n    \"mode\": \"search\",\n    \"query\": \"부산 날씨\",\n    \"purpose\": \"오늘 부산의 날씨 정보를 확인하기 위함\",\n    \"externalPrompt\": \"오늘 부산 날씨 어때?\",\n    \"localPrompt\": \"\",\n    \"additionalExternalPrompt\": \"\"\n  }\n}"
+      },
+      {
+        "event": "http-attempt",
+        "stage": "search",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 32583
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 2,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 31,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 32583
+          }
+        }
+      },
+      {
+        "event": "http-attempt",
+        "stage": "search",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 2,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 31,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 32576
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 3,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 30,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 32576
+          }
+        }
+      },
+      {
+        "event": "http-attempt",
+        "stage": "search",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 3,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 30,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 32116
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 4,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 29,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 32116
+          }
+        }
+      },
+      {
+        "event": "searchWeb",
+        "stage": "search",
+        "startedAt": 1792162971921,
+        "endedAt": 1792162975322,
+        "durationMs": 3401,
+        "status": "success"
+      },
+      {
+        "event": "http-attempt",
+        "stage": "evidence-collection",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 4,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 29,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 29138
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 5,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 28,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 29138
+          }
+        }
+      },
+      {
+        "event": "http-attempt",
+        "stage": "evidence-collection",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 5,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 28,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 28722
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 6,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 27,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 28722
+          }
+        }
+      },
+      {
+        "event": "http-attempt",
+        "stage": "evidence-review",
+        "required": true,
+        "service": "model",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 6,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 27,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 28478
+          }
+        },
+        "after": {
+          "modelRequests": 2,
+          "httpRequests": 7,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 27,
+            "reservedModelRequests": 2,
+            "reservedHttpRequests": 2,
+            "durationMs": 28478
+          }
+        }
+      },
+      {
+        "event": "model-response",
+        "stage": "evidence-review",
+        "startedAt": 1792162976027,
+        "endedAt": 1792162984547,
+        "durationMs": 8520,
+        "model": "gemini-3.5-flash-lite",
+        "responseModel": "gemini-3.5-flash-lite",
+        "raw": "{\n  \"evidenceReviews\": [\n    {\n      \"id\": 0,\n      \"relevant\": true,\n      \"requestSatisfied\": true,\n      \"quote\": \"부산과 울산, 경남 지역은 17일 대체로 가끔 구름이 많다가 오후부터 차차 흐려지는 날씨를 보이겠다. 주요 지역의 아침 최저기온은 부산 17도, 울산 12도, 창원 13도, 진주 9도, 거창 7도 등으로 7~17도 분포를 나타내며 서늘하게 출발하겠다. 한낮에는 기온이 크게 올라 낮 최고기온은 부산 24도, 울산 24도, 창원 25도, 진주 26도, 양산 27도 등 24~27도까지 오르며 평년보다 높은 기온을 기록하겠다.\",\n      \"reason\": \"17일 부산의 아침 최저기온과 낮 최고기온 정보를 정확히 포함하고 있다.\",\n      \"region\": \"부산\",\n      \"validTime\": \"17일\",\n      \"kind\": \"forecast\",\n      \"dataType\": \"weather\",\n      \"weatherFields\": [\n        \"아침 최저기온 부산 17도\",\n        \"낮 최고기온 부산 24도\"\n      ]\n    },\n    {\n      \"id\": 1,\n      \"relevant\": true,\n      \"requestSatisfied\": true,\n      \"quote\": \"주요 도시별 아침 최저기온은 서울 13도, 인천 14도, 춘천 10도, 강릉 13도, 대전 12도, 대구 13도, 전주 13도, 광주 14도, 부산 17도, 제주 19도로 시작하겠다. 낮 최고기온은 서울 25도, 인천 25도, 춘천 25도, 강릉 22도, 대전 25도, 대구 24도, 전주 26도, 광주 27도, 부산 24도, 제주 25도까지 오르겠다.\",\n      \"reason\": \"17일 부산의 아침 및 낮 기온 예보를 담고 있다.\",\n      \"region\": \"부산\",\n      \"validTime\": \"17일\",\n      \"kind\": \"forecast\",\n      \"dataType\": \"weather\",\n      \"weatherFields\": [\n        \"아침 최저기온 부산 17도\",\n        \"낮 최고기온 부산 24도\"\n      ]\n    },\n    {\n      \"id\": 2,\n      \"relevant\": true,\n      \"requestSatisfied\": true,\n      \"quote\": \"주요 지역 아침 최저기온은 서울 13도, 인천 14도, 수원 13도, 춘천 10도, 강릉 13도, 청주 12도, 대전 12도, 전주 13도, 광주 14도, 대구 13도, 부산 17도, 울산 15도, 제주 19도다. 낮 최고기온은 서울 25도, 인천 25도, 수원 25도, 춘천 25도, 강릉 22도, 청주 25도, 대전 25도, 전주 26도, 광주 27도, 대구 24도, 부산 24도...\",\n      \"reason\": \"부산의 아침 최저기온과 낮 최고기온 예보를 포함한다.\",\n      \"region\": \"부산\",\n      \"validTime\": \"오늘\",\n      \"kind\": \"forecast\",\n      \"dataType\": \"weather\",\n      \"weatherFields\": [\n        \"아침 최저기온 부산 17도\",\n        \"낮 최고기온 부산 24도\"\n      ]\n    }\n  ],\n  \"searchRefinement\": {\n    \"requestedSatisfied\": true,\n    \"aliases\": [],\n    \"queries\": [\n      \"부산 날씨\"\n    ]\n  }\n}"
+      },
+      {
+        "event": "tryBuildWebSearchData",
+        "query": "부산 날씨",
+        "startedAt": 1792162971921,
+        "endedAt": 1792162984550,
+        "durationMs": 12629,
+        "result": {
+          "query": "부산 날씨",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "부산 날씨",
+              "httpStatus": 202,
+              "status": "blocked",
+              "count": 0
+            },
+            {
+              "provider": "naver",
+              "query": "부산 날씨",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 23
+            }
+          ],
+          "bodyVerification": {
+            "reviewMetrics": [
+              {
+                "sourceCount": 3,
+                "inputChars": 1930,
+                "originalChars": 1499,
+                "finalVerification": false,
+                "elapsedMs": 8528,
+                "outputChars": 1892
+              }
+            ],
+            "originalQuestion": "너 누구고 오늘 부산 날씨는 어때?",
+            "query": "부산 날씨",
+            "retrievalStatus": "success",
+            "reads": [
+              {
+                "requestedUrl": "https://www.thefairnews.co.kr/news/articleView.html?idxno=90925",
+                "searchTitle": "[부산·울산·경남 오늘(17일) 날씨] 한낮 27도 안팎…일교차 크고 오후...새 창 열림",
+                "round": 0,
+                "status": "body-extracted",
+                "fetchedUrl": "https://www.thefairnews.co.kr/news/articleView.html?idxno=90925",
+                "extractedTitle": "[부산·울산·경남 오늘(17일) 날씨] 한낮 27도 안팎…일교차 크고 오후 강풍 < 날씨 < 생활문화 < 기사본문 - 더페어",
+                "extractedBody": "사진=연합뉴스 [더페어] 최준규 기자 = 부산과 울산, 경남 지역은 17일 대체로 가끔 구름이 많다가 오후부터 차차 흐려지는 날씨를 보이겠다. 낮 기온이 27도 선까지 오르며 낮과 밤의 기온 차가 10~15도 안팎으로 크게 벌어질 것으로 예상된다. 주요 지역의 아침 최저기온은 부산 17도, 울산 12도, 창원 13도, 진주 9도, 거창 7도 등으로 7~17도 분포를 나타내며 서늘하게 출발하겠다. 한낮에는 기온이 크게 올라 낮 최고기온은 부산 24도, 울산 24도, 창원 25도, 진주 26도, 양산 27도 등 24~27도까지 오르며 평년보다 높은 기온을 기록하겠다. 오후부터는 바람이 강해져 야외 활동 시 주의가 요구된다. 부산·울산·경남 전역에서 순간풍속 시속 55km(초속 15m) 안팎의 강한 바람이 부는 곳이 있겠으니 안전사고 및 선박·시설물 관리에 신경 써야 한다. 남해 동부 먼바다와 동해 남부 먼바다를 중심으로 바람이 매우 강하게 불고 물결이 1.5~4.0m로 매우 높게 일겠다. 미세먼지 농도는 원활한 대기 확산 영향으로 '좋음'에서 '보통' 수준을 유지할 전망이다.",
+                "bodyQuality": "substantive",
+                "extractedMetadata": "[부산·울산·경남 오늘(17일) 날씨] 한낮 27도 안팎…일교차 크고 오후 강풍"
+              },
+              {
+                "requestedUrl": "https://www.thefairnews.co.kr/news/articleView.html?idxno=90923",
+                "searchTitle": "[오늘(17일) 날씨] 아침 최저 7도·낮 최고 27도 '큰 일교차'…오후부터...새 창 열림",
+                "round": 0,
+                "status": "body-extracted",
+                "fetchedUrl": "https://www.thefairnews.co.kr/news/articleView.html?idxno=90923",
+                "extractedTitle": "[오늘(17일) 날씨] 아침 최저 7도·낮 최고 27도 '큰 일교차'…오후부터 전국 강풍 유의 < 날씨 < 생활문화 < 기사본문 - 더페어",
+                "extractedBody": "사진=연합뉴스 [더페어] 최준규 기자 = 전국이 17일 대체로 구름 많다가 오후부터 흐려지는 날씨를 보일 전망이다. 낮과 밤의 기온 차가 15도 안팎으로 크게 벌어져 환절기 건강관리에 각별한 주의가 요구된다. 기상청에 따르면 이날 아침 최저기온은 7~17도, 낮 최고기온은 21~27도로 예보됐다. 평년 기온(최저 5~15도, 최고 19~23도)을 웃도는 수준이나, 내륙을 중심으로 아침과 낮의 기온차가 커 출퇴근길 및 야외 활동 시 옷차림에 신경 써야 한다. 주요 도시별 아침 최저기온은 서울 13도, 인천 14도, 춘천 10도, 강릉 13도, 대전 12도, 대구 13도, 전주 13도, 광주 14도, 부산 17도, 제주 19도로 시작하겠다. 낮 최고기온은 서울 25도, 인천 25도, 춘천 25도, 강릉 22도, 대전 25도, 대구 24도, 전주 26도, 광주 27도, 부산 24도, 제주 25도까지 오르겠다. 시설물 관리에도 대비가 필요하다. 이날 오후부터 내일 사이 전국 대부분 지역에서 순간풍속 시속 55㎞ 내외(산지 시속 70㎞ 내외)의 강한 바람이 불 것으로 예상된다. 해상 역시 오후부터 서해 먼바다를 시작으로 바람이 매우 강하게 불고 물결이 1.5~4.0m로 매우 높게 일어 항해나 조업하는 선박의 주의가 요구된다. 미세먼지 농도는 원활한 대기 순환으로 전 권역이 '좋음'에서 '보통' 수준을 유지하겠다.",
+                "bodyQuality": "substantive",
+                "extractedMetadata": "[오늘(17일) 날씨] 아침 최저 7도·낮 최고 27도 '큰 일교차'…오후부터 전국 강풍 유의"
+              }
+            ],
+            "searches": [],
+            "selections": [
+              {
+                "round": 0,
+                "url": "https://www.thefairnews.co.kr/news/articleView.html?idxno=90925",
+                "title": "[부산·울산·경남 오늘(17일) 날씨] 한낮 27도 안팎…일교차 크고 오후...새 창 열림",
+                "snippet": "[부산·울산·경남 오늘(17일) 날씨] 한낮 27도 안팎…일교차 크고 오후...새 창 열림부산과 울산, 경남 지역은 17일 대체로 가끔 구름이 많다가 오후부터 차차 흐려지는 날씨를 보이겠다. 낮 기온이 27도 선까지 오르며 낮과 밤의 기온 차가 10~15도 안팎으로 크게 벌어질 것으로 예상된다. 주요 지역의 아침 최저기온은 부산 17도, 울산 12도, 창원 13도, 진주 9도, 거창 7도 등으로 7~17도... 새 창 열림",
+                "index": 0,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 2,
+                "score": 2,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.thefairnews.co.kr/news/articleView.html?idxno=90923",
+                "title": "[오늘(17일) 날씨] 아침 최저 7도·낮 최고 27도 '큰 일교차'…오후부터...새 창 열림",
+                "snippet": "[오늘(17일) 날씨] 아침 최저 7도·낮 최고 27도 '큰 일교차'…오후부터...새 창 열림전국이 17일 대체로 구름 많다가 오후부터 흐려지는 날씨를 보일 전망이다. 낮과 밤의 기온 차가 15도 안팎으로 크게 벌어져 환절기 건강관리에... 주요 도시별 아침 최저기온은 서울 13도, 인천 14도, 춘천 10도, 강릉 13도, 대전 12도, 대구 13도, 전주 13도, 광주 14도, 부산 17도, 제주 19도로 시작하겠다. 낮... 새 창 열림",
+                "index": 1,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 2,
+                "score": 2,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.newsis.com/view/NISX20261016_0003829745",
+                "title": "맑은 하늘에 낮 최고 27도 포근…오후부터 전국 강풍[오늘날씨]새 창 열림",
+                "snippet": "맑은 하늘에 낮 최고 27도 포근…오후부터 전국 강풍[오늘날씨]새 창 열림주요 지역 아침 최저기온은 서울 13도, 인천 14도, 수원 13도, 춘천 10도, 강릉 13도, 청주 12도, 대전 12도, 전주 13도, 광주 14도, 대구 13도, 부산 17도, 울산 15도, 제주 19도다. 낮 최고기온은 서울 25도, 인천 25도, 수원 25도, 춘천 25도, 강릉 22도, 청주 25도, 대전 25도, 전주 26도, 광주 27도, 대구 24도, 부산 24도... 새 창 열림",
+                "index": 2,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 2,
+                "score": 2,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.accuweather.com/ko/kr/busan/222888/hourly-weather-forecast/222888",
+                "title": "부산광역시, 부산시, 대한민국 시간별 날씨새 창 열림",
+                "snippet": "",
+                "index": 3,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 2,
+                "score": 2,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.badatime.com/1/hour-cast",
+                "title": "부산 시간별 날씨, 부산 지역 날씨 예보새 창 열림",
+                "snippet": "",
+                "index": 4,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 2,
+                "score": 2,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.weather.go.kr/w/index.do",
+                "title": "기상청 날씨누리www.kma.go.kr›busan새 창 열림",
+                "snippet": "",
+                "index": 5,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.kma.go.kr/busan/html/main/index.jsp",
+                "title": "부산지방기상청새 창 열림",
+                "snippet": "",
+                "index": 6,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.weather.go.kr/w/forecast/notice.do?stnId=159",
+                "title": "예보 통보문(부산·울산·경남)새 창 열림",
+                "snippet": "",
+                "index": 7,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.weatheri.co.kr/konji/weather_resort.html?rid=159",
+                "title": "부산 울산 경남 - 웨더아이새 창 열림",
+                "snippet": "",
+                "index": 8,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 1,
+                "score": 1,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.kma.go.kr/busan/html/info/affiliated1.jsp",
+                "title": "울산기상대새 창 열림",
+                "snippet": "",
+                "index": 9,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 0,
+                "score": 0,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.kma.go.kr/busan/html/info/affiliated2.jsp",
+                "title": "창원기상대새 창 열림",
+                "snippet": "",
+                "index": 10,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 0,
+                "score": 0,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.kma.go.kr/busan/html/news/notice_list.jsp?boardId=gongzi",
+                "title": "공지사항새 창 열림",
+                "snippet": "",
+                "index": 11,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 0,
+                "score": 0,
+                "reason": "partial-identity-or-topic-ranking"
+              }
+            ],
+            "aliases": [],
+            "aliasReviews": [],
+            "identityGroups": [],
+            "refinements": [
+              {
+                "query": "부산 날씨",
+                "round": 0,
+                "origin": "model",
+                "index": 0,
+                "accepted": false,
+                "reason": "duplicate-search",
+                "status": "rejected"
+              },
+              {
+                "query": "부산 날씨 official",
+                "round": 0,
+                "origin": "official-fallback",
+                "accepted": true,
+                "reason": "identity-and-direction-preserved",
+                "status": "not-executed",
+                "usesVerifiedAlias": false,
+                "preservesAttribute": true,
+                "priority": 0,
+                "executionReason": "external-budget-reserved-for-answer"
+              }
+            ],
+            "decisions": [
+              {
+                "condition": "review-error",
+                "action": "stop",
+                "reason": "external-budget-reserved-for-answer",
+                "remaining": {
+                  "searches": 2,
+                  "reads": 2,
+                  "durationMs": 15775,
+                  "external": {
+                    "modelRequests": 1,
+                    "httpRequests": 27,
+                    "reservedModelRequests": 2,
+                    "reservedHttpRequests": 2,
+                    "durationMs": 19955
+                  }
+                }
+              }
+            ],
+            "limits": {
+              "searches": 2,
+              "reads": 4,
+              "durationMs": 25000
+            },
+            "remaining": {
+              "searches": 2,
+              "reads": 2,
+              "durationMs": 15775,
+              "external": {
+                "modelRequests": 1,
+                "httpRequests": 27,
+                "reservedModelRequests": 2,
+                "reservedHttpRequests": 2,
+                "durationMs": 19955
+              }
+            },
+            "stopReason": "external-budget-reserved-for-answer",
+            "requestedSatisfied": true,
+            "reviews": [
+              {
+                "round": 0,
+                "url": "https://www.thefairnews.co.kr/news/articleView.html?idxno=90925",
+                "evidenceKind": "body",
+                "id": 0,
+                "relevant": false,
+                "requestSatisfied": true,
+                "quote": "",
+                "reason": "17일 부산의 아침 최저기온과 낮 최고기온 정보를 정확히 포함하고 있다.",
+                "region": "부산",
+                "validTime": "17일",
+                "kind": "forecast",
+                "dataType": "weather",
+                "weatherFields": [],
+                "requestMismatch": "",
+                "reviewMetrics": {
+                  "sourceCount": 3,
+                  "inputChars": 1930,
+                  "originalChars": 1499,
+                  "finalVerification": false,
+                  "elapsedMs": 8528,
+                  "outputChars": 1892
+                },
+                "status": "invalid-review"
+              },
+              {
+                "round": 0,
+                "url": "https://www.thefairnews.co.kr/news/articleView.html?idxno=90923",
+                "evidenceKind": "body",
+                "id": 1,
+                "relevant": false,
+                "requestSatisfied": true,
+                "quote": "",
+                "reason": "17일 부산의 아침 및 낮 기온 예보를 담고 있다.",
+                "region": "부산",
+                "validTime": "17일",
+                "kind": "forecast",
+                "dataType": "weather",
+                "weatherFields": [],
+                "requestMismatch": "",
+                "reviewMetrics": {
+                  "sourceCount": 3,
+                  "inputChars": 1930,
+                  "originalChars": 1499,
+                  "finalVerification": false,
+                  "elapsedMs": 8528,
+                  "outputChars": 1892
+                },
+                "status": "invalid-review"
+              },
+              {
+                "round": 0,
+                "url": "https://www.newsis.com/view/NISX20261016_0003829745",
+                "evidenceKind": "search-snippet",
+                "id": 2,
+                "relevant": false,
+                "requestSatisfied": true,
+                "quote": "",
+                "reason": "부산의 아침 최저기온과 낮 최고기온 예보를 포함한다.",
+                "region": "부산",
+                "validTime": "오늘",
+                "kind": "forecast",
+                "dataType": "weather",
+                "weatherFields": [],
+                "requestMismatch": "weather-target-date-mismatch",
+                "reviewMetrics": {
+                  "sourceCount": 3,
+                  "inputChars": 1930,
+                  "originalChars": 1499,
+                  "finalVerification": false,
+                  "elapsedMs": 8528,
+                  "outputChars": 1892
+                },
+                "status": "reviewed"
+              }
+            ]
+          },
+          "results": [],
+          "status": "review-failed",
+          "failed": true,
+          "context": "[웹 조회 상태: review-failed] 질문을 확인할 근거를 얻지 못했다. 확인되지 않았다고 답하고 출처나 사실을 만들지 않는다.",
+          "searchedAtText": ""
+        }
+      },
+      {
+        "event": "answer-verification",
+        "durationMs": 0,
+        "result": {
+          "status": "not-applicable"
+        }
+      }
+    ],
+    "final": [
+      "나는 CODEX가 만든 고양이귀 미소녀 챗봇 깐냥이다냥.\n\n자료의 관련성 검증 중 오류가 발생해 외부 사실을 검증하지 못했다냥."
+    ],
+    "failures": [],
+    "questionLimits": {
+      "modelRequests": 5,
+      "httpRequests": 36,
+      "durationMs": 40000
+    },
+    "questionCounts": {
+      "modelRequests": 2,
+      "httpRequests": 7
+    },
+    "limits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "verificationLimits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "operationalLimits": {
+      "modelRequests": "production-configured",
+      "httpRequests": "production-configured",
+      "durationMs": "production-configured"
+    },
+    "counts": {
+      "modelRequests": 2,
+      "httpRequests": 7
+    },
+    "case": "mixed"
+  },
+  {
+    "worktreeIdentity": {
+      "codeSha256": "9c8ab726ff20058d1f8f7d90f5a04f6ff0c7b1a50339324f9ae61f619cda182d",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "토플 응시료 검색해줘",
+    "category": "explicit-search",
+    "status": "failed",
+    "error": {
+      "category": "api",
+      "status": 503
+    },
+    "timings": {
+      "elapsedMs": 2996,
+      "planningMs": 0,
+      "searchMs": 0,
+      "evidenceCollectionMs": null,
+      "evidenceCollectionWorkMs": 0,
+      "evidenceReviewMs": 0,
+      "finalVerificationMs": 0,
+      "finalAnswerMs": 0,
+      "answerVerificationMs": 0,
+      "serviceUnavailableMs": 2946
+    },
+    "verification": {
+      "search": "not-applicable",
+      "evidence": "not-applicable",
+      "evidenceReview": "not-applicable",
+      "finalAnswer": "failure",
+      "claimSourceMatch": "not-applicable",
+      "qualityPassed": false,
+      "searchSuccess": false,
+      "evidenceAcquired": false,
+      "finalAnswerGenerated": false
+    },
+    "trace": [
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 0,
+          "httpRequests": 0,
+          "remaining": {
+            "modelRequests": 2,
+            "httpRequests": 33,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39915
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39915
+          }
+        }
+      },
+      {
+        "event": "http-error",
+        "service": "model",
+        "category": "api",
+        "status": 503,
+        "durationMs": 1774
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.5-flash-lite",
+        "stage": "planning",
+        "durationMs": 1818,
+        "category": "api",
+        "status": 503
+      },
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 38133
+          }
+        },
+        "after": {
+          "modelRequests": 2,
+          "httpRequests": 2,
+          "remaining": {
+            "modelRequests": 0,
+            "httpRequests": 31,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 38133
+          }
+        }
+      },
+      {
+        "event": "http-error",
+        "service": "model",
+        "category": "api",
+        "status": 503,
+        "durationMs": 1127
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.1-flash-lite",
+        "stage": "planning",
+        "durationMs": 1128,
+        "category": "api",
+        "status": 503
+      },
+      {
+        "event": "generation-failed",
+        "stage": "planning",
+        "category": "api",
+        "status": 503
+      }
+    ],
+    "final": [],
+    "failures": [
+      {
+        "stage": "planning",
+        "category": "api",
+        "status": 503
+      }
+    ],
+    "questionLimits": {
+      "modelRequests": 5,
+      "httpRequests": 36,
+      "durationMs": 40000
+    },
+    "questionCounts": {
+      "modelRequests": 2,
+      "httpRequests": 2
+    },
+    "limits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "verificationLimits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "operationalLimits": {
+      "modelRequests": "production-configured",
+      "httpRequests": "production-configured",
+      "durationMs": "production-configured"
+    },
+    "counts": {
+      "modelRequests": 2,
+      "httpRequests": 2
+    },
+    "case": "toefl-search"
+  },
+  {
+    "worktreeIdentity": {
+      "codeSha256": "9c8ab726ff20058d1f8f7d90f5a04f6ff0c7b1a50339324f9ae61f619cda182d",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "토플 응시료가 얼마야?",
+    "category": "general-external-fact",
+    "status": "failed",
+    "error": {
+      "category": "api",
+      "status": 503
+    },
+    "timings": {
+      "elapsedMs": 6115,
+      "planningMs": 0,
+      "searchMs": 0,
+      "evidenceCollectionMs": null,
+      "evidenceCollectionWorkMs": 0,
+      "evidenceReviewMs": 0,
+      "finalVerificationMs": 0,
+      "finalAnswerMs": 0,
+      "answerVerificationMs": 0,
+      "serviceUnavailableMs": 6074
+    },
+    "verification": {
+      "search": "not-applicable",
+      "evidence": "not-applicable",
+      "evidenceReview": "not-applicable",
+      "finalAnswer": "failure",
+      "claimSourceMatch": "not-applicable",
+      "qualityPassed": false,
+      "searchSuccess": false,
+      "evidenceAcquired": false,
+      "finalAnswerGenerated": false
+    },
+    "trace": [
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 0,
+          "httpRequests": 0,
+          "remaining": {
+            "modelRequests": 2,
+            "httpRequests": 33,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39941
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39941
+          }
+        }
+      },
+      {
+        "event": "http-error",
+        "service": "model",
+        "category": "api",
+        "status": 503,
+        "durationMs": 1491
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.5-flash-lite",
+        "stage": "planning",
+        "durationMs": 1532,
+        "category": "api",
+        "status": 503
+      },
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 38427
+          }
+        },
+        "after": {
+          "modelRequests": 2,
+          "httpRequests": 2,
+          "remaining": {
+            "modelRequests": 0,
+            "httpRequests": 31,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 38427
+          }
+        }
+      },
+      {
+        "event": "http-error",
+        "service": "model",
+        "category": "api",
+        "status": 503,
+        "durationMs": 4539
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.1-flash-lite",
+        "stage": "planning",
+        "durationMs": 4542,
+        "category": "api",
+        "status": 503
+      },
+      {
+        "event": "generation-failed",
+        "stage": "planning",
+        "category": "api",
+        "status": 503
+      }
+    ],
+    "final": [],
+    "failures": [
+      {
+        "stage": "planning",
+        "category": "api",
+        "status": 503
+      }
+    ],
+    "questionLimits": {
+      "modelRequests": 5,
+      "httpRequests": 36,
+      "durationMs": 40000
+    },
+    "questionCounts": {
+      "modelRequests": 2,
+      "httpRequests": 2
+    },
+    "limits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "verificationLimits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "operationalLimits": {
+      "modelRequests": "production-configured",
+      "httpRequests": "production-configured",
+      "durationMs": "production-configured"
+    },
+    "counts": {
+      "modelRequests": 2,
+      "httpRequests": 2
+    },
+    "case": "toefl-fact"
+  },
+  {
+    "worktreeIdentity": {
+      "codeSha256": "9c8ab726ff20058d1f8f7d90f5a04f6ff0c7b1a50339324f9ae61f619cda182d",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "오늘 부산 날씨는 어때?",
+    "category": "general-external-fact",
+    "status": "failed",
+    "error": {
+      "category": "api",
+      "status": 503
+    },
+    "timings": {
+      "elapsedMs": 2635,
+      "planningMs": 0,
+      "searchMs": 0,
+      "evidenceCollectionMs": null,
+      "evidenceCollectionWorkMs": 0,
+      "evidenceReviewMs": 0,
+      "finalVerificationMs": 0,
+      "finalAnswerMs": 0,
+      "answerVerificationMs": 0,
+      "serviceUnavailableMs": 2600
+    },
+    "verification": {
+      "search": "not-applicable",
+      "evidence": "not-applicable",
+      "evidenceReview": "not-applicable",
+      "finalAnswer": "failure",
+      "claimSourceMatch": "not-applicable",
+      "qualityPassed": false,
+      "searchSuccess": false,
+      "evidenceAcquired": false,
+      "finalAnswerGenerated": false
+    },
+    "trace": [
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 0,
+          "httpRequests": 0,
+          "remaining": {
+            "modelRequests": 2,
+            "httpRequests": 33,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39948
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39948
+          }
+        }
+      },
+      {
+        "event": "http-error",
+        "service": "model",
+        "category": "api",
+        "status": 503,
+        "durationMs": 1730
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.5-flash-lite",
+        "stage": "planning",
+        "durationMs": 1752,
+        "category": "api",
+        "status": 503
+      },
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 38212
+          }
+        },
+        "after": {
+          "modelRequests": 2,
+          "httpRequests": 2,
+          "remaining": {
+            "modelRequests": 0,
+            "httpRequests": 31,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 38212
+          }
+        }
+      },
+      {
+        "event": "http-error",
+        "service": "model",
+        "category": "api",
+        "status": 503,
+        "durationMs": 845
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.1-flash-lite",
+        "stage": "planning",
+        "durationMs": 848,
+        "category": "api",
+        "status": 503
+      },
+      {
+        "event": "generation-failed",
+        "stage": "planning",
+        "category": "api",
+        "status": 503
+      }
+    ],
+    "final": [],
+    "failures": [
+      {
+        "stage": "planning",
+        "category": "api",
+        "status": 503
+      }
+    ],
+    "questionLimits": {
+      "modelRequests": 5,
+      "httpRequests": 36,
+      "durationMs": 40000
+    },
+    "questionCounts": {
+      "modelRequests": 2,
+      "httpRequests": 2
+    },
+    "limits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "verificationLimits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "operationalLimits": {
+      "modelRequests": "production-configured",
+      "httpRequests": "production-configured",
+      "durationMs": "production-configured"
+    },
+    "counts": {
+      "modelRequests": 2,
+      "httpRequests": 2
+    },
+    "case": "weather"
+  },
+  {
+    "worktreeIdentity": {
+      "codeSha256": "9c8ab726ff20058d1f8f7d90f5a04f6ff0c7b1a50339324f9ae61f619cda182d",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "최신 AI 뉴스 검색해서 요약해줘",
+    "category": "explicit-search",
+    "status": "failed",
+    "error": {
+      "category": "timeout"
+    },
+    "timings": {
+      "elapsedMs": 14002,
+      "planningMs": 0,
+      "searchMs": 0,
+      "evidenceCollectionMs": null,
+      "evidenceCollectionWorkMs": 0,
+      "evidenceReviewMs": 0,
+      "finalVerificationMs": 0,
+      "finalAnswerMs": 0,
+      "answerVerificationMs": 0,
+      "serviceUnavailableMs": 0
+    },
+    "verification": {
+      "search": "not-applicable",
+      "evidence": "not-applicable",
+      "evidenceReview": "not-applicable",
+      "finalAnswer": "failure",
+      "claimSourceMatch": "not-applicable",
+      "qualityPassed": false,
+      "searchSuccess": false,
+      "evidenceAcquired": false,
+      "finalAnswerGenerated": false
+    },
+    "trace": [
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 0,
+          "httpRequests": 0,
+          "remaining": {
+            "modelRequests": 2,
+            "httpRequests": 31,
+            "reservedModelRequests": 5,
+            "reservedHttpRequests": 5,
+            "durationMs": 39948
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 30,
+            "reservedModelRequests": 5,
+            "reservedHttpRequests": 5,
+            "durationMs": 39948
+          }
+        }
+      },
+      {
+        "event": "http-error",
+        "service": "model",
+        "category": "timeout"
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.5-flash-lite",
+        "stage": "planning",
+        "durationMs": 10004,
+        "category": "timeout"
+      },
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 30,
+            "reservedModelRequests": 5,
+            "reservedHttpRequests": 5,
+            "durationMs": 29361
+          }
+        },
+        "after": {
+          "modelRequests": 2,
+          "httpRequests": 2,
+          "remaining": {
+            "modelRequests": 0,
+            "httpRequests": 29,
+            "reservedModelRequests": 5,
+            "reservedHttpRequests": 5,
+            "durationMs": 29361
+          }
+        }
+      },
+      {
+        "event": "http-error",
+        "service": "model",
+        "category": "timeout"
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.5-flash-lite",
+        "stage": "planning",
+        "durationMs": 3363,
+        "category": "timeout"
+      },
+      {
+        "event": "generation-failed",
+        "stage": "planning",
+        "category": "timeout"
+      }
+    ],
+    "final": [],
+    "failures": [
+      {
+        "stage": "planning",
+        "category": "timeout"
+      }
+    ],
+    "questionLimits": {
+      "modelRequests": 7,
+      "httpRequests": 36,
+      "durationMs": 40000
+    },
+    "questionCounts": {
+      "modelRequests": 2,
+      "httpRequests": 2
+    },
+    "limits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "verificationLimits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "operationalLimits": {
+      "modelRequests": "production-configured",
+      "httpRequests": "production-configured",
+      "durationMs": "production-configured"
+    },
+    "counts": {
+      "modelRequests": 2,
+      "httpRequests": 2
+    },
+    "case": "news"
+  },
+  {
+    "worktreeIdentity": {
+      "codeSha256": "9c8ab726ff20058d1f8f7d90f5a04f6ff0c7b1a50339324f9ae61f619cda182d",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "gpt 6 sol vs gpt 6.1 sol",
+    "category": "general-external-fact",
+    "status": "failed",
+    "now": "2026-10-16T15:03:20.732Z",
+    "timings": {
+      "elapsedMs": 15586,
+      "planningMs": 7679,
+      "searchMs": 1720,
+      "evidenceCollectionMs": 7864,
+      "evidenceCollectionWorkMs": 14034,
+      "evidenceReviewMs": 0,
+      "finalVerificationMs": 0,
+      "finalAnswerMs": 0,
+      "answerVerificationMs": 0,
+      "serviceUnavailableMs": 3859
+    },
+    "verification": {
+      "search": "success",
+      "evidence": "success",
+      "evidenceReview": "unverified",
+      "finalAnswer": "success",
+      "claimSourceMatch": "unverified",
+      "qualityPassed": false,
+      "searchSuccess": true,
+      "evidenceAcquired": true,
+      "finalAnswerGenerated": true
+    },
+    "trace": [
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 0,
+          "httpRequests": 0,
+          "remaining": {
+            "modelRequests": 2,
+            "httpRequests": 33,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39952
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39952
+          }
+        }
+      },
+      {
+        "event": "model-response",
+        "stage": "planning",
+        "startedAt": 1792162985177,
+        "endedAt": 1792162992856,
+        "durationMs": 7679,
+        "model": "gemini-3.5-flash-lite",
+        "responseModel": "gemini-3.5-flash-lite",
+        "raw": "{\n  \"answer\": \"gpt 6 sol과 gpt 6.1 sol에 대한 공식 정보나 비교 자료를 아직 확인하지 못했다냥. 조금 더 정확한 제품명이나 공식 문서를 알려주면 다시 확인해볼게냥.\",\n  \"emotion\": \"neutral\",\n  \"sourcePlan\": {\n    \"mode\": \"search\",\n    \"query\": \"gpt 6 sol vs gpt 6.1 sol\",\n    \"purpose\": \"gpt 6 sol과 gpt 6.1 sol 모델의 존재 여부와 차이를 공식 자료에서 확인\",\n    \"externalPrompt\": \"gpt 6 sol과 gpt 6.1 sol에 대한 공식 자료나 차이점을 찾아줘.\",\n    \"localPrompt\": \"\",\n    \"additionalExternalPrompt\": \"\"\n  }\n}"
+      },
+      {
+        "event": "http-attempt",
+        "stage": "search",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 32277
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 2,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 31,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 32277
+          }
+        }
+      },
+      {
+        "event": "http-attempt",
+        "stage": "search",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 2,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 31,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 32272
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 3,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 30,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 32272
+          }
+        }
+      },
+      {
+        "event": "http-attempt",
+        "stage": "search",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 3,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 30,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 31805
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 4,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 29,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 31805
+          }
+        }
+      },
+      {
+        "event": "searchWeb",
+        "stage": "search",
+        "startedAt": 1792162992868,
+        "endedAt": 1792162994588,
+        "durationMs": 1720,
+        "status": "success"
+      },
+      {
+        "event": "http-attempt",
+        "stage": "evidence-collection",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 4,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 29,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 30552
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 5,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 28,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 30552
+          }
+        }
+      },
+      {
+        "event": "http-attempt",
+        "stage": "evidence-collection",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 5,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 28,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 29481
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 6,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 27,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 29481
+          }
+        }
+      },
+      {
+        "event": "http-attempt",
+        "stage": "evidence-review",
+        "required": true,
+        "service": "model",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 6,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 27,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 28275
+          }
+        },
+        "after": {
+          "modelRequests": 2,
+          "httpRequests": 7,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 27,
+            "reservedModelRequests": 2,
+            "reservedHttpRequests": 2,
+            "durationMs": 28275
+          }
+        }
+      },
+      {
+        "event": "http-error",
+        "service": "model",
+        "category": "api",
+        "status": 503,
+        "durationMs": 2242
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.5-flash-lite",
+        "stage": "evidence-review",
+        "durationMs": 2243,
+        "category": "api",
+        "status": 503
+      },
+      {
+        "event": "http-attempt",
+        "stage": "evidence-review",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 2,
+          "httpRequests": 7,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 27,
+            "reservedModelRequests": 2,
+            "reservedHttpRequests": 2,
+            "durationMs": 26031
+          }
+        },
+        "after": {
+          "modelRequests": 3,
+          "httpRequests": 8,
+          "remaining": {
+            "modelRequests": 0,
+            "httpRequests": 26,
+            "reservedModelRequests": 2,
+            "reservedHttpRequests": 2,
+            "durationMs": 26031
+          }
+        }
+      },
+      {
+        "event": "http-error",
+        "service": "model",
+        "category": "api",
+        "status": 503,
+        "durationMs": 1614
+      },
+      {
+        "event": "model-error",
+        "model": "gemini-3.1-flash-lite",
+        "stage": "evidence-review",
+        "durationMs": 1616,
+        "category": "api",
+        "status": 503
+      },
+      {
+        "event": "generation-failed",
+        "stage": "evidence-review",
+        "category": "api",
+        "status": 503
+      },
+      {
+        "event": "tryBuildWebSearchData",
+        "query": "gpt 6 sol vs gpt 6.1 sol",
+        "startedAt": 1792162992867,
+        "endedAt": 1792163000731,
+        "durationMs": 7864,
+        "result": {
+          "query": "gpt 6 sol vs gpt 6.1 sol",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "gpt 6 sol vs gpt 6.1 sol",
+              "httpStatus": 202,
+              "status": "blocked",
+              "count": 0
+            },
+            {
+              "provider": "naver",
+              "query": "gpt 6 sol vs gpt 6.1 sol",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 11
+            }
+          ],
+          "bodyVerification": {
+            "reviewMetrics": [],
+            "originalQuestion": "gpt 6 sol vs gpt 6.1 sol",
+            "query": "gpt 6 sol vs gpt 6.1 sol",
+            "retrievalStatus": "success",
+            "reads": [
+              {
+                "requestedUrl": "https://www.youtube.com/watch?v=fIDS3QaXqlk",
+                "searchTitle": "I Tested Sonnet 5.5 vs. GPT-6.1 Sol on 6 Real Use Cases새 창 열림",
+                "round": 0,
+                "status": "body-extracted",
+                "fetchedUrl": "https://www.youtube.com/watch?v=fIDS3QaXqlk",
+                "extractedTitle": "- YouTube",
+                "extractedBody": "정보보도자료저작권문의하기크리에이터광고개발자약관개인정보처리방침정책 및 안전YouTube 작동의 원리새로운 기능 테스트하기 © 2026 Google LLC, Sundar Pichai, 1600 Amphitheatre Parkway, Mountain View CA 94043, USA, 0807-882-594 (무료), yt-support-solutions-kr@google.com, 호스팅: Google LLC, 사업자정보, 불법촬영물 신고 크리에이터들이 유튜브 상에 게시, 태그 또는 추천한 상품들은 판매자들의 약관에 따라 판매됩니다. 유튜브는 이러한 제품들을 판매하지 않으며, 그에 대한 책임을 지지 않습니다.",
+                "bodyQuality": "substantive",
+                "extractedMetadata": ""
+              },
+              {
+                "requestedUrl": "https://hix.ai/",
+                "searchTitle": "HIX AIhix.ai›AI 채팅›ChatGPT›GPT-6.1 Sol새 창 열림",
+                "round": 0,
+                "status": "body-extracted",
+                "fetchedUrl": "https://hix.ai/",
+                "extractedTitle": "HIX AI: Your Ultimate AI Agent Workspace",
+                "extractedBody": "Trusted by 10M+ users Your Ultimate AI Agent Workspace Claim your free credits and start creating now! *]:col-start-1 [&>*]:row-start-1\"> AI Chat Video Models Image Models More Slide Creation Video Making Image Design Document Creation AI Agent Workspace to Boost Your Productivity Research Deeply, Present Beautifully No more hours of manual searching or formatting! HIX AI does deep research for you and turns complex findings into a visually polished and insight-rich research report or slide deck in one flow. Start Research Now Create On-Brand Marketing Assets HIX AI simplifies your creation of brand-consistent marketing content. It explores current trends, creates social-ready copy, images, and video, and keeps all outputs true to your brand voice. Create Marketing Assets Get Visual Docs & Working Codes Turn your links, files, and prompts into visual documents or functional code with HIX AI. Automate research, data analysis, writing, coding and designing to get publish-ready results right away! Start Building Now All the Best Models in One Place Create with our large, regularly updated library of cutting-edge AI models. Gemini 4 Argon Nano Banana 2.1 GPT-6.1 Sol Claude Opus 5.5 Claude Sonnet 5.5 Claude Haiku 5.5 Gemini 4 Argon Nano Banana 2.1 GPT-6.1 Sol Claude Opus 5.5 Claude Sonnet 5.5 Claude Haiku 5.5 More Models See What HIX AI Can Do for Your Work Creative DesignsAI PresentationsAI Writing An AI Agent Workspace Built for Everyone Marketing Professionals Efficiently conduct campaign research, draft on-brand social copy, and design eye-catching visuals so every campaign launches one step faster. Researchers & Analysts Extract key insights from complex information. Speed up your data searches and analysis to produce clear, polished, and highly professional reports. Founders & Entrepreneurs Write business plans, refine product concepts, and generate website prototypes. Accelerate every step from a great idea to a successful launch. Teachers & Educators Quickly generate lesson plans, presentation decks, and learning materials, or summarize lengthy content to speed up daily preparation. What Our Customers Said About Us Questions and Answers li]:ps-4 [&>li:before]:size-1 [&>li:before]:text-f-text [&>li:before]:rounded-full [&>li:before]:start-1 [&>li:before]:top-2\"> What is HIX AI? li]:ps-4 [&>li:before]:size-1 [&>li:before]:text-f-text [&>li:before]:rounded-full [&>li:before]:start-1 [&>li:before]:top-2\"> Who is HIX AI for? li]:ps-4 [&>li:before]:size-1 [&>li:before]:text-f-text [&>li:before]:rounded-full [&>li:before]:start-1 [&>li:before]:top-2\"> What tasks can HIX AI's AI agent workspace handle? li]:ps-4 [&>li:before]:size-1 [&>li:before]:text-f-text [&>li:before]:rounded-full [&>li:before]:start-1 [&>li:before]:top-2\"> Can HIX AI's AI agent workspace access online information? li]:ps-4 [&>li:before]:size-1 [&>li:before]:text-f-text [&>li:before]:rounded-full [&>li:before]:start-1 [&>li:before]:top-2\"> Can I chat with different AI models inside HIX AI? li]:ps-4 [&>li:before]:size-1 [&>li:before]:text-f-text [&>li:before]:rounded-full [&>li:before]:start-1 [&>li:before]:top-2\"> Can I try HIX AI for free? li]:ps-4 [&>li:before]:size-1 [&>li:before]:text-f-text [&>li:before]:rounded-full [&>li:before]:start-1 [&>li:before]:top-2\"> Do I need to sign up to use HIX AI? Enjoy Your UltimateAI Agent Workspace! Research, analyze and create in one flow. Bring any idea to life effortlessly. Try for Free",
+                "bodyQuality": "substantive",
+                "extractedMetadata": "HIX AI: Your Ultimate AI Agent Workspace"
+              }
+            ],
+            "searches": [],
+            "selections": [
+              {
+                "round": 0,
+                "url": "https://www.youtube.com/watch?v=fIDS3QaXqlk",
+                "title": "I Tested Sonnet 5.5 vs. GPT-6.1 Sol on 6 Real Use Cases새 창 열림",
+                "snippet": "",
+                "index": 0,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 8,
+                "score": 8,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://hix.ai/",
+                "title": "HIX AIhix.ai›AI 채팅›ChatGPT›GPT-6.1 Sol새 창 열림",
+                "snippet": "",
+                "index": 1,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 7,
+                "score": 7,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+                "title": "새 창 열림",
+                "snippet": "",
+                "index": 2,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 7,
+                "score": 7,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://hix.ai/ko/c/gpt-6-1-sol",
+                "title": "새 창 열림",
+                "snippet": "",
+                "index": 3,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 7,
+                "score": 7,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://gigglehd.com/gg/soft/19248637",
+                "title": "새 창 열림",
+                "snippet": "",
+                "index": 7,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 3,
+                "score": 3,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://news.hada.io/",
+                "title": "GeekNews2주 전news.hada.io›topic새 창 열림",
+                "snippet": "",
+                "index": 4,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 0,
+                "score": 0,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://news.hada.io/topic?id=34500",
+                "title": "새 창 열림",
+                "snippet": "",
+                "index": 5,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 0,
+                "score": 0,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://gigglehd.com/gg/",
+                "title": "기글하드웨어2주 전gigglehd.com›soft새 창 열림",
+                "snippet": "",
+                "index": 6,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 0,
+                "score": 0,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://developers.openai.com/",
+                "title": "openai.comdevelopers.openai.com›api새 창 열림",
+                "snippet": "",
+                "index": 8,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 0,
+                "score": 0,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.youtube.com/channel/UC37JpWP5PxLSma2lh79HU9A",
+                "title": "새 창 열림",
+                "snippet": "",
+                "index": 9,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 0,
+                "score": 0,
+                "reason": "partial-identity-or-topic-ranking"
+              },
+              {
+                "round": 0,
+                "url": "https://www.youtube.com/",
+                "title": "YouTube새 창 열림",
+                "snippet": "",
+                "index": 10,
+                "eligible": true,
+                "targetMatches": [],
+                "attributeMatches": 0,
+                "score": 0,
+                "reason": "partial-identity-or-topic-ranking"
+              }
+            ],
+            "aliases": [],
+            "aliasReviews": [],
+            "identityGroups": [],
+            "refinements": [],
+            "decisions": [
+              {
+                "condition": "review-error",
+                "action": "stop",
+                "reason": "external-budget-reserved-for-answer",
+                "remaining": {
+                  "searches": 2,
+                  "reads": 2,
+                  "durationMs": 18858,
+                  "external": {
+                    "modelRequests": 0,
+                    "httpRequests": 26,
+                    "reservedModelRequests": 2,
+                    "reservedHttpRequests": 2,
+                    "durationMs": 24415
+                  }
+                }
+              }
+            ],
+            "limits": {
+              "searches": 2,
+              "reads": 4,
+              "durationMs": 25000
+            },
+            "remaining": {
+              "searches": 2,
+              "reads": 2,
+              "durationMs": 18858,
+              "external": {
+                "modelRequests": 0,
+                "httpRequests": 26,
+                "reservedModelRequests": 2,
+                "reservedHttpRequests": 2,
+                "durationMs": 24415
+              }
+            },
+            "stopReason": "external-budget-reserved-for-answer",
+            "error": {
+              "category": "api",
+              "status": 503,
+              "reviewMetrics": {
+                "sourceCount": 2,
+                "inputChars": 1619,
+                "originalChars": 3797,
+                "finalVerification": false,
+                "elapsedMs": 3867
+              }
+            },
+            "reviews": []
+          },
+          "results": [],
+          "status": "review-failed",
+          "failed": true,
+          "context": "[웹 조회 상태: review-failed] 질문을 확인할 근거를 얻지 못했다. 확인되지 않았다고 답하고 출처나 사실을 만들지 않는다.",
+          "searchedAtText": ""
+        }
+      }
+    ],
+    "final": [
+      "자료의 관련성 검증 중 오류가 발생해 외부 사실을 검증하지 못했다냥."
+    ],
+    "failures": [
+      {
+        "stage": "evidence-review",
+        "category": "api",
+        "status": 503
+      }
+    ],
+    "questionLimits": {
+      "modelRequests": 5,
+      "httpRequests": 36,
+      "durationMs": 40000
+    },
+    "questionCounts": {
+      "modelRequests": 3,
+      "httpRequests": 8
+    },
+    "limits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "verificationLimits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "operationalLimits": {
+      "modelRequests": "production-configured",
+      "httpRequests": "production-configured",
+      "durationMs": "production-configured"
+    },
+    "counts": {
+      "modelRequests": 3,
+      "httpRequests": 8
+    },
+    "case": "product-comparison"
+  },
+  {
+    "worktreeIdentity": {
+      "codeSha256": "9c8ab726ff20058d1f8f7d90f5a04f6ff0c7b1a50339324f9ae61f619cda182d",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "푝무위키 파이호크 나이",
+    "category": "general-external-fact",
+    "status": "completed-needs-review",
+    "now": "2026-10-16T15:03:29.942Z",
+    "timings": {
+      "elapsedMs": 8655,
+      "planningMs": 8549,
+      "searchMs": 0,
+      "evidenceCollectionMs": 55,
+      "evidenceCollectionWorkMs": 55,
+      "evidenceReviewMs": 0,
+      "finalVerificationMs": 0,
+      "finalAnswerMs": 0,
+      "answerVerificationMs": 0,
+      "serviceUnavailableMs": 0
+    },
+    "verification": {
+      "search": "success",
+      "evidence": "success",
+      "evidenceReview": "success",
+      "finalAnswer": "success",
+      "claimSourceMatch": "unverified",
+      "qualityPassed": false,
+      "searchSuccess": true,
+      "evidenceAcquired": true,
+      "finalAnswerGenerated": true
+    },
+    "trace": [
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 0,
+          "httpRequests": 0,
+          "remaining": {
+            "modelRequests": 2,
+            "httpRequests": 33,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39949
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39949
+          }
+        }
+      },
+      {
+        "event": "model-response",
+        "stage": "planning",
+        "startedAt": 1792163001322,
+        "endedAt": 1792163009871,
+        "durationMs": 8549,
+        "model": "gemini-3.5-flash-lite",
+        "responseModel": "gemini-3.5-flash-lite",
+        "raw": "{\n  \"answer\": \"푝무위키 파이호크의 나이에 대한 외부 사실을 확인하고 있다냥. 잠시만 기다려달라냥.\",\n  \"emotion\": \"neutral\",\n  \"sourcePlan\": {\n    \"mode\": \"search\",\n    \"query\": \"푝무위키 파이호크 나이\",\n    \"purpose\": \"푝무위키에 등록된 파이호크의 나이 정보 확인\",\n    \"externalPrompt\": \"푝무위키 파이호크 나이를 확인해줘\",\n    \"localPrompt\": \"\",\n    \"additionalExternalPrompt\": \"\"\n  }\n}"
+      },
+      {
+        "event": "http-attempt",
+        "stage": "unclassified",
+        "required": false,
+        "service": "retrieval",
+        "before": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 31398
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 2,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 31,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 31398
+          }
+        }
+      },
+      {
+        "event": "tryBuildPyhokWikiSearchData",
+        "query": "푝무위키 파이호크 나이",
+        "startedAt": 1792163009885,
+        "endedAt": 1792163009940,
+        "durationMs": 55,
+        "result": {
+          "query": "파이호크",
+          "originalQuery": "푝무위키 파이호크 나이",
+          "lookup": {
+            "originalPrompt": "푝무위키 파이호크 나이",
+            "plannedQuery": "푝무위키 파이호크 나이",
+            "targetName": "파이호크",
+            "attribute": "age"
+          },
+          "results": [
+            {
+              "title": "파이호크",
+              "verifiedBirthDate": "2007-09-14",
+              "url": "https://pyhok.com/w/%ED%8C%8C%EC%9D%B4%ED%98%B8%ED%81%AC",
+              "exactTitleMatch": true,
+              "strongTitleMatch": true
+            },
+            {
+              "title": "파이호크섭",
+              "verifiedBirthDate": null,
+              "url": "https://pyhok.com/w/%ED%8C%8C%EC%9D%B4%ED%98%B8%ED%81%AC%EC%84%AD",
+              "exactTitleMatch": false,
+              "strongTitleMatch": true
+            },
+            {
+              "title": "파이호크섭/주요 멤버",
+              "verifiedBirthDate": null,
+              "url": "https://pyhok.com/w/%ED%8C%8C%EC%9D%B4%ED%98%B8%ED%81%AC%EC%84%AD%2F%EC%A3%BC%EC%9A%94%20%EB%A9%A4%EB%B2%84",
+              "exactTitleMatch": false,
+              "strongTitleMatch": true
+            },
+            {
+              "title": "파이호크 프로필.jpg",
+              "verifiedBirthDate": null,
+              "url": "https://pyhok.com/w/%ED%8C%8C%EC%9D%BC%3A%ED%8C%8C%EC%9D%B4%ED%98%B8%ED%81%AC%20%ED%94%84%EB%A1%9C%ED%95%84.jpg",
+              "exactTitleMatch": false,
+              "strongTitleMatch": true
+            },
+            {
+              "title": "파이호크섭 로고.jpg",
+              "verifiedBirthDate": null,
+              "url": "https://pyhok.com/w/%ED%8C%8C%EC%9D%BC%3A%ED%8C%8C%EC%9D%B4%ED%98%B8%ED%81%AC%EC%84%AD%20%EB%A1%9C%EA%B3%A0.jpg",
+              "exactTitleMatch": false,
+              "strongTitleMatch": true
+            }
+          ],
+          "context": "",
+          "status": "success",
+          "httpStatus": 200
+        }
+      }
+    ],
+    "final": [
+      "푝무위키 파이호크 문서의 생년월일은 2007-09-14이며, 2026-10-17 기준 만 19세다냥. 위키 서술 기준이다냥.\nhttps://pyhok.com/w/%ED%8C%8C%EC%9D%B4%ED%98%B8%ED%81%AC"
+    ],
+    "failures": [],
+    "questionLimits": {
+      "modelRequests": 5,
+      "httpRequests": 36,
+      "durationMs": 40000
+    },
+    "questionCounts": {
+      "modelRequests": 1,
+      "httpRequests": 2
+    },
+    "limits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "verificationLimits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "operationalLimits": {
+      "modelRequests": "production-configured",
+      "httpRequests": "production-configured",
+      "durationMs": "production-configured"
+    },
+    "counts": {
+      "modelRequests": 1,
+      "httpRequests": 2
+    },
+    "case": "wiki"
+  },
+  {
+    "worktreeIdentity": {
+      "codeSha256": "9c8ab726ff20058d1f8f7d90f5a04f6ff0c7b1a50339324f9ae61f619cda182d",
+      "head": "955be5087a5504f05e3a533530ee6a2a6ff7c16f",
+      "dirty": true
+    },
+    "question": "너 누구고 기억하는 게 있어?",
+    "category": "self-answer",
+    "status": "completed-needs-review",
+    "now": "2026-10-16T15:03:36.762Z",
+    "timings": {
+      "elapsedMs": 6279,
+      "planningMs": 6231,
+      "searchMs": 0,
+      "evidenceCollectionMs": null,
+      "evidenceCollectionWorkMs": 0,
+      "evidenceReviewMs": 0,
+      "finalVerificationMs": 0,
+      "finalAnswerMs": 0,
+      "answerVerificationMs": 1,
+      "serviceUnavailableMs": 0
+    },
+    "verification": {
+      "search": "not-applicable",
+      "evidence": "not-applicable",
+      "evidenceReview": "not-applicable",
+      "finalAnswer": "success",
+      "claimSourceMatch": "not-applicable",
+      "qualityPassed": false,
+      "searchSuccess": false,
+      "evidenceAcquired": false,
+      "finalAnswerGenerated": true
+    },
+    "trace": [
+      {
+        "event": "http-attempt",
+        "stage": "planning",
+        "required": false,
+        "service": "model",
+        "before": {
+          "modelRequests": 0,
+          "httpRequests": 0,
+          "remaining": {
+            "modelRequests": 2,
+            "httpRequests": 33,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39948
+          }
+        },
+        "after": {
+          "modelRequests": 1,
+          "httpRequests": 1,
+          "remaining": {
+            "modelRequests": 1,
+            "httpRequests": 32,
+            "reservedModelRequests": 3,
+            "reservedHttpRequests": 3,
+            "durationMs": 39948
+          }
+        }
+      },
+      {
+        "event": "model-response",
+        "stage": "planning",
+        "startedAt": 1792163010519,
+        "endedAt": 1792163016750,
+        "durationMs": 6231,
+        "model": "gemini-3.5-flash-lite",
+        "responseModel": "gemini-3.5-flash-lite",
+        "raw": "{\n  \"answer\": \"나는 CODEX에 의해 만들어진 고양이귀 미소녀 챗봇 '깐냥'이다냥. 대화 기억은 현재 나누고 있는 대화 범위 안에서 이어진다냥.\",\n  \"emotion\": \"neutral\",\n  \"sourcePlan\": {\n    \"mode\": \"local\",\n    \"query\": \"\",\n    \"purpose\": \"\",\n    \"externalPrompt\": \"\",\n    \"localPrompt\": \"너 누구고 기억하는 게 있어?\",\n    \"additionalExternalPrompt\": \"\"\n  }\n}"
+      },
+      {
+        "event": "answer-verification",
+        "durationMs": 1,
+        "result": {
+          "status": "not-applicable"
+        }
+      }
+    ],
+    "final": [
+      "나는 CODEX에 의해 만들어진 고양이귀 미소녀 챗봇 '깐냥'이다냥. 대화 기억은 현재 나누고 있는 대화 범위 안에서 이어진다냥."
+    ],
+    "failures": [],
+    "questionLimits": {
+      "modelRequests": 5,
+      "httpRequests": 36,
+      "durationMs": 40000
+    },
+    "questionCounts": {
+      "modelRequests": 1,
+      "httpRequests": 1
+    },
+    "limits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "verificationLimits": {
+      "modelRequests": 20,
+      "httpRequests": 36,
+      "durationMs": 180000
+    },
+    "operationalLimits": {
+      "modelRequests": "production-configured",
+      "httpRequests": "production-configured",
+      "durationMs": "production-configured"
+    },
+    "counts": {
+      "modelRequests": 1,
+      "httpRequests": 1
+    },
+    "case": "self-answer"
+  }
+]

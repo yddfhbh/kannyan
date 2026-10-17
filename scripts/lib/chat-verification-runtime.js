@@ -1,3 +1,5 @@
+import { formatChatDisplayAnswer } from '../../src/chat-display.js';
+import { startChatBudget, chatTimeRemaining, chatStageTimeout } from '../../src/chat-time-budget.js';
 import { answerSupplementaryWikiFacts } from '../../src/evidence-review.js';
 import { renderWeatherEvidence } from '../../src/web-evidence.js';
 import { answerVerifiedNews } from '../../src/news-evidence.js';
@@ -27,7 +29,7 @@ export function declaration(name) {
 export function runtime({ images = [], history = [], wiki = null, search = null, reply = null, plan = {mode:'local'}, localAnswer = '자체 문맥으로 답했다냥.', page = {context:'',pages:[]} } = {}) {
   const sent=[], queries=[], generated=[], stored=[];
   const context = vm.createContext({
-    answerSupplementaryWikiFacts, renderWeatherEvidence, answerVerifiedNews, classifyWebSearchIntent, resolveChatSourcePlan, resolveChatEvidence, answerChatBySource, buildVerifiedWebAgeReply,
+    formatChatDisplayAnswer, startChatBudget, chatTimeRemaining, chatStageTimeout, answerSupplementaryWikiFacts, renderWeatherEvidence, answerVerifiedNews, classifyWebSearchIntent, resolveChatSourcePlan, resolveChatEvidence, answerChatBySource, buildVerifiedWebAgeReply,
     answerClockQuestion, shouldUseWebSearch, deriveWebSearchQuery, shouldIncludeWebSearchSources,
     isExplicitPyhokWikiPrompt, isPyhokWikiLinkRequest, wikiSearchUnavailableReply, answerWikiAgeQuestion,
     isLikelyContextDependentPrompt, analyzePromptSecurity, classifyPromptControlAttempt,
