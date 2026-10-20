@@ -157,6 +157,19 @@ new SlashCommandBuilder()
         .setRequired(true)
     )
     .toJSON(),
+  ...['의심유저', '의심유저중지'].map((name) =>
+    new SlashCommandBuilder()
+      .setName(name)
+      .setDescription(name === '의심유저' ? '체스 계정의 공개 상태를 주기적으로 감시합니다.' : '현재 채널의 체스 계정 감시를 종료합니다.')
+      .addStringOption((option) => option.setName('닉네임').setDescription('플랫폼의 계정 닉네임').setRequired(true).setMaxLength(32))
+      .addStringOption((option) => option.setName('플랫폼').setDescription('체스 플랫폼').setRequired(true)
+        .addChoices({ name: '체닷', value: 'chesscom' }, { name: '리체스', value: 'lichess' }))
+      .toJSON()
+  ),
+  new SlashCommandBuilder()
+    .setName('의심유저목록')
+    .setDescription('현재 채널의 체스 계정 감시 목록을 확인합니다.')
+    .toJSON(),
   new SlashCommandBuilder()
     .setName('리체스')
     .setDescription('Lichess 레이팅을 조회합니다.')

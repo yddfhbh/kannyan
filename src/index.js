@@ -1,5 +1,6 @@
 import { formatChatDisplayAnswer } from './chat-display.js';
 import { TetrioLinkStore } from './tetrio-link-store.js';
+import { createChessAccountMonitor, handleChessAccountMonitorCommand } from './chess-account-monitor-commands.js';
 import { createTetrioAccountResolver, handleTetrioLogin } from './tetrio-account.js';
 import { startChatBudget, chatTimeRemaining, chatStageTimeout } from './chat-time-budget.js';
 import { collectWebBodyEvidence, renderWeatherEvidence } from './web-evidence.js';
@@ -889,6 +890,7 @@ const CHESS_PLAY_STATE_PATH = path.join(DATA_DIR, 'chess-play-state.json');
 const VARCHIVE_LINK_STATE_PATH = path.join(DATA_DIR, 'varchive-user-links.json');
 const vArchiveLinkStore = new VArchiveLinkStore(VARCHIVE_LINK_STATE_PATH);
 const tetrioLinkStore = new TetrioLinkStore(path.join(DATA_DIR, 'tetrio-user-links.json'));
+const chessAccountMonitor = createChessAccountMonitor(client, path.join(DATA_DIR, 'chess-account-monitor.json'));
 const resolveTetrioAccount = createTetrioAccountResolver({
   store: tetrioLinkStore, findOfficial: findOfficialTetrioUsernameByDiscordId,
 });
@@ -1521,6 +1523,11 @@ client.once(Events.ClientReady, async (readyClient) => {
   initDailyChessPuzzle(readyClient);
   initPuzzleRush(readyClient);
   initStarforceCommand();
+  try {
+    await chessAccountMonitor.start();
+  } catch (error) {
+    console.error('[CHESS MONITOR] 복구 실패:', error);
+  }
 });
 
 client.on(Events.Error, (error) => {
@@ -5510,6 +5517,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     console.log(
       `Received /${interaction.commandName} from ${interaction.user.tag} in guild ${interaction.guildId ?? 'DM'}`
     );
+
+    if (await handleChessAccountMonitorCommand(interaction, chessAccountMonitor)) return;
 
     if (interaction.commandName === '일일퍼즐지정') {
   await handleDailyPuzzleSetInteraction(interaction);
