@@ -74,7 +74,13 @@ export async function queryAccount(platform, username, { fetchImpl = fetch, now 
     const status = body.status;
     return { kind: status === 'closed' || status.startsWith('closed:') ? 'closed' : 'active', status };
   }
-  if (typeof body.disabled !== 'boolean') return { kind: 'error', reason: 'disabled 필드 누락' };
+  if (typeof body.id !== 'string' || !/^[a-z0-9_-]{1,32}$/i.test(body.id)
+    || typeof body.username !== 'string' || !/^[a-z0-9_-]{1,32}$/i.test(body.username)) {
+    return { kind: 'error', reason: '사용자 식별 필드 오류' };
+  }
+  if (Object.hasOwn(body, 'disabled') && typeof body.disabled !== 'boolean') {
+    return { kind: 'error', reason: 'disabled 필드 오류' };
+  }
   return { kind: body.disabled ? 'closed' : 'active', status: body.disabled ? 'disabled' : 'active' };
 }
 

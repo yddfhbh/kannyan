@@ -67,7 +67,7 @@ test('Chess.com fair-play closure alerts each channel once, then removes account
 });
 
 test('already closed and Lichess disabled accounts are not registered', async (t) => {
-  const f = await fixture(t, async (url) => response(url.includes('chess.com') ? { status: 'closed' } : { disabled: true }));
+  const f = await fixture(t, async (url) => response(url.includes('chess.com') ? { status: 'closed' } : { id: 'b', username: 'B', disabled: true }));
   assert.deepEqual(await f.monitor.register({ platform: 'chesscom', username: 'a', channelId: 'ch', userId: 'u' }), { kind: 'closed', status: 'closed' });
   assert.deepEqual(await f.monitor.register({ platform: 'lichess', username: 'b', channelId: 'ch', userId: 'u' }), { kind: 'closed', status: 'disabled' });
   assert.equal((await f.monitor.list('ch')).length, 0);
@@ -75,11 +75,39 @@ test('already closed and Lichess disabled accounts are not registered', async (t
 
 test('Lichess disabled status detected after normal registration', async (t) => {
   let calls = 0;
-  const f = await fixture(t, async () => response({ disabled: ++calls > 1 }));
+  const f = await fixture(t, async () => response({ id: 'alice', username: 'Alice', disabled: ++calls > 1 }));
   await f.monitor.register({ platform: 'lichess', username: 'Alice', channelId: 'ch', userId: 'u' });
   f.advance();
   await f.monitor.tick();
   assert.deepEqual(f.alerts, [['ch', 'disabled']]);
+});
+
+test('Lichess profile without disabled registers and remains active when checked again', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async () => {
+    calls++;
+    return response({ id: 'alice', username: 'Alice' });
+  });
+  assert.equal((await f.monitor.register({ platform: 'lichess', username: 'Alice', channelId: 'ch', userId: 'u' })).kind, 'registered');
+  assert.equal(f.monitor.accounts.get('lichess:alice').status, 'active');
+  f.advance();
+  await f.monitor.tick();
+  assert.equal(calls, 2);
+  assert.equal(f.monitor.accounts.get('lichess:alice').status, 'active');
+  assert.equal(f.alerts.length, 0);
+  assert.equal((await f.monitor.list('ch')).length, 1);
+});
+
+test('Lichess requires valid profile identity and accepts only boolean disabled values', async () => {
+  for (const body of [{}, { id: 'alice' }, { username: 'Alice' },
+    { id: '', username: 'Alice' }, { id: 'alice', username: ' ' },
+    { id: 'alice', username: 'Alice', disabled: null },
+    { id: 'alice', username: 'Alice', disabled: 'false' }]) {
+    assert.equal((await queryAccount('lichess', 'alice', { fetchImpl: async () => response(body) })).kind, 'error');
+  }
+  assert.deepEqual(await queryAccount('lichess', 'alice', {
+    fetchImpl: async () => response({ id: 'alice', username: 'Alice', disabled: false }),
+  }), { kind: 'active', status: 'active' });
 });
 
 test('404, malformed data, and network errors cannot trigger alerts', async (t) => {

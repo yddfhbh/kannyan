@@ -1525,6 +1525,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   initStarforceCommand();
   try {
     await chessAccountMonitor.start();
+    console.log(`[CHESS MONITOR] started interval=${chessAccountMonitor.intervalMs}ms accounts=${chessAccountMonitor.accounts.size}`);
   } catch (error) {
     console.error('[CHESS MONITOR] 복구 실패:', error);
   }
