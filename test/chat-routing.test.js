@@ -94,7 +94,7 @@ test('actual percent handler sends local questions to generation without searchi
     assert.equal(r.queries.length,0,q);
     assert.equal(r.generated.length,1,q);
     assert.equal(r.generated[0].opts.webSearchContext,'',q);
-    assert.equal(r.generated[0].opts.planSearch,true);
+    assert.equal(r.generated[0].opts.planSearch,undefined,q);
     assert.equal(r.generated[0].opts.history[1].text,history[1].text,q);
     assert.doesNotMatch(r.sent[0],/일치하는 근거|검색 연결 실패/,q);
   }

@@ -47,6 +47,8 @@ export async function searchWeb(query, options = {}) {
   const maxResults = clampInteger(options.maxResults, 1, 20, defaultMaxResults);
   const timeoutMs = clampInteger(options.timeoutMs, 1_000, 60_000, defaultSearchTimeoutMs);
   const preferredDomains = normalizePreferredDomains(options.preferredDomains);
+  const logger = options.logger;
+  const startedAt = Date.now();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), Math.max(1, Math.min(timeoutMs, chatTimeRemaining() - 14_000)));
 
@@ -64,13 +66,16 @@ export async function searchWeb(query, options = {}) {
         attempt.httpStatus = response.status;
         return response;
       };
+      const attemptStartedAt = Date.now();
       try {
         const results = await operation(fetchImpl); successfulRequests += 1;
-        Object.assign(attempt, { status: results.length ? 'success' : 'empty', count: results.length });
+        Object.assign(attempt, { status: results.length ? 'success' : 'empty', count: results.length, durationMs: Date.now() - attemptStartedAt });
+        logSearchEvent(logger, { provider, stage: 'search', status: attempt.status, httpStatus: attempt.httpStatus, durationMs: attempt.durationMs, resultCount: results.length });
         return results;
       } catch (error) {
         failures.push(error);
-        Object.assign(attempt, { status: error.name === 'AbortError' ? 'timeout' : error.kind ?? ([403, 429].includes(error.status) ? 'blocked' : 'failed'), count: 0 });
+        Object.assign(attempt, { status: classifySearchFailure(error), count: 0, durationMs: Date.now() - attemptStartedAt, errorCode: safeSearchErrorCode(error) });
+        logSearchEvent(logger, { provider, stage: 'search', status: attempt.status, httpStatus: attempt.httpStatus ?? error.status ?? null, durationMs: attempt.durationMs, resultCount: 0 });
         return [];
       }
     };
@@ -96,6 +101,9 @@ export async function searchWeb(query, options = {}) {
     const newsSelection = /뉴스|기사|\bnews\b/i.test(normalizedQuery) ? rankNewsCandidates(ranked, options.now) : null;
     const mergedResults = (newsSelection ? newsSelection.filter(r => r.eligible).map(r => r.candidate) : ranked).slice(0, maxResults);
 
+    const finalStatus = ranked.length ? 'success' : controller.signal.aborted ? 'timeout' : failures.some((e) => e.kind === 'parse-error') ? 'parse-error' : failures.some((e) => e.status === 429) ? 'rate-limited' : failures.some((e) => [202, 403].includes(e.status)) ? 'blocked' : failures.some((e) => [500, 502, 503, 504].includes(e.status)) ? 'provider-unavailable' : successfulRequests ? 'empty' : 'failed';
+    const budgetExhausted = chatTimeRemaining() <= 14_000;
+    logSearchEvent(logger, { provider: 'aggregate', stage: 'search-summary', status: finalStatus, httpStatus: null, durationMs: Date.now() - startedAt, resultCount: ranked.length, budgetExhausted });
     return {
       query: normalizedQuery,
       results: mergedResults,
@@ -104,8 +112,10 @@ export async function searchWeb(query, options = {}) {
       resultCounts: { discovered: queryResults.flat().length, unique: ranked.length, returned: mergedResults.length, retained: Math.min(ranked.length, 100) },
       attempts,
       ...(newsSelection ? { candidateSelection: newsSelection.map(({candidate, ...r}) => ({url:candidate.url, ...r})) } : {}),
-      status: ranked.length ? 'success' : controller.signal.aborted ? 'timeout' : failures.some((e) => e.kind === 'parse-error') ? 'parse-error' : failures.some((e) => [202, 403, 429].includes(e.status)) ? 'blocked' : successfulRequests ? 'empty' : 'failed',
+      status: finalStatus,
       failed: !ranked.length && failures.length > 0,
+      durationMs: Date.now() - startedAt,
+      budgetExhausted,
     };
   } finally {
     clearTimeout(timeout);
@@ -115,17 +125,20 @@ export async function searchWeb(query, options = {}) {
 export function parseDuckDuckGoHtmlResults(html) {
   const dom = new JSDOM(String(html ?? ''));
   const document = dom.window.document;
-  const nodes = [...document.querySelectorAll('.result')];
+  const nodes = [...document.querySelectorAll('.result, [data-testid*="result" i]')];
   const results = [];
 
   for (const node of nodes) {
+    if (isSearchAdNode(node)) {
+      continue;
+    }
     const anchor = node.querySelector('.result__title a.result__a, a.result__a');
     const snippetNode = node.querySelector('.result__snippet');
     const title = normalizeSearchText(anchor?.textContent ?? '');
     const url = unwrapDuckDuckGoResultUrl(anchor?.href ?? '');
     const snippet = normalizeSearchText(snippetNode?.textContent ?? '');
 
-    if (!title || !url) {
+    if (!title || !isExternalSearchResultUrl(url)) {
       continue;
     }
 
@@ -134,6 +147,21 @@ export function parseDuckDuckGoHtmlResults(html) {
     }
 
     results.push({ title, url, snippet });
+  }
+
+  // DDG has changed result container classes several times. If the known
+  // container disappeared, recover only anchors that still look like result
+  // titles; this avoids treating navigation links as search results.
+  if (!results.length) {
+    for (const anchor of [...document.querySelectorAll('a.result__a, a[data-testid*="result" i], a[href*="uddg="]')]) {
+      const title = normalizeSearchText(anchor.textContent ?? '');
+      const url = unwrapDuckDuckGoResultUrl(anchor.getAttribute('href') ?? '');
+      if (!title || !isExternalSearchResultUrl(url) || results.some((entry) => entry.url === url)) continue;
+      const container = anchor.closest('[class*="result"], [data-testid*="result" i]') ?? anchor.parentElement;
+      if (isSearchAdNode(container)) continue;
+      const snippet = normalizeSearchText(container?.textContent ?? '').replace(title, '').trim();
+      results.push({ title, url, snippet });
+    }
   }
 
   return results;
@@ -157,6 +185,27 @@ export function classifyWebSearchIntent(prompt) {
   return { requiresExternal: explicit, hasLocalAnswer: !explicit,
     localPrompt: explicit ? '' : text, externalPrompt: explicit ? text : '',
     reason: explicit ? 'explicit-search' : 'model-source-plan' };
+}
+
+// Narrow guard used only to avoid a planner round-trip when external facts
+// are clearly absent. Ambiguous requests still use the source planner.
+export function isClearlyLocalChatPrompt(prompt) {
+  const text = normalizeSearchText(prompt);
+  if (!text) return false;
+  if (/^(?:너|넌|너의|네|니)\s*(?:는|의|가)?\s*(?:누구|누구야|뭐|뭐야|이름|역할)[?？.!~]*$|^(?:이름이\s*뭐야|누가\s*만들었어|뭐\s*할\s*수\s*있어|그럼\s*제작자는)[?？.!~]*$/.test(text)
+      || /^(?:내|저|나는|오늘\s*내|내가)\s*(?:생일|기분|상태|생각|취향|기억|조건|말|문장|글|준)/.test(text)) return true;
+  if (/^(?:안녕|하이|헬로|hello|hi|hey|ㅎㅇ|반가워|반갑다|좋은\s*아침|좋은\s*밤|잘\s*자|고마워|감사해|감사합니다|미안해|괜찮아|심심해|피곤해|졸려|뭐\s*해|잘\s*지내|힘들어|응원해줘)[.!?？~\s]*$/i.test(text)
+      || /(?:번역|번역해|요약|정리|다듬|교정|맞춤법|설명해)\s*(?:줘|주세요|해줘|해 줘)?$/.test(text) && /(?:이 문장|이 글|이것|이거|제공한|아래|다음|첨부|사진|이미지)/.test(text)) return true;
+  if (shouldSearchExternalClause(text)) return false;
+  if (/검색|찾아|최신|현재|오늘|내일|이번|가격|요금|환율|주가|날씨|뉴스|버전|제품|서비스|모델|인물|사람|회사|출시|비교|차이|공식|사실|정보|몇\s*살|생년월일|국적|소속|인구|일정/.test(text)) return false;
+  if (/^(?:안녕|하이|헬로|hello|hi|hey|ㅎㅇ|반가워|반갑다|좋은\s*아침|좋은\s*밤|잘\s*자|고마워|감사해|감사합니다|미안해|괜찮아|심심해|피곤해|졸려|뭐\s*해|잘\s*지내|힘들어|응원해줘)[.!?？~\s]*$/i.test(text)) return true;
+  if (/(?:번역|번역해|요약|정리|다듬|교정|맞춤법|설명해)\s*(?:줘|주세요|해줘|해 줘)?$/.test(text)
+      && /(?:이 문장|이 글|이것|이거|제공한|아래|다음|첨부|사진|이미지)/.test(text)) return true;
+  if (/^[\d\s.+*/()%=\-]+(?:는\s*(?:뭐야|얼마야|몇이야)|계산해줘)?[?？.!]*$/.test(text)) return true;
+  if (/^(?:내|저|나는|오늘\s*내)\s*(?:생일|기분|상태|생각|취향|기억|조건|말|문장|글)/.test(text)) return true;
+  if (/^(?:너|넌|너의|네|니|내가)\s*(?:는|의|가|준)?\s*(?:누구|뭐|이름|역할|제작자|할\s*수|조건|기억)/.test(text)
+      || /^(?:이름이|누가\s*만들었어|뭐\s*할\s*수\s*있어|그럼\s*제작자는)/.test(text)) return true;
+  return false;
 }
 
 export function shouldUseWebSearch(prompt) {
@@ -376,7 +425,7 @@ function requireRecognizedResults(results, html, emptyPattern) {
   throw error;
 }
 
-function parseNaverSearchResults(html) {
+export function parseNaverSearchResults(html) {
   const dom = new JSDOM(String(html ?? ''));
   const document = dom.window.document;
   const anchors = [...document.querySelectorAll('a[href]')];
@@ -401,14 +450,19 @@ function parseNaverSearchResults(html) {
 
     const className = String(anchor.className ?? '');
     const parentClassName = String(anchor.parentElement?.className ?? '');
+    if (isSearchAdNode(anchor) || isSearchAdNode(anchor.closest('[class*="ad" i], [data-testid*="ad" i], [aria-label*="광고" i]'))) {
+      continue;
+    }
     const isStructuredResult = className.includes('fender-ui_')
       || className.includes('_cav_trigger')
       || parentClassName.includes('sds-comps-')
       || parentClassName.includes('type_height_');
 
-    if (!isStructuredResult) {
-      continue;
-    }
+    // Keep the structured selectors as the first choice, but accept a plain
+    // external anchor as a compatibility fallback. Naver has repeatedly
+    // renamed its component classes; ranking/evidence validation remains the
+    // gate that decides whether these anchors are useful.
+    if (!isStructuredResult && anchors.length > 80 && !anchor.closest('[class*="result" i], [data-testid*="result" i]')) continue;
 
     const snippetNode = anchor.closest('[class*="sds-comps-"], [class*="type_height_"], [class*="area_video"], [class*="area_dsc"]')
       ?? anchor.parentElement;
@@ -430,6 +484,46 @@ function parseNaverSearchResults(html) {
   }
 
   return results;
+}
+
+function classifySearchFailure(error) {
+  if (error?.name === 'AbortError' || error?.name === 'TimeoutError') return 'timeout';
+  if (error?.kind === 'parse-error') return 'parse-error';
+  if (error?.status === 429) return 'rate-limited';
+  if ([202, 403].includes(error?.status)) return 'blocked';
+  if ([500, 502, 503, 504].includes(error?.status)) return 'provider-unavailable';
+  return 'failed';
+}
+
+function safeSearchErrorCode(error) {
+  return error?.code || error?.name || undefined;
+}
+
+function isSearchAdNode(node) {
+  const text = [node?.className, node?.getAttribute?.('data-testid'), node?.getAttribute?.('aria-label')]
+    .map((value) => String(value ?? '')).join(' ');
+  return /(?:^|[-_ ])(?:ad|ads|advertisement)(?:$|[-_ ])/i.test(text)
+    || /광고|스폰서/i.test(text);
+}
+
+function isExternalSearchResultUrl(rawUrl) {
+  try {
+    const url = new URL(String(rawUrl ?? ''));
+    if (!['http:', 'https:'].includes(url.protocol)) return false;
+    const hostname = url.hostname.toLowerCase();
+    return !hostname.endsWith('duckduckgo.com')
+      && !hostname.endsWith('duck.co')
+      && !hostname.endsWith('naver.com')
+      && !hostname.endsWith('pstatic.net');
+  } catch {
+    return false;
+  }
+}
+
+function logSearchEvent(logger, event) {
+  const method = logger?.warn && ['failed', 'timeout', 'parse-error', 'rate-limited', 'provider-unavailable', 'blocked'].includes(event.status) ? 'warn' : 'log';
+  if (typeof logger?.[method] !== 'function') return;
+  logger[method](`[WEB SEARCH] provider=${event.provider} stage=${event.stage} status=${event.status} httpStatus=${event.httpStatus ?? 'none'} durationMs=${event.durationMs} resultCount=${event.resultCount} budgetExhausted=${Boolean(event.budgetExhausted)}`);
 }
 
 function mergeAndRankSearchResults(results, query, preferredDomains) {

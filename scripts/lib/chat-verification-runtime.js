@@ -11,7 +11,7 @@ import { resolveChatEvidence, answerChatBySource } from '../../src/chat-search-p
 import { buildVerifiedWebAgeReply } from '../../src/chat-evidence.js';
 import { answerClockQuestion } from '../../src/chat-clock.js';
 import { createGeminiInteractionMessage } from '../../src/gemini-interaction.js';
-import { classifyWebSearchIntent, shouldUseWebSearch, deriveWebSearchQuery, shouldIncludeWebSearchSources } from '../../src/web-search.js';
+import { classifyWebSearchIntent, shouldUseWebSearch, deriveWebSearchQuery, shouldIncludeWebSearchSources, isClearlyLocalChatPrompt } from '../../src/web-search.js';
 import { isExplicitPyhokWikiPrompt, isPyhokWikiLinkRequest, wikiSearchUnavailableReply, answerWikiAgeQuestion, parsePyhokWikiSearchResponse } from '../../src/pyhok-wiki-search.js';
 import { isLikelyContextDependentPrompt } from '../../src/gemini-followup.js';
 import { analyzePromptSecurity } from '../../src/prompt-security.js';
@@ -30,7 +30,7 @@ export function runtime({ images = [], history = [], wiki = null, search = null,
   const sent=[], queries=[], generated=[], stored=[];
   const context = vm.createContext({
     formatChatDisplayAnswer, startChatBudget, chatTimeRemaining, chatStageTimeout, answerSupplementaryWikiFacts, renderWeatherEvidence, answerVerifiedNews, classifyWebSearchIntent, resolveChatSourcePlan, resolveChatEvidence, answerChatBySource, buildVerifiedWebAgeReply,
-    answerClockQuestion, shouldUseWebSearch, deriveWebSearchQuery, shouldIncludeWebSearchSources,
+    answerClockQuestion, shouldUseWebSearch, deriveWebSearchQuery, shouldIncludeWebSearchSources, isClearlyLocalChatPrompt,
     isExplicitPyhokWikiPrompt, isPyhokWikiLinkRequest, wikiSearchUnavailableReply, answerWikiAgeQuestion,
     isLikelyContextDependentPrompt, analyzePromptSecurity, classifyPromptControlAttempt,
     Date, console, parseChessImageAnalysisPrompt:()=>null,
@@ -58,7 +58,7 @@ export function runtime({ images = [], history = [], wiki = null, search = null,
     generateGeminiAnswer:async(q,opts)=>{
       generated.push({q,opts});
       const external = '확인한 내용이다냥. https://source.test';
-      return {sourcePlan:plan,answer:opts.planSearch || opts.localOnly ? localAnswer
+      return {sourcePlan:plan,answer:opts.planSearch || opts.localOnly || (!opts.completeAnswer && !opts.externalOnly) ? localAnswer
         : opts.completeAnswer ? [localAnswer,external].filter(Boolean).join('\n\n') : external,
         emotion:'neutral',usedPermanentMemoryIds:[]};
     },

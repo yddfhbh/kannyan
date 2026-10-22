@@ -93,6 +93,7 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
   const scopeEvidence = [];
   const seen = new Set(), searched = new Set([normalize(query)]);
   const started = Date.now();
+  const logger = options.logger;
   const limits = { searches: 2, reads: 4, durationMs: 25_000 };
   let reviewed = [], retryFailed = false, reviewFailure = false, reviewError, refinement;
   const remaining = () => ({ searches: limits.searches - searches.length, reads: limits.reads - reads.length,
@@ -202,7 +203,7 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
       const candidateKey = webCandidateKey(candidate.url);
       if (seen.has(candidateKey) || fetched.has(candidateKey)) continue;
       seen.add(candidateKey); roundReads++;
-      const trace = { requestedUrl: candidate.url, searchTitle: candidate.title, round, status: 'unavailable', remainingBefore: remaining() };
+      const trace = { requestedUrl: candidate.url, searchTitle: candidate.title, round, status: 'unavailable', remainingBefore: remaining(), startedAt: Date.now() };
       reads.push(trace);
       try {
         const page = await read(candidate.url, { timeoutMs: 2500, totalTimeoutMs: 2500, maxTextLength: 5000 });
@@ -215,12 +216,14 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
           const quote = page.text?.match(/등록비를 확인하려면 시험 장소를 선택하세요\.?|To (?:see|view|check)[^.\n]{0,100}(?:select|choose)[^.\n]{0,80}(?:location|country)[^.\n]*\.?/i)?.[0];
           if (quote && !scopeEvidence.length) scopeEvidence.push({ url:page.url, quote, scope:'location-dependent-registration-fee' });
         }
-        if (!page.text?.trim()) { trace.status = 'insufficient-body'; continue; }
+        if (!page.text?.trim()) { trace.status = 'insufficient-body'; logEvidenceEvent(logger, { stage: 'body-read', status: trace.status, durationMs: Date.now() - trace.startedAt, resultCount: 0 }); continue; }
         sources.push({ title: page.articleTitle || page.title, url: page.url, pageText: page.text, metadataText: page.metadataText || '', evidenceKind: 'body', discoveredTitle: candidate.title, discoveredUrl: candidate.url });
         trace.status = 'body-extracted';
+        trace.bodySuccess = true;
+        logEvidenceEvent(logger, { stage: 'body-read', status: trace.status, durationMs: Date.now() - trace.startedAt, resultCount: 1, bodySuccessCount: 1 });
         suppressedSnippets.add(candidateKey); suppressedSnippets.add(fetchedKey);
         if (scopeEvidence.length && !feeCountry(originalQuestion)) break;
-      } catch (error) { trace.error = classifyChatError(error); trace.status = trace.error.category === 'validator' ? 'extraction-failed' : 'read-failed'; }
+      } catch (error) { trace.error = classifyChatError(error); trace.status = trace.error.category === 'validator' ? 'extraction-failed' : 'read-failed'; logEvidenceEvent(logger, { stage: 'body-read', status: trace.status, durationMs: Date.now() - trace.startedAt, resultCount: 0, httpStatus: error.status ?? null }); }
     }
     for (const { candidate } of ranked.filter(r => r.eligible).slice(0, 4)) {
       if (suppressedSnippets.has(webCandidateKey(candidate.url))) continue;
@@ -237,10 +240,11 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
     try {
       const batch = await reviewSourceBodies(`기준일: ${new Date(options.now ?? Date.now()).toISOString()}\n질문 원문: ${originalQuestion}\n실제 검색어: ${actualQuery}`, sources, generate, { now: options.now, repairInvalidReviews: true, canRepair: () => !budgetReason('repair'), onRefinement: (value, sources) => acceptRefinement(value, sources, round) });
       reviewed.push(...batch);
+      logEvidenceEvent(logger, { stage: 'evidence-validation', status: 'completed', durationMs: Date.now() - started, resultCount: batch.length, validationSuccessCount: batch.filter((s) => s.bodyReview.relevant).length });
       reviews.push(...batch.map((s) => ({ round, url:s.url, evidenceKind:s.evidenceKind, ...s.bodyReview })));
       reviewFailure ||= batch.some((s) => s.bodyReview.status === 'invalid-review');
       for (const s of batch.filter(s => s.bodyReview.repairError)) reviews.push({ round, url: s.url, status: 'repair-failed', error: s.bodyReview.repairError });
-    } catch (error) { reviewFailure = true; reviewError = { ...classifyChatError(error), reviewMetrics: error.reviewMetrics };
+    } catch (error) { reviewFailure = true; reviewError = { ...classifyChatError(error), reviewMetrics: error.reviewMetrics }; logEvidenceEvent(logger, { stage: 'evidence-validation', status: 'failed', durationMs: Date.now() - started, resultCount: sources.length });
       reviewCalls.push({ round, status: 'review-call-failed', error: reviewError, sources: sources.map(s => ({ url: s.url, evidenceKind: s.evidenceKind })) }); }
   }
   const subjects = String(query).split(/\s+vs\.?\s+|\s+versus\s+/i).map((s) => s.trim()).filter(Boolean);
@@ -317,10 +321,19 @@ export async function collectWebBodyEvidence(query, initial, generate, options =
     : scopeEvidence.length ? 'sourced-partial' : reviewFailure ? 'review-failed' : retrievalFailed ? 'retrieval-failed'
       : !reviewed.length && reads.some((r) => ['insufficient-body', 'extraction-failed'].includes(r.status)) ? 'extraction-failed'
         : reviewed.length ? 'insufficient-evidence' : initial.status || 'empty';
+  logEvidenceEvent(logger, { stage: 'evidence-collection', status, durationMs: Date.now() - started,
+    resultCount: candidatePool.size, bodySuccessCount: reads.filter((r) => r.status === 'body-extracted').length,
+    validationSuccessCount: results.length, budgetExhausted: remaining().searches <= 0 || remaining().reads <= 0 || remaining().durationMs <= 0 });
   return { ...initial, query: initial.query || query, results, status,
     retrievalStatus:initial.status, failed: !results.length && !scopeEvidence.length && Boolean(initial.failed || reviewFailure || retrievalFailed),
     bodyVerification: { initialResultCount: (initial.results ?? []).length, initialResultCounts: initial.resultCounts, retainedCandidateCount: candidatePool.size, failureEvents, reviewMetrics: reviewed.map((s) => s.bodyReview.reviewMetrics).filter((m, i, all) => all.indexOf(m) === i), originalQuestion, query, retrievalStatus:initial.status, reads, searches, selections, aliases, aliasReviews, identityGroups:groups, refinements, decisions,
       limits, remaining:remaining(), exhaustedBudgets: ['searches', 'reads', 'durationMs'].filter(key => remaining()[key] <= 0), scopeEvidence, stopReason, requestedSatisfied:accepted().length > 0 && refinement?.requestedSatisfied !== false, modelRequestedSatisfied:refinement?.modelRequestedSatisfied, error:reviewError, reviewCalls, reviews } };
+}
+
+function logEvidenceEvent(logger, event) {
+  const method = logger?.warn && ['failed', 'read-failed', 'extraction-failed', 'review-failed'].includes(event.status) ? 'warn' : 'log';
+  if (typeof logger?.[method] !== 'function') return;
+  logger[method](`[WEB EVIDENCE] stage=${event.stage} status=${event.status} httpStatus=${event.httpStatus ?? 'none'} durationMs=${event.durationMs} resultCount=${event.resultCount ?? 0} bodySuccessCount=${event.bodySuccessCount ?? 0} validationSuccessCount=${event.validationSuccessCount ?? 0} budgetExhausted=${Boolean(event.budgetExhausted)}`);
 }
 
 export function renderWeatherEvidence(data, prompt = '', now) {

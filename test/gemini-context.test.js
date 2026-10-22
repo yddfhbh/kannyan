@@ -32,7 +32,7 @@ test('protects the current prompt and immediate history during overflow', () => 
   assert.ok(!result.prompt.includes('OLDEST_SENTINEL'));
 });
 
-test('retrieves a relevant older entry while skipping unrelated old history', () => {
+test('does not retrieve old related history during ordinary chat', () => {
   const history = [
     ...Array.from({ length: 18 }, (_, index) => entry('user', `무관한 잡담 ${index} ${'z'.repeat(200)}`)),
     entry('user', '지난번에 산 이어폰 EB2S가 오래 끼면 어떤지 물었어'),
@@ -45,10 +45,51 @@ test('retrieves a relevant older entry while skipping unrelated old history', ()
     maxContextLength: 6000,
   });
 
-  assert.match(result.prompt, /EB2S/);
-  assert.match(result.prompt, /관련된 이전 대화/);
-  assert.ok(result.stats.olderRetrievedHistoryCount >= 1);
+  assert.doesNotMatch(result.prompt, /관련된 이전 대화/);
+  assert.equal(result.stats.olderRetrievedHistoryCount, 0);
   assert.ok(!result.prompt.includes('무관한 잡담 0'));
+});
+
+test('explicit history recall can restore a matching old exchange in time order', () => {
+  const history = [
+    entry('user', '예전에 산 이어폰 EB2S가 오래 끼면 어떤지 물었어', 'alice'),
+    entry('model', 'EB2S는 착용감과 이어팁을 확인해보면 좋아', 'bot'),
+    ...Array.from({ length: 12 }, (_, index) => entry(index % 2 ? 'model' : 'user', `최근 대화 ${index}`, index % 2 ? 'bot' : 'bob')),
+  ];
+  const result = selectGeminiContextSections({
+    prompt: '지난 대화에서 EB2S에 대해 뭐라고 했지?',
+    history,
+    maxContextLength: 6000,
+  });
+
+  assert.match(result.prompt, /관련된 이전 대화/);
+  assert.match(result.prompt, /EB2S가 오래/);
+  assert.match(result.prompt, /EB2S는 착용감/);
+  assert.ok(result.prompt.indexOf('EB2S가 오래') < result.prompt.indexOf('EB2S는 착용감'));
+  assert.equal(result.stats.olderHistoryRecall, true);
+});
+
+test('keeps twelve messages, applies 500/200 body limits, and caps history context', () => {
+  const history = Array.from({ length: 30 }, (_, index) => entry(
+    index % 2 ? 'model' : 'user',
+    `MESSAGE_${index} 중요한 조건: 예산은 150000원 이하이고 빨간색은 제외한다. ${'긴 내용 '.repeat(200)}`,
+    `user-${index}`,
+  ));
+  const result = selectGeminiContextSections({
+    prompt: '현재 질문',
+    history,
+    maxContextLength: 12000,
+  });
+  const sent = result.prompt.match(/MESSAGE_\d+/g) ?? [];
+
+  assert.equal(new Set(sent).size, 12);
+  assert.deepEqual(sent, Array.from({ length: 12 }, (_, index) => `MESSAGE_${index + 18}`));
+  assert.equal(result.stats.immediateHistoryCount, 12);
+  assert.equal(result.stats.olderRetrievedHistoryCount, 0);
+  assert.ok(result.stats.includedHistoryChars <= 3500);
+  assert.match(result.prompt, /MESSAGE_29/);
+  assert.match(result.prompt, /예산은 150000원 이하/);
+  assert.match(result.prompt, /ID=user-29/);
 });
 
 test('does not duplicate immediate entries and keeps explicit reply context protected', () => {
@@ -57,11 +98,12 @@ test('does not duplicate immediate entries and keeps explicit reply context prot
     prompt: '그럼?',
     history,
     contextDependentPrompt: true,
-    replyContext: { authorName: 'B', text: 'B가 답장한 원본 REPLY_SENTINEL' },
+    replyContext: { authorName: 'B', authorId: 'bob', text: 'B가 답장한 원본 REPLY_SENTINEL' },
     maxContextLength: 5000,
   });
 
   assert.match(result.prompt, /REPLY_SENTINEL/);
+  assert.match(result.prompt, /작성자: B \| ID=bob/);
   assert.equal(result.prompt.match(/사용자 A의 원래 질문/g)?.length, 1);
   assert.equal(result.prompt.match(/MODEL_SENTINEL/g)?.length, 1);
 });

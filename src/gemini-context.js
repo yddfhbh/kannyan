@@ -1,7 +1,18 @@
 import { sanitizeContextTextForModel, sanitizeReferenceTextForModel } from './prompt-security.js';
 
-const immediateHistoryEntryCount = 16; // Entries, not conversation round trips.
+const immediateHistoryEntryCount = 12; // Entries, not conversation round trips.
 const defaultImmediateHistoryEntryCount = immediateHistoryEntryCount;
+const recentHistoryEntryLimit = 500;
+const olderHistoryEntryLimit = 200;
+const maxHistoryContextLength = 3500;
+
+// 일반 질문에서는 오래된 기록을 관련도만으로 되살리지 않는다. 사용자가
+// 과거 대화를 직접 회상해 달라고 한 경우에만 별도 복구 경로를 허용한다.
+const explicitHistoryRecallPattern = /(?:예전|이전|지난|아까|전에|옛날|과거|저번|그때|앞서)\s*(?:대화|얘기|이야기|질문|답변|내용|말|기록)|(?:기억|회상|떠올려|상기)\s*(?:해|나|줘|달라|할래)|전에\s*(?:말했|얘기했|질문했)|지난번에\s*(?:말했|얘기했|물어봤)/iu;
+
+export function isExplicitHistoryRecallPrompt(prompt) {
+  return explicitHistoryRecallPattern.test(String(prompt ?? '').trim());
+}
 
 export function selectGeminiContext(options = {}) {
   const history = Array.isArray(options.history) ? options.history : [];
@@ -14,8 +25,10 @@ export function selectGeminiContext(options = {}) {
   ].filter(Boolean).join('\n');
 
   const immediate = history.slice(-defaultImmediateHistoryEntryCount);
+  const allowOlderRecall = options.allowOlderHistoryRecall === true
+    || isExplicitHistoryRecallPrompt(prompt);
   const immediateIds = new Set(immediate.map((entry) => entry));
-  const older = history
+  const older = allowOlderRecall ? history
     .slice(0, Math.max(0, history.length - defaultImmediateHistoryEntryCount))
     .map((entry, index) => ({
       entry,
@@ -25,7 +38,8 @@ export function selectGeminiContext(options = {}) {
     .filter((item) => item.score > 0)
     .sort((left, right) => right.score - left.score || right.index - left.index)
     .map((item) => item.entry)
-    .filter((entry) => !immediateIds.has(entry));
+    .filter((entry) => !immediateIds.has(entry))
+    : [];
 
   for (const entry of [...older]) {
     const index = history.indexOf(entry);
@@ -36,6 +50,7 @@ export function selectGeminiContext(options = {}) {
   return {
     immediate,
     older: older.sort((left, right) => history.indexOf(left) - history.indexOf(right)),
+    olderHistoryRecall: allowOlderRecall,
     originalHistoryCount: history.length,
   };
 }
@@ -46,10 +61,14 @@ export function selectGeminiContextSections(options = {}) {
   const context = createContextSections({ ...options, maxLength, selection });
   const selected = [];
   let remaining = maxLength;
+  let historyContextUsed = 0;
   const add = (key, budget = remaining) => {
     const section = context.find((item) => item.key === key);
     if (!section || remaining < 80) return;
-    const limit = Math.min(remaining - 2, budget);
+    const historyBudget = section.entries
+      ? Math.max(0, maxHistoryContextLength - historyContextUsed)
+      : Infinity;
+    const limit = Math.min(remaining - 2, budget, historyBudget);
     let text = '';
     let entryCount = 0;
     if (section.entries) {
@@ -68,8 +87,11 @@ export function selectGeminiContextSections(options = {}) {
         if (available < 160 * group.length) break;
         const groupRows = [];
         for (const entry of [...group].reverse()) {
+          const perEntryLimit = section.key === 'immediate'
+            ? (selection.immediate.indexOf(entry) >= selection.immediate.length - 4 ? recentHistoryEntryLimit : olderHistoryEntryLimit)
+            : olderHistoryEntryLimit;
           const fairShare = Math.max(160, Math.floor(available / Math.max(group.length - groupRows.length, section.entries.length - entryCount)));
-          const row = formatGeminiHistory([entry], Math.min(available - 1, fairShare), options.prompt);
+          const row = formatGeminiHistory([entry], Math.min(available - 1, fairShare), options.prompt, perEntryLimit);
           if (!row) continue;
           groupRows.unshift(row);
           available -= row.length + 1;
@@ -84,6 +106,7 @@ export function selectGeminiContextSections(options = {}) {
     if (!text) return;
     selected.push({ ...section, text, entryCount });
     remaining -= text.length + 2;
+    if (section.entries) historyContextUsed += text.length + 2;
   };
   add('prompt', Math.min(8000, Math.floor(maxLength * 0.3)));
   add('important', 1200);
@@ -92,10 +115,10 @@ export function selectGeminiContextSections(options = {}) {
   add('mention', 800);
   add('reply', Math.min(4000, Math.floor(remaining * 0.25)));
   // Reserve recent dialogue before accepting arbitrarily long search material.
-  add('immediate', context.some((s) => s.key === 'grounding') ? Math.floor(remaining * 0.45) : Math.floor(remaining * 0.75));
+  add('immediate', Math.min(maxHistoryContextLength, context.some((s) => s.key === 'grounding') ? Math.floor(remaining * 0.45) : Math.floor(remaining * 0.75)));
   add('grounding', Math.floor(remaining * 0.85));
   add('permanent', Math.floor(remaining * 0.65));
-  add('older');
+  add('older', Math.min(maxHistoryContextLength, remaining));
   selected.sort((a, b) => a.order - b.order);
   const promptText = selected.map((section) => section.text).join('\n\n');
   const historyStats = (key) => selected.find((section) => section.key === key)?.entryCount ?? 0;
@@ -111,6 +134,7 @@ export function selectGeminiContextSections(options = {}) {
       originalHistoryCount: selection.originalHistoryCount,
       immediateHistoryCount: historyStats('immediate'),
       olderRetrievedHistoryCount: historyStats('older'),
+      olderHistoryRecall: selection.olderHistoryRecall,
       includedHistoryChars: selected.filter((s) => s.entries).reduce((n, s) => n + s.text.length, 0),
       finalTextualContextChars: promptText.length,
     },
@@ -177,7 +201,7 @@ function createContextSections(options) {
   const safeReplyText = safe(replyContext?.text);
   if (safeReplyText) sections.push({
     key: 'reply', order: 3, protected: true,
-    text: `[사용자가 답장한 원본 메시지]\n작성자: ${safe(replyContext.authorName ?? 'Unknown').slice(0, 80)} | ID=${safe(replyContext.authorId ?? 'unknown')}\n내용: ${safeReplyText}`,
+    text: `[사용자가 답장한 원본 메시지]\n작성자: ${safe(replyContext.authorName ?? '미제공').slice(0, 80)} | ID=${safe(replyContext.authorId ?? '미제공').slice(0, 128)}\n내용: ${safeReplyText}`,
   });
 
   const grounding = [];
@@ -208,15 +232,16 @@ function createContextSections(options) {
   return sections;
 }
 
-function formatGeminiHistory(history, maxLength = 4000, query = '') {
+function formatGeminiHistory(history, maxLength = 4000, query = '', entryLimit = Infinity) {
   return history.map((entry) => {
     const safeText = sanitizeContextTextForModel(entry?.text);
     if (!safeText) return '';
     const roleLabel = entry?.role === 'model' ? '챗봇(미검증 대화)' : '사용자';
-    const authorName = sanitizeContextTextForModel(String(entry?.authorName ?? 'Unknown')).slice(0, 80);
-    const authorId = sanitizeContextTextForModel(String(entry?.authorId ?? 'unknown')).slice(0, 128);
+    const authorName = sanitizeContextTextForModel(String(entry?.authorName ?? '미제공')).slice(0, 80);
+    const authorId = sanitizeContextTextForModel(String(entry?.authorId ?? '미제공')).slice(0, 128);
     const label = `[화자=${roleLabel} | 이름=${authorName} | ID=${authorId}]\n`;
-    return label + relevantContextText(safeText, Math.max(0, maxLength - label.length), query);
+    const bodyLength = Math.min(entryLimit, Math.max(0, maxLength - label.length));
+    return label + relevantContextText(safeText, bodyLength, query);
   }).filter(Boolean).join('\n');
 }
 
@@ -246,7 +271,9 @@ export function scoreHistoryEntry(entry, queryText, currentAuthorId, recency) {
   const query = String(queryText).normalize('NFKC').toLowerCase();
   if (!candidate || !query) return 0;
   const tokens = query.match(/[\p{Letter}\p{Number}_@]{2,}/gu) ?? [];
-  const uniqueTokens = new Set(tokens.filter((token) => !/^(?:그럼|그거|이거|왜|뭐야|알려줘)$/u.test(token)));
+  const uniqueTokens = new Set(tokens
+    .flatMap((token) => [token, token.replace(/[가-힣]{1,3}$/u, '')])
+    .filter((token) => token.length >= 2 && !/^(?:그럼|그거|이거|왜|뭐야|알려줘)$/u.test(token)));
   let wordMatches = 0;
   let score = 0;
   for (const token of uniqueTokens) {

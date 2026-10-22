@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { answerClockQuestion, getChatClock, calculateAge, getAgeReferenceDate } from '../src/chat-clock.js';
 import { createGeminiChatContents } from '../src/gemini-memory.js';
 import { selectGeminiContextSections } from '../src/gemini-context.js';
-import { shouldUseWebSearch, classifyWebSearchIntent, searchWeb } from '../src/web-search.js';
+import { shouldUseWebSearch, classifyWebSearchIntent, searchWeb, isClearlyLocalChatPrompt, parseDuckDuckGoHtmlResults, parseNaverSearchResults } from '../src/web-search.js';
 import { buildPyhokWikiSearchData, parsePyhokWikiSearchResponse, answerWikiAgeQuestion, derivePyhokWikiSearchQuery, extractWikiBirthDate, wikiSearchUnavailableReply } from '../src/pyhok-wiki-search.js';
 import { requestChatWithFallback, classifyChatRequestError } from '../src/gemini-chat-request.js';
 import { selectRelevantSearchResults, validateChatCitations } from '../src/chat-evidence.js';
@@ -72,6 +72,15 @@ test('legacy factual lookup helper and deferred ordinary source decisions retain
   assert.equal(validateChatCitations('생년월일을 확인하지 못했다냥.', ''), '생년월일을 확인하지 못했다냥.');
 });
 
+test('only unambiguously local chat skips the source planner', () => {
+  for (const q of ['안녕', '너 누구야', '고마워', '제공한 글 요약해줘', '이 문장 번역해줘', '오늘 내 생일이야']) {
+    assert.equal(isClearlyLocalChatPrompt(q), true, q);
+  }
+  for (const q of ['부산 날씨', '최신 AI 뉴스', '환율', '너 누구고 오늘 부산 날씨 어때?', '제품 A와 제품 B 차이']) {
+    assert.equal(isClearlyLocalChatPrompt(q), false, q);
+  }
+});
+
 test('web network failure, blocking and genuine empty results stay distinct', async () => {
   const empty = await searchWeb('test', {fetchImpl: async () => new Response('<html>No results found 검색 결과가 없습니다</html>')});
   assert.equal(empty.status, 'empty');
@@ -84,6 +93,34 @@ test('web network failure, blocking and genuine empty results stay distinct', as
   assert.equal(blocked.failed, true);
   const failed = await searchWeb('test', {fetchImpl: async () => { throw new TypeError('network'); }});
   assert.equal(failed.status, 'failed');
+});
+
+test('search providers tolerate changed result containers and expose transient failure types', async () => {
+  const ddg = parseDuckDuckGoHtmlResults('<div data-testid="result"><a data-testid="result-title" class="result__a" href="https://example.test/a">Example result</a><p>useful snippet</p></div>');
+  assert.equal(ddg[0].url, 'https://example.test/a');
+  const naver = parseNaverSearchResults('<main><a href="https://example.test/b">Naver result page</a></main>');
+  assert.equal(naver[0].url, 'https://example.test/b');
+
+  for (const status of [429, 503]) {
+    const events = [];
+    const result = await searchWeb('transient', { logger: { log: (line) => events.push(line), warn: (line) => events.push(line) }, fetchImpl: async () => new Response('', { status }) });
+    assert.equal(result.results.length, 0);
+    assert.equal(result.status, status === 429 ? 'rate-limited' : 'provider-unavailable');
+    assert.equal(result.attempts[0].httpStatus, status);
+    assert.match(events[0], /provider=duckduckgo/);
+    assert.match(events[0], new RegExp(`httpStatus=${status}`));
+  }
+});
+
+test('search parsers reject ads and search-provider internal links', () => {
+  const ddg = parseDuckDuckGoHtmlResults(`
+    <div class="result result--ad"><a class="result__a" href="https://advertiser.test">Sponsored</a></div>
+    <div class="result"><a class="result__a" href="https://duckduckgo.com/about">About DDG</a></div>
+    <div class="result"><a class="result__a" href="https://example.test/real">Real result</a></div>
+  `);
+  assert.deepEqual(ddg.map((entry) => entry.url), ['https://example.test/real']);
+  const naver = parseNaverSearchResults('<div class="ad_area"><a href="https://ad.test">광고 상품</a></div><a href="https://search.naver.com/search.naver?query=x">내부 검색</a>');
+  assert.deepEqual(naver, []);
 });
 
 test('wiki searches the subject and computes age solely from that exact document', () => {

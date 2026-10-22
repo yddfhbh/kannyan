@@ -174,6 +174,7 @@ import {
   shouldIncludeWebSearchSources,
   shouldUseWebSearch,
   classifyWebSearchIntent,
+  isClearlyLocalChatPrompt,
 } from './web-search.js';
 import {
   buildPyhokWikiSearchData,
@@ -7940,27 +7941,65 @@ const chessAnalysis =
     let initialSearchIntent = classifyWebSearchIntent(rawPrompt);
     let plannedAnswer = null;
     const webPageData = shouldRestrictToWikiSources ? { context: '', pages: [] } : await buildWebPageReferenceContext(rawPrompt);
-    if (!isChessPrompt && !prioritizeChessImageAnalysis && geminiApiKeys.length) {
-      let draft = await generateGeminiAnswer(prompt, {
-        planSearch: true, now: requestNow, history, replyContext, mentionContext,
-        currentUserContext, contextDependentPrompt, permanentMemories, promptControl,
+    const canUseDirectLocalAnswer = !isChessPrompt && !prioritizeChessImageAnalysis
+      && geminiApiKeys.length && isClearlyLocalChatPrompt(rawPrompt);
+    if (canUseDirectLocalAnswer) {
+      console.log('[Chat plan] stage=finalAnswer decision=skip reason=clearly-local');
+      plannedAnswer = await generateGeminiAnswer(prompt, {
+        now: requestNow, history, replyContext, mentionContext, currentUserContext,
+        contextDependentPrompt, permanentMemories, promptControl,
         currentAuthorId: message.author?.id, imageParts,
         webSearchContext: webPageData.context,
       });
-      let planned = resolveChatSourcePlan(draft, rawPrompt, initialSearchIntent);
-      if (!planned.valid) {
-        console.warn('[Chat plan] invalid; attempting one structured repair');
+      initialSearchIntent = { ...initialSearchIntent, reason: 'deterministic-local', requiresExternal: false,
+        hasLocalAnswer: true, localPrompt: rawPrompt, externalPrompt: '' };
+    } else if (!isChessPrompt && !prioritizeChessImageAnalysis && geminiApiKeys.length) {
+      let draft;
+      try {
+        console.log('[Chat plan] stage=planSearch decision=run');
         draft = await generateGeminiAnswer(prompt, {
-          planSearch: true, repairPlan: true, now: requestNow, history, replyContext,
-          mentionContext, currentUserContext, contextDependentPrompt, permanentMemories,
-          promptControl, currentAuthorId: message.author?.id, imageParts,
+          planSearch: true, now: requestNow, history, replyContext, mentionContext,
+          currentUserContext, contextDependentPrompt, permanentMemories, promptControl,
+          currentAuthorId: message.author?.id, imageParts,
           webSearchContext: webPageData.context,
         });
-        planned = resolveChatSourcePlan(draft, rawPrompt, initialSearchIntent);
-        console.log(`[Chat plan] repair valid=${planned.valid}`);
+      } catch (error) {
+        const recoverable = error?.code === 'GEMINI_STAGE_TIMEOUT' && chatTimeRemaining() > 14_000;
+        if (!recoverable) throw error;
+        if (shouldUseWebSearch(rawPrompt) || initialSearchIntent.requiresExternal) {
+          console.warn(`[Chat plan] stage=planSearch outcome=timeout recovery=external-search remaining=${Math.floor(chatTimeRemaining())}ms`);
+          initialSearchIntent = { ...initialSearchIntent, reason: 'plan-timeout-external-fallback', requiresExternal: true,
+            hasLocalAnswer: false, localPrompt: '', externalPrompt: rawPrompt, query: rawPrompt };
+          plannedAnswer = { answer: '' };
+          draft = null;
+        } else {
+          console.warn(`[Chat plan] stage=planSearch outcome=timeout recovery=finalAnswer remaining=${Math.floor(chatTimeRemaining())}ms`);
+          plannedAnswer = await generateGeminiAnswer(prompt, {
+            now: requestNow, history, replyContext, mentionContext, currentUserContext,
+            contextDependentPrompt, permanentMemories, promptControl,
+            currentAuthorId: message.author?.id, imageParts,
+            webSearchContext: webPageData.context,
+          });
+          initialSearchIntent = { ...initialSearchIntent, reason: 'plan-timeout-local-fallback', hasLocalAnswer: true };
+          draft = null;
+        }
       }
-      initialSearchIntent = planned.intent;
-      plannedAnswer = planned.result;
+      if (draft) {
+        let planned = resolveChatSourcePlan(draft, rawPrompt, initialSearchIntent);
+        if (!planned.valid) {
+          console.warn('[Chat plan] stage=planSearch outcome=invalid recovery=repair');
+          draft = await generateGeminiAnswer(prompt, {
+            planSearch: true, repairPlan: true, now: requestNow, history, replyContext,
+            mentionContext, currentUserContext, contextDependentPrompt, permanentMemories,
+            promptControl, currentAuthorId: message.author?.id, imageParts,
+            webSearchContext: webPageData.context,
+          });
+          planned = resolveChatSourcePlan(draft, rawPrompt, initialSearchIntent);
+          console.log(`[Chat plan] stage=planSearch outcome=repair valid=${planned.valid}`);
+        }
+        initialSearchIntent = planned.intent;
+        plannedAnswer = planned.result;
+      }
     }
     const shouldSearchPreviousWebContext = !plannedAnswer && !initialSearchIntent.hasLocalAnswer && Boolean(followupWebSearchQuery)
       && !replyContext
@@ -8627,13 +8666,14 @@ async function tryBuildWebSearchData(prompt, options = {}) {
   let searchResult = await searchWeb(query, {
     maxResults: webSearchMaxResults,
     timeoutMs: 8000,
+    logger: console,
   });
   if (isNewsRequest(options.originalPrompt || normalizedPrompt)) {
     searchResult = await collectNewsEvidence(query, searchResult, { reviewSources: (sources) => reviewSourceBodies(options.originalPrompt || normalizedPrompt, sources, generateGeminiAnswer) });
   }
 
   if (!searchResult.newsVerification) {
-    searchResult = await collectWebBodyEvidence(query, searchResult, generateGeminiAnswer, { originalPrompt: options.originalPrompt || normalizedPrompt });
+    searchResult = await collectWebBodyEvidence(query, searchResult, generateGeminiAnswer, { originalPrompt: options.originalPrompt || normalizedPrompt, logger: console });
   }
   if (!searchResult.results.length) {
     return {
@@ -8985,8 +9025,9 @@ async function generateGeminiAnswer(prompt, options = {}) {
   ].join('\n');
   const answerStartedAt = Date.now();
 
+  const answerStage = options.planSearch ? 'planSearch' : options.evidenceReview ? 'evidenceReview' : 'finalAnswer';
   logGeminiTiming(
-    `answer start mode=${imageParts.length > 0 ? 'vision' : 'text'} models=${modelsToUse.join(',')} promptChars=${contextualPrompt.length} history=${history.length} immediateHistory=${contextSelection.stats.immediateHistoryCount} olderRetrieved=${contextSelection.stats.olderRetrievedHistoryCount} includedHistoryChars=${contextSelection.stats.includedHistoryChars} contextChars=${contextSelection.stats.finalTextualContextChars} images=${imageParts.length}`
+    `answer start stage=${answerStage} mode=${imageParts.length > 0 ? 'vision' : 'text'} models=${modelsToUse.join(',')} promptChars=${contextualPrompt.length} historyStored=${history.length} historySent=${contextSelection.stats.immediateHistoryCount + contextSelection.stats.olderRetrievedHistoryCount} immediateHistory=${contextSelection.stats.immediateHistoryCount} olderRetrieved=${contextSelection.stats.olderRetrievedHistoryCount} olderRecall=${contextSelection.stats.olderHistoryRecall} includedHistoryChars=${contextSelection.stats.includedHistoryChars} contextChars=${contextSelection.stats.finalTextualContextChars} images=${imageParts.length}`
   );
 
   let response;
@@ -9024,9 +9065,10 @@ async function generateGeminiAnswer(prompt, options = {}) {
     }, {
       models: modelsToUse,
       chat: true,
+      stage: answerStage,
     });
   } catch (error) {
-    logGeminiTiming(`answer failed total=${Date.now() - answerStartedAt}ms status=${formatGeminiErrorStatus(error)}`);
+    logGeminiTiming(`answer failed stage=${answerStage} total=${Date.now() - answerStartedAt}ms status=${formatGeminiErrorStatus(error)} budget=${error?.code === 'GEMINI_STAGE_TIMEOUT' || error?.code === 'CHAT_STAGE_TIME_LIMIT'} network=${error?.code === 'GEMINI_NETWORK_TIMEOUT' || error?.name === 'AbortError'}`);
     throw error;
   }
 
@@ -9784,7 +9826,7 @@ async function fetchGeminiGenerateContent(payload, options = {}) {
   if (options.chat) return requestChatWithFallback(payload, {
     models: options.models ?? geminiModels, keys: geminiApiKeys,
     request: requestGeminiGenerateContent, canAttempt: requestGeminiGenerateContent.canAttempt, maxAttempts: geminiMaxAttemptsPerModel,
-    sleep: wait, log: (message) => console.log(`[Chat model] ${message}`),
+    sleep: wait, log: (message) => console.log(`[Chat model] stage=${options.stage ?? 'unknown'} ${message}`),
   });
   const modelsToTry = Array.isArray(options.models) && options.models.length > 0
     ? options.models
