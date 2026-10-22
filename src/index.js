@@ -2,7 +2,7 @@ import { formatChatDisplayAnswer } from './chat-display.js';
 import { TetrioLinkStore } from './tetrio-link-store.js';
 import { createChessAccountMonitor, handleChessAccountMonitorCommand } from './chess-account-monitor-commands.js';
 import { createTetrioAccountResolver, handleTetrioLogin } from './tetrio-account.js';
-import { startChatBudget, chatTimeRemaining, chatStageTimeout } from './chat-time-budget.js';
+import { runChatBudget, chatTimeRemaining, chatStageTimeout } from './chat-time-budget.js';
 import { collectWebBodyEvidence, renderWeatherEvidence } from './web-evidence.js';
 import { reviewSourceBodies, answerSupplementaryWikiFacts } from './evidence-review.js';
 import { chatSourcePlanGuidance, resolveChatSourcePlan } from './chat-source-plan.js';
@@ -1536,7 +1536,7 @@ client.on(Events.Error, (error) => {
   console.error(error);
 });
 
-client.on(Events.MessageCreate, async (message) => {
+client.on(Events.MessageCreate, async (message) => runChatBudget(async () => {
   if (message.author.bot) {
     return;
   }
@@ -1700,7 +1700,7 @@ if (chessAnalysisFollowupHandled) {
   }
 
   await showTetrioProfileMessage(message, input);
-});
+}));
 
 function formatStockfishCandidateContext(result, maxCandidates = 3, maxPlies = 6) {
   const candidates = Array.isArray(result?.candidates)
@@ -7616,7 +7616,6 @@ async function sendChatFactReply(message, prompt, answer, now, source = 'chat-fa
 }
 
 async function handleGeminiFallbackMessage(message, options = {}) {
-  startChatBudget();
   let rawPrompt = options.forcedPrompt ?? parseGeminiFallbackPrompt(message.content);
   const isInternalPrompt = options.forcedPrompt != null;
   let prioritizeChessImageAnalysis = Boolean(
@@ -8317,7 +8316,7 @@ async function handleGeminiInteraction(interaction) {
   );
 
   try {
-    await handleGeminiFallbackMessage(message);
+    await runChatBudget(() => handleGeminiFallbackMessage(message));
   } catch (error) {
     console.error(`Failed to handle Gemini interaction ${interaction.id}:`);
     console.error(error);
@@ -9862,8 +9861,21 @@ break;
 }
 
 async function requestGeminiGenerateContent(modelName, payload, apiKey) {
+  const stageTimeoutMs = chatStageTimeout(payload);
+  if (stageTimeoutMs < 1500) {
+    throw Object.assign(new Error('Gemini request skipped because the chat stage budget is exhausted'), {
+      code: 'GEMINI_STAGE_TIMEOUT',
+      remainingStageMs: stageTimeoutMs,
+    });
+  }
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Math.min(geminiRequestTimeoutMs, chatStageTimeout(payload)));
+  const requestTimeoutMs = Math.min(geminiRequestTimeoutMs, stageTimeoutMs);
+  const stageOwnsTimeout = stageTimeoutMs < geminiRequestTimeoutMs;
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, requestTimeoutMs);
   const normalizedModelName = modelName.replace(/^models\//, '');
 
   try {
@@ -9901,6 +9913,22 @@ async function requestGeminiGenerateContent(modelName, payload, apiKey) {
     }
 
     return body;
+  } catch (error) {
+    if (timedOut) {
+      if (stageOwnsTimeout) {
+        throw Object.assign(new Error('Gemini request exceeded the remaining chat stage budget'), {
+          code: 'GEMINI_STAGE_TIMEOUT',
+          remainingStageMs: 0,
+          cause: error,
+        });
+      }
+      throw Object.assign(new Error('Gemini network request timed out'), {
+        name: 'TimeoutError',
+        code: 'GEMINI_NETWORK_TIMEOUT',
+        cause: error,
+      });
+    }
+    throw error;
   } finally {
     clearTimeout(timeout);
   }
@@ -9911,11 +9939,11 @@ function getGeminiRetryDelayMs(attempt) {
 }
 
 function shouldRetryGeminiRequest(error) {
-  return geminiRetryStatusCodes.has(error?.status) || error?.name === 'AbortError';
+  return geminiRetryStatusCodes.has(error?.status) || error?.name === 'TimeoutError';
 }
 
 function shouldTryNextGeminiModel(error) {
-  return geminiFallbackStatusCodes.has(error?.status) || error?.name === 'AbortError';
+  return geminiFallbackStatusCodes.has(error?.status) || error?.name === 'TimeoutError';
 }
 
 function shouldTryNextGeminiApiKey(error) {

@@ -1,6 +1,6 @@
 import { chatStageTimeout } from './chat-time-budget.js';
 export function classifyChatRequestError(error) {
-  if (/^(?:VERIFY_|CHAT_STAGE_TIME_LIMIT)/.test(error?.code || '')) return 'budget';
+  if (/^(?:VERIFY_|CHAT_STAGE_TIME_LIMIT|GEMINI_STAGE_TIMEOUT)/.test(error?.code || '')) return 'budget';
   const reasons = (error?.details?.details ?? []).map((d) => d.reason ?? '').join(' ');
   if ([401, 403].includes(error?.status) || (error?.status === 400 && /API_KEY_INVALID|API_KEY_EXPIRED/.test(reasons))) return 'key';
   if (error?.status === 400 && /(?:responseMimeType|responseSchema|systemInstruction|response_schema|JSON mode).*(?:unsupported|not supported)|(?:unsupported|not supported).*(?:responseMimeType|responseSchema|systemInstruction|JSON)/i.test(error.message ?? '')) return 'model';
@@ -21,7 +21,8 @@ export async function requestChatWithFallback(payload, options) {
     for (let keyIndex = 0; keyIndex < keys.length; keyIndex += 1) {
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         if (lastError && canAttempt && !canAttempt(payload)) throw lastError;
-        if (chatStageTimeout(payload) < 1500) throw lastError ?? Object.assign(new Error('Stage time reserved for completion'), { code: 'CHAT_STAGE_TIME_LIMIT', remainingStageMs: chatStageTimeout(payload), cause: lastError });
+        const remainingStageMs = chatStageTimeout(payload);
+        if (remainingStageMs < 1500) throw Object.assign(new Error('Stage time reserved for completion'), { code: 'CHAT_STAGE_TIME_LIMIT', remainingStageMs, cause: lastError });
         try {
           const response = await request(model, payload, keys[keyIndex]);
           const responseModel = response.modelVersion || null;
