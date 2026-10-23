@@ -188,7 +188,7 @@ import {
 } from './pyhok-wiki-search.js';
 import { resolveChatEvidence, answerChatBySource, chatSourceGuidance } from './chat-search-policy.js';
 import { buildWebPageReferenceContext } from './web-page-content.js';
-import { collectNewsEvidence, isNewsRequest, answerVerifiedNews } from './news-evidence.js';
+import { collectNewsEvidence, isNewsRequest, answerVerifiedNews, parseNewsFreshnessDays } from './news-evidence.js';
 import {
   analyzePromptSecurity,
   sanitizeContextTextForModel,
@@ -8669,7 +8669,17 @@ async function tryBuildWebSearchData(prompt, options = {}) {
     logger: console,
   });
   if (isNewsRequest(options.originalPrompt || normalizedPrompt)) {
-    searchResult = await collectNewsEvidence(query, searchResult, { reviewSources: (sources) => reviewSourceBodies(options.originalPrompt || normalizedPrompt, sources, generateGeminiAnswer) });
+    const newsPrompt = options.originalPrompt || normalizedPrompt;
+    // Keep the extracted handler testable in isolation as well as through the
+    // production module scope.
+    const freshnessDays = typeof parseNewsFreshnessDays === 'function'
+      ? parseNewsFreshnessDays(newsPrompt)
+      : /최근\s*(?:일주일|한\s*주일|7일)/i.test(newsPrompt) ? 7
+        : Number(newsPrompt.match(/최근\s*(\d+)\s*일/i)?.[1] || 14);
+    searchResult = await collectNewsEvidence(query, searchResult, {
+      freshnessDays,
+      reviewSources: (sources) => reviewSourceBodies(newsPrompt, sources, generateGeminiAnswer),
+    });
   }
 
   if (!searchResult.newsVerification) {
@@ -8699,7 +8709,7 @@ async function tryBuildWebSearchData(prompt, options = {}) {
     query: searchResult.query,
     results: searchResult.results,
     searchedAtText,
-    context: (searchResult.newsVerification ? '[뉴스 확인 범위] 최근 14일 이내 게시일과 본문을 확인한 개별 기사만 포함한다. 확보한 기사의 게시일과 URL을 밝히고, 이 범위 밖 최신성은 단정하지 않는다.\n' : '') + formatWebSearchContext(searchResult.query, searchResult.results, {
+    context: (searchResult.newsVerification ? `[뉴스 확인 범위] 요청한 최근 ${searchResult.newsVerification.freshnessDays}일 이내 게시일과 본문을 확인한 개별 기사만 포함한다. 확보한 기사의 게시일과 URL을 밝히고, 이 범위 밖 최신성은 단정하지 않는다.\n` : '') + formatWebSearchContext(searchResult.query, searchResult.results, {
       searchedAtText,
     }),
   };

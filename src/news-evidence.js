@@ -5,6 +5,15 @@ import { searchWeb } from './web-search.js';
 import { reviewSourceBodies } from './evidence-review.js';
 import { rankNewsCandidates } from './news-candidates.js';
 
+export function parseNewsFreshnessDays(text, fallback = 14) {
+  const value = String(text ?? '');
+  const explicit = value.match(/최근\s*(\d+)\s*일/i);
+  if (explicit) return Math.max(1, Math.min(30, Number(explicit[1])));
+  if (/최근\s*(?:일주일|한\s*주일|1\s*주일|7일)/i.test(value)) return 7;
+  if (/최근\s*(?:이주일|2\s*주일|14일)/i.test(value)) return 14;
+  return fallback;
+}
+
 export function isNewsRequest(text) {
   return /뉴스|기사|\bnews\b/i.test(String(text));
 }
@@ -22,6 +31,7 @@ export async function collectNewsEvidence(query, initial, options = {}) {
   const readPage = options.readPage ?? fetchWebPageText;
   const search = options.search ?? searchWeb;
   const now = new Date(options.now ?? Date.now());
+  const freshnessDays = Number(options.freshnessDays ?? parseNewsFreshnessDays(query));
   const tokens = String(query).toLowerCase().replace(/최신|최근|오늘|주요|소식|뉴스|기사|검색|요약|해줘|해서|알려줘|latest|news|today/g, ' ')
     .match(/[\p{Letter}\p{Number}]{2,}/gu) ?? [];
   let articles = [];
@@ -30,7 +40,7 @@ export async function collectNewsEvidence(query, initial, options = {}) {
   const retryAttempts = [];
   const selections = [...(initial.candidateSelection ?? [])];
   const select = (items, round) => {
-    const ranked = rankNewsCandidates(items, now);
+    const ranked = rankNewsCandidates(items, now, { freshnessDays });
     selections.push(...ranked.map(({candidate, ...r}) => ({url:candidate.url, round, ...r})));
     return ranked.filter(r => r.eligible).map(r => r.candidate);
   };
@@ -82,7 +92,7 @@ export async function collectNewsEvidence(query, initial, options = {}) {
         && contains(String(page.text).slice(0, 1200), token));
       const relevant = Boolean(options.reviewSources) || lexicalTopicMatch;
       const bodyValid = page.text?.length >= 120 && page.bodyQuality !== 'insufficient';
-      const fresh = Number.isFinite(age) && age >= -86400000 && age <= 14 * 86400000;
+      const fresh = Number.isFinite(age) && age >= -86400000 && age <= freshnessDays * 86400000;
       let identityValid = true;
       try {
         if (page.canonicalUrl) {
@@ -121,7 +131,8 @@ export async function collectNewsEvidence(query, initial, options = {}) {
     } catch (error) { attempt.status = 'read-failed'; attempt.error = classifyChatError(error); }
     // Leave room for one more specific search instead of spending all reads on
     // the original list of portal/category pages.
-    if (!retried && attempts.length === 3 && !articles.length && !queue.some(c => rankNewsCandidates([c], now)[0].dateHint)) queue = [];
+    if (!retried && attempts.length === 3 && !articles.length
+        && !queue.some(c => rankNewsCandidates([c], now, { freshnessDays })[0].dateHint)) queue = [];
   }
   let reviewFailed = false;
   let reviewError;
@@ -156,7 +167,7 @@ export async function collectNewsEvidence(query, initial, options = {}) {
     failed: reviewFailed || retrievalFailed || !searchAvailable,
     attempts: [...(initial.attempts ?? []), ...retryAttempts],
     newsVerification: { error: reviewError, initialResults: initial.results?.length ?? 0, pageReads: attempts.length,
-      retried, articles: articles.length, freshnessDays: 14, attempts, selections, candidateShortage,
+      retried, articles: articles.length, freshnessDays, attempts, selections, candidateShortage,
       failures: { search: retryFailed || Boolean(initial.failed), pageReads: attempts.filter(a => a.status === 'read-failed').length },
       discovery: { statuses: discoveryStatuses, outcome: initial.results?.length || selections.length ? 'results' : discoveryFailure ? 'request-failed' : 'empty' },
       pageOutcome: pageReadFailed ? 'read-failed' : attempts.length ? 'read-complete' : 'not-attempted' },
@@ -192,13 +203,19 @@ export async function answerVerifiedNews(data, generate, options = {}) {
       constraints: `각 자료 id에 대응하는 요약 후보만 그 자료로 검증한다. 모든 사실 주장이 직접 뒷받침될 때만 relevant=true, requestSatisfied=true다. 원문에 없는 주장·일반화는 거부한다. quote는 뒷받침하는 실제 원문을 복사한다.\n${pending.map((c, id) => `[${id}] 요약 후보: ${c.result.answer}`).join('\n')}`,
     });
   } catch (error) { options.onVerificationFailure?.(classifyChatError(error)); }
-  const blocks = candidates.map((candidate) => {
-    const { article } = candidate;
-    const valid = reviewed[pending.indexOf(candidate)]?.bodyReview.relevant === true;
-    const summary = valid ? candidate.result.answer : '요약 검증에 실패해 이 기사의 요약을 제공하지 못했다냥.';
-    options.onVerificationResult?.({ url: article.url, status: valid ? 'success' : 'rejected' });
-    if (!valid) options.onVerificationFailure?.({ category: 'validator', code: 'NEWS_SUMMARY_UNVERIFIED' });
-    return `제목: ${article.title}\n게시일: ${article.publishedAt}\n요약: ${summary}\nURL: ${article.url}`;
+  // A failed summary/final review is not an article answer. Drop that
+  // candidate instead of emitting a placeholder that makes an unverified
+  // article look like one of the requested results.
+  const verifiedCandidates = candidates.filter((candidate) => {
+    const review = reviewed[pending.indexOf(candidate)];
+    return candidate.eligible && review?.bodyReview?.relevant === true;
   });
-  return `최근 ${data.newsVerification.freshnessDays}일 범위에서 게시일과 본문을 확인한 관련 기사는 ${articles.length}건${articles.length === 1 ? '뿐' : ''}이다냥. 아래 내용은 확보한 기사에 한정한 요약이다냥.\n\n${blocks.join('\n\n')}`;
+  const blocks = verifiedCandidates.map((candidate) => {
+    const { article } = candidate;
+    options.onVerificationResult?.({ url: article.url, status: 'success' });
+    return `제목: ${article.title}\n게시일: ${article.publishedAt}\n요약: ${candidate.result.answer}\nURL: ${article.url}`;
+  });
+  const count = blocks.length;
+  const detail = blocks.length ? blocks.join('\n\n') : '요약 검증에 실패해 확인된 기사의 요약을 제공하지 못했다냥.';
+  return `최근 ${data.newsVerification.freshnessDays}일 범위에서 게시일과 본문을 확인한 관련 기사는 ${count}건${count === 1 ? '뿐' : ''}이다냥. 아래 내용은 확보한 기사에 한정한 요약이다냥.\n\n${detail}`;
 }

@@ -7,9 +7,16 @@ function weatherTargetDate(query, now, requireRequestedDate = false) {
   const question = String(query).replace(/^기준일:[^\n]*\n?/, '').replace(/\n실제 검색어:[^]*/, '');
   const explicit = question.match(/(\d{4})[-년/.]\s*(\d{1,2})[-월/.]\s*(\d{1,2})/);
   if (explicit) return new Date(Date.UTC(+explicit[1], +explicit[2]-1, +explicit[3]));
-  if (requireRequestedDate && !/오늘|현재|지금|today|current/i.test(question)) return null;
-  const reference = String(query).match(/기준일:\s*(\d{4}-\d{2}-\d{2}T[^\s]+)/)?.[1] || now;
-  return reference ? new Date(new Date(reference).getTime() + 9 * 3600000) : null;
+  const referenceText = String(query).match(/기준일:\s*(\d{4}-\d{2}-\d{2}T[^\s]+)/)?.[1];
+  const reference = referenceText ? new Date(referenceText) : new Date(now ?? Date.now());
+  if (!Number.isFinite(reference.getTime())) return null;
+  // Resolve relative dates in KST calendar space; adding nine hours to an
+  // instant alone is wrong around the UTC/KST day boundary.
+  const kst = new Date(reference.getTime() + 9 * 3600000);
+  const offset = /모레|day\s+after\s+tomorrow/i.test(question) ? 2
+    : /내일|tomorrow/i.test(question) ? 1 : 0;
+  if (requireRequestedDate && !offset && !/오늘|현재|지금|today|current/i.test(question)) return null;
+  return new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() + offset));
 }
 
 // This grammar applies only to the selected KMA regional bulletin, not to

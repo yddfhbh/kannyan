@@ -14,7 +14,7 @@ export function resolveChatEvidence(intent, { webSearchData, wikiSearchData, web
       : Boolean(webSearchData?.results?.length || wikiResults.length || webPageData?.pages?.length);
   const failed = webSearchData?.failed || ['failed', 'timeout', 'blocked', 'unauthorized', 'http-error', 'disabled'].includes(wikiSearchData?.status);
   const failures = {
-    'no-verified-articles': '검색 결과는 얻었지만 제한된 기사 조회에서 최근 14일 이내 게시일과 본문을 확인한 관련 개별 기사를 확보하지 못했다냥. 뉴스룸·포털·태그 목록을 최신 기사로 요약할 수는 없다냥.',
+    'no-verified-articles': '검색 결과는 얻었지만 요청한 기간 안에서 게시일과 본문을 확인한 관련 개별 기사를 확보하지 못했다냥. 뉴스룸·포털·태그 목록을 최신 기사로 요약할 수는 없다냥.',
     empty: '검색 요청은 완료했지만 결과가 없어 요청한 사실을 확인하지 못했다냥.',
     failed: '검색 요청 중 연결 오류가 발생해 요청한 사실을 확인하지 못했다냥.',
     'extraction-failed': '검색 결과는 얻었지만 페이지에서 유효한 내용을 추출하지 못했다냥.',
@@ -29,6 +29,9 @@ export function resolveChatEvidence(intent, { webSearchData, wikiSearchData, web
     ? '푝무위키에서 질문 대상에 맞는 근거를 확인하지 못했다냥.'
     : failures[webSearchData?.status] ?? (failed ? '조회 또는 검증 과정이 완료되지 않아 요청한 사실을 확인하지 못했다냥.'
       : '검색에서 질문 대상과 일치하는 근거를 확인하지 못했다냥.');
+  if (!wikiOnly && webSearchData?.status === 'no-verified-articles' && webSearchData.newsVerification?.freshnessDays) {
+    unavailable = `검색 결과는 얻었지만 최근 ${webSearchData.newsVerification.freshnessDays}일 이내 게시일과 본문을 확인한 관련 개별 기사를 확보하지 못했다냥. 뉴스룸·포털·태그 목록을 최신 기사로 요약할 수는 없다냥.`;
+  }
   if (!wikiOnly && webSearchData?.status === 'no-verified-articles' && webSearchData.newsVerification?.failures?.pageReads) {
     unavailable += ` 일부 후보의 본문 조회도 ${webSearchData.newsVerification.failures.pageReads}건 실패했다냥.`;
   }

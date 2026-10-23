@@ -1,5 +1,6 @@
 // Discovery metadata only: these dates never establish verified publication.
-export function rankNewsCandidates(items, now = Date.now()) {
+export function rankNewsCandidates(items, now = Date.now(), options = {}) {
+  const freshnessDays = Math.max(1, Number(options.freshnessDays ?? 14));
   const reference = new Date(now).getTime();
   return items.map((candidate, index) => {
     let reason = '', url;
@@ -15,7 +16,7 @@ export function rankNewsCandidates(items, now = Date.now()) {
     const dateHint = match ? `${match[1]}-${match[2].padStart(2,'0')}-${match[3].padStart(2,'0')}` : '';
     const age = reference - new Date(dateHint).getTime();
     if (!reason && Object.hasOwn(candidate, 'publishedAt') && !candidate.publishedAt) reason = 'missing-publication-date';
-    if (!reason && dateHint && (!Number.isFinite(age) || age < -86400000 || age > 14 * 86400000)) reason = 'stale-or-future-discovery-date';
+    if (!reason && dateHint && (!Number.isFinite(age) || age < -86400000 || age > freshnessDays * 86400000)) reason = 'stale-or-future-discovery-date';
     const articleShape = /article|stories|story|newsview|\/20\d{2}\/|[?&](?:id|idxno|ncode)=/i.test(candidate.url || '');
     return { candidate, index, eligible: !reason, dateHint, score: (dateHint ? 10 : 0) + (articleShape ? 3 : 0),
       reason: reason || (dateHint ? 'dated-article-candidate' : 'publication-date-needs-verification') };

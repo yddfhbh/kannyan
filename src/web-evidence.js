@@ -345,5 +345,5 @@ export function renderWeatherEvidence(data, prompt = '', now) {
   return sources.slice(0, 1).map(({ bodyReview: r, url }) =>
     r.verificationMethod === 'kma-regional-daily-section'
       ? `${r.region} ${r.validTime} 예보는 다음과 같다냥.\n${r.regionalTitle}, ${r.publicationTime}\n${r.quote}\n${url}`
-      : `${r.region} ${r.validTime} ${r.kind === 'forecast' ? '예보' : '관측'}에서는 ${r.weatherFields.join(', ')}로 확인된다냥.\n${url}`).join('\n');
+      : `${r.region} ${r.validTime} ${r.kind === 'forecast' ? '예보' : '관측'}에서는 ${r.weatherFields.join(', ')}로 확인된다냥. 자료에 없는 날씨 상태·기온·강수 정보는 답하지 않는다냥.\n${url}`).join('\n');
 }

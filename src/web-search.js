@@ -46,7 +46,8 @@ export async function searchWeb(query, options = {}) {
 
   const maxResults = clampInteger(options.maxResults, 1, 20, defaultMaxResults);
   const timeoutMs = clampInteger(options.timeoutMs, 1_000, 60_000, defaultSearchTimeoutMs);
-  const preferredDomains = normalizePreferredDomains(options.preferredDomains);
+  const preferredDomains = normalizePreferredDomains(options.preferredDomains?.length
+    ? options.preferredDomains : inferOfficialDomains(normalizedQuery));
   const logger = options.logger;
   const startedAt = Date.now();
   const controller = new AbortController();
@@ -276,6 +277,20 @@ export function deriveWebSearchQuery(prompt) {
   }
 
   return normalizeSearchText(query);
+}
+
+// Keep official-source preference generic and bounded. This is a discovery
+// hint only; body extraction and evidence review still decide whether a page
+// can support the answer.
+export function inferOfficialDomains(query) {
+  const text = normalizeSearchText(query);
+  const domains = [];
+  if (/\bnode(?:\.js)?\b/i.test(text)) domains.push('nodejs.org');
+  if (/\bpython\b/i.test(text)) domains.push('python.org');
+  if (/\brust\b/i.test(text)) domains.push('rust-lang.org');
+  if (/\b(?:golang|go\s+언어)\b/i.test(text)) domains.push('go.dev');
+  if (/\b(?:npm|node package manager)\b/i.test(text)) domains.push('npmjs.com');
+  return domains;
 }
 
 export function shouldIncludeWebSearchSources(prompt) {
