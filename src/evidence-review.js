@@ -22,25 +22,26 @@ export function extractKmaDailyForecast(query, source, now) {
   try { url = new URL(source.url); } catch { return null; }
   if (url.origin !== 'https://www.weather.go.kr' || url.pathname !== '/w/forecast/notice.do'
       || url.searchParams.getAll('stnId').length !== 1 || url.searchParams.get('stnId') !== '159') return null;
-  const regionalTitle = String(source.discoveredTitle || source.title || '').match(/^예보 통보문\(부산·울산·경남\)/)?.[0];
+  const regionalTitle = String(source.discoveredTitle || source.title || '')
+    .match(/^\s*예보\s*통보문\s*[（(]\s*부산\s*[·ㆍ・,，]\s*울산\s*[·ㆍ・,，]\s*경남\s*[）)]/u)?.[0]?.trim();
   if (!regionalTitle) return null;
   const region = question.match(/(부산|울산)\s*(?:의\s*|오늘\s*|현재\s*)?(?:날씨|기온)/)?.[1];
   if (!region) return null;
   const target = weatherTargetDate(query, now);
   if (!target || !Number.isFinite(+target)) return null;
   const body = String(source.pageText || '');
-  const publications = [...body.matchAll(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일\s*(?:\([^)]*\)요일\s*)?\d{2}:\d{2}\s*발표/g)];
-  if (publications.length !== 1) return null;
+  const publications = [...body.matchAll(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일\s*(?:[（(][^）)]*[）)]\s*)?(?:요일\s*)?(?:\d{1,2}:\d{2}\s*)?발표/g)];
+  if (!publications.length) return null;
   const publication = publications[0];
   const issued = new Date(Date.UTC(+publication[1], +publication[2]-1, +publication[3]));
   const sectionBody = body.slice(publication.index + publication[0].length);
-  const horizon = sectionBody.match(/오늘\((\d{1,2})월\s*(\d{1,2})일\)/);
+  const horizon = sectionBody.match(/오늘\s*[（(]\s*(\d{1,2})월\s*(\d{1,2})일\s*[）)]/);
   if (!horizon || +horizon[1] !== issued.getUTCMonth()+1 || +horizon[2] !== issued.getUTCDate()) return null;
   // The summary belongs to this bulletin, unlike the all-region navigation.
   const summary = sectionBody.match(/□\s*\(종합\)([^]*?)(?=○)/)?.[1];
-  if (!summary || !summary.includes('부산, 울산, 경상남도')) return null;
+  if (!summary || !/(?:부산\s*[,，]\s*울산\s*[,，]\s*경상남도|부산\s*[·ㆍ・]\s*울산\s*[·ㆍ・]\s*경남)/.test(summary)) return null;
   const offsets = { 오늘:0, 내일:1, 모레:2, 글피:3, 그글피:4 };
-  const sections = [...body.matchAll(/○\s*\((오늘|내일|모레|글피|그글피),\s*(\d{1,2})일\)[^○□*※]*/g)]
+  const sections = [...body.matchAll(/○\s*[（(]\s*(오늘|내일|모레|글피|그글피)\s*[,，]\s*(\d{1,2})일\s*[）)][^○□*※]*/g)]
     .filter(m => m.index > publication.index);
   const matches = sections.filter(m => {
     const day = new Date(+issued + offsets[m[1]] * 86400000);
@@ -54,7 +55,31 @@ export function extractKmaDailyForecast(query, source, now) {
   if (/강수량|강수확률/.test(question) && !/\d+(?:\.\d+)?\s*(?:mm|%)/.test(quote)) return null;
   return { region, validTime: target.toISOString().slice(0,10), kind:'forecast', dataType:'prose',
     quote, weatherFields:[quote], verificationMethod:'kma-regional-daily-section',
-    publicationTime:publication[0], regionalTitle, regionQuote:summary.trim(), targetDateQuote:matches[0][0].match(/^○\s*\([^)]*\)/)[0] };
+    publicationTime:publication[0], regionalTitle, regionQuote:summary.trim(), targetDateQuote:matches[0][0].match(/^○\s*[（(][^）)]*[）)]/)[0] };
+}
+
+function normalizeWeatherField(text) {
+  return String(text ?? '').normalize('NFKC').replace(/[\s·ㆍ・,，:：]/g, '').toLowerCase();
+}
+
+// Korean labels are often shortened by the model (for example, omitting
+// 조사 in "최저기온 부산 17도"). The quote remains an exact contiguous body
+// slice; this helper only checks that a field's place/value or condition is
+// present in that trusted quote.
+function weatherFieldSupported(field, quote) {
+  const source = normalizeWeatherField(quote);
+  const value = normalizeWeatherField(field);
+  if (!value) return false;
+  if (source.includes(value)) return true;
+  const place = String(field).match(/[가-힣]{2,}(?:시|군|구)?/g)?.at(-1);
+  const number = String(field).match(/-?\d+(?:\.\d+)?\s*(?:°|℃|도|mm|%|m\/s)/i)?.[0];
+  if (place && number) {
+    const escapedNumber = number.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return source.includes(normalizeWeatherField(place))
+      && source.includes(normalizeWeatherField(number))
+      && new RegExp(`${place}.{0,80}${escapedNumber}`, 'u').test(quote);
+  }
+  return /맑|흐림|흐려짐|구름|비|눈/.test(field) && /맑|흐림|흐려짐|구름|비|눈/.test(quote);
 }
 
 // Build one bounded representation for both evidence-review and final-answer
@@ -263,12 +288,12 @@ export async function reviewSourceBodies(query, sources, generate, options = {})
     const quote = String(review?.quote ?? '').trim();
     const provenance = [source.title, source.metadataText, source.pageText].filter(Boolean).join('\n');
     const rawWeatherFields = Array.isArray(review?.weatherFields) ? review.weatherFields : [];
-    const weatherFields = rawWeatherFields.filter((field) => typeof field === 'string' && field.trim() && source.pageText.includes(field));
+    const weatherFields = rawWeatherFields.filter((field) => typeof field === 'string' && field.trim() && weatherFieldSupported(field, quote));
     const weatherRequest = /날씨|기온|weather/i.test(query);
     const weatherValue = /(?:-?\d+(?:\.\d+)?\s*(?:°|℃|도|mm|%|m\/s)|맑음|흐림|흐려짐|구름\s*많(?:음|다가)|비가|눈이)/;
     const fieldsValid = !weatherRequest || (['weather', 'table', 'structured', 'prose'].includes(review?.dataType)
       && weatherFields.length === rawWeatherFields.length && weatherFields.some((field) => weatherValue.test(field))
-      && weatherFields.every(field => quote.includes(field))
+      && weatherFields.every(field => weatherFieldSupported(field, quote))
       && Boolean(review.region && provenance.includes(review.region))
       && Boolean(review.validTime && (provenance.includes(review.validTime) || weatherBodyDate(source, review) === review.validTime))
       && ['observation', 'forecast'].includes(review.kind));
@@ -292,7 +317,12 @@ export async function reviewSourceBodies(query, sources, generate, options = {})
     const localReference = new Date(+reference + 9 * 3600000);
     const futureObservation = weatherRequest && review?.kind === 'observation' && fieldDate === localReference.toISOString().slice(0, 10)
       && weatherFields.some(field => [...field.matchAll(/(?<!\d)(\d{1,2})(?::(\d{2})|시)/g)].some(m => +m[1] * 60 + +(m[2] || 0) > localReference.getUTCHours() * 60 + localReference.getUTCMinutes()));
-    const kindValid = !weatherRequest || !(futureObservation || (/예보|forecast/i.test(source.title || '') && review?.kind === 'observation')
+    const pastSameDayForecast = weatherRequest && review?.kind === 'forecast' && fieldDate === localReference.toISOString().slice(0, 10)
+      // Keep the current hour's forecast rows usable (a 07:00 row at 07:27
+      // is still the current morning forecast), but do not use earlier hours
+      // as the answer to a current-weather request.
+      && weatherFields.some(field => [...field.matchAll(/(?<!\d)(\d{1,2}):([0-5]\d)/g)].some(m => +m[1] < localReference.getUTCHours()));
+    const kindValid = !weatherRequest || !(futureObservation || pastSameDayForecast || (/예보|forecast/i.test(source.title || '') && review?.kind === 'observation')
       || (/관측|observation/i.test(source.title || '') && review?.kind === 'forecast'));
     const valid = !mismatch && fieldsValid && tableScopeValid && fieldScopeValid && kindValid && review?.relevant === true && quote.length >= 1 && quote.length <= 600
       && source.pageText.includes(quote);

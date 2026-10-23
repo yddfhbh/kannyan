@@ -73,10 +73,10 @@ test('legacy factual lookup helper and deferred ordinary source decisions retain
 });
 
 test('only unambiguously local chat skips the source planner', () => {
-  for (const q of ['안녕', '너 누구야', '고마워', '제공한 글 요약해줘', '이 문장 번역해줘', '오늘 내 생일이야']) {
+  for (const q of ['안녕', '깐냥아 안녕!', '깐냥봇 안녕', '깐냥 안녕', '너 누구야', '고마워', '제공한 글 요약해줘', '이 문장 번역해줘', '오늘 내 생일이야', '방금 내가 뭐라고 했어?', '아까 무슨 말 했지?']) {
     assert.equal(isClearlyLocalChatPrompt(q), true, q);
   }
-  for (const q of ['부산 날씨', '최신 AI 뉴스', '환율', '너 누구고 오늘 부산 날씨 어때?', '제품 A와 제품 B 차이']) {
+  for (const q of ['부산 날씨', '깐냥아 오늘 부산 날씨 알려줘', '깐냥봇 최신 AI 뉴스', '최신 AI 뉴스', '환율', '너 누구고 오늘 부산 날씨 어때?', '제품 A와 제품 B 차이']) {
     assert.equal(isClearlyLocalChatPrompt(q), false, q);
   }
 });

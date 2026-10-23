@@ -190,8 +190,15 @@ export function classifyWebSearchIntent(prompt) {
 // Narrow guard used only to avoid a planner round-trip when external facts
 // are clearly absent. Ambiguous requests still use the source planner.
 export function isClearlyLocalChatPrompt(prompt) {
-  const text = normalizeSearchText(prompt);
+  let text = normalizeSearchText(prompt);
   if (!text) return false;
+  // The bot's name is a conversational vocative, not a factual-search term.
+  // Remove only a leading invocation so "깐냥아 오늘 날씨" still reaches the
+  // external path after normalization.
+  text = text.replace(/^(?:깐냥봇아|깐냥아|깐냥봇|깐냥)\s*[,，:：-]?\s*/i, '').trim();
+  if (!text) return true;
+  if (/^(?:방금|아까|조금\s*전|바로\s*전)\s*(?:내가\s*)?(?:뭐라고|무슨\s*(?:말|질문)|어떤\s*말|뭘\s*말)\s*(?:했어|했지|했었지|말했어)?[?？.!~]*$/i.test(text)
+      || /^내가\s*(?:방금|아까|조금\s*전)\s*(?:뭐라고|무슨\s*(?:말|질문))/.test(text)) return true;
   if (/^(?:너|넌|너의|네|니)\s*(?:는|의|가)?\s*(?:누구|누구야|뭐|뭐야|이름|역할)[?？.!~]*$|^(?:이름이\s*뭐야|누가\s*만들었어|뭐\s*할\s*수\s*있어|그럼\s*제작자는)[?？.!~]*$/.test(text)
       || /^(?:내|저|나는|오늘\s*내|내가)\s*(?:생일|기분|상태|생각|취향|기억|조건|말|문장|글|준)/.test(text)) return true;
   if (/^(?:안녕|하이|헬로|hello|hi|hey|ㅎㅇ|반가워|반갑다|좋은\s*아침|좋은\s*밤|잘\s*자|고마워|감사해|감사합니다|미안해|괜찮아|심심해|피곤해|졸려|뭐\s*해|잘\s*지내|힘들어|응원해줘)[.!?？~\s]*$/i.test(text)

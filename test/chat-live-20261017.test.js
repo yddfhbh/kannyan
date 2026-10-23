@@ -22,9 +22,9 @@ test('original structured mixed response is rejected with both precise causes an
   assert.equal(reviewed[0].bodyReview.rawModelReview.requestSatisfied,true);
   assert.match(reviewed[0].bodyReview.reason,/quote-not-contiguous-in-body/);
   assert.match(reviewed[0].bodyReview.rawModelReview.reason,/정확히 포함/);
-  assert.deepEqual(reviewed[0].bodyReview.validationFailures,['quote-not-contiguous-in-body','weather-fields-not-verbatim-or-incomplete']);
+  assert.deepEqual(reviewed[0].bodyReview.validationFailures,['quote-not-contiguous-in-body']);
   assert.equal(reviewed[1].bodyReview.validationFailures.includes('quote-not-contiguous-in-body'),false);
-  assert.ok(reviewed[1].bodyReview.validationFailures.includes('weather-fields-not-verbatim-or-incomplete'));
+  assert.equal(reviewed[1].bodyReview.validationFailures.includes('weather-fields-not-verbatim-or-incomplete'),false);
   assert.ok(g.payloads[0].contents[0].parts[0].text.includes('주요 지역의 아침 최저기온은 부산 17도'));
 });
 
@@ -34,7 +34,7 @@ test('compact source retains original sentence order',()=>{
 });
 
 test('one corrective review must supply exact weather sentences; repeat invalid output stays rejected',async()=>{
- const quote=sources[0].pageText.match(/주요 지역의 아침 최저기온은[^.]+\./)[0];
+ const quote=sources[0].pageText.match(/주요 지역의 아침 최저기온은[\s\S]*?평년보다 높은 기온을 기록하겠다\./)[0];
  const fixed={ evidenceReviews:[{...raw.evidenceReviews[0],quote,weatherFields:[quote]}] };
  let calls=0;
  const result=await reviewSourceBodies(query,[sources[0]],async(_q,opts)=>{
@@ -47,6 +47,14 @@ test('one corrective review must supply exact weather sentences; repeat invalid 
  calls=0;
  const rejected=await reviewSourceBodies(query,[sources[0]],async()=>{calls++;return raw;},{repairInvalidReviews:true});
  assert.equal(calls,2);assert.equal(rejected[0].bodyReview.relevant,false);
+});
+
+test('weather labels may omit Korean particles only when the exact quote proves the place and value', async()=>{
+ const quote=sources[0].pageText.match(/주요 지역의 아침 최저기온은[\s\S]*?평년보다 높은 기온을 기록하겠다\./)[0];
+ const shortened={...raw.evidenceReviews[0],quote,weatherFields:['아침 최저기온 부산 17도','낮 최고기온 부산 24도']};
+ const [result]=await reviewSourceBodies(query,[sources[0]],async()=>({evidenceReviews:[shortened]}));
+ assert.equal(result.bodyReview.relevant,true);
+ assert.deepEqual(result.bodyReview.weatherFields,shortened.weatherFields);
 });
 
 test('unrelated, wrong-date, wrong-province, and fabricated quotes cannot pass repair',async()=>{
