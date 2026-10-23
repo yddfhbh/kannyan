@@ -8,6 +8,7 @@ import { resolveChatEvidence, answerChatBySource } from '../src/chat-search-poli
 import { summarizeVerification } from '../scripts/lib/chat-verification-report.js';
 import { generator } from './helpers/captured-chat-generator.js';
 const logs = JSON.parse(fs.readFileSync(new URL('./fixtures/chat-common-recheck-20261017.json',import.meta.url)));
+const kmaToday = JSON.parse(fs.readFileSync(new URL('./fixtures/kma-busan-20261023.json',import.meta.url)));
 const l = logs.mixed;
 const read = l.reads[0];
 const source = {url:read.fetchedUrl,title:read.extractedTitle,discoveredTitle:read.searchTitle,pageText:read.extractedBody,metadataText:read.extractedMetadata,evidenceKind:'body'};
@@ -69,6 +70,22 @@ test('publication date cannot authorize past/future forecast or another region',
   assert.equal(extractKmaDailyForecast(query.replace('부산 날씨','서울 날씨').replace('오늘 부산','오늘 서울'),source,l.now),null);
   assert.equal(extractKmaDailyForecast(query.replace('부산 날씨','부산 기온'),source,l.now),null);
   assert.equal(extractKmaDailyForecast(query.replace('날씨는', '날씨와 강수량은'),source,l.now),null);
+});
+
+test('current KMA bulletin accepts abbreviated summary only with an explicit dated-city section',()=>{
+  const now='2026-10-23T01:00:00.000Z';
+  const query='기준일: '+now+'\n질문 원문: %오늘 부산 날씨 알려줘\n실제 검색어: 부산 날씨';
+  const source={url:kmaToday.url,title:kmaToday.title,discoveredTitle:kmaToday.discoveredTitle,pageText:kmaToday.body,evidenceKind:'body'};
+  const result=extractKmaDailyForecast(query,source,now);
+  assert.ok(result);
+  assert.equal(result.validTime,'2026-10-23');
+  assert.match(result.quote,/부산, 울산, 경상남도로 확대/);
+  assert.equal(result.region,'부산');
+  assert.equal(extractKmaDailyForecast(query,{...source,pageText:kmaToday.body.replace('부산, 울산, 경상남도로 확대','경상남도로 확대')},now),null);
+  assert.equal(extractKmaDailyForecast(query,{...source,pageText:kmaToday.body.replace('○ (오늘, 23일) 가끔 구름많다가 오후부터 차차 흐려짐. 저녁(18~21시)에 경남남해안 비 시작, 늦은 밤(21~24시)부터 부산, 울산, 경상남도로 확대','○ (오늘, 24일) 경상남도 내륙 중심으로 특보 없음')},now),null);
+  assert.equal(extractKmaDailyForecast(query,{...source,pageText:kmaToday.body.replace('○ (오늘, 23일)','○ (오늘, 24일)')},now),null);
+  const review={...result,relevant:true,requestSatisfied:true};
+  assert.equal(evidenceRequestMismatch(query,source,{...review,quote:result.quote.replace('부산','서울')},now),'weather-bulletin-scope-mismatch');
 });
 
 test('a fresh publication with only past/future fields is rejected through review and rendering',async()=>{

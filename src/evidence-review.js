@@ -45,8 +45,12 @@ export function extractKmaDailyForecast(query, source, now) {
   const horizon = sectionBody.match(/오늘\s*[（(]\s*(\d{1,2})월\s*(\d{1,2})일\s*[）)]/);
   if (!horizon || +horizon[1] !== issued.getUTCMonth()+1 || +horizon[2] !== issued.getUTCDate()) return null;
   // The summary belongs to this bulletin, unlike the all-region navigation.
+  // KMA currently abbreviates 부산·울산·경남 as "부울경" in the summary;
+  // the dated section still names the requested city explicitly. Accept the
+  // bulletin only when either form is present, and require the target section
+  // to contain the requested city so an abbreviation cannot broaden scope.
   const summary = sectionBody.match(/□\s*\(종합\)([^]*?)(?=○)/)?.[1];
-  if (!summary || !/(?:부산\s*[,，]\s*울산\s*[,，]\s*경상남도|부산\s*[·ㆍ・]\s*울산\s*[·ㆍ・]\s*경남)/.test(summary)) return null;
+  const explicitSummaryScope = /(?:부산\s*[,，]\s*울산\s*[,，]\s*경상남도|부산\s*[·ㆍ・]\s*울산\s*[·ㆍ・]\s*경남)/.test(summary || '');
   const offsets = { 오늘:0, 내일:1, 모레:2, 글피:3, 그글피:4 };
   const sections = [...body.matchAll(/○\s*[（(]\s*(오늘|내일|모레|글피|그글피)\s*[,，]\s*(\d{1,2})일\s*[）)][^○□*※]*/g)]
     .filter(m => m.index > publication.index);
@@ -55,6 +59,7 @@ export function extractKmaDailyForecast(query, source, now) {
     return day.getUTCDate() === +m[2] && day.toISOString().slice(0,10) === target.toISOString().slice(0,10);
   });
   if (matches.length !== 1) return null;
+  if (!summary || (!explicitSummaryScope && !matches[0][0].includes(region))) return null;
   const quote = matches[0][0].trimEnd();
   if (!quote || quote.length > 600 || !/맑|흐|구름|비|눈/.test(quote)) return null;
   // A general sky forecast cannot supply a temperature or precipitation amount.
