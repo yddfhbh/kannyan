@@ -3,7 +3,7 @@ import { TetrioLinkStore } from './tetrio-link-store.js';
 import { createChessAccountMonitor, handleChessAccountMonitorCommand } from './chess-account-monitor-commands.js';
 import { createTetrioAccountResolver, handleTetrioLogin } from './tetrio-account.js';
 import { runChatBudget, chatTimeRemaining, chatStageTimeout } from './chat-time-budget.js';
-import { collectWebBodyEvidence, renderWeatherEvidence } from './web-evidence.js';
+import { collectWebBodyEvidence, collectGeneralSearchBodies, renderWeatherEvidence } from './web-evidence.js';
 import { reviewSourceBodies, answerSupplementaryWikiFacts } from './evidence-review.js';
 import { chatSourcePlanGuidance, resolveChatSourcePlan } from './chat-source-plan.js';
 import { buildVerifiedWebAgeReply, validateChatCitationsWithStatus } from './chat-evidence.js';
@@ -8040,6 +8040,12 @@ const chessAnalysis =
               webSearchData = await (typeof withinGeneralSearchDeadline === 'function' ? withinGeneralSearchDeadline : (work) => work())(() => tryBuildWebSearchData(webSearchPrompt, {
                 force: Boolean(plannedAnswer) || shouldForceChessWebSearch || shouldSearchPreviousWebContext,
                 originalPrompt: rawPrompt,
+                generalSearch: typeof generalSearchMode === 'function' && generalSearchMode() === 'on' && eligibleForGeneralSearch(rawPrompt, {
+                  wikiOnly: shouldRestrictToWikiSources, chess: isChessPrompt,
+                  weather: /날씨|기온|강수|예보|미세먼지/.test(rawPrompt), news: isNewsRequest(rawPrompt),
+                  age: /나이|생년월일|출생일|몇\s*살/.test(rawPrompt), image: imageParts.length > 0,
+                  localOnly: !searchIntent.requiresExternal || searchIntent.hasLocalAnswer,
+                }),
               }));
             } catch (error) {
               console.warn(`[Chat search] failed status=${error?.status ?? error?.name ?? 'unknown'}`);
@@ -8737,7 +8743,9 @@ async function tryBuildWebSearchData(prompt, options = {}) {
   }
 
   if (!searchResult.newsVerification) {
-    searchResult = await collectWebBodyEvidence(query, searchResult, generateGeminiAnswer, { originalPrompt: options.originalPrompt || normalizedPrompt, logger: console });
+    searchResult = options.generalSearch
+      ? await collectGeneralSearchBodies(options.originalPrompt || normalizedPrompt, searchResult, { remainingMs: typeof chatTimeRemaining === 'function' ? chatTimeRemaining : undefined })
+      : await collectWebBodyEvidence(query, searchResult, generateGeminiAnswer, { originalPrompt: options.originalPrompt || normalizedPrompt, logger: console });
   }
   if (!searchResult.results.length) {
     return {

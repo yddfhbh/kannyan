@@ -3,6 +3,7 @@ import { selectGeneralSearchSources, selectRelevantSourceSpans } from './general
 import { readFile } from 'node:fs/promises';
 import { generalSearchBudgetSnapshot } from './general-search-budget.js';
 import { chatTimeRemaining } from './chat-time-budget.js';
+import { buildGeneralSearchSourceSnapshot } from './general-search-snapshot.js';
 
 export function generalSearchMode(value = process.env.GENERAL_SEARCH_MODE) {
   return ['off', 'shadow', 'on'].includes(value) ? value : 'off';
@@ -29,7 +30,10 @@ export function savedGeneralSearchPages(question, searchData, options = {}) {
   for (const result of searchData?.failed ? [] : searchData?.results || []) {
     if (result.evidenceKind === 'body' && result.pageText && !pages.some((page) => page.url === result.url)) pages.push(result);
   }
-  const selected = selectGeneralSearchSources(question, pages, { now: options.now }).selected;
+  const captured = pages.map((page) => ({ page, snapshot: buildGeneralSearchSourceSnapshot(question, page) }))
+    .filter(({ snapshot }) => snapshot.status === 'captured')
+    .map(({ page, snapshot }) => ({ ...page, pageText: snapshot.body.text }));
+  const selected = selectGeneralSearchSources(question, captured, { now: options.now }).selected;
   return selected.map((page, index) => ({ ...page, sourceId: `source-${index + 1}`,
     relevantSegments: selectRelevantSourceSpans(question, page, { now: options.now }).blocks }));
 }
@@ -62,10 +66,6 @@ export async function runGeneralSearchChat(question, searchData, options = {}) {
   if (!searchData) return { mode, action: 'legacy', reason: 'search-failed' };
   const pages = options.pages || savedGeneralSearchPages(question, searchData, options);
   if (!pages.length) return { mode, action: 'legacy', reason: searchData.failed ? 'search-failed' : 'body-unavailable' };
-  const reviewError = searchData.bodyVerification?.error;
-  if (searchData.failed && (['request-limit', 'time-limit', 'time-reservation'].includes(reviewError?.category)
-    || /(?:BUDGET|_LIMIT)$/.test(reviewError?.code || '')))
-    return { mode, action: 'legacy', reason: 'review-budget-exhausted', pages: pages.length };
   let replayExtraction = options.replayExtraction;
   if (mode === 'shadow' && !replayExtraction && process.env.GENERAL_SEARCH_SHADOW_REPLAY_FILE) {
     try {
@@ -76,8 +76,8 @@ export async function runGeneralSearchChat(question, searchData, options = {}) {
   }
   if (mode === 'shadow' && !replayExtraction) return { mode, action: 'legacy', reason: 'shadow-no-saved-response', pages: pages.length };
   const budget = generalSearchBudgetSnapshot();
-  if (mode === 'on' && !replayExtraction && !options.extract
-    && ((budget && (budget.aborted || budget.extractions >= 1 || budget.remainingMs < 1500)) || chatTimeRemaining() < 1500))
+  if (mode === 'on'
+    && ((budget && (budget.aborted || budget.extractions >= 1 || budget.remainingMs < 5000)) || chatTimeRemaining() < 5000))
     return { mode, action: 'legacy', reason: 'extraction-budget-exhausted', pages: pages.length };
   const extract = replayExtraction || options.extract || createGeminiEvidenceExtractor({ maxCalls: 1 });
   let extraction;

@@ -4,6 +4,9 @@ import { classifyChatError } from './chat-errors.js';
 import { fetchWebPageText } from './web-page-content.js';
 import { searchWeb } from './web-search.js';
 import { reviewSourceBodies, evidenceRequestMismatch, isExamFeeRequest } from './evidence-review.js';
+import { generalSearchBudgetSnapshot } from './general-search-budget.js';
+import { isEligibleSourceCandidate, selectGeneralSearchSources } from './general-search-source-selection.js';
+import { buildGeneralSearchSourceSnapshot } from './general-search-snapshot.js';
 
 // Metadata selection is deliberately independent of body length/extraction success.
 const normalize = (s) => String(s || '').normalize('NFKC').toLowerCase();
@@ -74,6 +77,58 @@ export function rankWebCandidates(query, items, identityGroups = []) {
       score: targetMatches.filter(Boolean).length * 10 + attributeMatches + authorityScore,
       reason: topicReason || (wrongDirection ? 'different-or-reversed-route-in-metadata' : !eligible ? 'no-endpoint-in-metadata' : targetMatches.every(Boolean) && groups.length ? 'target-and-attribute-ranking' : 'partial-identity-or-topic-ranking') };
   }).sort((a, b) => Number(b.eligible) - Number(a.eligible) || b.score - a.score || a.index - b.index);
+}
+
+// The on path collects safe bodies before its single structured extraction.
+// Legacy evidenceReview is deliberately absent from this path.
+export async function collectGeneralSearchBodies(question, initial, options = {}) {
+  const read = options.readPage ?? fetchWebPageText;
+  const candidates = initial.candidates ?? initial.results ?? [];
+  const selection = selectGeneralSearchSources(question, candidates, { now: options.now });
+  const reads = [];
+  const results = [];
+  const seen = new Set();
+  const remaining = () => Math.min(generalSearchBudgetSnapshot()?.remainingMs ?? 30_000, options.remainingMs?.() ?? Infinity);
+  for (const candidate of selection.ranked.map((entry) => entry.candidate)) {
+    if (reads.length >= 4 || results.length >= 4 || remaining() < 10_000) break;
+    if (!isEligibleSourceCandidate(question, candidate, { now: options.now }).eligible) continue;
+    const key = webCandidateKey(candidate.url);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const trace = { requestedUrl: candidate.url, searchTitle: candidate.title, status: 'unavailable' };
+    reads.push(trace);
+    try {
+      const page = await read(candidate.url, { timeoutMs: 2500, totalTimeoutMs: 2500, maxTextLength: 5000 });
+      const requested = new URL(candidate.url);
+      const fetched = new URL(page.url);
+      // A redirect to another host may impersonate the discovered publisher.
+      if (requested.hostname.toLowerCase().replace(/^www\./, '') !== fetched.hostname.toLowerCase().replace(/^www\./, '')) {
+        trace.status = 'redirect-host-mismatch';
+        continue;
+      }
+      const source = { url: page.url, originalUrl: candidate.url, title: page.articleTitle || page.title || candidate.title,
+        pageText: page.text, metadataText: page.metadataText || '', redirectChain: page.redirectChain,
+        status: page.status, canonicalUrl: page.canonicalUrl, textTruncated: page.textTruncated };
+      const snapshot = buildGeneralSearchSourceSnapshot(question, source);
+      if (snapshot.status !== 'captured' || !isEligibleSourceCandidate(question, source, { now: options.now }).eligible) {
+        trace.status = snapshot.status === 'sensitive-content-blocked' ? snapshot.status : 'irrelevant-body';
+        continue;
+      }
+      if (seen.has(webCandidateKey(page.url)) && key !== webCandidateKey(page.url)) { trace.status = 'duplicate-fetched-url'; continue; }
+      seen.add(webCandidateKey(page.url));
+      trace.status = 'body-extracted';
+      trace.fetchedUrl = page.url;
+      trace.extractedTitle = source.title;
+      trace.extractedBody = snapshot.body.text;
+      trace.extractedMetadata = source.metadataText;
+      results.push({ ...source, pageText: snapshot.body.text, evidenceKind: 'body' });
+    } catch (error) {
+      trace.status = 'read-failed';
+      trace.error = classifyChatError(error);
+    }
+  }
+  return { ...initial, results, failed: !results.length, status: results.length ? 'body-collected' : 'body-unavailable',
+    bodyVerification: { reads, selections: selection.diagnostics, reviewCalls: [], reviews: [], stopReason: remaining() < 10_000 ? 'extraction-time-reserved' : 'body-collection-finished' } };
 }
 
 export async function collectWebBodyEvidence(query, initial, generate, options = {}) {
