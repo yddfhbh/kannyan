@@ -1,4 +1,5 @@
 import { chatTimeRemaining } from './chat-time-budget.js';
+import { consumeGeneralSearchAttempt, generalSearchSignal } from './general-search-budget.js';
 import { JSDOM } from 'jsdom';
 import { compactEvidenceText } from './evidence-review.js';
 import { rankNewsCandidates } from './news-candidates.js';
@@ -51,50 +52,82 @@ export async function searchWeb(query, options = {}) {
   const logger = options.logger;
   const startedAt = Date.now();
   const controller = new AbortController();
+  const requestSignal = generalSearchSignal(controller.signal);
   const timeout = setTimeout(() => controller.abort(), Math.max(1, Math.min(timeoutMs, chatTimeRemaining() - 14_000)));
 
   try {
-    const queryVariants = buildSearchQueryVariants(normalizedQuery, preferredDomains);
+    const queryVariants = options.queryVariants ?? buildSearchQueryVariants(normalizedQuery, preferredDomains);
+    const providerOrder = (options.providerOrder ?? ['duckduckgo', 'naver'])
+      .filter((provider, index, providers) => ['duckduckgo', 'naver'].includes(provider) && providers.indexOf(provider) === index);
     const queryResults = [];
     const failures = [];
     const attempts = [];
     let successfulRequests = 0;
     const collect = async (provider, searchQuery, operation) => {
-      const attempt = { provider, query: searchQuery, httpStatus: null };
+      const attempt = {
+        provider,
+        query: searchQuery,
+        httpStatus: null,
+        fetchInvoked: false,
+        responseReceived: false,
+        stage: 'before-fetch',
+      };
       attempts.push(attempt);
       const fetchImpl = async (...args) => {
+        attempt.fetchInvoked = true;
+        attempt.stage = 'fetch-invoked';
         const response = await (options.fetchImpl ?? fetch)(...args);
+        attempt.responseReceived = true;
+        attempt.stage = 'response-received';
         attempt.httpStatus = response.status;
         return response;
       };
       const attemptStartedAt = Date.now();
       try {
+        if (!consumeGeneralSearchAttempt('search') || (options.beforeHttpAttempt && !(await options.beforeHttpAttempt({ type: 'search', provider, query: searchQuery })))) {
+          const error = new Error('HTTP request budget exhausted.');
+          error.code = 'HTTP_BUDGET_EXHAUSTED';
+          throw error;
+        }
         const results = await operation(fetchImpl); successfulRequests += 1;
-        Object.assign(attempt, { status: results.length ? 'success' : 'empty', count: results.length, durationMs: Date.now() - attemptStartedAt });
+        attempt.stage = 'response-parsed';
+        Object.assign(attempt, { status: results.length ? 'success' : (results.noEligibleResults ? 'no-eligible-results' : 'empty'), count: results.length, rawCandidateCount: results.rawCandidateCount ?? results.length, eligibleCandidateCount: results.length, durationMs: Date.now() - attemptStartedAt });
         logSearchEvent(logger, { provider, stage: 'search', status: attempt.status, httpStatus: attempt.httpStatus, durationMs: attempt.durationMs, resultCount: results.length });
         return results;
       } catch (error) {
+        if (error?.code === 'HTTP_BUDGET_EXHAUSTED') throw error;
         failures.push(error);
-        Object.assign(attempt, { status: classifySearchFailure(error), count: 0, durationMs: Date.now() - attemptStartedAt, errorCode: safeSearchErrorCode(error) });
+        Object.assign(attempt, {
+          status: classifySearchFailure(error),
+          count: 0,
+          durationMs: Date.now() - attemptStartedAt,
+          errorCode: safeSearchErrorCode(error),
+          errorName: error?.name || null,
+          errorMessage: safeSearchErrorMessage(error),
+          errorCauseCode: safeCauseCode(error),
+          abort: error?.name === 'AbortError' || error?.name === 'TimeoutError' || controller.signal.aborted,
+          failureStage: classifySearchFailureStage(error, attempt),
+        });
         logSearchEvent(logger, { provider, stage: 'search', status: attempt.status, httpStatus: attempt.httpStatus ?? error.status ?? null, durationMs: attempt.durationMs, resultCount: 0 });
         return [];
       }
     };
 
     for (const searchQuery of queryVariants) {
-      let results = await collect('duckduckgo', searchQuery, (fetchImpl) => performDuckDuckGoHtmlSearch(searchQuery, {
-        region: options.region,
-        signal: controller.signal,
-        fetchImpl,
-      }));
-
-      if (results.length === 0) {
-        results = await collect('naver', searchQuery, (fetchImpl) => performNaverSearch(searchQuery, {
-          signal: controller.signal,
-        fetchImpl,
-        }));
+      let results = [];
+      for (const provider of providerOrder) {
+        results = provider === 'naver'
+          ? await collect('naver', searchQuery, (fetchImpl) => performNaverSearch(searchQuery, {
+            signal: requestSignal,
+            fetchImpl,
+          }))
+          : await collect('duckduckgo', searchQuery, (fetchImpl) => performDuckDuckGoHtmlSearch(searchQuery, {
+            region: options.region,
+            signal: requestSignal,
+            fetchImpl,
+          }));
+        if (results.length > 0) break;
       }
-
       queryResults.push(results);
     }
 
@@ -102,7 +135,7 @@ export async function searchWeb(query, options = {}) {
     const newsSelection = /뉴스|기사|\bnews\b/i.test(normalizedQuery) ? rankNewsCandidates(ranked, options.now) : null;
     const mergedResults = (newsSelection ? newsSelection.filter(r => r.eligible).map(r => r.candidate) : ranked).slice(0, maxResults);
 
-    const finalStatus = ranked.length ? 'success' : controller.signal.aborted ? 'timeout' : failures.some((e) => e.kind === 'parse-error') ? 'parse-error' : failures.some((e) => e.status === 429) ? 'rate-limited' : failures.some((e) => [202, 403].includes(e.status)) ? 'blocked' : failures.some((e) => [500, 502, 503, 504].includes(e.status)) ? 'provider-unavailable' : successfulRequests ? 'empty' : 'failed';
+    const finalStatus = ranked.length ? 'success' : controller.signal.aborted ? 'timeout' : failures.some((e) => e.kind === 'parse-error') ? 'parse-error' : failures.some((e) => e.status === 429) ? 'rate-limited' : failures.some((e) => [202, 403].includes(e.status)) ? 'blocked' : failures.some((e) => [500, 502, 503, 504].includes(e.status)) ? 'provider-unavailable' : attempts.some((attempt) => attempt.status === 'no-eligible-results') ? 'no-eligible-results' : successfulRequests ? 'empty' : 'failed';
     const budgetExhausted = chatTimeRemaining() <= 14_000;
     logSearchEvent(logger, { provider: 'aggregate', stage: 'search-summary', status: finalStatus, httpStatus: null, durationMs: Date.now() - startedAt, resultCount: ranked.length, budgetExhausted });
     return {
@@ -111,6 +144,7 @@ export async function searchWeb(query, options = {}) {
       // Display limits must not discard candidates before body selection.
       candidates: ranked.slice(0, 100),
       resultCounts: { discovered: queryResults.flat().length, unique: ranked.length, returned: mergedResults.length, retained: Math.min(ranked.length, 100) },
+      validity: { rawCandidateCount: attempts.reduce((n, attempt) => n + (attempt.rawCandidateCount || 0), 0), eligibleCandidateCount: ranked.length, officialEligibleCount: null, selectedRelevantCount: mergedResults.length },
       attempts,
       ...(newsSelection ? { candidateSelection: newsSelection.map(({candidate, ...r}) => ({url:candidate.url, ...r})) } : {}),
       status: finalStatus,
@@ -389,7 +423,9 @@ async function performDuckDuckGoHtmlSearch(query, options = {}) {
   if (isSearchChallenge(html)) {
     const error = new Error('Search blocked by challenge'); error.status = 403; throw error;
   }
-  return requireRecognizedResults(parseDuckDuckGoHtmlResults(html), html, /no-results|No results found|검색 결과가 없/i);
+  const parsed = requireRecognizedResults(parseDuckDuckGoHtmlResults(html), html, /no-results|No results found|검색 결과가 없/i);
+  const eligible = filterSiteRestrictedResults(query, parsed);
+  return markNoEligibleResults(eligible, parsed.length);
 }
 
 function buildSearchQueryVariants(query, preferredDomains) {
@@ -420,6 +456,12 @@ async function performNaverSearch(query, options = {}) {
   });
 
   const html = await response.text();
+  // 202 is a challenge/queued response for this HTML endpoint, not a
+  // successful search page. Response.ok is true for 2xx, so check it before
+  // attempting markup parsing.
+  if (response.status === 202) {
+    const error = new Error('Search request challenged'); error.status = 202; error.kind = 'blocked'; throw error;
+  }
   if (!response.ok) {
     const error = new Error(`Naver search failed with ${response.status}`);
     error.status = response.status;
@@ -429,7 +471,26 @@ async function performNaverSearch(query, options = {}) {
   if (isSearchChallenge(html)) {
     const error = new Error('Search blocked by challenge'); error.status = 403; throw error;
   }
-  return requireRecognizedResults(parseNaverSearchResults(html), html, /검색결과가? 없|검색 결과가? 없|검색한 결과를 찾을 수 없|no results/i);
+  const parsed = requireRecognizedResults(parseNaverSearchResults(html), html, /검색결과가? 없|검색 결과가? 없|검색한 결과를 찾을 수 없|no results/i);
+  const eligible = filterSiteRestrictedResults(query, parsed);
+  return markNoEligibleResults(eligible, parsed.length);
+}
+
+function markNoEligibleResults(results, rawCandidateCount) {
+  if (!results.length && rawCandidateCount > 0) {
+    Object.defineProperty(results, 'noEligibleResults', { value: true, enumerable: false });
+  }
+  Object.defineProperty(results, 'rawCandidateCount', { value: rawCandidateCount, enumerable: false });
+  return results;
+}
+
+function filterSiteRestrictedResults(query, results) {
+  const domains = [...String(query || '').matchAll(/(?:^|\s)site:([^\s]+)/gi)].map((match) => match[1].toLowerCase().replace(/^www\./, '').replace(/\/$/, ''));
+  if (!domains.length) return results;
+  return results.filter((result) => {
+    const hostname = getHostname(result.url).replace(/^www\./, '');
+    return domains.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`));
+  });
 }
 
 function isSearchChallenge(html) {
@@ -514,11 +575,34 @@ function classifySearchFailure(error) {
   if (error?.status === 429) return 'rate-limited';
   if ([202, 403].includes(error?.status)) return 'blocked';
   if ([500, 502, 503, 504].includes(error?.status)) return 'provider-unavailable';
+  if (error?.code && ['ECONNRESET', 'ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN', 'ETIMEDOUT', 'UND_ERR_CONNECT_TIMEOUT'].includes(error.code)) return 'transport-error';
+  if (error?.name === 'TypeError' || /(?:fetch failed|network|socket|connect)/i.test(String(error?.message || ''))) return 'transport-error';
   return 'failed';
 }
 
 function safeSearchErrorCode(error) {
   return error?.code || error?.name || undefined;
+}
+
+// Diagnostics deliberately retain only transport-safe error metadata. Do not
+// serialize error objects: undici's cause may contain request details.
+function safeSearchErrorMessage(error) {
+  const message = String(error?.message || '');
+  return message.length > 240 ? `${message.slice(0, 237)}...` : message;
+}
+
+function safeCauseCode(error) {
+  const code = error?.cause?.code;
+  return typeof code === 'string' && /^[A-Z0-9_]+$/.test(code) ? code : null;
+}
+
+function classifySearchFailureStage(error, attempt) {
+  if (error?.name === 'AbortError' || error?.name === 'TimeoutError' || attempt.abort) return 'timeout-or-abort';
+  if (!attempt.fetchInvoked) return 'url-construction-or-before-fetch';
+  if (!attempt.responseReceived) return 'transport-before-http-response';
+  if (error?.kind === 'parse-error') return 'response-parsing';
+  if (error?.status || attempt.httpStatus !== null) return 'http-response';
+  return 'response-processing';
 }
 
 function isSearchAdNode(node) {

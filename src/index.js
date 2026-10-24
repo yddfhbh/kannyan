@@ -187,6 +187,8 @@ import {
   isPyhokWikiLinkRequest,
 } from './pyhok-wiki-search.js';
 import { resolveChatEvidence, answerChatBySource, chatSourceGuidance } from './chat-search-policy.js';
+import { eligibleForGeneralSearch, runGeneralSearchChat, generalSearchMode } from './general-search-chat.js';
+import { withGeneralSearchBudget, withinGeneralSearchDeadline, generalSearchBudgetSnapshot } from './general-search-budget.js';
 import { buildWebPageReferenceContext } from './web-page-content.js';
 import { collectNewsEvidence, isNewsRequest, answerVerifiedNews, parseNewsFreshnessDays } from './news-evidence.js';
 import {
@@ -1578,7 +1580,7 @@ if (memoryResetHandled) {
   const reactionResult = await handleReactionRequestMessage(message);
   if (reactionResult?.handled) {
     if (reactionResult.shouldContinueToGemini) {
-      await handleGeminiFallbackMessage(message, {
+      await handleGeminiFallbackMessageWithBudget(message, {
         forcedPrompt: reactionResult.forcedPrompt
           ?? '방금 사용자가 요청한 메시지에 이모지 반응을 성공적으로 달았다. 사용자에게 짧고 자연스럽게 알려줘.',
       });
@@ -1622,7 +1624,7 @@ if (chessAnalysisFollowupHandled) {
     return;
   }
 
-  const geminiHandled = await handleGeminiFallbackMessage(message);
+  const geminiHandled = await handleGeminiFallbackMessageWithBudget(message);
   if (geminiHandled) {
     return;
   }
@@ -7413,7 +7415,7 @@ function serializeReactionEmoji(emoji) {
 
 async function askReactionClarification(message, instruction) {
   if (geminiApiKeys.length > 0) {
-    await handleGeminiFallbackMessage(message, {
+    await handleGeminiFallbackMessageWithBudget(message, {
       forcedPrompt: [
         '방금 사용자의 이모지 반응 요청을 처리하려 했지만 정보가 부족하거나 실패했다.',
         instruction,
@@ -7613,7 +7615,18 @@ async function sendChatFactReply(message, prompt, answer, now, source = 'chat-fa
   appendGeminiMemoryEntry(sessionKey, { role: 'user', authorId: message.author?.id, authorName: getMessageAuthorName(message), text: prompt, timestamp: +new Date(now) });
   appendGeminiMemoryEntry(sessionKey, { role: 'model', authorName: '깐냥', text: answer, timestamp: +new Date(now) });
   await saveGeminiMemory();
-  await sendReplyOrChannelMessage(message, { content: formatChatDisplayAnswer(answer), allowedMentions: { parse: [], repliedUser: false } }, source);
+  await sendReplyOrChannelMessage(message, { content: source === 'chat-general-search' ? answer : formatChatDisplayAnswer(answer), allowedMentions: { parse: [], repliedUser: false } }, source);
+}
+
+async function handleGeminiFallbackMessageWithBudget(message, options = {}) {
+  const question = options.forcedPrompt ?? parseGeminiFallbackPrompt(message.content);
+  const useBudget = generalSearchMode() === 'on' && eligibleForGeneralSearch(question, {
+    wikiOnly: isExplicitPyhokWikiPrompt(question), chess: /체스|chess|stockfish|기보|체스판/i.test(question),
+    weather: /날씨|기온|강수|예보|미세먼지|weather/i.test(question), news: isNewsRequest(question),
+    age: /나이|생년월일|출생일|몇\s*살/.test(question), image: Boolean(message.attachments?.size),
+  });
+  if (!useBudget) return handleGeminiFallbackMessage(message, options);
+  return withGeneralSearchBudget(() => handleGeminiFallbackMessage(message, options));
 }
 
 async function handleGeminiFallbackMessage(message, options = {}) {
@@ -8023,10 +8036,10 @@ const chessAnalysis =
               return;
             }
             try {
-              webSearchData = await tryBuildWebSearchData(webSearchPrompt, {
+              webSearchData = await (typeof withinGeneralSearchDeadline === 'function' ? withinGeneralSearchDeadline : (work) => work())(() => tryBuildWebSearchData(webSearchPrompt, {
                 force: Boolean(plannedAnswer) || shouldForceChessWebSearch || shouldSearchPreviousWebContext,
                 originalPrompt: rawPrompt,
-              });
+              }));
             } catch (error) {
               console.warn(`[Chat search] failed status=${error?.status ?? error?.name ?? 'unknown'}`);
               webSearchData = { status: 'failed', failed: true, results: [], context: '[웹 조회 실패] 요청한 사실을 확인하지 못했다.' };
@@ -8089,6 +8102,25 @@ const chessAnalysis =
       const ageReply = answerWikiAgeQuestion(rawPrompt, wikiSearchData, requestNow);
       await sendChatFactReply(message, rawPrompt, ageReply, requestNow, 'chat-internal-person');
       return true;
+    }
+    if (typeof generalSearchMode === 'function' && generalSearchMode() !== 'off' && eligibleForGeneralSearch(rawPrompt, {
+      wikiOnly: shouldRestrictToWikiSources, chess: isChessPrompt, weather: /날씨|기온|강수|예보|미세먼지/.test(rawPrompt),
+      news: Boolean(webSearchData?.newsVerification), age: /나이|생년월일|출생일|몇\s*살/.test(rawPrompt),
+      image: imageParts.length > 0, localOnly: !searchIntent.requiresExternal || searchIntent.hasLocalAnswer,
+    }) && webSearchData) {
+      let general;
+      try {
+        general = await (typeof withinGeneralSearchDeadline === 'function' ? withinGeneralSearchDeadline : (work) => work())(() => runGeneralSearchChat(rawPrompt, webSearchData, { now: requestNow }));
+      } catch (error) {
+        console.warn(`[General search] extraction failed status=${error?.status ?? error?.name ?? 'unknown'}`);
+        general = { action: 'legacy', reason: 'extraction-error' };
+      }
+      if (typeof generalSearchBudgetSnapshot === 'function') console.log(`[General search budget] ${JSON.stringify(generalSearchBudgetSnapshot())}`);
+      if (generalSearchMode() === 'shadow') console.log(`[General search shadow] outcome=${general.outcome || 'unavailable'} reason=${general.reason || 'verified'} facts=${general.verifiedCount || 0}`);
+      if (general.action === 'verified') {
+        await sendChatFactReply(message, rawPrompt, general.answer, requestNow, 'chat-general-search');
+        return true;
+      }
     }
     const evidenceDecision = resolveChatEvidence(searchIntent, { webSearchData, wikiSearchData, webPageData });
     if (evidenceDecision.blockWholeAnswer && !isChessPrompt && !imageParts.length) {
@@ -8355,7 +8387,7 @@ async function handleGeminiInteraction(interaction) {
   );
 
   try {
-    await runChatBudget(() => handleGeminiFallbackMessage(message));
+    await runChatBudget(() => handleGeminiFallbackMessageWithBudget(message));
   } catch (error) {
     console.error(`Failed to handle Gemini interaction ${interaction.id}:`);
     console.error(error);

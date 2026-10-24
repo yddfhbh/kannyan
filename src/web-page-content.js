@@ -1,5 +1,6 @@
 import { lookup } from 'node:dns/promises';
-import { JSDOM } from 'jsdom';
+import { JSDOM, VirtualConsole } from 'jsdom';
+import { consumeGeneralSearchAttempt, generalSearchSignal } from './general-search-budget.js';
 
 const defaultTimeoutMs = 10_000;
 const defaultMaxUrls = 3;
@@ -88,17 +89,24 @@ async function fetchWebPageTextWithinDeadline(input, options = {}) {
   const fetchImpl = options.fetchImpl ?? fetch;
   const resolveHostnames = options.resolveHostnames ?? resolvePublicHostnames;
   let url = input instanceof URL ? new URL(input) : new URL(input);
+  const redirectChain = [];
 
   for (let redirects = 0; redirects <= 4; redirects += 1) {
     await assertSafePublicUrl(url, resolveHostnames);
-    options.signal?.throwIfAborted();
+    const requestSignal = generalSearchSignal(options.signal);
+    requestSignal?.throwIfAborted();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     let response;
     try {
+      if (!consumeGeneralSearchAttempt('read') || (options.beforeHttpAttempt && !(await options.beforeHttpAttempt({ type: 'page-read', url: url.toString(), redirect: redirects })))) {
+        const error = new Error('HTTP request budget exhausted.');
+        error.code = 'HTTP_BUDGET_EXHAUSTED';
+        throw error;
+      }
       response = await fetchImpl(url, {
         redirect: 'manual',
-        signal: options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal,
+        signal: requestSignal ? AbortSignal.any([controller.signal, requestSignal]) : controller.signal,
         headers: { 'user-agent': userAgent, accept: 'text/html,application/xhtml+xml' },
       });
     } finally {
@@ -108,6 +116,7 @@ async function fetchWebPageTextWithinDeadline(input, options = {}) {
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get('location');
       if (!location) throw new Error(`Redirect ${response.status} has no location.`);
+      redirectChain.push({ status: response.status, from: url.toString(), to: new URL(location, url).toString() });
       url = new URL(location, url);
       continue;
     }
@@ -126,13 +135,18 @@ async function fetchWebPageTextWithinDeadline(input, options = {}) {
       throw new Error('The HTML response is too large.');
     }
     const html = await readLimitedResponse(response, maxHtmlBytes);
-    return { url: url.toString(), ...extractReadablePageText(html, maxTextLength) };
+    return { url: url.toString(), status: response.status, contentType, redirectChain,
+      ...extractReadablePageText(html, maxTextLength) };
   }
   throw new Error('Too many redirects.');
 }
 
 export function extractReadablePageText(html, maxTextLength = defaultMaxTextLength) {
-  const dom = new JSDOM(String(html ?? ''));
+  // Some public pages contain malformed CSS. It is not evidence and should
+  // never flood diagnostics with the page's raw stylesheet.
+  const virtualConsole = new VirtualConsole();
+  virtualConsole.on('jsdomError', () => {});
+  const dom = new JSDOM(String(html ?? ''), { virtualConsole });
   try {
     const document = dom.window.document;
     const articleMetadata = extractArticleMetadata(document);
@@ -150,6 +164,8 @@ export function extractReadablePageText(html, maxTextLength = defaultMaxTextLeng
       title: normalizeText(document.title),
       metadataText,
       text: truncateText(text, maxTextLength),
+      fullTextLength: text.length,
+      textTruncated: text.length > maxTextLength,
       bodyQuality: text.length >= 120 && (text.match(/[\p{Letter}\p{Number}]/gu)?.length ?? 0) >= 80 ? 'substantive' : 'insufficient',
       canonicalUrl: document.querySelector('link[rel="canonical"]')?.href || articleMetadata.articleUrl || '',
       ...articleMetadata,
