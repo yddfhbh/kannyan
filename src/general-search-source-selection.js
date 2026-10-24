@@ -13,7 +13,10 @@ const profile = (understanding) => {
   const q = understanding.original;
   if (understanding.claimType === 'version') return { kind: 'version', release: true, official: true };
   if (understanding.claimType === 'price') return { kind: 'price', pricing: true, official: true };
-  if (understanding.claimType === 'comparison') return { kind: 'comparison', subjects: q.match(/PostgreSQL|MySQL|MacBook Air|Dell XPS 13|Google Drive|Dropbox|OneDrive|MYBOX/gi) || [], official: understanding.officialRequired };
+  if (understanding.claimType === 'comparison') {
+    const pair = q.match(/(.+?)\s*(?:과|와|vs\.?|versus|및|and)\s*(.+?)(?:의\s*)?(?:기능|사양|가격|요금)?\s*비교/i);
+    return { kind: 'comparison', subjects: pair ? [pair[1], pair[2]].map((part) => part.trim()) : [], official: understanding.officialRequired };
+  }
   if (/사용법|API|probe|문서|설명/i.test(q)) return { kind: 'documentation', official: understanding.officialRequired };
   if (understanding.claimType === 'event' || understanding.claimType === 'person' || /뉴스/i.test(q)) return { kind: 'news-event', article: /뉴스/i.test(q), official: understanding.officialRequired };
   return { kind: understanding.claimType, official: understanding.officialRequired };
@@ -46,7 +49,7 @@ const matchesSiteRestriction = (url, restriction) => {
 };
 const tokenCount = (text) => String(text || '').trim().split(/\s+/u).filter(Boolean).length;
 const versionRank = (candidate) => {
-  const value = `${titleText(candidate)} ${candidate.url || ''}`.match(/(?:react[-_ ]?|version[\s-]*|v)(\d+(?:[.-]\d+){0,2})/i)?.[1];
+  const value = titleText(candidate).match(/(?:version[\s-]*|v|[A-Za-z][\w-]*[\s-]+)(\d+(?:[.-]\d+){0,2})\b/i)?.[1];
   return value ? value.split(/[.-]/).map((part) => Number(part) || 0) : [];
 };
 const compareVersionRank = (left, right) => {
@@ -63,7 +66,7 @@ const isHomeUrl = (url) => {
   try { return /^\/(?:[a-z]{2}(?:[_-][A-Z]{2})?)?\/?$/u.test(new URL(String(url)).pathname); } catch { return false; }
 };
 const securityPath = /security|vulnerability|denial-of-service|source-code-exposure|cve/i;
-const releasePath = /(?:^|\/)(?:react[-_ ]?\d+(?:[.-]\d+){0,2}|v?\d+(?:\.\d+){1,2}(?:[-_/]?(?:release|changelog|changes|downloads?))?)(?:[/?#]|$)/i;
+const releasePath = /(?:^|\/)(?:v?\d+(?:\.\d+){1,2}(?:[-_/]?(?:release|changelog|changes|downloads?))?)(?:[/?#]|$)/i;
 
 function relevantTerms(understanding) {
   return [...new Set(understanding.target.filter((term) => term.length >= 2 && !/^(오늘|내일|현재|최신|최근|공식|문서|자료|비교|뉴스|소식|가격|요금|버전|안정)$/i.test(term)))];
@@ -72,16 +75,7 @@ function relevantTerms(understanding) {
 export function sourceSelectionProfile(question, options = {}) {
   const understanding = options.understanding ?? understandSearchQuestion(question, options.now);
   const base = { understanding, ...profile(understanding), terms: relevantTerms(understanding) };
-  const q = understanding.original;
-  const requiredHosts = [];
-  if (/MDN/i.test(q)) requiredHosts.push('developer.mozilla.org');
-  if (/Kubernetes/i.test(q)) requiredHosts.push('kubernetes.io');
-  if (/Python/i.test(q)) requiredHosts.push('python.org');
-  if (/React/i.test(q)) requiredHosts.push('react.dev');
-  if (/PostgreSQL/i.test(q)) requiredHosts.push('postgresql.org');
-  if (/MySQL/i.test(q)) requiredHosts.push('mysql.com');
-  if (/AWS|Lambda/i.test(q)) requiredHosts.push('aws.amazon.com', 'docs.aws.amazon.com');
-  return { ...base, requiredHosts: [...new Set(requiredHosts)], siteRestrictions: parseSiteRestrictions(options.siteQueries || options.siteQuery || []) };
+  return { ...base, requiredHosts: [], siteRestrictions: parseSiteRestrictions(options.siteQueries || options.siteQuery || []) };
 }
 
 export function scoreSourceCandidate(question, candidate, options = {}) {
@@ -118,7 +112,7 @@ export function scoreSourceCandidate(question, candidate, options = {}) {
   const noisePenalty = noiseRatio > 0.08 ? -2 : 0;
   const sourceMatchBonus = requiredSourceMatch ? 8 : 0;
   const pathPenalty = (homePath.test(candidatePath) || isHomeUrl(candidatePath)) ? -8 : (/whitepapers?\//i.test(candidatePath) && plan.pricing ? -4 : 0);
-  const detailBonus = /\/about\/news\/[^/]+|\/billing\/.+\/github-actions|\/article\/|\/event\/detail\//i.test(candidatePath) ? 5 : 0;
+  const detailBonus = /\/(?:news|articles?|posts?|events?|releases?|pricing|billing)\/[^/]+/i.test(candidatePath) ? 5 : 0;
   const prereleasePenalty = plan.release && /(?:release.candidate|\brc[ -]?\d|beta|preview)/i.test(`${title} ${candidatePath}`) ? -12 : 0;
   const score = termHits.length * 4 + titleHits.length * 3 + bodyQuality + (officialHost ? 7 : 0) + sourceMatchBonus + fresh + role + release + securityPenalty + pricing + documentation + sourceCoverage * 3 + noisePenalty + pathPenalty + detailBonus + prereleasePenalty;
   return { candidate, score, signals: { kind: plan.kind, termHits, titleHits, subjectHits, officialHost, officialTextSignal, requiredSourceMatch, sitePathMatch, siteRestrictions: plan.siteRestrictions, requiredHosts: plan.requiredHosts, hasBody, bodyTokens, noiseRatio, date, fresh, article, role, release, releaseDocument, versionRank: versionRank(candidate), securityPenalty, pricing, documentation, sourceCoverage, bodyQuality, noisePenalty, pathPenalty, detailBonus, prereleasePenalty } };
@@ -132,6 +126,7 @@ export function isEligibleSourceCandidate(question, candidate, options = {}) {
   // A site:-restricted question must never promote a result from another host.
   if (signals.requiredHosts.length > 0 && !signals.requiredSourceMatch) return { eligible: false, reason: 'required-host-mismatch', scored };
   if (!signals.sitePathMatch) return { eligible: false, reason: 'site-path-mismatch', scored };
+  if (scored.signals.kind === 'version' && scored.signals.officialHost === false) return { eligible: false, reason: 'official-release-source-required', scored };
   // Host ownership alone is not topical relevance. URL paths are included in
   // the score input, so this also handles result cards whose title/snippet is empty.
   const topical = signals.termHits.length > 0 || signals.titleHits.length > 0 || signals.subjectHits.length > 0

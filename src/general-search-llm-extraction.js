@@ -73,7 +73,7 @@ export function validateExtractedEvidenceFact(fact, pages, options = {}) {
   if (fact?.appliesAt !== null && fact?.appliesAt !== undefined && !/^20\d{2}-\d{2}-\d{2}$/.test(fact.appliesAt)) failures.push('invalid-applies-at');
   const structural = { ...fact, sourceSpan: span, sourceSpanOrigin: span ? 'quote-search' : null, quoteOccurrenceCount: locations.length, requiredAnswerItems: fact.requiredAnswerItems || [], uncertainties: fact.uncertainties || [], status: failures.length ? 'rejected' : 'structurally-verified', validationFailures: failures };
   if (failures.length) return structural;
-  const semanticFields = ['subject', 'relation', 'value'].filter((key) => !String(fact[key] ?? '').trim() || !fact.quote.includes(String(fact[key])));
+  const semanticFields = ['subject', 'relation', 'value'].filter((key) => !String(fact[key] ?? '').trim() || !fact.quote.toLocaleLowerCase().includes(String(fact[key]).toLocaleLowerCase()));
   const contextual = validateContextualClaim(fact, body, span);
   const numericUnit = /\d/.test(String(fact.value)) && String(fact.unit || '').trim();
   const adjacentUnit = !numericUnit || new RegExp(`${String(fact.value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*${String(fact.unit).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(quote);
@@ -89,47 +89,105 @@ export function validateExtractedEvidenceFact(fact, pages, options = {}) {
 }
 
 function validateContextualClaim(fact, body, span) {
-  if (fact.relation === 'free-minutes-per-month') {
-    const header = /\b(?:plan|tier)\b[^\n]{0,160}\bminutes\s*\(per month\)/ig;
-    const preceding = [...body.matchAll(header)].filter((match) => match.index + match[0].length <= span.start).at(-1);
-    if (!preceding) return ['minutes-table-header-missing'];
-    const intervening = body.slice(preceding.index + preceding[0].length, span.start);
-    if (/\n\n|\b(?:billing|how it works|the use of)\b/i.test(intervening)) return ['minutes-table-header-missing'];
-    const row = /^(.+?) (\d[\d,]* (?:MB|GB)) (\d[\d,]*) (\d[\d,]* GB) (?:Not applicable|\d[\d,]* GB)$/.exec(fact.quote);
-    if (!row || row[1] !== fact.subject || row[3] !== fact.value || fact.unit !== 'minutes') return ['minutes-table-row-mismatch'];
+  const norm = (value) => String(value ?? '').normalize('NFKC').toLocaleLowerCase().replace(/[\s\p{P}\p{S}]+/gu, '');
+  const contains = (haystack, needle) => Boolean(norm(needle)) && norm(haystack).includes(norm(needle));
+  const subject = String(fact.subject || '');
+  const value = String(fact.value || '');
+  const relation = String(fact.relation || '');
+  const unit = String(fact.unit || '');
+  if (!subject || !value || !relation) return ['claim-field-empty'];
+  const lineStart = body.lastIndexOf('\n', span.start - 1) + 1;
+  const lineEndAt = body.indexOf('\n', span.end);
+  const lineEnd = lineEndAt < 0 ? body.length : lineEndAt;
+  const line = body.slice(lineStart, lineEnd);
+  const previousLine = body.slice(0, Math.max(0, lineStart - 1)).split('\n').at(-1) || '';
+  const splitCells = (text) => text.includes('|') ? text.split('|').map((cell) => cell.trim())
+    : text.includes('\t') ? text.split('\t').map((cell) => cell.trim())
+      : text.split(/\s{2,}/).map((cell) => cell.trim());
+  const row = splitCells(line);
+  const header = splitCells(previousLine);
+  if (row.length === 1 && header.length === 1 && !line.includes('|') && /\d/.test(fact.quote)) {
+    const prefix = body.slice(Math.max(0, span.start - 240), span.start).split(/[.!?]\s/).at(-1) || '';
+    const values = [...fact.quote.matchAll(/\d[\d,.]*(?:\s*[A-Za-z%]+)?|Not applicable/gi)].map((match) => match[0]);
+    let headings = prefix.match(/[A-Z][a-z]+(?:\s+[a-z]+|\s+\([^)]*\))*/g) || [];
+    if (headings.length !== values.length + 1) {
+      const relationTerm = relation.split(/[\s_-]+/).find((word) => word.length >= 4 && !/^(free|monthly)$/i.test(word));
+      const before = body.slice(0, span.start);
+      const relationAt = relationTerm ? before.toLocaleLowerCase().lastIndexOf(relationTerm.toLocaleLowerCase()) : -1;
+      if (relationAt >= 0) {
+        const sectionStart = Math.max(before.lastIndexOf('.', relationAt), before.lastIndexOf('\n', relationAt)) + 1;
+        const candidate = body.slice(sectionStart, span.start).split(/\d[\d,.]*/)[0];
+        headings = (candidate.match(/[A-Z][a-z]+(?:\s+[a-z]+|\s+\([^)]*\))*/g) || []).slice(0, values.length + 1);
+      }
+    }
+    if (headings.length === values.length + 1 && norm(fact.quote.slice(0, fact.quote.search(/\d/))) === norm(subject)) {
+      header.splice(0, 1, ...headings);
+      row.splice(0, 1, subject, ...values);
+    }
+  }
+  if (row.length === 1 && header.length === 1 && /\b(?:plan|tier|model)\b/i.test(previousLine)) {
+    const headingCells = previousLine.match(/[A-Z][a-z]+(?:\s*\([^)]*\))?/g) || [];
+    const numericCells = [...line.matchAll(/\d[\d,.]*(?:\s*[A-Za-z%]+)?|Not applicable/gi)].map((match) => match[0]);
+    const firstValue = line.search(/\d/);
+    if (firstValue > 0 && headingCells.length === numericCells.length + 1) {
+      header.splice(0, 1, ...headingCells);
+      row.splice(0, 1, line.slice(0, firstValue).trim(), ...numericCells);
+    }
+  }
+  if (row.length > 1 && header.length === row.length && header.length > 1) {
+    const subjectColumns = row.map((cell, index) => norm(cell) === norm(subject) ? index : -1).filter((index) => index >= 0);
+    const relationTerms = relation.split(/[\s_-]+/).filter((word) => word.length >= 4 && !/^(free|monthly)$/i.test(word));
+    const relationColumns = header.map((cell, index) => contains(cell, relation)
+      || (relationTerms.length > 0 && relationTerms.every((word) => contains(cell, word))) ? index : -1).filter((index) => index >= 0);
+    if (!subjectColumns.length || !relationColumns.length) return ['table-subject-or-header-mismatch'];
+    const escapedValue = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const valuePattern = /\d/.test(value) ? new RegExp(`(?<![\\d,.])${escapedValue}(?![\\d,.])`, 'i') : null;
+    const valueColumn = relationColumns.find((index) => valuePattern ? valuePattern.test(row[index]) : contains(row[index], value));
+    if (valueColumn === undefined) return ['table-value-column-mismatch'];
+    if (unit && !contains(row[valueColumn], unit) && !contains(header[valueColumn], unit)
+      && !header.some((cell, index) => /currency|unit|통화|단위/i.test(cell) && contains(row[index], unit))) return ['table-unit-mismatch'];
     return [];
   }
-  if (fact.relation === 'overage-billing-rule') {
-    return body.toLowerCase().includes(String(fact.subject).toLowerCase())
-      && fact.value === fact.quote
-      && fact.unit === ''
-      && /\b(?:usage|use)\b.*\b(?:billed|charged)\b.*\b(?:rate|price)/i.test(fact.quote)
-      ? [] : ['overage-rule-not-supported'];
-  }
-  if (fact.relation === 'evidence-date') {
-    const start = body.lastIndexOf('{rnum=', span.start);
-    const end = body.indexOf('}, {rnum=', span.start);
-    const record = start < 0 ? '' : body.slice(start, end < 0 ? body.length : end);
-    return start >= 0 && record.includes(`nttCn2=${fact.subject}`)
-      && new RegExp(`\\bpstgBgngDt=${String(fact.value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(fact.quote)
-      && fact.appliesAt === fact.value
-      ? [] : ['date-not-linked-to-minister-post'];
-  }
-  return null;
+  // Braced records and line separated articles are independent evidence items.
+  // A nearby date from another item cannot establish this subject's date.
+  const leftBrace = body.lastIndexOf('{', span.start);
+  const rightBrace = body.indexOf('}', span.end);
+  const record = leftBrace >= 0 && rightBrace >= span.end && !body.slice(leftBrace, span.start).includes('}')
+    ? body.slice(leftBrace, rightBrace + 1) : line;
+  if (!contains(record, subject) || !contains(fact.quote, value)) return ['claim-subject-value-not-linked'];
+  const isDate = /^20\d{2}-\d{2}-\d{2}$/.test(value);
+  if (isDate && fact.appliesAt && fact.appliesAt !== value) return ['claim-date-mismatch'];
+  const relationWords = relation.split(/[\s_-]+/).filter((word) => word.length >= 2 && !/^(the|per|of|for|내역|정보|내용|규칙)$/i.test(word));
+  const relationText = `${previousLine} ${record}`;
+  const relationSupported = contains(relationText, relation)
+    || (isDate && /date|published|posted|announced|announcement|on\s+20\d{2}|날짜|발표|게시|등록/i.test(relationText) && /date|published|posted|announcement|발표|게시|날짜/i.test(relation))
+    || (isDate && /date|날짜/i.test(relation) && contains(record, value))
+    || (/status|상태/i.test(relation) && /beta|preview|alpha|stable|general availability|정식|시험판|release/i.test(record))
+    || (/overage/i.test(relation) && /billing/i.test(relation) && /beyond|overage/i.test(record) && /billed|charged/i.test(record))
+    || (relationWords.length > 0 && relationWords.every((word) => contains(relationText, word)));
+  if (!relationSupported) return ['claim-relation-not-supported'];
+  if (/\b(?:supports?|available|enabled)\b/i.test(relation) && /\b(?:does not|not|never|unsupported|unavailable)\b/i.test(record)) return ['claim-negated'];
+  if (unit && /\d/.test(value) && !contains(value, unit) && !contains(fact.quote, `${value} ${unit}`) && !contains(fact.quote, `${value}${unit}`)) return ['value-unit-not-linked-in-quote'];
+  return [];
 }
 
 export function assessRequiredAnswerItems(question, facts, options = {}) {
   const requirementQuestion = options.requirementQuestion || question;
   const understanding = options.understanding || understandSearchQuestion(requirementQuestion, options.now);
   const required = requestedAnswerRequirements(understanding);
-  const structurallyAccepted = (facts || []).filter((fact) => fact.status === 'verified' && (fact.semanticStatus || 'supported') !== 'unsupported');
+  const structurallyAccepted = (facts || []).filter((fact) => fact.status === 'verified' && (fact.semanticStatus || 'supported') === 'supported');
   // Requirement coverage is grounded in quoted source text, not model labels
   // (subject/relation/value), which may themselves be unsupported assertions.
   const text = structurallyAccepted.map((fact) => fact.quote || '').join('\n');
   const satisfied = new Set();
   const has = (pattern) => pattern.test(text);
   if (has(/무료|free/i)) satisfied.add('free');
+  if (has(/행사|축제|컨퍼런스|밋업|summit|forum|conference|event/i)) satisfied.add('event-type');
   if (has(/20\d{2}[./-]\d{1,2}[./-]\d{1,2}|\d{1,2}월\s*\d{1,2}일|\d{1,2}일(?:부터|까지|에)/i)) satisfied.add('date');
+  if (understanding.claimType === 'event' && structurallyAccepted.some((fact) => /장소|위치|도시|venue|location|city|place/i.test(fact.relation || '')
+    && String(fact.quote || '').includes(String(fact.value || '')))) satisfied.add('location');
+  if (understanding.claimType === 'price' && structurallyAccepted.some((fact) => /price|가격|요금|cost/i.test(fact.relation || '') && /\d/.test(fact.value || ''))) satisfied.add('price');
+  if (understanding.claimType === 'price' && structurallyAccepted.some((fact) => /USD|KRW|EUR|GBP|[$₩€£]|원|달러|유로|엔/i.test(`${fact.unit || ''} ${fact.quote || ''}`) && fact.subject)) satisfied.add('currency-and-plan');
   if (has(/요청\s*(?:1\s*)?(?:백만|만)?\s*건당|요청당|\b(?:USD|KRW|달러|원)\b/i)) satisfied.add('request-price');
   if (has(/무료\s*(?:요청|건)|프리\s*티어|백만\s*건/i)) satisfied.add('free-tier');
   if (has(/조건|적용|구간|리전|컴퓨팅 시간|요금이 청구|포함되어|사용할 수/i)) satisfied.add('pricing-conditions');
@@ -144,12 +202,13 @@ export function assessRequiredAnswerItems(question, facts, options = {}) {
   const comparisonAttributeFacts = comparisonFacts.filter((fact) => String(fact.relation || '').trim() && String(fact.value || '').trim());
   if (comparisonAttributeFacts.length) satisfied.add('comparison-attributes');
   if (understanding.claimType === 'version' && has(/\b(?:v?\d+|\d+\.\d+)(?:\.\d+)?\b|버전/i)) satisfied.add('version');
-  if (understanding.claimType === 'version' && has(/LTS|안정|stable|릴리스|release/i)) satisfied.add('release-status');
+  if (understanding.claimType === 'version' && has(/LTS|안정|stable|정식|general availability|\bGA\b|릴리스|release/i)
+    && !has(/beta|preview|alpha|release candidate|시험판/i)) satisfied.add('release-status');
   if (structurallyAccepted.length && understanding.claimType !== 'version' && understanding.claimType !== 'comparison' && understanding.claimType !== 'price') satisfied.add('fact-value');
   // A usage explanation is not a procedure. Require an executable example or
   // an explicit operation sequence before marking a how-to answer complete.
   const usageQuestion = /사용법|사용 방법|어떻게 사용|how to use|usage/i.test(requirementQuestion);
-  if (usageQuestion && /(?:new\s+AbortController|AbortController\s*\(|\.abort\s*\(|signal\s*[:=]|fetch\s*\(|예제|사용할 때|호출하고|전달하여|단계)/i.test(text)) satisfied.add('usage-procedure');
+  if (usageQuestion && /(?:\bcall\s+\S+|\bawait\s+\S+|\buse\s+\S+\s+with\s+|\w+\s*[:=]\s*\S+|\w+\s*\(|예제|사용할 때|호출하고|전달하여|단계)/i.test(text)) satisfied.add('usage-procedure');
   if (understanding.needsFreshness && structurallyAccepted.some((fact) => fact.appliesAt || /20\d{2}/.test(fact.quote || ''))) satisfied.add('freshness');
   const officialRequired = understanding.officialRequired || (understanding.claimType === 'version' && understanding.needsFreshness);
   const officialFacts = structurallyAccepted.filter((fact) => classifyOfficialSource(fact.sourceUrl));

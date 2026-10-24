@@ -63,7 +63,7 @@ export function requestedAnswerRequirements(understanding) {
     return ['service-a', 'service-b', 'comparison-attributes', ...(understanding.officialRequired ? ['authoritative-source'] : [])];
   }
   if (understanding.claimType === 'price') {
-    if (/Lambda|요청/i.test(text)) return ['request-price', 'free-tier', 'pricing-conditions'];
+    if (/요청|request/i.test(text)) return ['request-price', 'free-tier', 'pricing-conditions'];
     return ['price', 'currency-and-plan'];
   }
   if (understanding.claimType === 'version') return ['version', 'release-status', 'freshness'];
@@ -82,9 +82,10 @@ function assessAnswerRequirements(question, understanding, facts, options = {}) 
   if (has(/20\d{2}[./-]\d{1,2}[./-]\d{1,2}|\d{1,2}월\s*\d{1,2}일|\d{1,2}일부터|\d{1,2}일(?:까지|에)/i)) satisfied.add('date');
   if (understanding.locations.some((location) => has(new RegExp(location)))) satisfied.add('location');
   if (has(/부산불꽃축제|불꽃축제|축제/i)) satisfied.add('event-name');
-  const serviceNames = (allText.match(/(?:Google Drive|Dropbox|OneDrive|네이버 MYBOX|MacBook Air|Dell XPS 13|PostgreSQL|MySQL)/gi) || []).map((v) => v.toLowerCase());
-  if (new Set(serviceNames).size >= 1) satisfied.add('service-a');
-  if (new Set(serviceNames).size >= 2) satisfied.add('service-b');
+  const comparisonPair = understanding.original.match(/(.+?)\s*(?:과|와|vs\.?|versus|및|and)\s*(.+?)(?:의\s*)?(?:기능|사양|가격|요금)?\s*비교/i);
+  const comparedSubjects = comparisonPair ? [comparisonPair[1], comparisonPair[2]].map((part) => part.trim().replace(/의$/u, '')) : [];
+  if (comparedSubjects[0] && accepted.some((fact) => String(fact.subject || '').toLocaleLowerCase().includes(comparedSubjects[0].toLocaleLowerCase()))) satisfied.add('service-a');
+  if (comparedSubjects[1] && accepted.some((fact) => String(fact.subject || '').toLocaleLowerCase().includes(comparedSubjects[1].toLocaleLowerCase()))) satisfied.add('service-b');
   if (has(/GB|TB|기가바이트|용량/i)) { satisfied.add('free-capacity-a'); satisfied.add('free-capacity-b'); }
   if (has(/월\s*(?:요금|[\d,.]+\s*(?:원|달러|USD|KRW))|매월|monthly/i)) { satisfied.add('monthly-price-a'); satisfied.add('monthly-price-b'); }
   if (has(/원|달러|USD|KRW|무료|요금제|플랜|plan/i)) satisfied.add('currency-and-plan');
@@ -105,10 +106,8 @@ function assessAnswerRequirements(question, understanding, facts, options = {}) 
   const officialFacts = accepted.filter((fact) => classifyOfficialSource(fact.sourceUrl));
   const comparisonFacts = accepted.filter((fact) => understanding.claimType === 'comparison');
   const comparisonOfficialSatisfied = req.includes('service-a') && req.includes('service-b')
-    ? comparisonFacts.some((fact) => /PostgreSQL/i.test(fact.subject || '') && classifyOfficialSource(fact.sourceUrl)
-      && /JSON|기능|지원|타입/i.test(`${fact.relation || ''} ${fact.value || ''} ${fact.quote || ''}`))
-      && comparisonFacts.some((fact) => /MySQL/i.test(fact.subject || '') && classifyOfficialSource(fact.sourceUrl)
-        && /JSON|기능|지원|타입/i.test(`${fact.relation || ''} ${fact.value || ''} ${fact.quote || ''}`))
+    ? comparedSubjects.length === 2 && comparedSubjects.every((subject) => comparisonFacts.some((fact) => String(fact.subject || '').toLocaleLowerCase().includes(subject.toLocaleLowerCase())
+      && classifyOfficialSource(fact.sourceUrl) && String(fact.relation || '').trim() && String(fact.value || '').trim()))
     : officialFacts.length > 0;
   const policyHold = officialRequired && !comparisonOfficialSatisfied;
   const answerEligible = accepted.filter((fact) => !officialRequired || classifyOfficialSource(fact.sourceUrl));
@@ -210,7 +209,7 @@ export function understandSearchQuestion(question, now = new Date()) {
   const claimType = weatherQuestionPattern.test(text) ? 'weather'
     : /비교|와\s+.*기능|사양 비교|compare/i.test(text) ? 'comparison'
       : /가격|요금|비용|무료 용량|price|pricing|cost/i.test(text) ? 'price'
-        : /최신|안정|LTS|버전|릴리스|release|version/i.test(text) ? 'version'
+        : /최신|안정|정식|출시|LTS|버전|릴리스|release|version/i.test(text) ? 'version'
           : /누구|장관|대표|CEO|person/i.test(text) ? 'person'
             : /본부|사무소|위치|도시|어디/i.test(text) ? 'location'
               : /행사|축제|일정|뉴스|소식|event|news/i.test(text) ? 'event'
@@ -240,19 +239,8 @@ export function understandSearchQuestion(question, now = new Date()) {
 export function buildGeneralSearchPlan(question, options = {}) {
   const understanding = options.understanding ?? understandSearchQuestion(question, options.now);
   const text = understanding.original;
-  const queries = /MDN.*fetch|fetch.*AbortSignal|AbortController/i.test(text)
-    ? ['site:developer.mozilla.org fetch AbortSignal AbortController usage MDN']
-    : /Kubernetes.*liveness|liveness.*Kubernetes/i.test(text)
-      ? ['site:kubernetes.io/docs liveness probe official documentation']
-      : /Python.*(최신|안정|release|다운로드)|Python.*stable/i.test(text)
-        ? ['site:python.org/downloads latest stable Python release download']
-        : /PostgreSQL.*MySQL|MySQL.*PostgreSQL|JSON.*비교/i.test(text)
-          ? ['site:postgresql.org/docs current JSON jsonb PostgreSQL official', 'site:dev.mysql.com/doc/refman JSON data type MySQL official']
-          : /AWS.*Lambda|Lambda.*(요금|가격|요청)/i.test(text)
-            ? ['site:aws.amazon.com AWS Lambda request pricing free tier', 'site:docs.aws.amazon.com/lambda latest pricing request charges']
-            : /React.*(최신|release|버전)/i.test(text)
-              ? ['site:react.dev/blog latest React release official']
-              : [text.replace(/[?？!！]/g, ' ').replace(/\s+/g, ' ').trim()];
+  const cleaned = text.replace(/[?？!！]/g, ' ').replace(/\s+/g, ' ').trim();
+  const queries = [cleaned, ...(understanding.officialRequired ? [`${cleaned} official documentation`] : [])];
   return { understanding, queries: [...new Set(queries.filter(Boolean))], maxSearches: options.maxSearches ?? 2, maxReads: options.maxReads ?? 4 };
 }
 
@@ -352,9 +340,9 @@ export function extractAtomicFacts(question, source, options = {}) {
     const coreOverlap = coreQueryTokens.filter((token) => blockTokens.has(token)).length;
     const acronymTerms = String(understanding.original).match(/\b[A-Z][A-Za-z0-9._-]{1,}\b/g) || [];
     const acronymMatch = acronymTerms.length === 0 || acronymTerms.some((token) => blockTokens.has(token.toLocaleLowerCase()));
-    const requestedFeatureMatch = !/JSON/i.test(understanding.original) || /JSON/i.test(block.text);
-    const requestedRelationMatch = !/본부/.test(understanding.original) || !/WHO/i.test(understanding.original)
-      ? true : /WHO\s*본부/i.test(block.text);
+    const requestedFeatureMatch = coreQueryTokens.length === 0 || coreQueryTokens.some((token) => blockTokens.has(token));
+    const requestedOwner = understanding.original.match(/([^\s]+)\s*본부/u)?.[1];
+    const requestedRelationMatch = !requestedOwner || new RegExp(`${requestedOwner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*본부`, 'i').test(block.text);
     const topicalWeatherTerm = weatherQuestionPattern.test(block.text);
     const focused = coreQueryTokens.length > 1 ? coreOverlap >= 2 : coreOverlap >= 1;
     const claim = genericClaim(block.text);
@@ -455,9 +443,9 @@ export function validateAtomicFact(question, fact, source, options = {}) {
     || understanding.locations.find((location) => context.includes(location) && /^(?:산지|중산간)/.test(fact.quote.trim()));
   if (understanding.locations.length && !requestedLocation) failures.push('requested-location-not-in-scope');
   if (understanding.claimType === 'weather' && requestedLocation && (fact.quote.match(/\[[가-힣]{2,}\]/g) || []).length > 1) failures.push('mixed-location-value');
-  if (understanding.claimType === 'price' && /Lambda|요청/i.test(understanding.original)
+  if (understanding.claimType === 'price' && /요청|request/i.test(understanding.original)
       && /총 월별 요금|요금 합계|\s×\s|=\s*\d/i.test(fact.quote)) failures.push('calculation-example-not-unit-price');
-  if (understanding.claimType === 'price' && /Lambda|요청/i.test(understanding.original)
+  if (understanding.claimType === 'price' && /요청|request/i.test(understanding.original)
       && /무료로 시작|시작하기|메뉴|안내/i.test(fact.quote)
       && !/무료\s*(?:요청|건)|프리\s*티어|백만\s*건/i.test(fact.quote)) failures.push('pricing-menu-not-request-price');
   const bodyNumbers = fact.quote.match(numberPattern) ?? [];
