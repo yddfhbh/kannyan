@@ -58,6 +58,12 @@ export function renderGeneralSearchAnswer(result) {
   return lines.join('\n');
 }
 
+// A failed on-path extraction cannot turn unreviewed bodies into legacy
+// answer context. Keep diagnostics, but remove all factual material.
+export function suppressUnverifiedGeneralSearchData(searchData) {
+  return { ...searchData, results: [], context: '', failed: true, status: 'insufficient-evidence' };
+}
+
 // The caller supplies the existing search result. Shadow never invokes the
 // extractor unless an offline saved response is explicitly injected.
 export async function runGeneralSearchChat(question, searchData, options = {}) {

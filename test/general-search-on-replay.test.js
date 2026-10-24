@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { collectGeneralSearchBodies, collectWebBodyEvidence } from '../src/web-evidence.js';
-import { runGeneralSearchChat } from '../src/general-search-chat.js';
+import { runGeneralSearchChat, suppressUnverifiedGeneralSearchData } from '../src/general-search-chat.js';
 import { withGeneralSearchBudget, generalSearchBudgetSnapshot } from '../src/general-search-budget.js';
 import { runChatBudget } from '../src/chat-time-budget.js';
 
@@ -76,4 +76,15 @@ test('off and shadow retain legacy response selection', async () => {
     assert.equal(result.action, 'legacy');
     assert.equal(extractionCalls, 0);
   }
+});
+
+test('failed extraction removes unapproved bodies from the final answer path', () => {
+  const searchData = { results: [{ ...replay.source, evidenceKind: 'body' }], context: replay.source.pageText,
+    bodyVerification: { reads: [{ status: 'body-extracted' }] } };
+  const safe = suppressUnverifiedGeneralSearchData(searchData);
+  assert.deepEqual(safe.results, []);
+  assert.equal(safe.context, '');
+  assert.equal(safe.failed, true);
+  assert.equal(safe.status, 'insufficient-evidence');
+  assert.equal(safe.bodyVerification, searchData.bodyVerification);
 });

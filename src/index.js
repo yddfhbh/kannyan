@@ -188,7 +188,7 @@ import {
   isPyhokWikiLinkRequest,
 } from './pyhok-wiki-search.js';
 import { resolveChatEvidence, answerChatBySource, chatSourceGuidance } from './chat-search-policy.js';
-import { eligibleForGeneralSearch, runGeneralSearchChat, generalSearchMode } from './general-search-chat.js';
+import { eligibleForGeneralSearch, runGeneralSearchChat, generalSearchMode, suppressUnverifiedGeneralSearchData } from './general-search-chat.js';
 import { withGeneralSearchBudget, withinGeneralSearchDeadline, generalSearchBudgetSnapshot } from './general-search-budget.js';
 import { buildWebPageReferenceContext } from './web-page-content.js';
 import { collectNewsEvidence, isNewsRequest, answerVerifiedNews, parseNewsFreshnessDays } from './news-evidence.js';
@@ -8149,6 +8149,7 @@ const chessAnalysis =
         await sendChatFactReply(message, rawPrompt, general.answer, requestNow, 'chat-general-search');
         return true;
       }
+      if (generalSearchMode() === 'on') webSearchData = suppressUnverifiedGeneralSearchData(webSearchData);
     }
     const evidenceDecision = resolveChatEvidence(searchIntent, { webSearchData, wikiSearchData, webPageData });
     if (evidenceDecision.blockWholeAnswer && !isChessPrompt && !imageParts.length) {
