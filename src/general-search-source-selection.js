@@ -1,8 +1,7 @@
 import { classifyOfficialSource, extractPageEvidence, understandSearchQuestion, rankGeneralCandidates } from './general-search-pipeline.js';
 
-// Offline/shadow-mode source selection. This module is deliberately not imported
-// by the Discord bot. It makes source ownership, freshness, relevance, and body
-// quality separate signals instead of treating the word “official” as ownership.
+// Source selection keeps ownership, freshness, relevance, and body quality
+// separate rather than treating the word “official” as ownership.
 export const SOURCE_SELECTION_BUDGETS = Object.freeze({
   maxSearchCandidates: 12,
   maxSelectedPages: 4,
