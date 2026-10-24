@@ -7,7 +7,7 @@ export function withGeneralSearchBudget(work, options = {}) {
   const maxDurationMs = options.durationMs ?? limits.durationMs;
   const state = { searches: 0, reads: 0, extractions: 0,
     maxSearches: limits.searches, maxReads: limits.reads, maxExtractions: limits.extractions,
-    controller: new AbortController() };
+    deadline: Date.now() + maxDurationMs, controller: new AbortController() };
   const timer = setTimeout(() => state.controller.abort(), maxDurationMs);
   return storage.run(state, async () => {
     try { return await work(); }
@@ -49,5 +49,5 @@ export async function withinGeneralSearchDeadline(work) {
 export function generalSearchBudgetSnapshot() {
   const state = generalSearchBudget();
   return state ? { searches: state.searches, reads: state.reads, extractions: state.extractions,
-    aborted: state.controller.signal.aborted } : null;
+    remainingMs: Math.max(0, state.deadline - Date.now()), aborted: state.controller.signal.aborted } : null;
 }

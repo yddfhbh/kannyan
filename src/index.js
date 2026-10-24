@@ -16,6 +16,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { randomUUID } from 'node:crypto';
 import { inspect, promisify } from 'node:util';
 import sharp from 'sharp';
 import {
@@ -8108,14 +8109,35 @@ const chessAnalysis =
       news: Boolean(webSearchData?.newsVerification), age: /나이|생년월일|출생일|몇\s*살/.test(rawPrompt),
       image: imageParts.length > 0, localOnly: !searchIntent.requiresExternal || searchIntent.hasLocalAnswer,
     }) && webSearchData) {
+      const generalTraceId = randomUUID();
+      const generalStartedAt = Date.now();
       let general;
       try {
         general = await (typeof withinGeneralSearchDeadline === 'function' ? withinGeneralSearchDeadline : (work) => work())(() => runGeneralSearchChat(rawPrompt, webSearchData, { now: requestNow }));
       } catch (error) {
-        console.warn(`[General search] extraction failed status=${error?.status ?? error?.name ?? 'unknown'}`);
+        console.warn(`[General search] extraction failed status=${Number.isInteger(error?.status) ? error.status : 'unknown'}`);
         general = { action: 'legacy', reason: 'extraction-error' };
       }
-      if (typeof generalSearchBudgetSnapshot === 'function') console.log(`[General search budget] ${JSON.stringify(generalSearchBudgetSnapshot())}`);
+      const review = webSearchData.bodyVerification;
+      const reviewStatus = review?.error?.category || (review?.reviews?.length ? 'completed' : 'none');
+      const reviewHttpStatus = Number.isInteger(review?.error?.status) ? review.error.status : null;
+      console.log(`[General search diagnostic] ${JSON.stringify({
+        at: new Date().toISOString(), traceId: generalTraceId, durationMs: Date.now() - generalStartedAt,
+        mode: generalSearchMode(), searchStatus: webSearchData.status || 'unknown', reviewStatus, reviewHttpStatus,
+        searchAttempts: webSearchData.attempts?.map((attempt) => ({
+          provider: ['duckduckgo', 'naver'].includes(attempt.provider) ? attempt.provider : 'other',
+          httpStatus: Number.isInteger(attempt.httpStatus) ? attempt.httpStatus : null,
+        })) || [],
+        reviewFailedBatches: review?.reviewCalls?.length || 0, reviewedSources: review?.reviews?.length || 0,
+        readStatuses: review?.reads?.map((read) => read.status).filter((status) => [
+          'body-extracted', 'read-failed', 'extraction-failed', 'insufficient-body', 'duplicate-fetched-url',
+        ].includes(status)) || [],
+        extractedBodies: review?.reads?.filter((read) => read.status === 'body-extracted').length || 0,
+        extractionCalls: general.extractionCalls || 0, extractionStatus: general.extractionStatus || null,
+        outcome: general.outcome || null, reason: general.reason || null, action: general.action,
+        pages: typeof general.pages === 'number' ? general.pages : general.pages?.length || 0,
+        facts: general.verifiedCount || 0, budget: generalSearchBudgetSnapshot(),
+      })}`);
       if (generalSearchMode() === 'shadow') console.log(`[General search shadow] outcome=${general.outcome || 'unavailable'} reason=${general.reason || 'verified'} facts=${general.verifiedCount || 0}`);
       if (general.action === 'verified') {
         await sendChatFactReply(message, rawPrompt, general.answer, requestNow, 'chat-general-search');
