@@ -34,10 +34,10 @@ export function resolveChatSourcePlan(result, prompt, explicitIntent) {
   const plan = result?.sourcePlan;
   const bounded = (v, max) => typeof v === 'string' && v.trim().length > 0
     && v.length <= max && !/[\u0000-\u001f]/.test(v);
-  const validSearch = plan?.mode === 'search' && bounded(plan.query, 300)
+  const validSearch = !explicitIntent?.noSearch && plan?.mode === 'search' && bounded(plan.query, 300)
     && bounded(plan.purpose, 400) && bounded(plan.externalPrompt, 2000);
   const validLocal = plan?.mode === 'local';
-  const explicit = Boolean(explicitIntent?.requiresExternal);
+  const explicit = Boolean(explicitIntent?.requiresExternal) && !explicitIntent?.noSearch;
   const requiresExternal = validSearch || explicit;
   // Malformed/legacy JSON must never expose an unverified external answer.
   // Recover an independently answerable identity clause even if the model
@@ -65,7 +65,7 @@ export function resolveChatSourcePlan(result, prompt, explicitIntent) {
       query: validSearch ? preserveOriginalSearchQuery(prompt, plan.query) : prompt,
       identityTrace: { original: prompt, proposedQuery: plan?.query || '', proposedPurpose: plan?.purpose || '', proposedExternalPrompt: plan?.externalPrompt || '', effectiveExternalPrompt: validSearch ? preserveOriginalIdentityPrompt(prompt, plan.externalPrompt) : prompt, effectiveQuery: validSearch ? preserveOriginalSearchQuery(prompt, plan.query) : prompt, anchors: searchIdentityAnchors(prompt) },
       purpose: validSearch ? (searchIdentityAnchors(prompt).length === 2 ? prompt : plan.purpose.trim()) : '명시적 검색 요청 확인',
-      reason: validSearch ? 'model-search-plan' : validLocal ? 'model-local-answer' : 'invalid-source-plan' },
+      reason: explicitIntent?.noSearch ? 'explicit-no-search' : explicit && !validSearch ? explicitIntent.reason || 'explicit-search' : validSearch ? 'model-search-plan' : validLocal ? 'model-local-answer' : 'invalid-source-plan' },
   };
 }
 

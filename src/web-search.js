@@ -211,15 +211,25 @@ export function classifyWebSearchIntent(prompt) {
   // Quoted text is excluded so translation/quotation requests do not trigger
   // an unrelated external lookup.
   const unquoted = text.replace(/(['“"‘「『])(.*?)(['”"’」』])/g, ' ');
+  const noSearch = /(?:검색\s*(?:하지\s*말|하지|없이)|(?:웹|인터넷)\s*(?:검색|조회)\s*(?:없이|하지\s*말)|(?:do not|don't|without)\s+(?:search|browse|web lookup))/i.test(unquoted);
+  // Source words alone are not a directive. Require a named external source
+  // as the basis for an answer, or an explicit request to check citations.
+  const providedMaterial = /^(?:(?:아래|다음|첨부|제공한|내가\s*(?:준|붙인|올린))\s*(?:공식\s*)?(?:글|문서|자료|내용|텍스트|링크|PDF|파일)|이\s*(?:공식\s*)?(?:글|문서|자료)).{0,60}(?:번역|요약|정리|다듬|교정|말투|바꿔)/i.test(unquoted);
+  const officialSource = /(?:공식\s*(?:API\s*)?(?:문서|홈페이지|사이트|웹사이트|자료|가이드|설명|안내|매뉴얼|레퍼런스|reference|docs?|documentation)|제조사\s*(?:문서|홈페이지|사이트|설명|자료|안내)|제공자\s*(?:문서|설명|안내)|official\s+(?:API\s+)?(?:documentation|docs?|website|site|guide|reference|manual)|manufacturer(?:'s)?\s+(?:documentation|website|description|guidance))/i.test(unquoted);
+  const sourceBasis = /(?:에서|기준(?:으로|에\s*따라)?|에\s*따르면|를\s*(?:참고|확인|근거)|을\s*(?:참고|확인|근거)|에\s*(?:근거|따라)|according\s+to|based\s+on|refer(?:ring)?\s+to|consult)/i.test(unquoted);
+  const explicitSource = !providedMaterial && ((officialSource && sourceBasis)
+    || /(?:출처|원문|근거)\s*(?:를|을)?\s*(?:직접\s*)?(?:확인|검증|찾아|검색)(?:해서|해\s*줘|해주세요|하고|한\s*뒤)/i.test(unquoted)
+    || /(?:check|verify|consult)\s+(?:the\s+)?(?:source|citation|official\s+(?:docs?|documentation))/i.test(unquoted));
   const hasTrailingSearchCommand = /\S+\s+(?:검색|search)[.!?？]*$/i.test(unquoted)
     || /^(?:검색|search)\s+\S+/i.test(unquoted);
   const explicit = /^(?:검색|search)\s*[:： ]/i.test(text)
     || /(?:검색해\s*줘|검색해봐|검색해서\s*요약해\s*줘|찾아\s*줘|찾아봐)[.!?？]*$/i.test(text)
     || hasTrailingSearchCommand
     || /푝무위키|우리 위키|pyhok(?:\.com)?/i.test(text);
-  return { requiresExternal: explicit, hasLocalAnswer: !explicit,
-    localPrompt: explicit ? '' : text, externalPrompt: explicit ? text : '',
-    reason: explicit ? 'explicit-search' : 'model-source-plan' };
+  const requiresExternal = !noSearch && (explicit || explicitSource);
+  return { requiresExternal, hasLocalAnswer: !requiresExternal, noSearch,
+    localPrompt: requiresExternal ? '' : text, externalPrompt: requiresExternal ? text : '',
+    reason: noSearch ? 'explicit-no-search' : explicit ? 'explicit-search' : explicitSource ? 'explicit-source' : 'model-source-plan' };
 }
 
 // Narrow guard used only to avoid a planner round-trip when external facts
