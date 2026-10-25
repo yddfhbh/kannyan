@@ -63,7 +63,12 @@ export async function searchWeb(query, options = {}) {
     const failures = [];
     const attempts = [];
     let successfulRequests = 0;
+    let budgetExhausted = false;
     const collect = async (provider, searchQuery, operation) => {
+      if (!consumeGeneralSearchAttempt('search')) {
+        budgetExhausted = true;
+        return null;
+      }
       const attempt = {
         provider,
         query: searchQuery,
@@ -84,10 +89,10 @@ export async function searchWeb(query, options = {}) {
       };
       const attemptStartedAt = Date.now();
       try {
-        if (!consumeGeneralSearchAttempt('search') || (options.beforeHttpAttempt && !(await options.beforeHttpAttempt({ type: 'search', provider, query: searchQuery })))) {
-          const error = new Error('HTTP request budget exhausted.');
-          error.code = 'HTTP_BUDGET_EXHAUSTED';
-          throw error;
+        if (options.beforeHttpAttempt && !(await options.beforeHttpAttempt({ type: 'search', provider, query: searchQuery }))) {
+          budgetExhausted = true;
+          attempts.pop();
+          return null;
         }
         const results = await operation(fetchImpl); successfulRequests += 1;
         attempt.stage = 'response-parsed';
@@ -95,7 +100,6 @@ export async function searchWeb(query, options = {}) {
         logSearchEvent(logger, { provider, stage: 'search', status: attempt.status, httpStatus: attempt.httpStatus, durationMs: attempt.durationMs, resultCount: results.length });
         return results;
       } catch (error) {
-        if (error?.code === 'HTTP_BUDGET_EXHAUSTED') throw error;
         failures.push(error);
         Object.assign(attempt, {
           status: classifySearchFailure(error),
@@ -113,7 +117,7 @@ export async function searchWeb(query, options = {}) {
       }
     };
 
-    for (const searchQuery of queryVariants) {
+    searchQueries: for (const searchQuery of queryVariants) {
       let results = [];
       for (const provider of providerOrder) {
         results = provider === 'naver'
@@ -126,6 +130,7 @@ export async function searchWeb(query, options = {}) {
             signal: requestSignal,
             fetchImpl,
           }));
+        if (results === null) break searchQueries;
         if (results.length > 0) break;
       }
       queryResults.push(results);
@@ -136,7 +141,7 @@ export async function searchWeb(query, options = {}) {
     const mergedResults = (newsSelection ? newsSelection.filter(r => r.eligible).map(r => r.candidate) : ranked).slice(0, maxResults);
 
     const finalStatus = ranked.length ? 'success' : controller.signal.aborted ? 'timeout' : failures.some((e) => e.kind === 'parse-error') ? 'parse-error' : failures.some((e) => e.status === 429) ? 'rate-limited' : failures.some((e) => [202, 403].includes(e.status)) ? 'blocked' : failures.some((e) => [500, 502, 503, 504].includes(e.status)) ? 'provider-unavailable' : attempts.some((attempt) => attempt.status === 'no-eligible-results') ? 'no-eligible-results' : successfulRequests ? 'empty' : 'failed';
-    const budgetExhausted = chatTimeRemaining() <= 14_000;
+    budgetExhausted ||= chatTimeRemaining() <= 14_000;
     logSearchEvent(logger, { provider: 'aggregate', stage: 'search-summary', status: finalStatus, httpStatus: null, durationMs: Date.now() - startedAt, resultCount: ranked.length, budgetExhausted });
     return {
       query: normalizedQuery,
@@ -591,7 +596,8 @@ function classifySearchFailure(error) {
 }
 
 function safeSearchErrorCode(error) {
-  return error?.code || error?.name || undefined;
+  const code = error?.code || error?.name;
+  return typeof code === 'string' && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(code) ? code : undefined;
 }
 
 // Diagnostics deliberately retain only transport-safe error metadata. Do not

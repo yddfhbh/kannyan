@@ -8,13 +8,95 @@ import { runGeneralSearchChat } from '../src/general-search-chat.js';
 test('search fallback and query variants share two real HTTP attempts', async () => {
   let calls = 0;
   await withGeneralSearchBudget(async () => {
-    await assert.rejects(searchWeb('unknown subject', {
-      queryVariants: ['first', 'second'], providerOrder: ['duckduckgo', 'naver'],
+    const result = await searchWeb('unknown subject', {
+      queryVariants: ['first', 'second', 'third'], providerOrder: ['duckduckgo', 'naver'],
       fetchImpl: async () => { calls += 1; return { status: 503, ok: false, text: async () => '' }; },
       logger: {},
-    }), { code: 'HTTP_BUDGET_EXHAUSTED' });
+    });
     assert.equal(calls, 2);
     assert.equal(generalSearchBudgetSnapshot().searches, 2);
+    assert.equal(result.status, 'provider-unavailable');
+    assert.equal(result.budgetExhausted, true);
+    assert.deepEqual(result.attempts.map(({ provider, httpStatus }) => [provider, httpStatus]), [
+      ['duckduckgo', 503], ['naver', 503],
+    ]);
+  });
+});
+
+test('DDG challenge followed by Naver success retains the candidate when another query is planned', async () => {
+  let calls = 0;
+  await withGeneralSearchBudget(async () => {
+    const result = await searchWeb('generic topic', {
+      queryVariants: ['generic topic', 'generic topic site:example.org'],
+      fetchImpl: async (url) => {
+        calls++;
+        return String(url).includes('duckduckgo')
+          ? new Response('challenge', { status: 202 })
+          : new Response('<main><a href="https://example.org/guide">Generic topic guide</a></main>');
+      },
+    });
+    assert.equal(calls, 2);
+    assert.equal(result.status, 'success');
+    assert.equal(result.budgetExhausted, true);
+    assert.equal(result.results[0].url, 'https://example.org/guide');
+    assert.deepEqual(result.attempts.map(({ provider, status, httpStatus }) => [provider, status, httpStatus]), [
+      ['duckduckgo', 'blocked', 202], ['naver', 'success', 200],
+    ]);
+  });
+});
+
+test('first query success survives the search budget limit on later variants', async () => {
+  let calls = 0;
+  await withGeneralSearchBudget(async () => {
+    const result = await searchWeb('generic topic', {
+      queryVariants: ['first', 'second', 'third'], providerOrder: ['naver'],
+      fetchImpl: async () => {
+        calls++;
+        return calls === 1
+          ? new Response('<main><a href="https://example.org/guide">Generic topic guide</a></main>')
+          : new Response('검색 결과가 없습니다');
+      },
+    });
+    assert.equal(calls, 2);
+    assert.equal(result.status, 'success');
+    assert.equal(result.results[0].url, 'https://example.org/guide');
+    assert.deepEqual(result.attempts.map(({ status }) => status), ['success', 'empty']);
+  });
+});
+
+test('two blocked engines return their failure status and actual attempts', async () => {
+  await withGeneralSearchBudget(async () => {
+    const result = await searchWeb('generic topic', {
+      queryVariants: ['first', 'second'],
+      fetchImpl: async () => new Response('challenge', { status: 202 }),
+    });
+    assert.equal(result.status, 'blocked');
+    assert.equal(result.failed, true);
+    assert.equal(result.attempts.length, 2);
+    assert.deepEqual(result.attempts.map(({ httpStatus }) => httpStatus), [202, 202]);
+  });
+});
+
+test('a later transport exception retains earlier success and safe failure diagnostics', async () => {
+  let calls = 0;
+  await withGeneralSearchBudget(async () => {
+    const result = await searchWeb('generic topic', {
+      queryVariants: ['first', 'second', 'third'], providerOrder: ['naver'],
+      fetchImpl: async () => {
+        calls++;
+        if (calls === 1) return new Response('<main><a href="https://example.org/guide">Generic topic guide</a></main>');
+        const error = new TypeError('fetch failed');
+        error.code = 'unsafe/request-detail';
+        error.cause = { code: 'ENOTFOUND' };
+        throw error;
+      },
+    });
+    assert.equal(calls, 2);
+    assert.equal(result.status, 'success');
+    assert.equal(result.results[0].url, 'https://example.org/guide');
+    assert.deepEqual(result.attempts.map(({ status }) => status), ['success', 'transport-error']);
+    assert.equal(result.attempts[1].errorCode, undefined);
+    assert.equal(result.attempts[1].errorCauseCode, 'ENOTFOUND');
   });
 });
 

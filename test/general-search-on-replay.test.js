@@ -5,6 +5,7 @@ import { collectGeneralSearchBodies, collectWebBodyEvidence } from '../src/web-e
 import { runGeneralSearchChat, suppressUnverifiedGeneralSearchData } from '../src/general-search-chat.js';
 import { withGeneralSearchBudget, generalSearchBudgetSnapshot } from '../src/general-search-budget.js';
 import { runChatBudget } from '../src/chat-time-budget.js';
+import { searchWeb } from '../src/web-search.js';
 
 const replay = JSON.parse(readFileSync(new URL('./fixtures/general-search-discord-replay.json', import.meta.url)));
 const candidate = { url: replay.source.url, title: replay.source.title, snippet: 'GitHub Actions free use and billing' };
@@ -27,6 +28,34 @@ test('saved Discord case reaches one extraction without the 20-second legacy rev
     assert.equal(result.outcome, 'partial');
     assert.match(result.answer, /docs\.github\.com/);
     assert.equal(generalSearchBudgetSnapshot().reads, 0); // injected offline read
+  }));
+});
+
+test('budget-limited search candidate reaches body collection and general verification', async () => {
+  await runChatBudget(() => withGeneralSearchBudget(async () => {
+    let searchCalls = 0;
+    const search = await searchWeb(replay.question, {
+      queryVariants: [replay.question, `${replay.question} site:docs.github.com`],
+      fetchImpl: async (url) => {
+        searchCalls++;
+        return String(url).includes('duckduckgo')
+          ? new Response('challenge', { status: 202 })
+          : new Response(`<main><a href="${replay.source.url}">${replay.source.title}</a></main>`);
+      },
+    });
+    assert.equal(searchCalls, 2);
+    assert.equal(search.status, 'success');
+    assert.equal(search.attempts.length, 2);
+    const data = await collectGeneralSearchBodies(replay.question, search, { readPage });
+    assert.equal(data.bodyVerification.reads[0].status, 'body-extracted');
+    let extractionCalls = 0;
+    const result = await runGeneralSearchChat(replay.question, data, { mode: 'on', extract: async () => {
+      extractionCalls++;
+      return { responseSchemaValid: true, facts: replay.facts, calls: extractionCalls };
+    } });
+    assert.equal(extractionCalls, 1);
+    assert.equal(result.outcome, 'partial');
+    assert.match(result.answer, /docs\.github\.com/);
   }));
 });
 
