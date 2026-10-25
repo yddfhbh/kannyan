@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { withGeneralSearchBudget, consumeGeneralSearchAttempt, generalSearchBudgetSnapshot, withinGeneralSearchDeadline } from '../src/general-search-budget.js';
 import { searchWeb } from '../src/web-search.js';
 import { fetchWebPageText } from '../src/web-page-content.js';
+import { runGeneralSearchChat } from '../src/general-search-chat.js';
 
 test('search fallback and query variants share two real HTTP attempts', async () => {
   let calls = 0;
@@ -43,4 +44,13 @@ test('extraction and total deadline stop additional attempts without leaking int
     assert.equal(consumeGeneralSearchAttempt('search'), true);
     assert.equal(generalSearchBudgetSnapshot().searches, 1);
   });
+});
+
+test('expired 30-second scope does not start a Gemini extraction', async () => {
+  await withGeneralSearchBudget(async () => {
+    const pages = [{ sourceId: 'source-1', url: 'https://docs.github.com/en/billing',
+      title: 'GitHub Actions billing', pageText: 'GitHub Actions billing includes free minutes and paid overages.' }];
+    const result = await runGeneralSearchChat('GitHub Actions billing', { results: [] }, { mode: 'on', pages });
+    assert.equal(result.reason, 'extraction-budget-exhausted');
+  }, { durationMs: 1 });
 });

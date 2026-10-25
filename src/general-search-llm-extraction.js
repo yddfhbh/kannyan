@@ -160,6 +160,11 @@ function validateContextualClaim(fact, body, span) {
   const relationWords = relation.split(/[\s_-]+/).filter((word) => word.length >= 2 && !/^(the|per|of|for|내역|정보|내용|규칙)$/i.test(word));
   const relationText = `${previousLine} ${record}`;
   const relationSupported = contains(relationText, relation)
+    || (/^(?:usage|use|call|invoke|호출|사용법|사용 방법)$/i.test(relation.trim())
+      && /[A-Za-z_$][\w$]*\s*\(/.test(record) && contains(record, subject) && contains(record, value))
+    || (/^(?:returns?|return value|반환값?)$/i.test(relation.trim())
+      && new RegExp(`\\b(?:const|let|var)\\s+${value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*=`, 'i').test(record)
+      && contains(record, subject))
     || (isDate && /date|published|posted|announced|announcement|on\s+20\d{2}|날짜|발표|게시|등록/i.test(relationText) && /date|published|posted|announcement|발표|게시|날짜/i.test(relation))
     || (isDate && /date|날짜/i.test(relation) && contains(record, value))
     || (/status|상태/i.test(relation) && /beta|preview|alpha|stable|general availability|정식|시험판|release/i.test(record))
@@ -231,10 +236,10 @@ export function assessRequiredAnswerItems(question, facts, options = {}) {
 export function parseEvidenceExtractionResponse(raw, pages, options = {}) {
   let parsed;
   try { parsed = typeof raw === 'string' ? JSON.parse(raw.replace(/^```json\s*|\s*```$/g, '')) : raw; }
-  catch { return { facts: [], responseSchemaValid: false, failures: ['invalid-json'] }; }
-  if (!parsed || !Array.isArray(parsed.facts)) return { facts: [], responseSchemaValid: false, failures: ['facts-array-required'] };
+  catch { return { facts: [], rawFactCount: 0, responseSchemaValid: false, failures: ['invalid-json'] }; }
+  if (!parsed || !Array.isArray(parsed.facts)) return { facts: [], rawFactCount: 0, responseSchemaValid: false, failures: ['facts-array-required'] };
   const facts = parsed.facts.map((fact) => validateExtractedEvidenceFact(fact, pages, options));
-  return { facts, verified: facts.filter((fact) => fact.status === 'verified'), responseSchemaValid: true,
+  return { facts, rawFactCount: parsed.facts.length, verified: facts.filter((fact) => fact.status === 'verified'), responseSchemaValid: true,
     evidenceStatus: facts.some((fact) => fact.status === 'verified') ? 'verified' : 'evidence-insufficient' };
 }
 

@@ -8142,10 +8142,14 @@ const chessAnalysis =
         extractionCalls: general.extractionCalls || 0, extractionStatus: general.extractionStatus || null,
         outcome: general.outcome || null, reason: general.reason || null, action: general.action,
         pages: typeof general.pages === 'number' ? general.pages : general.pages?.length || 0,
-        facts: general.verifiedCount || 0, budget: generalSearchBudgetSnapshot(),
+        facts: general.verifiedCount || 0, extraction: general.extractionDiagnostics || null,
+        sources: general.sourceDiagnostics || [],
+        readFailures: review?.reads?.filter((read) => read.status === 'read-failed' || read.status === 'extraction-failed')
+          .map((read) => ({ category: read.error?.category || 'unknown', status: Number.isInteger(read.error?.status) ? read.error.status : null })) || [],
+        budget: generalSearchBudgetSnapshot(),
       })}`);
       if (generalSearchMode() === 'shadow') console.log(`[General search shadow] outcome=${general.outcome || 'unavailable'} reason=${general.reason || 'verified'} facts=${general.verifiedCount || 0}`);
-      if (general.action === 'verified') {
+      if (general.action === 'verified' || general.action === 'hold') {
         await sendChatFactReply(message, rawPrompt, general.answer, requestNow, 'chat-general-search');
         return true;
       }

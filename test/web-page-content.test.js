@@ -10,7 +10,7 @@ test('extractHttpUrls finds unique HTTP URLs', () => {
 test('extractReadablePageText removes navigation and scripts', () => {
   const page = extractReadablePageText('<title>문서</title><nav>메뉴</nav><main><h1>제목</h1><p>중요한 본문</p><script>나쁜 코드</script></main><footer>푸터</footer>');
   assert.equal(page.title, '문서');
-  assert.match(page.text, /제목 중요한 본문/);
+  assert.match(page.text, /제목\s+중요한 본문/);
   assert.doesNotMatch(page.text, /메뉴|나쁜 코드|푸터/);
 });
 

@@ -136,12 +136,12 @@ async function fetchWebPageTextWithinDeadline(input, options = {}) {
     }
     const html = await readLimitedResponse(response, maxHtmlBytes);
     return { url: url.toString(), status: response.status, contentType, redirectChain,
-      ...extractReadablePageText(html, maxTextLength) };
+      ...extractReadablePageText(html, maxTextLength, { fragment: url.hash }) };
   }
   throw new Error('Too many redirects.');
 }
 
-export function extractReadablePageText(html, maxTextLength = defaultMaxTextLength) {
+export function extractReadablePageText(html, maxTextLength = defaultMaxTextLength, options = {}) {
   // Some public pages contain malformed CSS. It is not evidence and should
   // never flood diagnostics with the page's raw stylesheet.
   const virtualConsole = new VirtualConsole();
@@ -157,9 +157,26 @@ export function extractReadablePageText(html, maxTextLength = defaultMaxTextLeng
     const links = [...(root?.querySelectorAll('a[href]') ?? [])]
       .map((a) => ({ url: a.getAttribute('href'), title: normalizeText(a.textContent) }))
       .filter((link) => link.title.length >= 8).slice(0, 30);
+    let content = root;
+    const fragment = String(options.fragment || '').replace(/^#/, '');
+    let target = null;
+    try { target = fragment ? document.getElementById(decodeURIComponent(fragment)) : null; } catch { /* Invalid fragment. */ }
+    if (target && root?.contains(target)) {
+      const heading = target.matches('h1,h2,h3,h4,h5,h6') ? target : target.closest('h1,h2,h3,h4,h5,h6') || target.querySelector('h1,h2,h3,h4,h5,h6');
+      if (heading) {
+        const section = document.createElement('div');
+        const level = Number(heading.tagName.slice(1));
+        for (let node = heading; node; node = node.nextElementSibling) {
+          if (node !== heading && /^H[1-6]$/.test(node.tagName) && Number(node.tagName.slice(1)) <= level) break;
+          section.appendChild(node.cloneNode(true));
+        }
+        if (section.textContent.trim().length >= 80) content = section;
+      }
+    }
     const textContainer = document.createElement('div');
-    textContainer.innerHTML = String(root?.innerHTML ?? '').replace(/<\/?(?:address|article|blockquote|br|div|figcaption|h[1-6]|li|p|pre|section|table|tr|td|th|dl|dt|dd|ul|ol)\b[^>]*>/gi, ' ');
-    const text = normalizeText(textContainer.textContent ?? '');
+    textContainer.innerHTML = String(content?.innerHTML ?? '').replace(/<\/?(?:address|article|blockquote|br|div|figcaption|h[1-6]|li|p|pre|section|table|tr|dl|dt|dd|ul|ol)\b[^>]*>/gi, '\n')
+      .replace(/<\/?(?:td|th)\b[^>]*>/gi, ' | ');
+    const text = String(textContainer.textContent ?? '').split(/\n+/).map(normalizeText).filter(Boolean).join('\n');
     return {
       title: normalizeText(document.title),
       metadataText,

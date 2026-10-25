@@ -98,7 +98,7 @@ export async function collectGeneralSearchBodies(question, initial, options = {}
     const trace = { requestedUrl: candidate.url, searchTitle: candidate.title, status: 'unavailable' };
     reads.push(trace);
     try {
-      const page = await read(candidate.url, { timeoutMs: 2500, totalTimeoutMs: 2500, maxTextLength: 5000 });
+      const page = await read(candidate.url, { timeoutMs: 2500, totalTimeoutMs: 2500, maxTextLength: 30000 });
       const requested = new URL(candidate.url);
       const fetched = new URL(page.url);
       // A redirect to another host may impersonate the discovered publisher.

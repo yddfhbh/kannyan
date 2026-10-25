@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { generalSearchBudgetSnapshot } from './general-search-budget.js';
 import { chatTimeRemaining } from './chat-time-budget.js';
 import { buildGeneralSearchSourceSnapshot } from './general-search-snapshot.js';
+import { classifyOfficialSource } from './general-search-pipeline.js';
 
 export function generalSearchMode(value = process.env.GENERAL_SEARCH_MODE) {
   return ['off', 'shadow', 'on'].includes(value) ? value : 'off';
@@ -92,10 +93,29 @@ export async function runGeneralSearchChat(question, searchData, options = {}) {
   } catch {
     return { mode, action: 'legacy', reason: 'extraction-error', pages: pages.length };
   }
-  if (extraction.skipped || extraction.responseSchemaValid !== true) return { mode, action: 'legacy', reason: extraction.skipped || 'invalid-extraction', pages: pages.length, extractionCalls: extraction.calls || 0, extractionStatus: extraction.error?.status ?? null };
+  const sourceDiagnostics = pages.map((page) => ({ host: (() => { try { return new URL(page.url).hostname; } catch { return ''; } })(),
+    titleLength: String(page.title || '').length, bodyLength: String(page.pageText || '').length,
+    relevantSegments: page.relevantSegments?.length || 0, official: classifyOfficialSource(page.url) }));
+  if (extraction.skipped || extraction.responseSchemaValid !== true) return { mode, action: 'legacy', reason: extraction.skipped || 'invalid-extraction', pages: pages.length, sourceDiagnostics,
+    extractionDiagnostics: { schemaValid: false, rawFacts: extraction.rawFactCount ?? 0, failures: extraction.failures || [] },
+    extractionCalls: extraction.calls || 0, extractionStatus: extraction.error?.status ?? null };
   // Only strictSemantic-approved facts may reach assessment or display.
-  const verified = (extraction.facts || []).map((fact) => validateExtractedEvidenceFact(fact, pages, { strictSemantic: true }))
-    .filter((fact) => fact.status === 'verified' && fact.semanticSupport === true);
+  const checked = (extraction.facts || []).map((fact) => validateExtractedEvidenceFact(fact, pages, { strictSemantic: true }));
+  const verified = checked.filter((fact) => fact.status === 'verified' && fact.semanticSupport === true);
+  const rejectionReasons = {};
+  for (const fact of checked.filter((item) => item.status !== 'verified')) for (const reason of new Set(fact.validationFailures || [])) {
+    if (/^[a-z0-9:-]+$/i.test(reason)) rejectionReasons[reason] = (rejectionReasons[reason] || 0) + 1;
+  }
+  const extractionDiagnostics = { schemaValid: true, rawFacts: extraction.rawFactCount ?? checked.length,
+    strictApproved: verified.length, strictRejected: checked.length - verified.length, rejectionReasons,
+    sourceLinked: checked.filter((fact) => !fact.validationFailures?.some((reason) => /^(?:source-|missing-source-reference)/.test(reason))).length,
+    quoteMatched: checked.filter((fact) => !fact.validationFailures?.includes('quote-not-in-source')).length,
+    sourceSpanMatched: checked.filter((fact, index) => fact.sourceSpan
+      && fact.sourceSpan.start === extraction.facts[index]?.sourceSpan?.start
+      && fact.sourceSpan.end === extraction.facts[index]?.sourceSpan?.end).length,
+    sourceSpanRecovered: checked.filter((fact, index) => fact.sourceSpan
+      && (fact.sourceSpan.start !== extraction.facts[index]?.sourceSpan?.start
+        || fact.sourceSpan.end !== extraction.facts[index]?.sourceSpan?.end)).length };
   const assessment = assessRequiredAnswerItems(question, verified, { now: options.now });
   const asOfDate = String(question).match(/\b20\d{2}-\d{2}-\d{2}\b/)?.[0];
   if (asOfDate && !verified.some((fact) => fact.appliesAt === asOfDate)) {
@@ -103,7 +123,7 @@ export async function runGeneralSearchChat(question, searchData, options = {}) {
     assessment.outcome = assessment.answerEligible.length ? 'partial' : 'hold';
   }
   const outcome = assessment.outcome;
-  const result = { mode, action: mode === 'shadow' ? 'legacy' : 'verified', outcome, assessment, pages,
+  const result = { mode, action: mode === 'shadow' ? 'legacy' : verified.length ? 'verified' : 'hold', outcome, assessment, pages, sourceDiagnostics, extractionDiagnostics,
     verifiedCount: verified.length, rejectedCount: (extraction.facts || []).length - verified.length,
     extractionCalls: extraction.calls || 0 };
   return { ...result, answer: renderGeneralSearchAnswer(result) };
