@@ -19,6 +19,20 @@ export const evidenceFactSchema = {
   }, additionalProperties: false,
 };
 
+function completeCallSegment(block, body) {
+  const text = String(block.text || '');
+  const start = block.start;
+  const end = block.end;
+  if (!Number.isInteger(start) || !Number.isInteger(end) || body.slice(start, end) !== text
+    || !/[\w$]+\s*\(/.test(text) || (text.match(/\(/g) || []).length <= (text.match(/\)/g) || []).length) return null;
+  const lineStart = body.lastIndexOf('\n', start - 1) + 1;
+  const nextBreak = body.indexOf('\n', end);
+  const lineEnd = nextBreak < 0 ? body.length : nextBreak;
+  const line = body.slice(lineStart, lineEnd);
+  if (line.length > 600 || !line.slice(end - lineStart).includes(')') || line === text) return null;
+  return { text: line, start: lineStart, end: lineEnd };
+}
+
 export function buildEvidenceExtractionInput(question, pages, options = {}) {
   const sources = (pages || []).flatMap((source, sourceIndex) => {
     const page = extractPageEvidence(source);
@@ -29,7 +43,13 @@ export function buildEvidenceExtractionInput(question, pages, options = {}) {
       referenceTime: source.referenceTime || options.referenceTime || null,
       body: { length: page.body.length, storedLength: source.body?.storedLength ?? page.body.length, fullLength: source.body?.fullLength !== undefined ? source.body.fullLength : page.body.length, truncated: source.body?.truncated === true },
       segmentBasis: bounded?.length ? 'source-selection-bounded-body-offsets-utf16' : 'extractPageEvidence-blocks',
-      segments: selected.map((block, blockIndex) => ({ id: block.id || `source-${sourceIndex + 1}-segment-${blockIndex + 1}`, text: block.text, context: block.contextSpan || block.text, sourceSpan: { start: block.start, end: block.end }, sourceSpanBasis: 'body.text UTF-16 code units' })) }];
+      segments: selected.map((block, blockIndex) => {
+        const complete = bounded?.length ? completeCallSegment(block, page.body) : null;
+        return { id: block.id || `source-${sourceIndex + 1}-segment-${blockIndex + 1}`,
+          text: complete?.text || block.text, context: complete?.text || block.contextSpan || block.text,
+          sourceSpan: { start: complete?.start ?? block.start, end: complete?.end ?? block.end },
+          sourceSpanBasis: 'body.text UTF-16 code units' };
+      }) }];
   });
   return { question, requiredAnswerItems: options.requiredAnswerItems || [], referenceTime: options.referenceTime || null, sources };
 }

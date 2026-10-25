@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { assessRequiredAnswerItems, buildEvidenceExtractionInput, buildEvidenceExtractionPrompt, createGeminiEvidenceExtractor, parseEvidenceExtractionResponse, parseGeminiEvidenceResponse, validateExtractedEvidenceFact } from '../src/general-search-llm-extraction.js';
 
 test('quote 복원은 한국어와 이모지의 JavaScript UTF-16 위치를 사용한다', () => {
@@ -123,6 +124,69 @@ test('offline fetch replay confirms the outgoing request contains the selected s
     assert.equal(result.diagnostics.parseStatus, 'empty-facts');
     assert.equal(result.diagnostics.inputSourceCount, 1);
     assert.equal(result.diagnostics.inputSegmentCount, 1);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+    if (previousKeys === undefined) delete process.env.GEMINI_API_KEYS;
+    else process.env.GEMINI_API_KEYS = previousKeys;
+  }
+});
+
+test('saved API-call fixture restores complete selected calls in the outgoing payload and replays empty and supported answers', async () => {
+  const fixture = JSON.parse(readFileSync(new URL('./fixtures/general-search-api-call-extraction.json', import.meta.url), 'utf8'));
+  const pages = fixture.sources.map((source, sourceIndex) => {
+    const pageText = source.lines.join('\n');
+    return { sourceId: `source-${sourceIndex + 1}`, url: source.url, title: source.title, pageText,
+      relevantSegments: source.selectedTexts.map((text, index) => {
+        const start = pageText.indexOf(text);
+        assert.ok(start >= 0);
+        return { id: `segment-${index + 1}`, text, start, end: start + text.length };
+      }) };
+  });
+  const emptyText = JSON.stringify({ facts: [], status: 'evidence-insufficient' }).padEnd(54);
+  const otherEmptyText = JSON.stringify({ facts: [], status: 'ok' }).padEnd(54);
+  assert.notEqual(emptyText, otherEmptyText);
+  const previousFetch = globalThis.fetch;
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousKeys = process.env.GEMINI_API_KEYS;
+  let payload;
+  try {
+    process.env.GEMINI_API_KEY = 'offline-test-key';
+    delete process.env.GEMINI_API_KEYS;
+    globalThis.fetch = async (_url, options) => {
+      payload = JSON.parse(options.body);
+      return { ok: true, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: emptyText }] } }] }) };
+    };
+    const result = await createGeminiEvidenceExtractor()({ question: fixture.question, pages, requiredAnswerItems: ['usage-procedure'] });
+    const prompt = payload.contents[0].parts[0].text;
+    const sent = JSON.parse(prompt.split('Input: ')[1]);
+    assert.equal(payload.contents[0].role, 'user');
+    assert.equal(payload.generationConfig.responseMimeType, 'application/json');
+    assert.equal(payload.generationConfig.maxOutputTokens, 1600);
+    assert.deepEqual(sent.requiredAnswerItems, ['usage-procedure']);
+    assert.equal(sent.question, fixture.question);
+    assert.equal(sent.sources.length, 3);
+    assert.equal(sent.sources.reduce((count, source) => count + source.segments.length, 0), 12);
+    assert.equal(sent.sources[0].url, fixture.sources[0].url);
+    for (const index of [0, 1]) {
+      const segment = sent.sources[0].segments[index];
+      assert.equal(segment.text, fixture.sources[0].lines[index]);
+      assert.equal(pages[0].pageText.slice(segment.sourceSpan.start, segment.sourceSpan.end), segment.text);
+    }
+    assert.match(prompt, /what each documented argument supplies/);
+    assert.equal(result.rawFactCount, 0);
+    assert.equal(result.diagnostics.responseTextLength, 54);
+    assert.equal(result.diagnostics.parseStatus, 'empty-facts');
+    const alternative = parseGeminiEvidenceResponse({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: otherEmptyText }] } }] }, pages);
+    assert.deepEqual(alternative.diagnostics, result.diagnostics);
+    const quote = fixture.sources[0].lines[0];
+    const supported = parseGeminiEvidenceResponse({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: JSON.stringify({ facts: [{
+      sourceId: 'source-1', subject: 'AsyncLocalStorage.run', relation: 'usage', value: 'AsyncLocalStorage.run(store, callback)',
+      unit: '', quote, appliesAt: null, requiredAnswerItems: ['usage-procedure'], uncertainties: [],
+    }], status: 'ok' }) }] } }] }, pages, { strictSemantic: true });
+    assert.equal(supported.rawFactCount, 1);
+    assert.equal(supported.verified.length, 1);
   } finally {
     globalThis.fetch = previousFetch;
     if (previousKey === undefined) delete process.env.GEMINI_API_KEY;

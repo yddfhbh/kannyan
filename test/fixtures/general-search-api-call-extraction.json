@@ -1,0 +1,34 @@
+{
+  "note": "Synthetic offline API documentation excerpt; this is not the production trace or a copy of the Node.js site.",
+  "question": "Node.js 공식 문서에서 AsyncLocalStorage.run()은 어떻게 사용하는지 간단한 사용 순서와 함께 알려줘",
+  "sources": [
+    {
+      "url": "https://nodejs.org/api/async_context.html#asynclocalstoragerunstore-callback-args",
+      "title": "Asynchronous context tracking",
+      "lines": [
+        "AsyncLocalStorage.run(store, callback) runs callback within the context.",
+        "const result = asyncLocalStorage.run(store, () => work());",
+        "The store argument supplies the context for the callback.",
+        "The callback returns a value to the caller."
+      ],
+      "selectedTexts": [
+        "AsyncLocalStorage.run(store",
+        "const result = asyncLocalStorage.run(store",
+        "The store argument supplies the context for the callback.",
+        "The callback returns a value to the caller."
+      ]
+    },
+    {
+      "url": "https://example.org/async-context-guide",
+      "title": "Async context guide",
+      "lines": ["Context guide introduction.", "A store carries context.", "A callback runs inside a context.", "The result is returned to the caller."],
+      "selectedTexts": ["Context guide introduction.", "A store carries context.", "A callback runs inside a context.", "The result is returned to the caller."]
+    },
+    {
+      "url": "https://example.net/async-context-notes",
+      "title": "Async context notes",
+      "lines": ["A separate introduction.", "An example of a store.", "A note about callbacks.", "A note about return values."],
+      "selectedTexts": ["A separate introduction.", "An example of a store.", "A note about callbacks.", "A note about return values."]
+    }
+  ]
+}
