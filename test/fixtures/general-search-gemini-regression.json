@@ -1,0 +1,41 @@
+{
+  "description": "Minimum offline regression cases derived from the 2026-10-23 Gemini run. No network or Gemini call is required.",
+  "cases": [
+    {
+      "id": "duplicate-document-ids",
+      "question": "2026년 10월 23일 서울 날씨",
+      "pages": [
+        {"url": "https://fixture.test/a", "title": "서울 예보 A", "pageText": "2026년 10월 23일 서울은 맑고 20도이다."},
+        {"url": "https://fixture.test/b", "title": "서울 예보 B", "pageText": "2026년 10월 23일 서울은 흐리고 18도이다."}
+      ],
+      "reviewerResponses": [
+        {"approveFactIds": ["fact-1-0"], "rejectFactIds": ["fact-2-0"], "reasonById": {"fact-2-0": "다른 문서의 사실"}},
+        {"approveFactIds": ["fact-1-0"], "rejectFactIds": []},
+        {"approveFactIds": ["fact-1-0", "fact-1-0"], "rejectFactIds": ["fact-2-0"]}
+      ]
+    },
+    {
+      "id": "today-must-not-take-tomorrow",
+      "question": "오늘 서울 날씨",
+      "pages": [
+        {"url": "https://fixture.test/forecast", "title": "서울 예보", "publishedAt": "2026-10-23", "pageText": "내일 아침 기온은 서울 13도, 부산 17도로 오늘보다 5~7도 정도 높겠습니다."}
+      ],
+      "expectedFailure": "relative-date-mismatch"
+    },
+    {
+      "id": "valid-tomorrow",
+      "question": "내일 서울 날씨",
+      "pages": [
+        {"url": "https://fixture.test/forecast", "title": "서울 예보", "publishedAt": "2026-10-23", "pageText": "내일 아침 기온은 서울 13도, 부산 17도로 오늘보다 5~7도 정도 높겠습니다."}
+      ],
+      "expectedVerifiedQuote": "내일 아침 기온은 서울 13도"
+    },
+    {
+      "id": "unrelated-material",
+      "question": "오늘 서울 날씨",
+      "pages": [
+        {"url": "https://fixture.test/mixed", "title": "혼합 자료", "publishedAt": "2026-10-23", "pageText": "서울 날씨는 맑고 20도이다. 전화 02-1234-5678. 메뉴 추천 상품 9,900원. Python 3.11 최신 버전."}
+      ]
+    }
+  ]
+}

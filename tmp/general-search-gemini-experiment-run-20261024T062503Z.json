@@ -1,0 +1,647 @@
+{
+  "version": 3,
+  "experiment": "general-search-llm-direct-extraction-final",
+  "generatedAt": "2026-10-24T06:25:14.753Z",
+  "inputFile": "tmp/general-search-gemini-final-input-20261024.json",
+  "aReportFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-gemini-experiment-run-20261024-ssh.json",
+  "aReportFound": true,
+  "envFile": "/home/ubuntu/discord-bot-new/.env",
+  "questionCount": 3,
+  "holdQuestionCount": 3,
+  "maxApiCalls": 3,
+  "calls": 3,
+  "model": "gemini-3.5-flash-lite",
+  "apiKeyConfigured": true,
+  "elapsedMs": 10867,
+  "results": [
+    {
+      "id": "gemini-01",
+      "question": "MDN Fetch API AbortSignal 사용법",
+      "sourceQuestion": "MDN Fetch API AbortSignal 사용법",
+      "httpCalls": 1,
+      "model": "gemini-3.5-flash-lite",
+      "processingMs": 3189,
+      "inputTokens": 1985,
+      "outputTokens": 213,
+      "methodA": {
+        "storedReport": null,
+        "replay": {
+          "facts": [
+            {
+              "id": "fact-1-0",
+              "subject": "fetch",
+              "predicate": "definition",
+              "relation": "definition",
+              "claimType": "definition",
+              "value": "또는 text/plain 취득 요청 중단 아직 완료되지 않은 fetch() 작업을 취소하려면 AbortController와 AbortSignal 인터페이스를 사용하세요.",
+              "unit": "또는",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [],
+              "quote": "또는 text/plain 취득 요청 중단 아직 완료되지 않은 fetch() 작업을 취소하려면 AbortController와 AbortSignal 인터페이스를 사용하세요.",
+              "quoteStart": 2373,
+              "sourceSpan": {
+                "start": 2373,
+                "end": 2467
+              },
+              "contextSpan": "js // POST 메서드 구현 예제 async function postData(url = \"\", data = {}) { // 옵션 기본 값은 *로 강조 const response = await fetch(url, { method: \"POST\", // *GET, POST, PUT, DELETE 등 mode: \"cors\", // no-cors, *cors, same-origin cache: \"no-cache\", // *default, no-cache, reload, force-cache, only-if-cached credentials: \"same-origin\", // include, *same-origin, omit headers: { \"Content-Type\": \"application/json\", // 'Content-Type': 'application/x-www-form-urlencoded', }, redirect: \"follow\", // manual, *follow, error referrerPolicy: \"no-referrer\", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url body: JSON.stringify(data), // body의 데이터 유형은 반드시 \"Content-Type\" 헤더와 일치해야 함 }); return response.json(); // JSON 응답을 네이티브 JavaScript 객체로 파싱 } postData(\"https://example.com/answer\", { answer: 42 }).then((data) => { console.log(data); // JSON 데이터가 `data.json()` 호출에 의해 파싱됨 }); mode: \"no-cors\"를 지정하면 요청에 사용할 수 있는 헤더가 다음 목록으로 제한됩니다. Accept Accept-Language Content-Language Content-Type, 값으로는 application/x-www-form-urlencoded, multipart/form-data, 또는 text/plain 취득 요청 중단 아직 완료되지 않은 fetch() 작업을 취소하려면 AbortController와 AbortSignal 인터페이스를 사용하세요.",
+              "scopeText": "\njs // POST 메서드 구현 예제 async function postData(url = \"\", data = {}) { // 옵션 기본 값은 *로 강조 const response = await fetch(url, { method: \"POST\", // *GET, POST, PUT, DELETE 등 mode: \"cors\", // no-cors, *cors, same-origin cache: \"no-cache\", // *default, no-cache, reload, force-cache, only-if-cached credentials: \"same-origin\", // include, *same-origin, omit headers: { \"Content-Type\": \"application/json\", // 'Content-Type': 'application/x-www-form-urlencoded', }, redirect: \"follow\", // manual, *follow, error referrerPolicy: \"no-referrer\", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url body: JSON.stringify(data), // body의 데이터 유형은 반드시 \"Content-Type\" 헤더와 일치해야 함 }); return response.json(); // JSON 응답을 네이티브 JavaScript 객체로 파싱 } postData(\"https://example.com/answer\", { answer: 42 }).then((data) => { console.log(data); // JSON 데이터가 `data.json()` 호출에 의해 파싱됨 }); mode: \"no-cors\"를 지정하면 요청에 사용할 수 있는 헤더가 다음 목록으로 제한됩니다. Accept Accept-Language Content-Language Content-Type, 값으로는 application/x-www-form-urlencoded, multipart/form-data, 또는 text/plain 취득 요청 중단 아직 완료되지 않은 fetch() 작업을 취소하려면 AbortController와 AbortSignal 인터페이스를 사용하세요.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch",
+              "sourceTitle": "Fetch API 사용하기 - Web API | MDN",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": null,
+              "preparedAt": null,
+              "referenceTime": null,
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "또는textplain취득요청중단아직완료되지않은fetch작업을취소하려면abortcontroller와abortsignal인터페이스를사용하세요",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-2-0",
+              "subject": "mdn",
+              "predicate": "definition",
+              "relation": "definition",
+              "claimType": "definition",
+              "value": "Specifications Specification DOM # ref-for-dom-abortcontroller-signal② Browser compatibility See also Fetch API Help improve MDN Learn how to contribute This page was last modified on Sep 17",
+              "unit": "",
+              "normalizedQuantity": 17,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [
+                "17"
+              ],
+              "quote": "Specifications Specification DOM # ref-for-dom-abortcontroller-signal② Browser compatibility See also Fetch API Help improve MDN Learn how to contribute This page was last modified on Sep 17",
+              "quoteStart": 638,
+              "sourceSpan": {
+                "start": 638,
+                "end": 828
+              },
+              "contextSpan": "You can find a full working example on GitHub; you can also see it running live. Specifications Specification DOM # ref-for-dom-abortcontroller-signal② Browser compatibility See also Fetch API Help improve MDN Learn how to contribute This page was last modified on Sep 17",
+              "scopeText": "\nYou can find a full working example on GitHub; you can also see it running live. Specifications Specification DOM # ref-for-dom-abortcontroller-signal② Browser compatibility See also Fetch API Help improve MDN Learn how to contribute This page was last modified on Sep 17",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+              "sourceTitle": "AbortController: signal property - Web APIs | MDN",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": null,
+              "preparedAt": null,
+              "referenceTime": null,
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "specificationsspecificationdomreffordomabortcontrollersignal2browsercompatibilityseealsofetchapihelpimprovemdnlearnhowtocontributethispagewaslastmodifiedonsep17",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            }
+          ],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "answerRequirements": {
+            "required": [
+              "fact-value",
+              "usage-procedure"
+            ],
+            "satisfied": [],
+            "missing": [
+              "fact-value",
+              "usage-procedure"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "officialRequired": false,
+            "officialSatisfied": false,
+            "policyHold": false,
+            "answerEligible": [],
+            "referenceOnly": [],
+            "status": "incomplete-requirements"
+          }
+        }
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "candidateFactCount": 1,
+        "verifiedFactCount": 0,
+        "structuralSemanticPassCount": 0,
+        "officialSourceSatisfied": false,
+        "satisfiedAnswerItems": [
+          "fact-value"
+        ],
+        "missingAnswerItems": [
+          "usage-procedure"
+        ],
+        "outcome": "hold",
+        "independentAccuracy": null
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "AbortController와 AbortSignal",
+            "relation": "사용 목적",
+            "value": "아직 완료되지 않은 fetch() 작업을 취소",
+            "unit": null,
+            "sourceUrl": "https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch",
+            "quote": "아직 완료되지 않은 fetch() 작업을 취소하려면 AbortController와 AbortSignal 인터페이스를 사용하세요.",
+            "sourceSpan": {
+              "start": 2396,
+              "end": 2467
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [
+              "fact-value",
+              "usage-procedure",
+              "authoritative-source"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:relation"
+            ]
+          }
+        ],
+        "verified": [],
+        "responseSchemaValid": true,
+        "evidenceStatus": "evidence-insufficient",
+        "calls": 1,
+        "model": "gemini-3.5-flash-lite",
+        "usage": {
+          "promptTokenCount": 1985,
+          "candidatesTokenCount": 213,
+          "totalTokenCount": 2198,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1985
+            }
+          ],
+          "serviceTier": "standard"
+        },
+        "verifiedFacts": []
+      }
+    },
+    {
+      "id": "gemini-02",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "sourceQuestion": "Kubernetes 공식 문서의 liveness probe 설명",
+      "httpCalls": 1,
+      "model": "gemini-3.5-flash-lite",
+      "processingMs": 4150,
+      "inputTokens": 1799,
+      "outputTokens": 190,
+      "methodA": {
+        "storedReport": {
+          "id": "gemini-06",
+          "question": "Kubernetes 공식 문서의 liveness probe 설명",
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "partial": false,
+          "semanticReview": {
+            "approveFactIds": [],
+            "rejectFactIds": [],
+            "reasonById": {},
+            "invalid": false,
+            "requestSucceeded": true,
+            "responseSchemaValid": true,
+            "selectedFactIds": [],
+            "omittedFactIds": [],
+            "calls": 6,
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 50280
+          },
+          "evaluation": {
+            "responseSchemaValid": true,
+            "duplicateFactIdCount": 0,
+            "unknownFactIdCount": 0,
+            "missingFactIdCount": 0,
+            "modelApprovedFactCount": 0,
+            "codeVerifiedModelApprovalCount": 0,
+            "codeRejectedModelApprovalCount": 0,
+            "clearlyWrongAcceptedFactCount": null,
+            "codeDateIssueCount": 0,
+            "codeLocationIssueCount": 0,
+            "codeSubjectValueMixCount": 0,
+            "unrelatedBodyAcceptedCount": 0,
+            "selectedFactCount": 0,
+            "omittedFactCount": 0
+          },
+          "model": "gemini-3.5-flash-lite",
+          "callsForCase": 1,
+          "callsAfterCase": 6,
+          "processingMs": 2253
+        },
+        "replay": {
+          "facts": [
+            {
+              "id": "fact-1-0",
+              "subject": "kubernetes",
+              "predicate": "definition",
+              "relation": "definition",
+              "claimType": "definition",
+              "value": "Kubernetes provides liveness probes to detect and remedy such situations.",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [],
+              "quote": "Kubernetes provides liveness probes to detect and remedy such situations.",
+              "quoteStart": 803,
+              "sourceSpan": {
+                "start": 803,
+                "end": 876
+              },
+              "contextSpan": "If you do not already have a cluster, you can create one by using minikube or you can use one of these Kubernetes playgrounds: iximiuz Labs Killercoda KodeKloud Define a liveness command Many applications running for long periods of time eventually transition to broken states, and cannot recover except by being restarted. Kubernetes provides liveness probes to detect and remedy such situations.",
+              "scopeText": "\nIf you do not already have a cluster, you can create one by using minikube or you can use one of these Kubernetes playgrounds: iximiuz Labs Killercoda KodeKloud Define a liveness command Many applications running for long periods of time eventually transition to broken states, and cannot recover except by being restarted. Kubernetes provides liveness probes to detect and remedy such situations.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+              "sourceTitle": "Configure Liveness, Readiness and Startup Probes | Kubernetes",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": null,
+              "preparedAt": null,
+              "referenceTime": null,
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "kubernetesprovideslivenessprobestodetectandremedysuchsituations",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-1",
+              "subject": "kubernetes",
+              "predicate": "definition",
+              "relation": "definition",
+              "claimType": "definition",
+              "value": "view Pod events to verify that liveness probes: kubectl describe pod goproxy Define a gRPC liveness probe Feature state: Stable since Kubernetes v1.27 If your application implements the gRPC Health Checking Protocol",
+              "unit": "",
+              "normalizedQuantity": 1.27,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [
+                "1.27 "
+              ],
+              "quote": "view Pod events to verify that liveness probes: kubectl describe pod goproxy Define a gRPC liveness probe Feature state: Stable since Kubernetes v1.27 If your application implements the gRPC Health Checking Protocol",
+              "quoteStart": 9744,
+              "sourceSpan": {
+                "start": 9744,
+                "end": 9959
+              },
+              "contextSpan": "If the readiness probe fails, the pod will be marked unready and will not receive traffic from any services. To try the TCP liveness check, create a Pod: kubectl apply -f https://k8s.io/examples/pods/probe/tcp-liveness-readiness.yaml After 15 seconds, view Pod events to verify that liveness probes: kubectl describe pod goproxy Define a gRPC liveness probe Feature state: Stable since Kubernetes v1.27 If your application implements the gRPC Health Checking Protocol",
+              "scopeText": "\nIf the readiness probe fails, the pod will be marked unready and will not receive traffic from any services. To try the TCP liveness check, create a Pod: kubectl apply -f https://k8s.io/examples/pods/probe/tcp-liveness-readiness.yaml After 15 seconds, view Pod events to verify that liveness probes: kubectl describe pod goproxy Define a gRPC liveness probe Feature state: Stable since Kubernetes v1.27 If your application implements the gRPC Health Checking Protocol",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+              "sourceTitle": "Configure Liveness, Readiness and Startup Probes | Kubernetes",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": null,
+              "preparedAt": null,
+              "referenceTime": null,
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "viewpodeventstoverifythatlivenessprobeskubectldescribepodgoproxydefineagrpclivenessprobefeaturestatestablesincekubernetesv127ifyourapplicationimplementsthegrpchealthcheckingprotocol",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-2-0",
+              "subject": "kubernetes",
+              "predicate": "definition",
+              "relation": "definition",
+              "claimType": "definition",
+              "value": "Kubernetes does not execute liveness or readiness probes until the startup probe succeeds",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [],
+              "quote": "Kubernetes does not execute liveness or readiness probes until the startup probe succeeds",
+              "quoteStart": 760,
+              "sourceSpan": {
+                "start": 760,
+                "end": 849
+              },
+              "contextSpan": "Types of probe The kubelet can optionally perform and react to three kinds of probes on running containers, each serving a different purpose: Startup probe Liveness probe Readiness probe Startup probe Startup probes verify whether the application within a container is started. If a startup probe is configured, Kubernetes does not execute liveness or readiness probes until the startup probe succeeds",
+              "scopeText": "\nTypes of probe The kubelet can optionally perform and react to three kinds of probes on running containers, each serving a different purpose: Startup probe Liveness probe Readiness probe Startup probe Startup probes verify whether the application within a container is started. If a startup probe is configured, Kubernetes does not execute liveness or readiness probes until the startup probe succeeds",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+              "sourceTitle": "Liveness, Readiness, and Startup Probes | Kubernetes",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": null,
+              "preparedAt": null,
+              "referenceTime": null,
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "kubernetesdoesnotexecutelivenessorreadinessprobesuntilthestartupprobesucceeds",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            }
+          ],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "answerRequirements": {
+            "required": [
+              "fact-value"
+            ],
+            "satisfied": [],
+            "missing": [
+              "fact-value"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "officialRequired": true,
+            "officialSatisfied": false,
+            "policyHold": true,
+            "answerEligible": [],
+            "referenceOnly": [],
+            "status": "hold"
+          }
+        }
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "candidateFactCount": 1,
+        "verifiedFactCount": 0,
+        "structuralSemanticPassCount": 0,
+        "officialSourceSatisfied": false,
+        "satisfiedAnswerItems": [
+          "fact-value"
+        ],
+        "missingAnswerItems": [],
+        "outcome": "hold",
+        "independentAccuracy": null
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "Kubernetes liveness probe",
+            "relation": "purpose",
+            "value": "detect and remedy such situations",
+            "unit": "",
+            "sourceUrl": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+            "quote": "Kubernetes provides liveness probes to detect and remedy such situations.",
+            "sourceSpan": {
+              "start": 803,
+              "end": 876
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [
+              "fact-value",
+              "authoritative-source"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:subject",
+              "field-not-supported-by-quote:relation"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:subject",
+              "field-not-supported-by-quote:relation"
+            ]
+          }
+        ],
+        "verified": [],
+        "responseSchemaValid": true,
+        "evidenceStatus": "evidence-insufficient",
+        "calls": 2,
+        "model": "gemini-3.5-flash-lite",
+        "usage": {
+          "promptTokenCount": 1799,
+          "candidatesTokenCount": 190,
+          "totalTokenCount": 1989,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1799
+            }
+          ],
+          "serviceTier": "standard"
+        },
+        "verifiedFacts": []
+      }
+    },
+    {
+      "id": "gemini-04",
+      "question": "PostgreSQL과 MySQL의 JSON 기능 비교",
+      "sourceQuestion": "PostgreSQL과 MySQL의 JSON 기능 비교",
+      "httpCalls": 1,
+      "model": "gemini-3.5-flash-lite",
+      "processingMs": 3528,
+      "inputTokens": 1942,
+      "outputTokens": 400,
+      "methodA": {
+        "storedReport": null,
+        "replay": {
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "answerRequirements": {
+            "required": [
+              "service-a",
+              "service-b",
+              "comparison-attributes"
+            ],
+            "satisfied": [],
+            "missing": [
+              "service-a",
+              "service-b",
+              "comparison-attributes"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "officialRequired": false,
+            "officialSatisfied": false,
+            "policyHold": false,
+            "answerEligible": [],
+            "referenceOnly": [],
+            "status": "incomplete-requirements"
+          }
+        }
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "candidateFactCount": 2,
+        "verifiedFactCount": 0,
+        "structuralSemanticPassCount": 0,
+        "officialSourceSatisfied": false,
+        "satisfiedAnswerItems": [],
+        "missingAnswerItems": [
+          "service-a",
+          "service-b",
+          "comparison-attributes"
+        ],
+        "outcome": "hold",
+        "independentAccuracy": null
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "PostgreSQL",
+            "relation": "offers types for storing JSON data",
+            "value": "json and jsonb",
+            "unit": null,
+            "sourceUrl": "https://www.postgresql.org/docs/current/datatype-json.html",
+            "quote": "PostgreSQL offers two types for storing JSON data: json and jsonb.",
+            "sourceSpan": {
+              "start": 890,
+              "end": 956
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [
+              "service-a",
+              "service-b",
+              "comparison-attributes",
+              "authoritative-source"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:relation"
+            ]
+          },
+          {
+            "subject": "MySQL",
+            "relation": "supports native JSON data type",
+            "value": "native JSON data type defined by RFC 8259",
+            "unit": null,
+            "sourceUrl": "https://dev.mysql.com/doc/refman/8.4/en/json.html",
+            "quote": "MySQL supports a native JSON (JavaScript Object Notation) data type defined by RFC 8259 that enables efficient access to data in JSON documents.",
+            "sourceSpan": {
+              "start": 621,
+              "end": 765
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [
+              "service-a",
+              "service-b",
+              "comparison-attributes",
+              "authoritative-source"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:relation",
+              "field-not-supported-by-quote:value"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:relation",
+              "field-not-supported-by-quote:value"
+            ]
+          }
+        ],
+        "verified": [],
+        "responseSchemaValid": true,
+        "evidenceStatus": "evidence-insufficient",
+        "calls": 3,
+        "model": "gemini-3.5-flash-lite",
+        "usage": {
+          "promptTokenCount": 1942,
+          "candidatesTokenCount": 400,
+          "totalTokenCount": 2342,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1942
+            }
+          ],
+          "serviceTier": "standard"
+        },
+        "verifiedFacts": []
+      }
+    }
+  ],
+  "holds": [
+    {
+      "id": "gemini-03",
+      "question": "Python 최신 안정 버전",
+      "httpCalls": 0,
+      "finalOutcome": "hold",
+      "reason": "official-body-or-related-segment-insufficient"
+    },
+    {
+      "id": "gemini-05",
+      "question": "AWS Lambda 요청 요금",
+      "httpCalls": 0,
+      "finalOutcome": "hold",
+      "reason": "official-body-or-related-segment-insufficient"
+    },
+    {
+      "id": "gemini-06",
+      "question": "React 최신 버전",
+      "httpCalls": 0,
+      "finalOutcome": "hold",
+      "reason": "official-body-or-related-segment-insufficient"
+    }
+  ],
+  "evaluation": {
+    "independentAnswerLabels": false,
+    "note": "모델 승인 자체는 정답이 아니다. 독립 검토 전 판정은 unreviewed.",
+    "totals": {
+      "candidateFactCount": 4,
+      "verifiedFactCount": 0,
+      "structuralSemanticPassCount": 0,
+      "complete": 0,
+      "partial": 0,
+      "hold": 3,
+      "inputTokens": 5726,
+      "outputTokens": 803,
+      "independentAccuracy": null
+    }
+  }
+}

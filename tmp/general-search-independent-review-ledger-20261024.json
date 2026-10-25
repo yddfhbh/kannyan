@@ -1,0 +1,2599 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-23T15:16:54.237Z",
+  "reportPath": "tmp/general-search-selected-12-offline-20261024.json",
+  "labelPolicy": [
+    "supported",
+    "contradicted",
+    "insufficient",
+    "irrelevant",
+    "unreviewed"
+  ],
+  "cases": [
+    {
+      "id": "gemini-01",
+      "question": "오늘 서울 날씨",
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "securedAnswerItems": [],
+      "missingAnswerItems": [
+        "weather-value"
+      ],
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "fact-1-0",
+          "status": "unreviewed",
+          "subject": "서울",
+          "predicate": "weather",
+          "value": "3",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "서울",
+          "quote": "서울의 날씨 홈 > 여행정보 > 서울의 날씨 서울의 날씨 3일 예보 3일 예보 표 : 항목별(오늘",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-1-1",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "날씨",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-1-2",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "최저/최고기온(℃)",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-3",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "강수확률 항목",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-4",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "2026",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "오늘 : 2026-10-23",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-1-5",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "2026",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "내일 : 2026-10-24",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-1-6",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "2026",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "모레 : 2026-10-25 날씨 맑음 구름많음 구름많음 최저/최고기온 (℃) 13℃ / 0℃ 13℃ / 21℃ 12℃ / 24℃ 강수확률 10% / 10% 20% / 20% - 대기오염 상세 대기오염 상세 표 : 항목(오늘예보",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-7",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "내일예보",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-1-8",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "모레예보)",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-1-9",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "10",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "미세먼지(PM10)",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-1-10",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "2.5",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "초미세먼지(PM2.5) 항목 오늘예보 내일예보 모레예보 미세먼지 (PM10) 좋음 보통 좋음 초미세먼지 (PM2.5) 좋음 보통 좋음 주간예보 주간예보 표 : 항목별 날짜",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-1-11",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "날씨",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "fact-value-missing",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-1-12",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "2026",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "최저/최고기온(℃) 항목 2026-10-23 2026-10-24 2026-10-25 2026-10-26 2026-10-27 날씨 맑음 구름많음 구름많음 흐림 구름많음 최저/최고기온 (℃) 13℃ / 0℃ 13℃ / 21℃ 12℃ / 24℃ 15℃ / 23℃ 12℃ / 16℃ 제공 : 케이웨더(Kweather)",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-0",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-24",
+          "targetLocation": "",
+          "quote": "남부 지방은 태풍 '참피'의 간접 영향으로 비가 내릴 전망입니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-1",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "우선 오늘 밤부터 제주와 남해안에 비가 내리기 시작해",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-2",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "150mm",
+          "unit": "mm",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "모레까지 제주 산지에 최대 150mm 이상의 많은 비가 쏟아지겠고",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-3",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "5",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "대구와 경북에는 5~40mm의 비가 내리겠습니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-4",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-25",
+          "targetLocation": "",
+          "quote": "비가 내릴 때는 강한 바람에도 주의가 필요합니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-5",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "해상 날씨도 좋지 않겠는데요.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-6",
+          "status": "unreviewed",
+          "subject": "서울",
+          "predicate": "temperature",
+          "value": "13도",
+          "unit": "도",
+          "targetDate": "2026-10-24",
+          "targetLocation": "서울",
+          "quote": "내일 아침 기온은 서울 13도로 출발해",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve"
+          ]
+        },
+        {
+          "factId": "fact-2-7",
+          "status": "unreviewed",
+          "subject": "서울",
+          "predicate": "temperature",
+          "value": "21도",
+          "unit": "도",
+          "targetDate": "2026-10-24",
+          "targetLocation": "서울",
+          "quote": "낮 기온은 서울과 수원 21도까지 오르며 일교차가 크게 벌어지겠습니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve"
+          ]
+        },
+        {
+          "factId": "fact-2-8",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "비가 그친 후에는 날씨가 또다시 추워지겠는데요.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-9",
+          "status": "unreviewed",
+          "subject": "서울",
+          "predicate": "temperature",
+          "value": "2도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "서울",
+          "quote": "특히 다음 주 수요일에는 서울의 아침 기온이 2도까지 곤두박질치겠습니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-10",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "지금까지 날씨 전해드렸습니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-2-11",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "AI 학습 및 활용 금지 # 날씨 # 풍랑 # 강풍 # 비 # 일교차 # 기온전망 # 강수전망 # 태풍참피",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-0",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "9 ",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "기사 본문 영역 뉴스 9 [뉴스9 날씨] 주말",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-3-1",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "250mm",
+          "unit": "mm",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "남부·제주 비바람…제주 최대 250mm↑ 입력 2026.10.23 (21:56) 수정 2026.10.23 (22:07) 읽어주기 기능은 크롬기반의 브라우저에서만 사용하실 수 있습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-2",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "제주에 비가 오고 있는데요.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-3",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "100mm",
+          "unit": "mm",
+          "targetDate": "2026-10-25",
+          "targetLocation": "",
+          "quote": "경남 남해안은 최대 100mm 이상의 많은 비가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-4",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "19도",
+          "unit": "도",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "대전의 낮 기온은 19도가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-5",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "19도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "대구와 부산의 낮 기온도 19도가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-6",
+          "status": "unreviewed",
+          "subject": "서울",
+          "predicate": "temperature",
+          "value": "2도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "서울",
+          "quote": "다음 주 수요일엔 서울의 아침 기온이 2도까지 떨어져 다시 초겨울 추위가 찾아오겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-7",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "날씨 전해드렸습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-3-8",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "9 ",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "[뉴스9 날씨] 주말",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-3-9",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "250mm",
+          "unit": "mm",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "남부·제주 비바람…제주 최대 250mm↑ 입력 2026-10-23 21:56:34",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-10",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "2026",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "수정2026-10-23 22:07:13",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-3-11",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "제주에 비가 오고 있는데요.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-3-12",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "100mm",
+          "unit": "mm",
+          "targetDate": "2026-10-25",
+          "targetLocation": "",
+          "quote": "경남 남해안은 최대 100mm 이상의 많은 비가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-3-13",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "19도",
+          "unit": "도",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "대전의 낮 기온은 19도가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-3-14",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "19도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "대구와 부산의 낮 기온도 19도가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-3-15",
+          "status": "unreviewed",
+          "subject": "서울",
+          "predicate": "temperature",
+          "value": "2도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "서울",
+          "quote": "다음 주 수요일엔 서울의 아침 기온이 2도까지 떨어져 다시 초겨울 추위가 찾아오겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-3-16",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "날씨 전해드렸습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing",
+            "duplicate-evidence"
+          ]
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-02",
+      "question": "내일 제주 날씨",
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "securedAnswerItems": [
+        "location",
+        "freshness",
+        "weather-value"
+      ],
+      "missingAnswerItems": [],
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "fact-1-0",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "30",
+          "unit": "",
+          "targetDate": "2026-10-24",
+          "targetLocation": "제주",
+          "quote": "제30호 태풍 '참피'가 북상 중인 23일 오전 제주 서귀포시 대정읍 송악산 둘레길에서 관광객들이 비를 피해 걸어가고 있다.",
+          "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-1",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "23",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "제주",
+          "quote": "(연합뉴스) 23일 오후 8시 현재 제주 지방에서 많은 비가 내리는 가운데",
+          "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve"
+          ]
+        },
+        {
+          "factId": "fact-1-2",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "태풍 참피가 북상하면서 비가 점차 남해안으로 확대되겠다.",
+          "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-3",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "24",
+          "unit": "",
+          "targetDate": "2026-10-24",
+          "targetLocation": "",
+          "quote": "24일 전남 남해안과 부산·울산·경남 남해안은 아침부터 늦은 오후까지 시간당 20mm 안팎의 비가 내릴 것으로 예보됐다.",
+          "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-4",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "30mm",
+          "unit": "mm",
+          "targetDate": "2026-10-24",
+          "targetLocation": "제주",
+          "quote": "제주도는 아침까지 시간당 최대 30mm의 비가 내리는 곳이 있겠다.",
+          "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": []
+        },
+        {
+          "factId": "fact-1-5",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "오후에는 충남 남동부와 충북 중·남부에도 비가 내리겠다.",
+          "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-6",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "5",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "예상 강수량은 강원 남부 동해안·산지 5㎜ 안팎",
+          "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-7",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "8",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "아침 최저 기온은 8∼17도",
+          "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-8",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "16",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "낮 최고 기온은 16∼21도로 예상된다.",
+          "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-9",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "해상에서도 바람이 거세게 불면서 궂은 날씨를 보이겠다.",
+          "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-0",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "이번 주말과 휴일에도 예년 기온을 웃돌겠습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-1",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "20도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "중부 내륙을 중심으로 낮 기온이 20도를 웃돌며 일교차가 크게 벌어지겠는데요.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-2",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-25",
+          "targetLocation": "제주",
+          "quote": "남부와 제주도를 중심으로는 태풍 참피의 간접 영향으로 비 예보가 있습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve"
+          ]
+        },
+        {
+          "factId": "fact-2-3",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "제주",
+          "quote": "이번 비는 제주도와 남해안에 매우 강하게 쏟아지겠습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing"
+          ]
+        },
+        {
+          "factId": "fact-2-4",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "200mm",
+          "unit": "mm",
+          "targetDate": "",
+          "targetLocation": "제주",
+          "quote": "제주도에는 200mm 이상 많은 비가 예상되고요.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing"
+          ]
+        },
+        {
+          "factId": "fact-2-5",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-24",
+          "targetLocation": "",
+          "quote": "원활한 연직 확산으로 미세먼지 농도는 좋음 수준을 보이겠습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-6",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-24",
+          "targetLocation": "",
+          "quote": "이어서 내일 전국 기온 살펴보겠습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-7",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "21도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "낮 최고 기온은 서울 21도",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-8",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "9도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "가평도 아침 기온 9도",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-9",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "21도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "낮 기온은 21도가 예상되고요.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-10",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-24",
+          "targetLocation": "",
+          "quote": "월요일에는 동해안을 중심으로 비가 내릴 전망입니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-11",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "날씨였습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-3-0",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "【기상캐스터】 이번 주말과 휴일에는 예년 기온을 웃돌겠습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-1",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "20도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "중부 내륙을 중심으로는 낮 기온이 20도를 웃돌겠는데요.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-2",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-25",
+          "targetLocation": "제주",
+          "quote": "남부와 제주를 중심으로는 태풍 참피의 간접 영향으로 비가 내리겠습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve"
+          ]
+        },
+        {
+          "factId": "fact-3-3",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "제주",
+          "quote": "이번 비는 남해안과 제주도에 매우 강하게 쏟아지겠는데요.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing"
+          ]
+        },
+        {
+          "factId": "fact-3-4",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "200mm",
+          "unit": "mm",
+          "targetDate": "",
+          "targetLocation": "제주",
+          "quote": "제주도에는 200mm 이상으로 많은 비가 예상됩니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing"
+          ]
+        },
+        {
+          "factId": "fact-3-5",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-24",
+          "targetLocation": "",
+          "quote": "이어서 내일 전국 기온 살펴보겠습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-6",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "21도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "낮 최고 기온은 서울 21도",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-7",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "9도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "가평도 아침 기온 9도",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-8",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "21도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "낮 기온은 21도가 예상되고요.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-9",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-24",
+          "targetLocation": "",
+          "quote": "다음 주 중반부터는 다시 기온이 급격히 떨어지겠습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-3-10",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "날씨였습니다.",
+          "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-4-0",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "9 ",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "기사 본문 영역 뉴스 9 [뉴스9 날씨] 주말",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-4-1",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "250mm",
+          "unit": "mm",
+          "targetDate": "2026-10-23",
+          "targetLocation": "제주",
+          "quote": "남부·제주 비바람…제주 최대 250mm↑ 입력 2026.10.23 (21:56) 수정 2026.10.23 (22:07) 읽어주기 기능은 크롬기반의 브라우저에서만 사용하실 수 있습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-4-2",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "제주",
+          "quote": "제주에 비가 오고 있는데요.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-4-3",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "weather",
+          "value": "250mm",
+          "unit": "mm",
+          "targetDate": "2026-10-25",
+          "targetLocation": "제주",
+          "quote": "모레까지 제주 산지에 최대 250mm 이상",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve"
+          ]
+        },
+        {
+          "factId": "fact-4-4",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "100mm",
+          "unit": "mm",
+          "targetDate": "2026-10-25",
+          "targetLocation": "",
+          "quote": "경남 남해안은 최대 100mm 이상의 많은 비가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-4-5",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "19도",
+          "unit": "도",
+          "targetDate": "2026-10-24",
+          "targetLocation": "",
+          "quote": "대전의 낮 기온은 19도가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-4-6",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "19도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "대구와 부산의 낮 기온도 19도가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-4-7",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "waveHeight",
+          "value": "5",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "제주",
+          "quote": "바다의 물결은 남해와 제주 해상에서 최고 5m 안팎으로 매우 높게 일겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing"
+          ]
+        },
+        {
+          "factId": "fact-4-8",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "2도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "다음 주 수요일엔 서울의 아침 기온이 2도까지 떨어져 다시 초겨울 추위가 찾아오겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-4-9",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "날씨 전해드렸습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-4-10",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "9 ",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "[뉴스9 날씨] 주말",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-4-11",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "250mm",
+          "unit": "mm",
+          "targetDate": "2026-10-23",
+          "targetLocation": "제주",
+          "quote": "남부·제주 비바람…제주 최대 250mm↑ 입력 2026-10-23 21:56:34",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-4-12",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "2026",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "수정2026-10-23 22:07:13",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing"
+          ]
+        },
+        {
+          "factId": "fact-4-13",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "제주",
+          "quote": "제주에 비가 오고 있는데요.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-4-14",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "weather",
+          "value": "250mm",
+          "unit": "mm",
+          "targetDate": "2026-10-25",
+          "targetLocation": "제주",
+          "quote": "모레까지 제주 산지에 최대 250mm 이상",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-4-15",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "precipitation",
+          "value": "100mm",
+          "unit": "mm",
+          "targetDate": "2026-10-25",
+          "targetLocation": "",
+          "quote": "경남 남해안은 최대 100mm 이상의 많은 비가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-4-16",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "19도",
+          "unit": "도",
+          "targetDate": "2026-10-24",
+          "targetLocation": "",
+          "quote": "대전의 낮 기온은 19도가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-4-17",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "19도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "대구와 부산의 낮 기온도 19도가 예상됩니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "requested-location-not-in-scope",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-4-18",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "waveHeight",
+          "value": "5",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "제주",
+          "quote": "바다의 물결은 남해와 제주 해상에서 최고 5m 안팎으로 매우 높게 일겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-4-19",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "temperature",
+          "value": "2도",
+          "unit": "도",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "다음 주 수요일엔 서울의 아침 기온이 2도까지 떨어져 다시 초겨울 추위가 찾아오겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-4-20",
+          "status": "unreviewed",
+          "subject": "",
+          "predicate": "weather",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "날씨 전해드렸습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "fact-value-missing",
+            "duplicate-evidence"
+          ]
+        },
+        {
+          "factId": "fact-4-21",
+          "status": "unreviewed",
+          "subject": "제주",
+          "predicate": "precipitation",
+          "value": "7건",
+          "unit": "건",
+          "targetDate": "",
+          "targetLocation": "제주",
+          "quote": "오키나와 휩쓴 태풍 참피…제주·남부 ‘비바람’ [단독] 또 비행 중 기내서 ‘펑’…보조배터리 화재 올해만 7건 많이 본 뉴스 KBS 포털 유튜브 각 플랫폼에서 최근 1시간 동안 많이 본 KBS 기사를 제공합니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "temporal-context-missing"
+          ]
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-03",
+      "question": "Python 최신 안정 버전",
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "securedAnswerItems": [],
+      "missingAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "facts": [],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-04",
+      "question": "React 최신 버전",
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "securedAnswerItems": [
+        "free",
+        "date",
+        "location",
+        "version",
+        "freshness"
+      ],
+      "missingAnswerItems": [
+        "release-status"
+      ],
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "fact-1-0",
+          "status": "unreviewed",
+          "subject": "버전",
+          "predicate": "version",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "버전",
+          "quote": "Next.js 프로젝트에서 React 버전을 업데이트하는 방법은 다음과 같은 단계를 포함합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-1",
+          "status": "unreviewed",
+          "subject": "버전",
+          "predicate": "version",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "버전",
+          "quote": "현재 React 버전 확인 먼저 현재 프로젝트에서 사용 중인 React와 React DOM의 버전을 확인해야 합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-2",
+          "status": "unreviewed",
+          "subject": "버전",
+          "predicate": "version",
+          "value": "최신",
+          "unit": "최신",
+          "targetDate": "",
+          "targetLocation": "버전",
+          "quote": "최신 React 버전 확인 최신 React 버전은 React 공식 홈페이지 또는 npm에서 확인할 수 있습니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": []
+        },
+        {
+          "factId": "fact-1-3",
+          "status": "unreviewed",
+          "subject": "react",
+          "predicate": "version",
+          "value": "3.",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "npm 사용 시: npm show react version yarn 사용 시: yarn info react version 3.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-4",
+          "status": "unreviewed",
+          "subject": "버전",
+          "predicate": "version",
+          "value": "최신",
+          "unit": "최신",
+          "targetDate": "",
+          "targetLocation": "버전",
+          "quote": "React 및 React DOM 업데이트 npm을 사용하는 경우: 터미널에서 다음 명령어를 사용하여 React와 React DOM을 최신 버전으로 업데이트합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": []
+        },
+        {
+          "factId": "fact-1-5",
+          "status": "unreviewed",
+          "subject": "버전",
+          "predicate": "version",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "버전",
+          "quote": "npm update react react-dom 특정 버전으로 업데이트하려면 다음 명령어를 사용합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-6",
+          "status": "unreviewed",
+          "subject": "버전",
+          "predicate": "version",
+          "value": "최신",
+          "unit": "최신",
+          "targetDate": "",
+          "targetLocation": "버전",
+          "quote": "npm install react@latest react-dom@latest yarn을 사용하는 경우: 다음 명령어로 React와 React DOM을 최신 버전으로 업데이트합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": []
+        },
+        {
+          "factId": "fact-1-7",
+          "status": "unreviewed",
+          "subject": "버전",
+          "predicate": "version",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "버전",
+          "quote": "yarn upgrade react react-dom 특정 버전을 설치하고 싶다면 다음과 같이 명령어를 입력합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-8",
+          "status": "unreviewed",
+          "subject": "버전",
+          "predicate": "version",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "버전",
+          "quote": "React 버전 업데이트는 프로젝트에 중대한 영향을 줄 수 있으므로",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-2-0",
+          "status": "unreviewed",
+          "subject": "버전",
+          "predicate": "version",
+          "value": "19",
+          "unit": "",
+          "targetDate": "2013-05-29",
+          "targetLocation": "버전",
+          "quote": "React 19 정식 버전이 발표되었으며",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": []
+        },
+        {
+          "factId": "fact-3-0",
+          "status": "unreviewed",
+          "subject": "react",
+          "predicate": "version",
+          "value": "최신",
+          "unit": "최신",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "고객님의 안정적인 서비스 운영을 위해 React 서버 컴포넌트의 최신 보안 업데이트를 권고드립니다.",
+          "sourceUrl": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope"
+          ]
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-05",
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "requiredAnswerItems": [
+        "fact-value"
+      ],
+      "securedAnswerItems": [],
+      "missingAnswerItems": [
+        "fact-value"
+      ],
+      "label": "unreviewed",
+      "facts": [],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-06",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "requiredAnswerItems": [
+        "fact-value"
+      ],
+      "securedAnswerItems": [],
+      "missingAnswerItems": [
+        "fact-value"
+      ],
+      "label": "unreviewed",
+      "facts": [],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-07",
+      "question": "OpenAI API 최신 가격",
+      "requiredAnswerItems": [
+        "price",
+        "currency-and-plan"
+      ],
+      "securedAnswerItems": [
+        "free-capacity-a",
+        "free-capacity-b",
+        "freshness"
+      ],
+      "missingAnswerItems": [
+        "price",
+        "currency-and-plan"
+      ],
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "fact-1-0",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "2026",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "OpenAI API 가격 가이드 2026 OpenAI API 가격은 사용량 기반입니다: 처리된 백만 토큰당 비용을 지불합니다.",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": []
+        },
+        {
+          "factId": "fact-1-1",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "그리고 APIMaster.ai를 통해 OpenAI API 비용을 절감하는 방법을 다룹니다.",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-2",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "1",
+          "unit": "",
+          "targetDate": "2026-10-23",
+          "targetLocation": "",
+          "quote": "OpenAI API 가격표 (공식 요금) 모델 입력 (1M당) 출력 (1M당) 캐시된 입력 GPT-5.5 $5.00 $30.00 $0.50 GPT-5.4 $2.50 $15.00 $0.25 GPT-4o $2.50 $10.00 $1.25 GPT-4o mini $0.15 $0.60 $0.075 o3 $10.00 $40.00 $2.50 o4-mini $1.10 $4.40 $0.275 GPT-4o Realtime $5.00 $20.00 — 요금은 OpenAI 기준입니다.",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": []
+        },
+        {
+          "factId": "fact-1-3",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "최신 정보는 OpenAI 가격 페이지를 확인하세요.",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-4",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "APIMaster.ai를 통한 할인된 OpenAI API 가격 APIMaster는 지원되는 GPT 모델에 대해 OpenAI 호환 액세스와 실시간 가격 및 지문 인증을 제공합니다.",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-5",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "OpenAI API 가격 작동 방식 토큰이란 무엇인가요?",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-6",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "OpenAI API 비용을 어떻게 절감할 수 있나요?",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-7",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "OpenAI API 가격은 Claude 및 DeepSeek과 어떻게 비교되나요?",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-8",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "APIMaster를 통해 OpenAI API를 더 저렴한 가격으로 사용할 수 있나요?",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-9",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "네 — APIMaster는 선택된 OpenAI 모델에 대해 할인된 가격을 제공합니다.",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        },
+        {
+          "factId": "fact-1-10",
+          "status": "unreviewed",
+          "subject": "openai",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "OpenAI API 가격 확인 — Claude & DeepSeek 하나의 키로 →",
+          "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved"
+          ]
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-08",
+      "question": "AWS Lambda 요청 요금",
+      "requiredAnswerItems": [
+        "request-price",
+        "free-tier",
+        "pricing-conditions"
+      ],
+      "securedAnswerItems": [
+        "free",
+        "location",
+        "free-capacity-a",
+        "free-capacity-b",
+        "currency-and-plan",
+        "comparison-attributes",
+        "free-tier",
+        "pricing-conditions"
+      ],
+      "missingAnswerItems": [
+        "request-price"
+      ],
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "fact-1-0",
+          "status": "unreviewed",
+          "subject": "요청",
+          "predicate": "price",
+          "value": "무료",
+          "unit": "무료",
+          "targetDate": "",
+          "targetLocation": "요청",
+          "quote": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": []
+        },
+        {
+          "factId": "fact-1-1",
+          "status": "unreviewed",
+          "subject": "aws",
+          "predicate": "price",
+          "value": "2",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-2",
+          "status": "unreviewed",
+          "subject": "요청",
+          "predicate": "price",
+          "value": "100만 건",
+          "unit": "건",
+          "targetDate": "",
+          "targetLocation": "요청",
+          "quote": "AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": []
+        },
+        {
+          "factId": "fact-1-3",
+          "status": "unreviewed",
+          "subject": "aws",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-4",
+          "status": "unreviewed",
+          "subject": "aws",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-1-5",
+          "status": "unreviewed",
+          "subject": "요청",
+          "predicate": "price",
+          "value": "000",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "요청",
+          "quote": "000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여",
+          "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "calculation-example-not-unit-price"
+          ]
+        },
+        {
+          "factId": "fact-2-0",
+          "status": "unreviewed",
+          "subject": "aws",
+          "predicate": "price",
+          "value": "",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "자세한 내용은 AWS Lambda 요금을 참조하십시오.",
+          "sourceUrl": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "relation-or-value-unresolved",
+            "requested-location-not-in-scope"
+          ]
+        },
+        {
+          "factId": "fact-2-1",
+          "status": "unreviewed",
+          "subject": "aws",
+          "predicate": "price",
+          "value": "4",
+          "unit": "",
+          "targetDate": "",
+          "targetLocation": "",
+          "quote": "AWS 공식업데이트됨 4년 전 Lambda Extension이 Timeout Error의 원인인지 어떻게 트러블슈팅 할 수 있나요?",
+          "sourceUrl": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "requested-location-not-in-scope"
+          ]
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-09",
+      "question": "최근 일주일 반도체 뉴스",
+      "requiredAnswerItems": [
+        "event-type",
+        "date",
+        "location"
+      ],
+      "securedAnswerItems": [],
+      "missingAnswerItems": [
+        "event-type",
+        "date",
+        "location"
+      ],
+      "label": "unreviewed",
+      "facts": [],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-10",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "requiredAnswerItems": [
+        "event-type",
+        "free",
+        "date",
+        "location"
+      ],
+      "securedAnswerItems": [],
+      "missingAnswerItems": [
+        "event-type",
+        "free",
+        "date",
+        "location"
+      ],
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "fact-1-0",
+          "status": "unreviewed",
+          "subject": "서울",
+          "predicate": "event",
+          "value": "5",
+          "unit": "",
+          "targetDate": "2026-10-05",
+          "targetLocation": "서울",
+          "quote": "한남동 사옥서 5일간 웰니스 축제 개최 한화손해보험은 오는 21일부터 25일까지 서울 한남동 사옥에서 웰니스 문화 행사 '웰니스 크루즈 한남'을 개최한다고 15일 밝혔다.",
+          "sourceUrl": "https://www.businessplus.kr/news/articleView.html?idxno=118214",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": [
+            "duration-not-date"
+          ]
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-11",
+      "question": "부산 불꽃축제 올해 일정",
+      "requiredAnswerItems": [
+        "event-name",
+        "date",
+        "location",
+        "source-check-time",
+        "authoritative-source"
+      ],
+      "securedAnswerItems": [
+        "event-type",
+        "date",
+        "location",
+        "event-name",
+        "source-check-time"
+      ],
+      "missingAnswerItems": [
+        "authoritative-source"
+      ],
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "fact-2-0",
+          "status": "unreviewed",
+          "subject": "부산",
+          "predicate": "event",
+          "value": "2026.11.07",
+          "unit": "",
+          "targetDate": "2026-11-07",
+          "targetLocation": "부산",
+          "quote": "📅 일정 2026.11.07 ~ 2026.11.07 📍 주소 부산광역시 수영구 광안해변로 219 (광안동) 📞 연락처 051-713-5000 🗺️ 지도 🌤️ 7일 날씨 날씨 정보 불러오는 중… 날씨 데이터: Open-Meteo 🏨 주변 숙소 부산 인근 숙소를 찾아보세요.",
+          "sourceUrl": "https://hhakimm.github.io/festivals-site/festival/%EB%B6%80%EC%82%B0%EB%B6%88%EA%BD%83%EC%B6%95%EC%A0%9C-235076/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "validationFailures": []
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-12",
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "requiredAnswerItems": [
+        "service-a",
+        "service-b",
+        "comparison-attributes"
+      ],
+      "securedAnswerItems": [],
+      "missingAnswerItems": [
+        "service-a",
+        "service-b",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "facts": [],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote를 대조해 supported/contradicted/insufficient/irrelevant 중 하나로 라벨링; 자동 확정 금지"
+    }
+  ]
+}

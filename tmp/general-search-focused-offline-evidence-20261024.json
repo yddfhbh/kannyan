@@ -1,0 +1,1263 @@
+{
+  "version": 1,
+  "type": "focused-general-search-offline-evidence",
+  "sourceFile": "tmp/general-search-focused-source-research-live-20261024T075220Z.json",
+  "referenceTime": "2026-10-24T00:00:00+09:00",
+  "developmentQuestionDenominator": 18,
+  "improvedQuestionIds": [
+    "focus-02",
+    "focus-05"
+  ],
+  "searchHttpRequests": 0,
+  "bodyHttpRequests": 0,
+  "geminiCalls": 0,
+  "holdoutAccessed": false,
+  "questions": [
+    {
+      "id": "focus-01",
+      "originalQuestion": "PostgreSQL 최신 안정 버전",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "requiredAnswerItems": [
+        "stable-version",
+        "release-status",
+        "as-of-date"
+      ],
+      "status": "hold",
+      "discoveredCandidateCount": 84,
+      "discoveredRankedUrls": [
+        "https://www.postgresql.org/about/news/postgresql-18-released-3142/",
+        "https://www.postgresql.org/about/news/postgresql-181-177-1611-1515-1420-and-1323-released-3171/"
+      ],
+      "discoveredButUnreadUrls": [
+        "https://www.postgresql.org/about/news/postgresql-18-released-3142/",
+        "https://www.postgresql.org/about/news/postgresql-181-177-1611-1515-1420-and-1323-released-3171/"
+      ],
+      "obtainedBodyUrls": [
+        "https://www.linkedin.com/pulse/postgresql-patching-how-stay-secure-stable-ahead-foundations-cass-puwne",
+        "https://www.linkedin.com/",
+        "https://www.postgresql.org/about/news/postgresql-19-rc-1-released-3409/",
+        "https://www.postgresql.org/download/"
+      ],
+      "selectedObtainedBodyUrls": [
+        "https://www.postgresql.org/download/",
+        "https://www.postgresql.org/about/news/postgresql-19-rc-1-released-3409/"
+      ],
+      "snapshots": [
+        {
+          "version": 2,
+          "snapshotId": "www.postgresql.org:1538:October 15, 2026: PostgreSQL 19 ",
+          "status": "captured",
+          "question": "PostgreSQL 최신 안정 버전",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://www.postgresql.org/download/",
+            "finalUrl": "https://www.postgresql.org/download/",
+            "hostname": "www.postgresql.org",
+            "official": true,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "PostgreSQL: Downloads",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "October 15, 2026: PostgreSQL 19 RC 1 Released! Quick Links Downloads Packages Source Software Catalogue File Browser Downloads PostgreSQL Downloads PostgreSQL is available for download as ready-to-use packages or installers for various platforms, as well as a source code archive if you want to build it yourself. Packages and Installers Select your operating system family: Linux macOS Windows BSD Solaris Select your Linux distribution: Debian Red Hat/Rocky/AlmaLinux SUSE Ubuntu Other Linux Select your BSD operating system: OpenBSD FreeBSD NetBSD Source code The source code can be found in the main file browser or you can access the source control repository directly at git.postgresql.org. Instructions for building from source can be found in the documentation. Beta/RC Releases and development snapshots (unstable) There are source code and binary packages of beta and release candidates, and of the current development code available for testing and evaluation of new features. Note that these builds should be used for testing purposes only, and not for production systems. Additional Software Software Catalogue There is much software available that is not bundled with PostgreSQL. The Software Catalogue offers a listing of many commercial and Open Source applications, interfaces and extensions to PostgreSQL that you may find useful. If you wish to have your product listed in the catalogue, please fill out this form. File Browser You can download most of the software we publish from a mirror site using our File Browser.",
+            "length": 1538,
+            "storedLength": 1538,
+            "fullLength": 1538,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [
+            {
+              "id": "www.postgresql.org:1538:October 15, 2026: PostgreSQL 19 -segment-1",
+              "text": "2026: PostgreSQL 19 RC 1 Released!",
+              "start": 12,
+              "end": 46,
+              "sourceSpan": {
+                "start": 12,
+                "end": 46
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            }
+          ],
+          "requiredAnswerItems": [
+            "stable-version",
+            "release-status",
+            "as-of-date"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "www.postgresql.org:2879:October 15, 2026: PostgreSQL 19 ",
+          "status": "captured",
+          "question": "PostgreSQL 최신 안정 버전",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://www.postgresql.org/about/news/postgresql-19-rc-1-released-3409/",
+            "finalUrl": "https://www.postgresql.org/about/news/postgresql-19-rc-1-released-3409/",
+            "hostname": "www.postgresql.org",
+            "official": true,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "PostgreSQL: PostgreSQL 19 RC 1 Released!",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "October 15, 2026: PostgreSQL 19 RC 1 Released! Quick Links About Governance Policies Feature Matrix Donate History Sponsors Contributing Financial Servers Latest News Upcoming Events Past events Press Licence PostgreSQL 19 RC 1 Released! Posted on 2026-10-15 by PostgreSQL Global Development Group PostgreSQL Project The PostgreSQL Global Development Group announces that the first release candidate of PostgreSQL 19 is now available for download. As a release candidate, PostgreSQL 19 RC 1 will be mostly identical to the initial release of PostgreSQL 19, though some more fixes may be applied prior to the general availability of PostgreSQL 19. The next scheduled update release for supported versions of PostgreSQL, on November 12, 2026, will include a large number of fixes. Because of this, the release team decided to include these fixes in PostgreSQL 19 before its general availability. This means a second release candidate, PostgreSQL 19 RC 2, will be available on the same day as the update release. The planned date for the general availability of PostgreSQL 19 is November 19, 2026. Please see the \"Release Schedule\" section for more details. Upgrading to PostgreSQL 19 RC 1 To upgrade to PostgreSQL 19 RC 1 from earlier versions of PostgreSQL, you will need to use a major version upgrade strategy, e.g. pg_upgrade or pg_dump / pg_restore. For more information, please visit the documentation section on upgrading: https://www.postgresql.org/docs/19/upgrading.html Changes Since 19 Beta 4 Several bug fixes were applied to PostgreSQL 19 during the Beta 4 period. These include: Several fixes for REPACK (CONCURRENTLY). Several fixes for pg_plan_advice. Several fixes for new query planner optimizations that rely on whether an expression can be NULL. Several fixes for the automatic enablement of logical replication when wal_level is set to replica. Fix postgres_fdw statistics import to run as the owner of the foreign table instead of the user running ANALYZE. Several fixes for parallel autovacuum. Fix COPY (query) TO ... (FORMAT json) to use the query's column names, including aliases, as the JSON keys instead of the table's column names. For a detailed list of fixes, please visit the open items page. Release Schedule This is the first release candidate for PostgreSQL 19. The release team plans to issue a second release candidate, PostgreSQL 19 RC 2, on November 12, 2026. Unless an issue is discovered that requires a delay or an additional release candidate, PostgreSQL 19 should be made generally available on November 19, 2026. For further information please see the Beta Testing page. Links Download Beta Testing Information PostgreSQL 19 Beta Release Notes PostgreSQL 19 Open Issues Submit a Bug Donate If you have corrections or suggestions for this release announcement, please send them to the pgsql-www@lists.postgresql.org public mailing list.",
+            "length": 2879,
+            "storedLength": 2879,
+            "fullLength": 2879,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [
+            {
+              "id": "www.postgresql.org:2879:October 15, 2026: PostgreSQL 19 -segment-1",
+              "text": "Posted on 2026-10-15 by PostgreSQL Global Development Group PostgreSQL Project The PostgreSQL Global Development Group announces that the first release candidate of PostgreSQL 19 is now available for download.",
+              "start": 238,
+              "end": 447,
+              "sourceSpan": {
+                "start": 238,
+                "end": 447
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            },
+            {
+              "id": "www.postgresql.org:2879:October 15, 2026: PostgreSQL 19 -segment-2",
+              "text": "2026: PostgreSQL 19 RC 1 Released!",
+              "start": 12,
+              "end": 46,
+              "sourceSpan": {
+                "start": 12,
+                "end": 46
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            },
+            {
+              "id": "www.postgresql.org:2879:October 15, 2026: PostgreSQL 19 -segment-3",
+              "text": "Quick Links About Governance Policies Feature Matrix Donate History Sponsors Contributing Financial Servers Latest News Upcoming Events Past events Press Licence PostgreSQL 19 RC 1 Released!",
+              "start": 47,
+              "end": 237,
+              "sourceSpan": {
+                "start": 47,
+                "end": 237
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            },
+            {
+              "id": "www.postgresql.org:2879:October 15, 2026: PostgreSQL 19 -segment-4",
+              "text": "PostgreSQL 19 RC 1 will be mostly identical to the initial release of PostgreSQL 19",
+              "start": 472,
+              "end": 555,
+              "sourceSpan": {
+                "start": 472,
+                "end": 555
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            }
+          ],
+          "requiredAnswerItems": [
+            "stable-version",
+            "release-status",
+            "as-of-date"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        }
+      ],
+      "relevantSegmentCount": 5,
+      "satisfiedAnswerItems": [
+        {
+          "item": "release-status",
+          "url": "https://www.postgresql.org/about/news/postgresql-19-rc-1-released-3409/",
+          "quote": "PostgreSQL 19 RC 1",
+          "sourceSpan": {
+            "start": 18,
+            "end": 36
+          },
+          "sourceSpanBasis": "body.text UTF-16 code units"
+        }
+      ],
+      "missingAnswerItems": [
+        "stable-version",
+        "as-of-date"
+      ],
+      "disqualifiedEvidence": [
+        {
+          "url": "https://www.postgresql.org/about/news/postgresql-19-rc-1-released-3409/",
+          "reason": "release-candidate-is-not-stable"
+        }
+      ],
+      "notes": [
+        "Official PostgreSQL 19 RC 1 announcement is a release candidate, not proof of the latest stable version."
+      ]
+    },
+    {
+      "id": "focus-02",
+      "originalQuestion": "GitHub Actions 요금제",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "requiredAnswerItems": [
+        "free-allowance-by-plan",
+        "overage-billing-rule",
+        "unit-price-table"
+      ],
+      "status": "partial-extraction-eligible",
+      "discoveredCandidateCount": 67,
+      "discoveredRankedUrls": [
+        "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+        "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+        "https://itwiki.kr/w/GitHub_Actions",
+        "https://github.com/orgs/community/discussions/182186"
+      ],
+      "discoveredButUnreadUrls": [
+        "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+        "https://itwiki.kr/w/GitHub_Actions",
+        "https://github.com/orgs/community/discussions/182186"
+      ],
+      "obtainedBodyUrls": [
+        "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+        "https://docs.github.com/ko",
+        "https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/",
+        "https://getlago.com/"
+      ],
+      "selectedObtainedBodyUrls": [
+        "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+        "https://docs.github.com/ko",
+        "https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/",
+        "https://getlago.com/"
+      ],
+      "snapshots": [
+        {
+          "version": 2,
+          "snapshotId": "docs.github.com:8000:In this article GitHub Actions b",
+          "status": "captured",
+          "question": "GitHub Actions 요금제",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+            "finalUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+            "hostname": "docs.github.com",
+            "official": true,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "GitHub Actions billing - GitHub Docs",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "In this article GitHub Actions billing Learn how usage of GitHub Actions is measured against your free allowance and how to pay for additional use. Copy markdown In this article How use of GitHub Actions is measured GitHub Actions usage is free for self-hosted runners and for public repositories that use standard GitHub-hosted runners. See Choosing the runner for a job. For private repositories, each GitHub account receives a quota of free minutes, artifact storage, and cache storage for use with GitHub-hosted runners, depending on the account's plan. Any usage beyond the included amounts is billed to your account. Minutes: Your free minutes reset to the full amount at the start of each billing cycle. Minutes usage is charged to the repository owner, not the person who triggered the workflow runs. Storage: Storage charges accumulate throughout the month based on hourly usage. Your accrued storage charges reset to zero at the start of each billing cycle. Tip Anyone with write access to a repository can run actions. Any costs of running the actions are billed to the repository owner. Copilot code review and GitHub Actions minutes Each Copilot code review consumes GitHub Actions minutes in addition to AI credits. Private repositories: Minutes are consumed from your account or organization's existing plan entitlement. Any usage beyond your included minutes is billed at standard GitHub Actions rates. Public repositories: Minutes remain free. Copilot code review runs on standard GitHub-hosted Ubuntu Linux runners by default. You can also configure GitHub-hosted larger runners or self-hosted runners via Actions Runner Controller (ARC), which are billed at different rates. How storage billing works GitHub Actions storage billing operates on an hourly accrual model: Continuous billing: Storage charges accrue every hour based on your actual usage throughout the month Monthly total: Your bill reflects the total storage used throughout the month, measured in GB-Hours Included amount: The free storage allowance for your plan (for example, 50 GB on the Enterprise plan) is converted to an hourly rate for billing calculations Shared storage: Actions artifacts and GitHub Packages storage share the same pooled allowance. See GitHub Packages billing. Cache storage: Actions cache storage is a separate allowance of 10 GB per repository. Cache storage is not shared with artifacts or GitHub Packages. Custom image storage: Storage for custom images used with GitHub-hosted larger runners has its own included allowance based on your plan. Understanding current vs. accrued storage It's important to understand the difference between what you see on GitHub and what appears on your bill: Current storage: The amount of storage you have right now Accrued storage: The cumulative total of storage used throughout the billing cycle (determines your bill) When you delete artifacts: Current storage decreases immediately Future hourly charges stop accumulating Storage already accrued during the current billing cycle remains in your total and will appear on your bill Example (30-day billing cycle): If you store 10 GB of artifacts for 10 days, then delete everything on day 11: Days 1-10: Accruing 240 GB-Hours per day (10 GB × 24 hours) Day 11: Delete artifacts → current storage drops to 0 GB Days 11-30: Accruing 0 GB-Hours (no storage) Your bill: Shows 2,400 GB-Hours total (10 days × 240 GB-Hours/day) Deleting artifacts reduces your current storage and prevents future charges, but does not remove charges already recorded for the time the storage existed. Storage measurement units GitHub Actions measures storage in binary gigabytes (GB), where: 1 GB = 2^30 bytes = 1,073,741,824 bytes This is also known as a gibibyte (GiB) 1 GB = 1,024 megabytes (MB) Billing calculations use GB-Hours: 1 GB-Hour = 1 GB of storage for 1 hour Example: Storing 3 GB for 10 days = 720 GB-Hours (3 GB × 10 days × 24 hours) Your monthly bill converts GB-Hours to GB-Months by dividing by the hours in the month (usually 720 hours for a 30-day month). Custom image storage For GitHub-hosted larger runners, storage for custom images is billed through GitHub Actions storage. Custom image storage uses the same hourly accrual model as other GitHub Actions storage. Your bill is based on the amount of image data that is stored over time, measured in GB-Hours. Storage usage for custom images depends on: The size of each image version The number of image versions that you retain How long each version is stored Each successful workflow job that includes the snapshot keyword creates a new custom image version. Each retained version contributes to your storage usage until the version is deleted or removed by a retention policy. For more information, see Using custom images and Enforcing policies for GitHub Actions in your enterprise. Custom image storage is based on retained image data over time, not on the number of times that a runner uses or pulls an existing image. For example: Storing one 150 GB custom image version for 24 hours uses 3,600 GB-Hours. Storing four 150 GB versions of the same image for 24 hours uses 14,400 GB-Hours. Examples of how usage is measured If you run a workflow on a Linux runner and it takes 10 minutes to complete, you'll use 10 minutes of the repository owner's allowance. If the workflow generates a 10 MB artifact, then you'll also use 10 MB of the repository owner's artifact storage allowance. If you run a workflow that normally takes 10 minutes and it fails after 5 minutes because a dependency isn't available, you'll use 5 minutes of the repository owner's allowance. If you fix the problem and re-run the workflow successfully, in total you'll use 15 minutes of the repository owner's allowance. If you run a workflow that generates many log files and a long job summary, these files do not count towards the repository owner's artifact storage allowance. Cache storage usage is measured by the peak usage for each hour. The included allowance is 10 GB per repository. For a given hour, if a repository has a peak cache usage of 15 GB, then the repository owner will be charged for the 5 GB of usage above the 10 GB included for that repository. The repository owner will only be charged if the repository cache storage limit has been configured higher than the included usage. Free use of GitHub Actions The following amounts of time for standard runners, artifact storage, and cache storage are included in your GitHub plan. At the start of each month, the minutes used by the account are reset to zero. Plan Artifact storage Minutes (per month) Cache storage (per repository) Custom image storage GitHub Free 500 MB 2,000 10 GB Not applicable GitHub Pro 1 GB 3,000 10 GB Not applicable GitHub Free for organizations 500 MB 2,000 10 GB Not applicable GitHub Team 2 GB 3,000 10 GB 75 GB GitHub Enterprise Cloud 50 GB 50,000 10 GB 150 GB The use of standard GitHub-hosted runners is free: In public repositories For GitHub Pages For Dependabot Note Larger runners are always charged for, even when used by public repositories or when you have quota available from your plan. The artifact storage amounts shown are shared with GitHub Packages. This means your total storage across Actions artifacts and GitHub Packages storage cannot exceed the included amount for your plan. Cache storage and custom image storage are separate allowances. Copilot code review consumes GitHub Actions minutes on private repositories. For public repositories, GitHub Actions minutes remain free. Using more than your included quota If your account does not have a valid payment method on file, usage is blocked once you use up your quota. Usage of larger runners is always blocked until you set up a payment method. Paying for additional GitHub Actions use You pay for any additional use above your quota using the payment method set up for your GitHub account. See Managing your payment and billing information. For GitHub-hosted runners, storage is billed bas...",
+            "length": 8000,
+            "storedLength": 8000,
+            "fullLength": null,
+            "truncated": true,
+            "truncationAssessment": "truncated",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [
+            {
+              "id": "docs.github.com:8000:In this article GitHub Actions b-segment-1",
+              "text": "each GitHub account receives a quota of free minutes",
+              "start": 399,
+              "end": 451,
+              "sourceSpan": {
+                "start": 399,
+                "end": 451
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            },
+            {
+              "id": "docs.github.com:8000:In this article GitHub Actions b-segment-2",
+              "text": "Any usage beyond the included amounts is billed to your account.",
+              "start": 558,
+              "end": 622,
+              "sourceSpan": {
+                "start": 558,
+                "end": 622
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            },
+            {
+              "id": "docs.github.com:8000:In this article GitHub Actions b-segment-3",
+              "text": "Minutes: Your free minutes reset to the full amount at the start of each billing cycle.",
+              "start": 623,
+              "end": 710,
+              "sourceSpan": {
+                "start": 623,
+                "end": 710
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            },
+            {
+              "id": "docs.github.com:8000:In this article GitHub Actions b-segment-4",
+              "text": "Any usage beyond your included minutes is billed at standard GitHub Actions rates.",
+              "start": 1336,
+              "end": 1418,
+              "sourceSpan": {
+                "start": 1336,
+                "end": 1418
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            },
+            {
+              "id": "docs.github.com:8000:In this article GitHub Actions b-segment-5",
+              "text": "Plan Artifact storage Minutes (per month) Cache storage (per repository) Custom image storage GitHub Free 500 MB 2",
+              "start": 6561,
+              "end": 6675,
+              "sourceSpan": {
+                "start": 6561,
+                "end": 6675
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            },
+            {
+              "id": "docs.github.com:8000:In this article GitHub Actions b-free-allowance-by-plan",
+              "text": "Plan Artifact storage Minutes (per month) Cache storage (per repository) Custom image storage GitHub Free 500 MB 2,000 10 GB Not applicable GitHub Pro 1 GB 3,000 10 GB Not applicable GitHub Free for organizations 500 MB 2,000 10 GB Not applicable GitHub Team 2 GB 3,000 10 GB 75 GB GitHub Enterprise Cloud 50 GB 50,000 10 GB 150 GB",
+              "start": 6561,
+              "end": 6892,
+              "sourceSpan": {
+                "start": 6561,
+                "end": 6892
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units",
+              "requiredAnswerItem": "free-allowance-by-plan"
+            }
+          ],
+          "requiredAnswerItems": [
+            "free-allowance-by-plan",
+            "overage-billing-rule",
+            "unit-price-table"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "docs.github.com:714:GitHub 문서 GitHub 여정의 모든 위치에 대한 도",
+          "status": "captured",
+          "question": "GitHub Actions 요금제",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://docs.github.com/ko",
+            "finalUrl": "https://docs.github.com/ko",
+            "hostname": "docs.github.com",
+            "official": true,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "GitHub Docs",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "GitHub 문서 GitHub 여정의 모든 위치에 대한 도움말입니다. 무엇이든 검색.../ 모든 문서 시작하기 시작하기 마이그레이션 계정 및 프로필 구독 및 알림 인증 청구 및 결제 사이트 정책 공동 코딩 Codespaces 리포지토리 끌어오기 요청 GitHub Discussions 통합 GitHub Copilot GitHub Copilot 요금제 Copilot cloud agent 자습서 GitHub Copilot 활용 안내서 사용자 지정 라이브러리 Copilot CLI CI/CD 및 DevOps GitHub Actions GitHub Packages GitHub Pages 보안 및 코드 품질 보안 및 코드 품질 비밀 보호 코드 취약성 찾기 및 수정 공급망 보안 품질 코드 유지 관리 확장 가능한 보안 클라이언트 앱 GitHub CLI GitHub 모바일 GitHub Desktop 프로젝트 관리 GitHub Issues Projects GitHub 검색 엔터프라이즈 및 팀 조직 확장 가능한 보안 엔터프라이즈 온보딩 엔터프라이즈 관리자 개발자 앱 REST API GraphQL API 웹후크 커뮤니티 커뮤니티 빌드 GitHub Sponsors GitHub Education 비영리 단체를 위한 GitHub GitHub 지원 GitHub Docs에 기여 추가 문서 CodeQL query writing Electron npm GitHub Well-Architected",
+            "length": 714,
+            "storedLength": 714,
+            "fullLength": 714,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "free-allowance-by-plan",
+            "overage-billing-rule",
+            "unit-price-table"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "github.blog:631:Mario Rodriguez leads the GitHub",
+          "status": "captured",
+          "question": "GitHub Actions 요금제",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/",
+            "finalUrl": "https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/",
+            "hostname": "github.blog",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "GitHub Copilot is moving to usage-based billing - The GitHub Blog",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "Mario Rodriguez leads the GitHub Product team as Chief Product Officer. His core identity is being a learner and his passion is creating developer tools—so much so that he has spent the last 20 years living that mission in leadership roles across Microsoft and GitHub. Mario most recently oversaw GitHub’s AI strategy and the GitHub Copilot product line, launching and growing Copilot across thousands of organizations and millions of users. Mario spends time outside of GitHub with his wife and two daughters. He also co-chairs and founded a charter school in an effort to progress education in rural regions of the United States.",
+            "length": 631,
+            "storedLength": 631,
+            "fullLength": 631,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "free-allowance-by-plan",
+            "overage-billing-rule",
+            "unit-price-table"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "getlago.com:167:Frontier AI“ Lago has been able ",
+          "status": "captured",
+          "question": "GitHub Actions 요금제",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://getlago.com/",
+            "finalUrl": "https://getlago.com/",
+            "hostname": "getlago.com",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "Lago | Cloud Billing for Usage, Subscriptions and Hybrid Pricing",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "Frontier AI“ Lago has been able to follow the pace of our releases and has allowed us to focus on what we do best. — Timothée Lacroix, CTO, Mistral AI Read their story",
+            "length": 167,
+            "storedLength": 167,
+            "fullLength": 167,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "free-allowance-by-plan",
+            "overage-billing-rule",
+            "unit-price-table"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        }
+      ],
+      "relevantSegmentCount": 6,
+      "satisfiedAnswerItems": [
+        {
+          "item": "free-allowance-by-plan",
+          "url": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+          "quote": "Plan Artifact storage Minutes (per month) Cache storage (per repository) Custom image storage GitHub Free 500 MB 2,000 10 GB Not applicable GitHub Pro 1 GB 3,000 10 GB Not applicable GitHub Free for organizations 500 MB 2,000 10 GB Not applicable GitHub Team 2 GB 3,000 10 GB 75 GB GitHub Enterprise Cloud 50 GB 50,000 10 GB 150 GB",
+          "sourceSpan": {
+            "start": 6561,
+            "end": 6892
+          },
+          "sourceSpanBasis": "body.text UTF-16 code units"
+        },
+        {
+          "item": "overage-billing-rule",
+          "url": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+          "quote": "Any usage beyond the included amounts is billed to your account",
+          "sourceSpan": {
+            "start": 558,
+            "end": 621
+          },
+          "sourceSpanBasis": "body.text UTF-16 code units"
+        }
+      ],
+      "missingAnswerItems": [
+        "unit-price-table"
+      ],
+      "disqualifiedEvidence": [],
+      "notes": [
+        "Free allowance and overage principle are visible; the 8000-character upstream cut prevents verification of the complete rate table."
+      ]
+    },
+    {
+      "id": "focus-03",
+      "originalQuestion": "2026-10-24 서울 날씨",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "requiredAnswerItems": [
+        "seoul-weather-value",
+        "2026-10-24-observation-or-forecast"
+      ],
+      "status": "hold",
+      "discoveredCandidateCount": 28,
+      "discoveredRankedUrls": [
+        "https://www.public25.com/news/articleView.html?idxno=57013",
+        "https://www.weather.go.kr/w/index.do",
+        "https://www.job-post.co.kr/news/articleView.html?idxno=232986",
+        "https://www.bntnews.co.kr/article/view/bnt202610240106"
+      ],
+      "discoveredButUnreadUrls": [],
+      "obtainedBodyUrls": [
+        "https://www.public25.com/news/articleView.html?idxno=57013",
+        "https://www.bntnews.co.kr/article/view/bnt202610240106",
+        "https://www.job-post.co.kr/news/articleView.html?idxno=232986",
+        "https://www.weather.go.kr/w/index.do"
+      ],
+      "selectedObtainedBodyUrls": [
+        "https://www.public25.com/news/articleView.html?idxno=57013",
+        "https://www.weather.go.kr/w/index.do",
+        "https://www.job-post.co.kr/news/articleView.html?idxno=232986",
+        "https://www.bntnews.co.kr/article/view/bnt202610240106"
+      ],
+      "snapshots": [
+        {
+          "version": 2,
+          "snapshotId": "www.public25.com:1726:[기상속보]오늘날씨 출근길 쌀쌀 서울 낮 21도 남부권 제",
+          "status": "captured",
+          "question": "2026-10-24 서울 날씨",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://www.public25.com/news/articleView.html?idxno=57013",
+            "finalUrl": "https://www.public25.com/news/articleView.html?idxno=57013",
+            "hostname": "www.public25.com",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "[기상속보]오늘날씨 출근길 쌀쌀 서울 낮 21도 남부권 제주 이틀간 10∼80㎜ 비...주말,주간예보 < WEATHER&LUCK < 정치&사회 < 기사본문 - 퍼블릭타임스",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "[기상속보]오늘날씨 출근길 쌀쌀 서울 낮 21도 남부권 제주 24일까지 10∼80㎜ 비...주말,주간예보.일교차가 큰 가을 날씨를 보인 서울 종로구 광화문네거리에서 긴 외투를 입은 시민들이 이동하고 있다. 연합뉴스 자료사진 퍼블릭타임스=기상청에 따르면 금요일인 23일은 전국에 구름이 많은 가운데 출근길 아침 기온이 낮아 춥겠으니 건강관리에 유의해야 한다. 전국 내륙에 일부 서리가 내리는 곳도 있겠다. 아침 최저 기온은 서울 7도등 3∼15도, 낮 최고 기온은 18∼23도로 예보됐다. 지역별 낮 최고 기온은 서울 21도, 인천 21도, 수원 21도, 춘천 20도, 강릉 19도, 청주 21도, 대전 22도, 세종 22도, 전주 22도, 광주 23도, 대구 21도, 부산 21도, 울산 20도, 창원 21도, 제주 23도 등이다. 동해안을 제외한 전국 대부분 지역에서 낮과 밤의 기온 차가 15도 안팎으로 매우 크겠으니 건강 관리에 유의해야 한다. 오후부터 제주도, 밤부터 전남권과 경남 남해안에 비가 시작돼 24일에는 전라권과 경상권, 제주도에 비가 내리겠다. 23∼24일 이틀간 예상 강수량은 광주·전남 10∼40㎜, 부산·울산·경남 10∼40㎜, 제주도 30∼80㎜다. 바람이 강하게 불며 바다의 물결도 높게 일겠다. 오후부터 제주도, 24일부터 남해안에 바람이 55km/h(15m/s) 이상으로 강하게 부는 곳이 많겠으니 시설물 관리와 안전에 유의해야 한다. 바다의 물결은 동해 앞바다에서 0.5∼2.0m, 서해 앞바다에서 0.5∼1.0m, 남해 앞바다에서 0.5∼1.5m로 일겠다. 먼바다의 파고는 동해 0.5∼2.0m, 서해 0.5∼3.0m, 남해 1.0∼2.5m로 예상된다. 남해안에는 너울에 의한 높은 물결이 백사장으로 강하게 밀려오거나 갯바위·방파제를 넘는 곳이 있겠으니 해안가 접근을 자제하는 등 안전에 유의해야 한다. 주말이자 토요일인 24일은 중부지방은 구름많겠고, 남부지방과 제주도는 대체로 흐리겠다. 전라권과 경상권, 제주도에 비가 내리겠다. 아침 최저기온은 8~17℃, 낮 최고기온은 17~21℃가 되겠다. 일요일인 25일 중부지방은 구름많겠고 남부지방과 제주도는 대체로 흐리겠다. 남부지방과 제주도에 비가 내리겠고, 오후부터 충청권, 늦은 밤부터 강원동해안.산지에도 비가 내리는 곳이 있겠다. 아침 최저기온은 9~17℃, 낮 최고기온은 18~24℃가 되겠다. ◆다음은 기상청이 발표한 10월 26일부터 11월1일까지 주말및 주간 기상예보이다. < 26일(월) > ○ 26일(월) 오전 강원영동과 충청권, 남부지방, 제주도 비 기압골의 영향으로 전국이 대체로 흐리거나 구름많겠고, 강원영동과 충청권, 남부지방, 제주도는 오전에 비가 내리겠다. 아침 기온은 13~19℃, 낮 기온은 19~23℃가 되겠다. < 27일(화) ~ 11월 1일(일) > ○ 전국 대체로 맑음 고기압의 영향으로 전국이 대체로 맑겠으나 고기압 가장자리에 들어 30일(금) 중부지방과 31일(토) 전국이 구름많겠다. 아침 기온은 0~16℃, 낮 기온은 12~21℃가 되겠다. ◆특보 발효현황 발표시각 : 2026년 10월 22일(목) 11:00 특보 내용 o 풍랑주의보 : 동해남부북쪽바깥먼바다, 동해중부바깥먼바다, 남해동부바깥먼바다, 제주도남쪽바깥먼바다, 제주도남동쪽안쪽먼바다, 제주도남서쪽안쪽먼바다 (1) 풍랑 예비특보 o 10월 23일 오전(06시~12시) : 제주도앞바다(제주도동부앞바다, 제주도남부앞바다, 제주도서부앞바다) 김하성 기자 sungkim61@public25.com",
+            "length": 1726,
+            "storedLength": 1726,
+            "fullLength": 1726,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "seoul-weather-value",
+            "2026-10-24-observation-or-forecast"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "www.weather.go.kr:914:날씨 로딩중... 행정동검색 검색 읍면동으로 선택 현재위찾",
+          "status": "captured",
+          "question": "2026-10-24 서울 날씨",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://www.weather.go.kr/w/index.do",
+            "finalUrl": "https://www.weather.go.kr/w/index.do",
+            "hostname": "www.weather.go.kr",
+            "official": true,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "홈 - 기상청 날씨누리",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "날씨 로딩중... 행정동검색 검색 읍면동으로 선택 현재위찾기 로딩중... 관심지역토글 선택해제됨 도움말 별표를 누르면 관심지역으로 등록 또는 삭제할 수 있습니다 닫기 도움말 별표를 누르면 관심지역으로 등록 또는 삭제할 수 있습니다 현재위찾기 로딩중... 관심지역토글 선택해제됨 도움말 별표를 누르면 관심지역으로 등록 또는 삭제할 수 있습니다 날씨지도 닫기 도움말 별표를 누르면 관심지역으로 등록 또는 삭제할 수 있습니다 날씨기호 설명 옙TV 유튜브 엑스 네이버블로그 전국 어제 현재 예보 날씨기호 설명 밀물·썰물 정보 해와 달이 뜨고지는 시각 기후정보포털 기상자료개방포털 기상기후빅데이터 대기질예·경보 날씨해설 (유튜브) 기상청 행정누리집 산악날씨 한강홍수통제소 해양기상정보포털 항공기상청 날씨기호 설명 아이콘, 설명으로 날씨 아이콘을 설명하는 표입니다. 날씨기호 설명 날씨기호 설명 맑음 맑음 맑음 (밤) 맑음 (밤) 구름많음 (낮) 구름많음 (낮) 구름많음 (밤) 구름많음 (밤) 흐림 흐림 소나기 소나기 비 비 가끔 비, 한때 비 가끔 비, 한때 비 눈 눈 가끔 눈, 한때 눈 가끔 눈, 한때 눈 비 또는 눈 비 또는 눈 가끔 비 또는 눈, 한때 비 또는 눈 가끔 비 또는 눈, 한때 비 또는 눈 눈 또는 비 눈 또는 비 가끔 눈또는 비, 한때 눈 또는 비 가끔 눈 또는 비, 한때 눈 또는 비 낙뢰 빗방울 빗방울 연무 연무 눈날림 눈날림 안개 안개 박무 (엷은 안개) 박무 (엷은 안개) 황사 황사 날씨 아이콘 저작물은 \"공공누리\" 출처표시-상업적이용금지-변경금지 조건에 따라 이용 할 수 있습니다. 지역검색 창 닫기 검색 읍면동으로 선택 기상청, 스마트폰 ‘날씨알리미‘ 앱 서비스 개시 내 위치의 위험기상·지진정보를 실시간으로 알려주는 앱 서비스를 시작합니다. 안드로이드용 앱 가기 아이폰용 앱 가기 7일 간 보지 않기 닫기",
+            "length": 914,
+            "storedLength": 914,
+            "fullLength": 914,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "seoul-weather-value",
+            "2026-10-24-observation-or-forecast"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "www.job-post.co.kr:1558:이미지출처 = 케이웨더 [잡포스트] 전진홍 기자 = 202",
+          "status": "captured",
+          "question": "2026-10-24 서울 날씨",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://www.job-post.co.kr/news/articleView.html?idxno=232986",
+            "finalUrl": "https://www.job-post.co.kr/news/articleView.html?idxno=232986",
+            "hostname": "www.job-post.co.kr",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "[오늘의 날씨] 2026년 10월 19일 월요일, 중부 대체로 맑음·남부 곳곳 비…낮 최고 24도 < 전국 < 기사본문 - 잡포스트(JOBPOST)",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "이미지출처 = 케이웨더 [잡포스트] 전진홍 기자 = 2026년 10월 19일 월요일 전국은 중부지방을 중심으로 대체로 맑거나 구름 많은 날씨를 보이는 가운데 남부지방과 제주도 일부 지역에서는 비가 이어지겠다. 비가 그친 뒤에는 북쪽에서 찬 공기가 유입되면서 기온이 점차 떨어질 전망이다. 기상청에 따르면 이날 전국은 중국 산둥반도 부근에서 서해상으로 이동하는 고기압의 영향을 받겠으나, 남부지방과 제주도는 기압골의 영향으로 흐리고 비가 내리는 곳이 있겠다. 중부지방은 전날 내리던 비가 대부분 그치면서 대체로 맑은 날씨를 회복하겠지만, 남부지방은 오전까지, 제주도는 낮까지 비가 이어지는 지역이 있을 것으로 예상된다. 이날 전국 아침 최저기온은 7~19도, 낮 최고기온은 19~24도로 예보됐다. 아침에는 지역에 따라 다소 쌀쌀하겠으며, 낮에는 기온이 오르면서 비교적 온화한 가을 날씨가 나타날 것으로 보인다. 서울과 인천, 경기 등 수도권은 대체로 맑거나 구름 많은 날씨가 예상된다. 전날 비가 내린 지역에서는 아침 시간대 기온이 내려가면서 다소 서늘하게 느껴질 수 있다. 강원도는 지역에 따라 구름이 많겠으며, 산지와 동해안에서는 바람이 강하게 부는 곳이 있어 시설물 관리와 야외활동 시 주의가 필요하다. 충청권은 대체로 맑거나 구름 많은 날씨가 이어질 전망이다. 다만 아침과 낮의 기온 차이가 나타날 수 있어 외출 시 체온 관리에 신경 써야 한다. 전라권과 경상권 등 남부지방은 오전까지 비가 내리는 곳이 있겠다. 일부 지역에서는 돌풍과 함께 천둥·번개가 동반될 가능성이 있어 교통안전과 시설물 관리에 주의가 요구된다. 제주도 역시 비가 이어지는 곳이 있겠으며, 지역에 따라 낮까지 강수가 지속될 수 있다. 특히 강한 바람이 부는 곳에서는 항공기와 여객선 운항 정보를 확인할 필요가 있다. 18일부터 19일까지 남부지방과 제주도를 중심으로 비교적 많은 비가 예보된 만큼 산간지역과 저지대에서는 배수시설과 주변 안전 상태를 점검하는 것이 좋겠다. 미세먼지 농도는 원활한 대기 확산과 강수 영향으로 전국 대부분 지역에서 '좋음' 수준을 보일 것으로 예상된다. 한편 이번 비가 그친 뒤에는 북쪽에서 찬 공기가 내려오면서 기온이 점차 낮아질 전망이다. 특히 21일부터 기온 하강이 뚜렷해지고, 22일 아침에는 일부 내륙지역의 기온이 0도 안팎까지 떨어질 가능성이 제기됐다. 갑작스러운 기온 변화에 따른 건강 관리와 농작물 저온 피해 예방에 주의가 필요하다. 기상청의 19일 오전 6시 중기예보에 따르면 23일 아침 기온은 2~12도, 낮 기온은 18~22도로 예상된다. 24일부터 29일까지는 아침 2~17도, 낮 14~24도 수준을 보이겠으며, 24일 제주도에는 비가 내릴 전망이다. 이번 주는 비가 그친 뒤 일교차가 커지고 아침 기온이 빠르게 내려갈 수 있어 출근길과 등굣길에는 가벼운 겉옷을 준비하는 것이 좋겠다. 특히 어린이와 고령자 등 기온 변화에 민감한 사람들은 아침과 저녁 체온 관리에 주의하고, 야외활동을 계획한 경우 지역별 강수와 바람 예보를 확인할 필요가 있다. 기상청은 기온 변화와 강풍, 해상 풍랑 등에 유의하고 최신 기상정보를 수시로 확인할 것을 당부하고 있다.",
+            "length": 1558,
+            "storedLength": 1558,
+            "fullLength": 1558,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "seoul-weather-value",
+            "2026-10-24-observation-or-forecast"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "www.bntnews.co.kr:26:남부지방·제주 비… 아침 최저 8도 [오늘날씨]",
+          "status": "captured",
+          "question": "2026-10-24 서울 날씨",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://www.bntnews.co.kr/article/view/bnt202610240106",
+            "finalUrl": "https://www.bntnews.co.kr/article/view/bnt202610240106",
+            "hostname": "www.bntnews.co.kr",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "태풍 '참피' 북상 남부 강한 비…제주 250mm ‘물폭탄’[내일날씨] | bnt뉴스",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "남부지방·제주 비… 아침 최저 8도 [오늘날씨]",
+            "length": 26,
+            "storedLength": 26,
+            "fullLength": 26,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "seoul-weather-value",
+            "2026-10-24-observation-or-forecast"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        }
+      ],
+      "relevantSegmentCount": 0,
+      "satisfiedAnswerItems": [],
+      "missingAnswerItems": [
+        "seoul-weather-value",
+        "2026-10-24-observation-or-forecast"
+      ],
+      "disqualifiedEvidence": [],
+      "notes": [
+        "No stored official Seoul weather observation or forecast for 2026-10-24."
+      ]
+    },
+    {
+      "id": "focus-04",
+      "originalQuestion": "2026-10-18~24 반도체 뉴스",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "requiredAnswerItems": [
+        "semiconductor-news-fact",
+        "publication-date-within-2026-10-18-to-24"
+      ],
+      "status": "hold",
+      "discoveredCandidateCount": 14,
+      "discoveredRankedUrls": [
+        "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/172145/view",
+        "https://dream.kotra.or.kr/kotranews/index.do"
+      ],
+      "discoveredButUnreadUrls": [],
+      "obtainedBodyUrls": [
+        "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/172145/view",
+        "https://dream.kotra.or.kr/kotranews/index.do",
+        "https://dream.kotra.or.kr/kotranews/cms/com/index.do?MENU_ID=270",
+        "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8"
+      ],
+      "selectedObtainedBodyUrls": [
+        "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/172145/view",
+        "https://dream.kotra.or.kr/kotranews/index.do"
+      ],
+      "snapshots": [
+        {
+          "version": 2,
+          "snapshotId": "www.motir.go.kr:4839:2026년 8월 수출입동향 담당자김정훈 담당부서수출입과 연",
+          "status": "captured",
+          "question": "2026-10-18~24 반도체 뉴스",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/172145/view",
+            "finalUrl": "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/172145/view",
+            "hostname": "www.motir.go.kr",
+            "official": true,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "2026년 8월 수출입동향 < 보도·참고자료 < 보도자료 < 알림·뉴스 < 산업통상부",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "2026년 8월 수출입동향 담당자김정훈 담당부서수출입과 연락처044-203-4042 등록일2026-09-01 조회수51,839 첨부파일 2026년 8월 수출입동향_3보_최종.pdf [1,685.9 KB] 바로보기 2026년 8월 수출입동향_3보_최종.hwpx [960.5 KB] 바로보기 81 2026년 8월 수출입 동향 - 수출 3개월 연속 900억 달러 상회…무역흑자 3개월 연속 300억 달러 상회 - 반도체 수출 467억 달러로 역대 최대 기록 경신 * 8월 수출 982.5억 달러(+68.7%), 수입 635.1억 달러(+22.5%), 수지 347.5억 달러 흑자 【총괄】‘26.8월 수출은 전년 동월 대비 68.7% 증가한 982.5억 달러, 수입은 22.5% 증가한 635.1억 달러, 무역수지는 347.5억 달러 흑자를 기록했다. 【수출】8월 수출은 68.7% 증가한 983억 달러로 3개월 연속으로 900억 달러 이상의 높은 실적을 이어갔으며, 반도체 수출은 209%, 반도체 외 품목 수출은 20% 증가했다. 조업일수를 고려한 일평균 수출은 72.5% 증가한 44.7억 달러로 4개월 연속 40억 달러를 상회했다. * 역대 수출 순위(억 달러) : 1위1,020(‘26.6월) → 2위990(‘26.7월) → 3위983(‘26.8월) * 역대 일평균 수출 순위(억 달러) : 1위45.3(‘26.6월) →2위44.7(‘26.8월) → 3위42.7(‘26.5월) 【품목】8월에는 20대 주력 수출품목 중 14개 품목 수출이 증가했다. 【8월 20대 주요품목별 수출액(억달러) 및 증감률(%)】 반도체 디스플레이 무선통신기기 컴퓨터 자동차 자동차부품 선박 467 (+209) 16 (△5) 19 (+21) 62 (+419) 39 (△30) 15 (△10) 17 (△46) 석유제품 석유화학 이차전지 일반기계 전기기기 철강 비철금속 68 (+65) 39 (+12) 6 (+24) 35 (+2) 15 (+16) 21 (+8) 15 (+24) 농수산식품 화장품 생활용품 섬유 가전 바이오헬스 전체 10 (+2) 13 (+52) 6 (△3) 8 (+0) 5 (△2) 14 (+22) 983 +69 (IT) 반도체 수출(466.5억 달러, +209.0%)은 구글·아마존 등 하이퍼스케일러의 설비투자(Capex) 확대로 AI 인프라 수요가 견조하게 지속되면서 역대 최대 기록을 경신했으며, 3개월 연속 400억 달러 이상을 기록했다. * 반도체 역대 월 수출 순위(억 달러) : 1위467(‘26.8월) → 2위448(‘26.6월) → 3위410(‘26.7월) * 반도체 역대 월 수출 순위 경신 추이(억불) : 2월251 → 3월328 → 5월372 → 6월448 → 8월467 * 메모리 고정가격 추이($, ‘26.4월→5월→6월→7월→8월) : (DDR516Gb)35.0→37.5→40.0→45.0→46.5, (NAND128Gb)24.2→26.5→28.8→30.1→30.5 컴퓨터(62.4억 달러, +419.5%) 수출은 기업용 SSD의 핵심부품인 NAND 가격 상승세가 지속되면서 월 기준 전 기간 역대 최대 실적을 경신했으며, 무선통신기기(18.8억 달러, +21.2%) 수출은 갤럭시 S26와 Z폴드·플립8 등 신제품 판매량이 증가하면서 10개월 연속 플러스를 이어갔다. (모빌리티) 자동차(38.5억 달러, △29.8%) 수출은 주요업체의 하계 휴가 시점 이동(‘25.7월말 → ’26.8월초)에 따른 기저효과와 부분 파업으로 인한 생산차질 등의 영향으로 일시적으로 감소했으며, 선박(16.9억 달러, △45.9%) 수출도 인도물량이 감소하면서 마이너스를 기록했다. (석유·화학제품) 석유제품(68.4억 달러, +65.3%) 및 석유화학(38.6억 달러, +12.2%) 수출액은 호르무즈 해협 통행 불안에 따른 유가 상승으로 전년대비 높은 수출단가가 지속되면서 두 자릿수 증가율을 보였으나, 물량은 석유제품 2.2%, 석유화학 7.0% 감소했다. 한편, 이차전지 수출(6.0억 달러, +24.0%)은 리튬 등 광물 가격 상승으로 단가가 회복세를 보이는 가운데, 전기차용 신규제품 주문 확대와 ESS 시장 활성화 등 영향으로 4개월 연속 플러스를 기록했다. * 유가(두바이유, $/b) 및 수출단가($/톤) : 유가88.8(+27.9%), 석유제품1,143(+69.1%), 석유화학1,326(+20.6%) (소재·기계) 철강(21.1억 달러, +7.9%) 수출은 EU TRQ 도입 등으로 대EU 수출은 감소했으나, 미국의 AI데이터센터 건설 확대에 따라 판재류, 철강재 등이 증가하면서 3개월 연속 플러스를 기록했으며, 일반기계 수출(35.3억 달러, +1.8%)은 미국의 관세 및 글로벌 경쟁 강화 등에도 일부 품목 관세 인하 등 영향으로 보합세를 기록했다. (소비재) 바이오헬스(14.1억 달러, +22.3%) 수출은 바이오시밀러 제품군의 유럽 입찰 수주 성과가 물량 공급 확대 및 처방 증가로 이어지며 역대 8월 중 최대 실적을 기록했다. 화장품(13.1억 달러, +52.1%)·농수산식품(9.8억 달러, +1.5%) 수출도 K뷰티, K푸드에 대한 인식 제고와 선호도 증가 등의 영향으로 각각 역대 8월 중 최대 실적을 경신했다. * 바이오헬스 역대 8월 수출 순위(억 달러) : 1위14.1(‘26년) → 2위12.7(‘24년) → 3위12.3(‘21년) * 화장품 역대 8월 수출 순위(억 달러) : 1위13.1(‘26년) → 2위8.6(‘25년) → 3위8.2(‘24년) * 농수산식품 역대 8월 수출 순위(억 달러) : 1위9.8(‘26년) → 2위9.6(‘25년) → 3위9.3(‘24년) 【지역】8월에는 9대 주요 수출지역 중 7개 지역에서 수출이 증가했다. 【8월 9대 주요지역별 수출액(억달러) 및 증감률(%)】 구 분 중국 미국 일본 인도 아세안 EU(27) 중남미 중동 CIS 전체 수출액 241 165 27 23 191 66 29 12 8 983 증감률 (+119) (+89) (+13) (+47) (+75) (+15) (+25) (△15) (△25) (+69) 대(對)중국 수출(241.0억 달러, +119.3%)은 석유화학·무선통신기기·디스플레이 등 다수 폼목이 부진했으나, 반도체·일반기계 등이 높은 증가율을 기록하면서 3개월 연속 200억 달러를 초과했다. * 8.1~25일 대중국 수출액(억 달러, %):반도체134(+320),석유화학11(△5),무선통신6(△4),일반기계5(+33),DP3(△14) 대미국 수출(165.0억 달러, +89.3%)은 자동차 수출은 하계휴가에 따른 생산량 감소 및 미국 현지생산 증가 영향으로 감소했으나, 반도체·컴퓨터 수출이 3자릿수의 높은 증가율을 기록했으며, 철강·석유제품 등도 호실적을 보였다. * 8.1~25일 대미국 수출액(억 달러, %):반도체32(+300),컴퓨터29(+1,040),자동차9(△43), 석유제품5(+23), 철강2(+109) 대아세안 수출(190.9억 달러, +75.4%)은 반도체·석유제품·디스플레이 등 주요 품목이 고르게 증가하면서 역대 8월 중 최대 실적을 기록했으며, 대EU 수출(66.2억 달러, +14.6%)은 자동차·철강 수출은 부진했으나, 반도체·석유제품 등이 증가하면서 9개월 연속 플러스 흐름을 이어갔다. * 대아세안 역대 8월 수출 순위(억 달러) : 1위191(‘26년) → 2위109(‘25년) → 3위108(‘22년) * 8.1~25일 대아세안 수출액(억 달러, %):반도체81(+200),석유제품17(+89), 디스플레이9(+1) * 8.1~25일 대EU 수출액(억 달러, %):자동차4(△27), 반도체5(+93), 석유제품5(+773), 철강2(△18) 대중동 수출(11.9억 달러, △15.0%)은 최대 품목인 자동차 수출이 부진한 가운데, 일반기계·석유화학 등 주요 품목 다수가 감소세를 보였다. * 8.1~25일 대중동 수출액(억 달러, %):일반기계1.1(△19), 자동차0.9(△54),석유화학0.7(△8) 【수입】8월 수입은 22.5% 증가한 635.1억 달러로, 에너지 수입은(126.8억 달러) 15.3% 증가, 에너지 외 수입(508.3억 달러)은 24.4% 증가했다. 원유 수입 물량은 △3% 감소했으나 수입단가는 26% 상승해 수입 금액은 21.2% 증가한 83억 달러를 기록했다. 비에너지는 반도체장비(25.7억 달러, +117.3%), 비철금속(21.9억 달러, +27.6%) 등의 수입이 증가했다. 【수지】8월 무역수지는 전년대비 283.4억 달러 증가한 347.5억 달러 흑자를 기록하며 3개월 연속 300억 달러 이상을 기록했으며, 1~8월 누적 수지는 2,025억 달러 흑자로 지난해 동기간 대비 1,622억 달러 증가했다. 【평가 및 정책방향】김정관 산업통상부 장관은 “8월 수출은 900억 달러 이상의 높은 실적을 기록하면서 상승 모멘텀을 이어갔다”고 하며, “반도체 수출 강세가 지속되는 가운데, 반도체 외 품목의 수출도 20%의 높은 증가율을 기록하고 있어, 우리 수출의 저변이 확대되고 있다는 점이 긍정적이다”고 평가했다. 이어서 김 장관은 “미국의 관세정책과 EU의 TRQ 등 주요국의 보호무역주의 강화, 글로벌 공급망 재편, 중동정세 등 우리 기업들이 직면하고 있는 통상환경의 불확실성이 그 어느 때보다 높은 상황이다”라고 강조하고, “정부는 현재의 수출 호조에 안주하지 않고, 통상환경의 변화가 우리 기업의 수출에 미치는 영향을 면밀히 점검해 나가겠다”고 밝혔다. ◇ 본 보도자료는 관세청 통관자료를 기초로 2026년 8월 수출입 실적을 분석한 것으로 8월 31일까지의 통관기준 잠정치를 기준으로 작성 ◇ 수출입 실적과 주요 품목별 수출 실적은 연간통계 확정 시(’27.2월)까지 정정 가능 목록 이전글 산업부 장관, G20 혁신장관회의 참석 및 한미 경제협력 확대 위해 방미 다음글 (참고자료) 2027년 산업부 예산 역대 최대 편성(13조 2,573억원)",
+            "length": 4839,
+            "storedLength": 4839,
+            "fullLength": 4839,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "semiconductor-news-fact",
+            "publication-date-within-2026-10-18-to-24"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "dream.kotra.or.kr:3193:본문 바로가기 주\n바로가기 푸터 바로가기 사이트맵 뉴스 상",
+          "status": "captured",
+          "question": "2026-10-18~24 반도체 뉴스",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://dream.kotra.or.kr/kotranews/index.do",
+            "finalUrl": "https://dream.kotra.or.kr/kotranews/index.do",
+            "hostname": "dream.kotra.or.kr",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "KOTRA 해외시장뉴스|해외경제정보드림",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "본문 바로가기 주\n바로가기 푸터 바로가기 사이트맵 뉴스 상품·산업 국가·지역정보 보고서 멀티미디어뉴스 해외투자 열린마당\n뉴스 전체 경제∙무역 통상∙규제 투자진출 현장∙인터뷰 기고 전문가기고 직원기고 글로벌 이슈 모니터링 글로벌 공급망 동향 동향뉴스 글로벌 공급망 인사이트 글로벌 ESG 정보 동향뉴스 연관 보고서 ESG 활용지원센터 미국 통상정책 주요 동향 핫클립 우크라이나 사태 해외동향 중동 관련 주요 동향 지금 수출 현장은 기획리포트 일자리동향 산업뉴스콕콕 상품·산업 전체 트렌드 상품DB 국별주요산업 해외인증정보 국가·지역정보 국가지역정보 북한정보 북한정보 북한대외무역동향 진출전략 출장자료 무역관뉴스레터 보고서 전체 멀티미디어뉴스 동영상뉴스 포토뉴스 카드뉴스 해외투자 해외투자안내 직접투자절차 해외투자준비 청산·국내복귀 FAQ 국별참고자료 법규·서식 진출기업지원세미나자료 진출기업정보 열린마당 공지사항 고객조사제안 뉴스레터신청 고객문의 고객문의 사이트이용 API RSS2.0 뷰어다운로드 정책∙방침 저작권정책 개인정보처리방침 개인정보처리방침 개인정보처리방침(2022.05.16) 개인정보처리방침(2021.07.07) 공공데이터개방 닫기 미국 연말 쇼핑, 사상 첫 1조 달러 돌파 전망…AI가 바꾸는 소비자 구매 여정 올해 미국의 연말 소매 매출은 전년 대비 4.5% 증가한 1조 달러를 넘어설 전망이다. 전자상거래 성장과 함께 생성형 AI가 상품 탐색, 가격 비교, 할인 정보 확인 등 소비자의 구매 여정을 바꾸고 있다. 한국 기업은 영문 상품 정보와 사용자 리뷰를 충실히 관리하고, AI 검색·\n환경에 대응해 미국 시장에서의 제품 노출과 소비자 신뢰를 강화할 필요가 있다. 생산기지에서 소비시장으로, 캄보디아 패션시장의 변화 캄보디아 패션시장은 의류 수출 성장과 함께 젊은 소비층을 중심으로 내수시장이 변화하고 있다. SNS와 한류 콘텐츠의 확산으로 다양한 패션 스타일과 한국 브랜드에 대한 관심이 높아지고 있으며, 한국 기업은 합리적인 가격과 차별화된 디자인, 현지 유통망 및 온·오프라인 채널을 활용한 단계적 진출 전략이 필요하다. AI와 스마트 기술이 이끄는 브라질 농업관개 산업의 혁신 브라질은 세계 1위의 수자원 대국이나 기후변화와 이모작 확산으로 관개 인프라의 중요성이 커지고 있다. 센터피벗과 점적관개 등 다양한 기술이 활용되는 가운데, 최근에는 전력·통신 인프라와 결합된 스마트 관개 및 순환경제로 빠르게 진화하고 있다. 한국 기업은 우수한 ICT 및 정밀 수자원 제어 기술을 바탕으로 현지 시장 진출과 협력을 모색할 수 있다. 2026 난징 식품·주류 박람회, 건강식품과 젊은 소비층에 주목 중국 대표 식품주류박람회인 추계 탕지우후이가 2년 연속 중국 장쑤성 난징에서 개최됐다. 올해 전시회에서는 건강·젊은 소비층 취향을 반영한 제품이 주류 트렌드로 부상했고, 한국 제품은 작년보다 다양해졌으며, 중국 현지 유통업체의 수요도 한층 뚜렷해진 것을 확인할 수 있었다. 영상뉴스 영상뉴스 비결(비즈니스 직결!) 해외시장정보 | [코라지 9월호] 브라질 화장품부터 파라과이 K-소비재까지! 변화하는 중남미 소비시장 영상뉴스 더우인 라이브커머스로 K-소비재 팔아봤습니다! 칭다오 K-Connect Day 현장 영상뉴스 호주 취업, 진짜 이렇게 합니다 [2026 대양주 취업박람회] 영상뉴스 비결(비즈니스 직결!) 해외시장정보 | [해.시.태그] 하얀 석유 리튬의 시대, 전 세계 공급망 재편 전략 영상뉴스 비결(비즈니스 직결!) 해외시장정보 | [세계이슈톡톡] Ep18. 할랄 인증 없으면 못 판다? - 인도네시아 소비재 시장의 새 기준 영상뉴스 비결(비즈니스 직결!) 해외시장정보 | 카자흐스탄 사람들 대부분이 쓰는 앱!(Kaspi) 영상뉴스 비결(비즈니스 직결!) 해외시장정보 | [코라지 8월호] 브라질 SAF부터 파나마 K-푸드까지! 변화하는 중남미 산업·소비시장 영상뉴스 비결(비즈니스 직결!) 해외시장정보 | 건기식부터 화장품까지, 운남에서 발견한 새로운 성장 기회 일시정지 보고서 바로가기 다운로드 2026 수출 다변화를 위한 비관세장벽 설명회 : 중국·일본·동남아·서남아를 중심으로 (2026 FTA해외활용지원센터 합동) 다운로드 AI시대 대만 반도체 산업 성장과 우리기업 진출기회 다운로드 15차 5개년 계획으로 보는 중국 미래산업 지형 및 시사점 다운로드 2026 미국 중간선거 전망과 통상·산업정책 영향 분석 다운로드 유럽 재무장 시대, 독일 항공우주·방산 공급망 재편과 한국 기업 진출 전략 다운로드 네덜란드 후공정 생태계와 K-소부장 파트너십 전략: 전자를 넘어 빛으로, 영토를 넘어 공급망으로 다운로드 브라질 핵심광물 시장 동향 및 진출전략 다운로드 신통상 시대 '원산지' 바로알기 : 수출의 출발점, 원산지 일시정지 글로벌 이슈 모니터링 다운로드 (GIM) 중국 SCFI (상하이컨테이너 운임지수) / CCFI(중국컨테이너 운임지수) 상승 동향 및 시사점 다운로드 (GIM) 미 풍력터빈 및 부품 수입 관련 포고문 발표 주요 내용 다운로드 [2026.10.23.] 중동 주간 정세 및 유가·물류 동향 다운로드 [26.10.22] 글로벌 공급망 인사이트 182호 다운로드 (GIM) 중국 드론‧굴착기‧준설선 수출통제 조정 및 이중용도 품목 통관 절차 정비 공고(10.19) 다운로드 (GIM) 프랑스 시위 확산 동향 다운로드 (GIM) 인니, 할랄 인증 의무화 적용기간 조정 발표(‘28.10.18일부) 다운로드 (GIM) 독-프 유럽 자동차산업 미래 관련 공동성명 발표 및 우리기업 시사점 일시정지 이전 슬라이드 다음 슬라이드 인기뉴스 1 중국 IP·콘텐츠 산업: 굿즈 경제 2000억 위안 시대, ‘돈 버는 방식’의 전환 2 할랄·IP·럭셔리…다변화하는 홍콩 관광시장 3 중국 ‘교감 경제’, 반려동물·실버·AI로 판 키운다 4 파라과이 페냐 정부 출범 3년 주요 성과 5 美 9월 CPI 3.7% 상승…에너지발 인플레이션 확산에 추가 금리 인상 가능성 주목 6 2026 말레이시아 코스모뷰티·뷰티엑스포 참관기 7 독일 ESS 시장, 전력저장 제도 정비 속 산업용·대형 저장장치 성장 8 인도 한국식품 시장의 유통 확대와 수출기회 인기 국가정보 바로가기 중국 아시아 미국 북미 베트남 아시아 열린마당 고객문의 조사제안 뉴스레터 공지사항 바로가기 (마감) 2025 KOTRA 해외시장뉴스 이용자 만족도 조사 2025-12-08 [마감] 내 영혼이 이끄는 운명의 국가를 찾아보세요! (유형 테스트 하러가기) 게시글 내에 첨부파일 존재 2025-04-30 TOP",
+            "length": 3193,
+            "storedLength": 3193,
+            "fullLength": 3193,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "semiconductor-news-fact",
+            "publication-date-within-2026-10-18-to-24"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        }
+      ],
+      "relevantSegmentCount": 0,
+      "satisfiedAnswerItems": [],
+      "missingAnswerItems": [
+        "semiconductor-news-fact",
+        "publication-date-within-2026-10-18-to-24"
+      ],
+      "disqualifiedEvidence": [
+        {
+          "url": "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/172145/view",
+          "reason": "published-2026-09-01-outside-requested-week"
+        }
+      ],
+      "notes": [
+        "Stored ministry article was published 2026-09-01 about August trade, outside the requested week."
+      ]
+    },
+    {
+      "id": "focus-05",
+      "originalQuestion": "2026-10-24 기준 과학기술정보통신부 장관",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "requiredAnswerItems": [
+        "minister-name-and-title",
+        "evidence-date",
+        "incumbency-at-2026-10-24"
+      ],
+      "status": "partial-extraction-eligible",
+      "discoveredCandidateCount": 26,
+      "discoveredRankedUrls": [
+        "https://www.msit.go.kr/index.do",
+        "https://www.msit.go.kr/bbs/view.do?mId=108&bbsSeqNo=83&nttSeqNo=3186355",
+        "https://english.msit.go.kr/bbs/view.do?sCode=user&mId=125&mPid=121&bbsSeqNo=98&nttSeqNo=3186335&formMode=L&pageIndex=&searchCtgry=&searchCtgry2=&searchCtgry3=&RLS_YN=&searchOpt=ALL&searchTxt="
+      ],
+      "discoveredButUnreadUrls": [
+        "https://www.msit.go.kr/bbs/view.do?mId=108&bbsSeqNo=83&nttSeqNo=3186355",
+        "https://english.msit.go.kr/bbs/view.do?sCode=user&mId=125&mPid=121&bbsSeqNo=98&nttSeqNo=3186335&formMode=L&pageIndex=&searchCtgry=&searchCtgry2=&searchCtgry3=&RLS_YN=&searchOpt=ALL&searchTxt="
+      ],
+      "obtainedBodyUrls": [
+        "https://www.msit.go.kr/index.do",
+        "https://english.msit.go.kr/bbs/view.do?mId=125&bbsSeqNo=98&nttSeqNo=3186457",
+        "https://www.msit.go.kr/bbs/view.do?mId=125&bbsSeqNo=98&nttSeqNo=3186457",
+        "https://english.msit.go.kr/bbs/view.do?mId=310&bbsSeqNo=96&nttSeqNo=3186625"
+      ],
+      "selectedObtainedBodyUrls": [
+        "https://www.msit.go.kr/index.do"
+      ],
+      "snapshots": [
+        {
+          "version": 2,
+          "snapshotId": "www.msit.go.kr:4778:본문 바로가기 주\n바로가기 과학기술정보통신부 전체\n닫기 국",
+          "status": "captured",
+          "question": "2026-10-24 기준 과학기술정보통신부 장관",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://www.msit.go.kr/index.do",
+            "finalUrl": "https://www.msit.go.kr/index.do",
+            "hostname": "www.msit.go.kr",
+            "official": true,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "과학기술정보통신부",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "본문 바로가기 주\n바로가기 과학기술정보통신부 전체\n닫기 국가상징안내 누리집안내지도 Language 한국어 English 국민참여 국민참여 적극행정 제도소개 적극행정 알림/소식 카드뉴스 지원센터 적극행정 국민\n소극행정 신고 국민생각함 전자공청회 정책토론 국민제안 과학기술·AI 분야 정상화 과제 제안 국민제안 규제혁신 규제혁신신문고 규제혁신과제 규제혁신보도자료 규제혁신홍보자료 규제혁신알림마당 규제입증요청 민원신고 민원 Q&A 정책 Q&A 민원 FAQ 민원신청 예산낭비신고 민원신고확인 부패·공익신고 부패신고 공익신고 청탁금지법 위반신고 공직자 행동강령 위반신고 갑질·채용 비리신고 전자민원센터 부정비리신고센터 보조금 부조리 신고 장관에게 바란다 고영향 인공지능 확인 요청 톱티어 비자 신청 안내 정보공개 정보공개 정보공개제도 안내 정보공개제도 정보공개법령·서식 정보공개청구 비공개정보세부기준 정보목록 업무추진비공개 사전정보공표 사전정보공표목록 세입세출현황 국고보조금 총괄 현황 유관기관 임원현황 감사결과공개 계약 및 실시협약현황 협동조합경영공시 정책실명제 정책연구결과 반부패 청렴자료 청렴도 측정 결과 반부패 청렴자료 부패 · 갑질행위자 현황 공공데이터개방 공공데이터 개요 공공데이터 제공 오류신고 국민참여 및 활용사례 정책·통계 정책·통계 국정과제 국정과제 국정성과 업무계획·예산 업무계획 소관기관 업무계획 예산 대표성과지표 정책정보 연구개발·미래인재 정보통신 네트워크·전파 과학기술혁신 기타 통계정보 주간동향·간행물 법령 법령 소관법령 훈령예규고시 입법행정예고 국가법령정보센터 새소식 새소식 보도자료 보도설명 포토뉴스 카드뉴스 인사 알림 알림 공지사항 사업공고 모집채용 기관소개 기관소개 부총리 겸 장관소개 부총리 겸 장관소개 부총리 겸 장관일정 역대장관 소개 차관소개 1차관 소개 1차관 일정 2차관 소개 2차관 일정 본부장소개 본부장 소개 본부장 일정 연혁 MI소개 조직도·직원안내 유관기관 외청·소속기관 유관기관 관련기관/서비스 중앙행정기관 오시는길 오시는길 사무실배치도 사이트링크 사이트링크 과기정통부 도서관 과기정통부-세계은행, 「글로벌 AI‧디지털 서밋」 개최 과기정통부-세계은행, 「글로벌 AI‧디지털 서밋」 개최 자세히 보기 피지컬 AI 얼라이언스 간담회 피지컬 AI 얼라이언스 간담회 자세히 보기 국민주권정부 38대 대표 성과 국민주권정부 38대 대표 성과 자세히 보기 과학기술ㆍAI로 여는 대한민국 대도약 과기정통부 국정성과 과학기술ㆍAI로 여는 대한민국 대도약 과기정통부 국정성과 자세히 보기 자동슬라이드 멈춤 이전으로 슬라이드 다음으로 슬라이드 뉴스센터 전체 등록된 게시물이 없습니다. 보도자료 보도자료 아이들의 상상력이 인공지능을 만나는 첫 경험! 「전 국민 인공지능 경진대회」, 인공지능 창작대회 본선 개최 Oct 24, 2026 보도자료 한국, 아시아태평양경제협력체(APEC) 정보통신실무그룹(TEL) 의장단에 연이어 진출 Oct 24, 2026 보도자료 7대 미래 첨단기술(7대 SEED), 분야별 이행전략 수립 본격화 Oct 22, 2026 보도자료더보기 보도설명 보도설명 [보도설명] 국민의 알권리 보장과 기업의 투자 확대를 위해 공시제도를 확대하였으며 기업의 행정부담을 최소화할 계획입니다 Oct 21, 2026 보도설명 [보도설명] 과기정통부는 출연연 보안조치 권고에 대한 사후관리를 철저히 이행해 나아가겠습니다 Oct 19, 2026 보도설명 [보도설명] 초고속인터넷 속도 및 순위 관련 보도에 대하여 다음과 같이 설명드립니다(다수 매체) Oct 14, 2026 보도설명더보기 포토뉴스 [{rnum=1, bbsSeqNo=87, nttSeqNo=3177761, nttSj=5G 기반 지하철 와이파이 체험, nttCn2=과학기술정보통신부가 21일 오후 인천광역시 남동구 인천지하철 2호선(운연역-인천시청역)에서 5G 기반 지하철 와이파이 고도화 성과를 확인하고, 국민과 함께 개선된 품질을 체험하는 행사를 개최했다. 이날 행사에 류제명 제2차관, 이훈기 국회의원, 박찬대 인천광역시장, 최정규 인천교통공사 사장 및 통신 3사 관계자, 국민체험단 등이 참여했다., thumbImg=Y, atchFileNo=null, pstgBgngDt=2026-10-21 16:00:00.0, pstgEndDt=9999-12-31 00:00:00.0, pstgBgngDtTime=2026-10-21 16:00:00.0, pstgEndDtTime=9999-12-31 00:00:00.0}, {rnum=2, bbsSeqNo=87, nttSeqNo=3177760, nttSj=AI 디지털 장관회의, nttCn2=배경훈 부총리 겸 과학기술정보통신부 장관이 19일 오전 서울 용산구 그랜드하얏트호텔에서 열린 '글로벌 AI 디지털 서밋, AI 디지털 장관회의' 에서 김상부 세계은행 부총재(공동의장) 및 50여 개국 장차관급 대표들과 기념촬영을 하고 있다., thumbImg=Y, atchFileNo=null, pstgBgngDt=2026-10-19 09:00:00.0, pstgEndDt=9999-12-31 00:00:00.0, pstgBgngDtTime=2026-10-19 09:00:00.0, pstgEndDtTime=9999-12-31 00:00:00.0}, {rnum=3, bbsSeqNo=87, nttSeqNo=3177759, nttSj=구혁채 제1차관-스코틀랜드 내각부 기업공정노동 차관 면담, nttCn2=구혁채 과학기술정보통신부 제1차관이 14일 오후 서울 종로구 KT광화문빌딩에서 톰 아서(Tom Arthur) 스코틀랜드 내각부 기업공정노동 차관을 만나 기념촬영 하고 있다. 구혁채 제1차관과 톰 아서 차관은 반도체 분야 협력방향에 대해 논의했다., thumbImg=Y, atchFileNo=null, pstgBgngDt=2026-10-14 14:00:00.0, pstgEndDt=9999-12-31 00:00:00.0, pstgBgngDtTime=2026-10-14 14:00:00.0, pstgEndDtTime=9999-12-31 00:00:00.0}] 포토뉴스 5G 기반 지하철 와이파이 체험 Oct 21, 2026 포토뉴스 AI 디지털 장관회의 Oct 19, 2026 포토뉴스 구혁채 제1차관-스코틀랜드 내각부 기업공정노동 차관 면담 Oct 14, 2026 포토뉴스더보기 카드뉴스 과기정통부, 세계은행과 함께 「글로벌 AI·디지털 서밋」 개최 Oct 19, 2026 배경훈 부총리, 「제23회 과학기술사회 포럼」에서 세계 과학기술 리더들과 미래 과학기술 정책 방향 논의 Oct 7, 2026 배경훈 부총리 주재 「제13회 과학기술관계장관회의」 개최 Sep 30, 2026 추석 연휴, 응급·편의시설 정보 지도 앱에서 한눈에! Sep 23, 2026 더보기 알림·소식 전체 등록된 게시물이 없습니다. 공지사항 공지사항 2026년 우수공무원 포상 공개검증 Oct 21, 2026 공지사항 (공고 제2026-1033호) 학생인건비통합관리기관 목록 Oct 21, 2026 공지사항 「2027년도 과학기술진흥 유공 정부포상」 계획 공고(기한 연장) Oct 20, 2026 사업공고 사업공고 2026년 가속기핵심기술개발사업 신규과제 선정결과 공고 Oct 23, 2026 사업공고 2026년도 한-오스트리아(FWF) 공동연구사업 신규과제 선정결과 공고 Oct 22, 2026 사업공고 2026년도 한미 이공분야 학생 인력교류 프로그램(NSF IRES) 운영 지원사업 신규과제 공모 Oct 16, 2026 채용공고 채용공고 우체국시설관리단 이사장 모집 공고 Oct 22, 2026 채용공고 과학기술정보통신부 기간제 근로자 채용공고 Oct 16, 2026 채용공고 과학기술정보통신부 전문임기제 다급(과학기술 인력양성) 경력경쟁채용시험 면접전형 합격자 공고 Oct 15, 2026 정책브리핑 정책소개 국정과제 국정성과 업무계획 예산 법령 통계정보 iaea원자력장관회의_이미지 iaea원자력장관회의_이미지 gisc_이미지 gisc_이미지 톱티어 비자_이미지 톱티어 비자_이미지 전국민AI경진대회_이미지 전국민AI경진대회_이미지 '25년도 종합청렴도 평가 결과 종합청렴도 3등급 ·청렴체감도 2등급 ·청렴노력도 4등급 '25년도 종합청렴도 평가 결과 종합청렴도 3등급 ·청렴체감도 2등급 ·청렴노력도 4등급 자동슬라이드 멈춤 이전으로 슬라이드 다음으로 슬라이드 누리 소통망 youtube instagram facebook blog 엑스((구)트위터) 유튜브 인스타그램 페이스북 블로그 2026.10.22 홈페이지·웹서비스 운영 기업과 기관은 긴급 보안조치해 주세요! 전 세계 웹사이트 제작에 널리 쓰이는 프로그래밍 언어 ‘PHP’에서 심각한 보안 취약점 2건이 공개되었습니다. 홈페이지·웹서비스 운영 기업과 기관은 긴급 보안조치해 주세요! (KISA 보호나라 : www.boho.or.kr (알림마당 → 보안공지 → ‘PHP 제품 보안 업데이트 권고’)) 과기정통부(KISA)는 CISO 신고기업, 주요정보통신기반시설, 정보보호 관리체계(ISMS) 인증기업, 웹호스팅사, 인터넷데이터센터(IDC), 사이버위협정보 공유(C-TAS) 회원사 등에 관련 내용을 긴급 전파하였으며, 국내외 보안업계와 협력해 공격 동향을 지속적으로 모니터링하고 있습니다. 이번 PHP 취약점은 국내 수많은 홈페이지에 영향을 줄 수 있고, 공격코드까지 이미....... <img src=\"https://blogthumb.pstatic.net/MjAyNjEwMjJfMzMg/MDAxNzkyNjU3MjcxNTUx.7-qqjJpIXhTR1wB-usgjqYAuHZJ87X79Eu4b5HWhcD0g.3yI1AJ1GXJpQtfQi_WxrQCQ_XF03MkYKztvmmD_osJwg.PNG/%BA%B8%BE%C8.png?type=s3\" /> 자세히 보기 TOP",
+            "length": 4778,
+            "storedLength": 4778,
+            "fullLength": 4778,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [
+            {
+              "id": "www.msit.go.kr:4778:본문 바로가기 주\n바로가기 과학기술정보통신부 전체\n닫기 국-segment-1",
+              "text": "nttCn2=배경훈 부총리 겸 과학기술정보통신부 장관이 19일 오전",
+              "start": 2247,
+              "end": 2284,
+              "sourceSpan": {
+                "start": 2247,
+                "end": 2284
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            },
+            {
+              "id": "www.msit.go.kr:4778:본문 바로가기 주\n바로가기 과학기술정보통신부 전체\n닫기 국-evidence-date",
+              "text": "pstgBgngDt=2026-10-19 09:00:00.0",
+              "start": 2419,
+              "end": 2451,
+              "sourceSpan": {
+                "start": 2419,
+                "end": 2451
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units",
+              "requiredAnswerItem": "evidence-date"
+            }
+          ],
+          "requiredAnswerItems": [
+            "minister-name-and-title",
+            "evidence-date",
+            "incumbency-at-2026-10-24"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        }
+      ],
+      "relevantSegmentCount": 2,
+      "satisfiedAnswerItems": [
+        {
+          "item": "minister-name-and-title",
+          "url": "https://www.msit.go.kr/index.do",
+          "quote": "배경훈 부총리 겸 과학기술정보통신부 장관",
+          "sourceSpan": {
+            "start": 2254,
+            "end": 2276
+          },
+          "sourceSpanBasis": "body.text UTF-16 code units"
+        },
+        {
+          "item": "evidence-date",
+          "url": "https://www.msit.go.kr/index.do",
+          "quote": "pstgBgngDt=2026-10-19 09:00:00.0",
+          "sourceSpan": {
+            "start": 2419,
+            "end": 2451
+          },
+          "sourceSpanBasis": "body.text UTF-16 code units"
+        }
+      ],
+      "missingAnswerItems": [
+        "incumbency-at-2026-10-24"
+      ],
+      "disqualifiedEvidence": [],
+      "notes": [
+        "Official homepage photo caption has the minister title and 2026-10-19 posting metadata; no direct incumbency statement at 2026-10-24."
+      ]
+    },
+    {
+      "id": "focus-06",
+      "originalQuestion": "2026년 10월 서울 무료 개발자 행사 일정",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "requiredAnswerItems": [
+        "developer-event",
+        "free-admission",
+        "seoul-location",
+        "future-date-after-2026-10-24"
+      ],
+      "status": "hold",
+      "discoveredCandidateCount": 21,
+      "discoveredRankedUrls": [
+        "https://science.seoul.go.kr/main",
+        "https://dev-event.vercel.app/event/detail/3212",
+        "https://mediahub.seoul.go.kr/news/newsMain.do",
+        "https://lib.seoul.go.kr/"
+      ],
+      "discoveredButUnreadUrls": [],
+      "obtainedBodyUrls": [
+        "https://science.seoul.go.kr/main",
+        "https://mediahub.seoul.go.kr/news/newsMain.do",
+        "https://lib.seoul.go.kr/",
+        "https://dev-event.vercel.app/event/detail/3212"
+      ],
+      "selectedObtainedBodyUrls": [
+        "https://science.seoul.go.kr/main",
+        "https://dev-event.vercel.app/event/detail/3212",
+        "https://mediahub.seoul.go.kr/news/newsMain.do",
+        "https://lib.seoul.go.kr/"
+      ],
+      "snapshots": [
+        {
+          "version": 2,
+          "snapshotId": "science.seoul.go.kr:3078:- 재생 정지 이전 다음 / 재생 정지 이전 다음 운영시간",
+          "status": "captured",
+          "question": "2026년 10월 서울 무료 개발자 행사 일정",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://science.seoul.go.kr/main",
+            "finalUrl": "https://science.seoul.go.kr/main",
+            "hostname": "science.seoul.go.kr",
+            "official": true,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "서울시립과학관",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "- 재생 정지 이전 다음 / 재생 정지 이전 다음 운영시간 09:30~17:30 휴관안내 매주 월요일 (월요일이 공휴일인 경우 화요일에 휴관) 1월1일, 설날(당일), 추석(당일)에 휴관 관람료 관람료는 무료입니다. 단, 일부 체험 및 교육 프로그램은 유료로 운영됩니다. 이용안내 주차안내 찾아오시는 길 전시 둘러보기 새로운 과학 이야기와 다양한 정보를 확인하세요. 이전 다음 / 상설전시 생활 속 다양한 과학 원리를 직접 보고, 만지고, 실험하며 과학을 쉽고 재미있게 발견하는 체험형 전시 자세히 기획전시 과학기술과 사회의 다양한 주제를 새로운 시선으로 바라보고 익숙한 현상 속 새로운 질문을 발견하는 특별전 자세히 전시연계프로그램 전시 속 과학을 실험·탐구·활동으로 직접 경험하며 관람에서 한 걸음 더 나아가 과학을 깊이 이해하는 프로그램 자세히 과학교육 [과학북토크: 달작한 사이언스 (11월)] 미술관에 간 물리학자 교육기간 : 2026-11-29 ~ 2026-11-29 교육대상 : 과학과 책을 좋아하는 누구나 [과학X예술 워크숍] 과학관에 온 예술가들 교육기간 : 2026-10-20 ~ 2026-11-22 교육대상 : 프로그램 별 상이 2026 과학관 성인교육 '전통자수: 관찰을 수놓다' 교육기간 : 2026-10-13 ~ 2026-10-20 교육대상 : 성인 [과학북토크: 달작한 사이언스 (10월)] 우리는 어쩌다 과학을 믿게 되었을까? 교육기간 : 2026-10-25 ~ 2026-10-25 교육대상 : 과학과 책을 좋아하는 누구나 2026년 하반기 가족 과학 실험교실 '과학에 물들다' 교육기간 : 2026-10-18 ~ 2026-11-22 교육대상 : 2026 과학관 성인교육 '호르몬 다이어리' 교육기간 : 2026-11-03 ~ 2026-11-10 교육대상 : 성인 누구나 2026 하반기 대학연구실 교육기간 : 2026-09-05 ~ 2026-11-21 교육대상 : 중~고등학생 이상 성인 2026년 성인을 위한 은근히 밀도있는 과학교실 '은밀한 사이언스' 교육기간 : 2026-05-31 ~ 2026-12-13 교육대상 : 성인 2026 토요과학강연 교육기간 : 2026-03-28 ~ 2026-10-31 교육대상 : 과학에 관심있는 누구나 2026 과학관 성인교육 '식물 아뜰리에: 관찰과 표본' 교육기간 : 2026-11-10 ~ 2026-11-24 교육대상 : 성인 누구나 이전 다음 재생 정지 더보기 / 문화행사 이달의 다양한 교육 프로그램을 체험해보세요. 이전 다음 더보기 / 별빛축제 2026년 별빛축제 교육기간 : 2026-10-24 ~ 2026-10-25 교육대상 : 누구나 특별행사 2026 메이커페어 서울(in 동대문디자인플라자 일대) 교육기간 : 2026-09-19 ~ 2026-09-20 교육대상 : 누구나 특별행사 [사전예약] 메이커 페어 서울 (Maker Faire Seoul) 2026 교육기간 : 2026-09-19 ~ 2026-09-20 교육대상 : 메이킹을 좋아하는 누구나 한여름의 과학관 [행사 종료]2026 한여름의 과학관 교육기간 : 2026-07-25 ~ 2026-08-02 교육대상 : 누구나 특별행사 메이커 페어 서울 (Maker Faire Seoul) 2026 교육기간 : 2026-09-19 ~ 2026-09-20 교육대상 : 메이킹을 좋아하는 누구나 별빛축제 2026 별빛축제 - 전문가 초청 천문 우주 특강 교육기간 : 2026-10-24 ~ 2026-10-24 교육대상 : 초등학교 4학년 이상 ~ 성인 한여름의 과학관 [행사 종료]2026 한여름의 과학관 - 뚝딱뚝딱 과학놀이터 교육기간 : 2026-07-25 ~ 2026-08-02 교육대상 : 누구나 한여름의 과학관 [행사 종료]2026 한여름의 과학관 - 사이언스매직쇼 교육기간 : 2026-07-25 ~ 2026-08-02 교육대상 : 누구나 특별행사 2026 영메이커 LAB : 생존미션 ‘스페이스 서바이벌’ 교육기간 : 2026-08-08 ~ 2026-08-22 교육대상 : 어린이 (초등 4~6학년) 별빛축제 2026 별빛축제 - 과학X예술 워크숍 교육기간 : 2026-10-24 ~ 2026-10-25 교육대상 : 초등 4학년 이상 과학관 소식 공지사항 채용정보 언론보도 타기관 홍보 더보기 2026.10.22 숏츠로 전하는 환경보건 이야기 2026.10.22 2026년 별빛축제(10.24~25) 전시연계프로그램 운영안내 2026.10.22 ✅ 서울시립과학관 11월 휴관일정 2026.10.07 2026년 공휴일(한글날 10월 9일) 전시연계프로그램 운영안내 2026.10.02 2026년 대체공휴일(10월 5일) 전시연계프로그램 운영안내 더보기 2026.08.26 2026년 서울매력일자리 과학문화콘텐츠기획전문과 과정 매력일자리 참여자 2차 채용 최종합격자 공고 2026.07.16 「2026 서울 매력일자리 과학문화 콘텐츠 기획 전문가 과정 사업」참여자 2차 모집 공고 2026.06.29 서울시립과학관 기간제노동자(공무직 휴직자 대체인력) 채용시험 최종합격자 공고 2026.06.19 서울시립과학관 기간제노동자(공무직 휴직자 대체인력) 면접시험 합격자 공고 2026.05.22 서울시립과학관 기간제노동자(공무직 휴직자 대체인력) 서류전형 합격자 발표 및 면접시험 공고 더보기 2026.10.20 서울 도심서 달·행성·별 본다…24∼25일 시립과학관 '별빛축제' 2026.09.17 인공지능 시대, 손으로 만드는 미래 (메이커 페어 서울) 2026.09.02 로봇 만들고 자동차 굴리고 타자기 뜯고…'메이커' 100팀 DDP에 모인다 2026.07.23 서울시립과학관, 여름축제 '한여름의 과학관' 개최 2026.06.12 ''내가 만든 AI･로봇 직접 뽐낸다''…'2026 메이커 페어 서울' 참가자 모집 현장스케치 이전 다음 더보기 / 2026 메이커 페어 서울 2026-10-12 2026 한여름의 과학관 2026-08-25 2026 사이언스 페스티벌 2026-08-25 2025 메이커 페어 2026-08-25 2025 한여름의 과학관 2026-08-25 인스타그램 네이버블로그 유튜브 페이스북\n이전 정지 재생 다음 국립광주과학관 국립부산과학관 국립대구과학관 서울로봇인공지능과학관 서울특별시 국립중앙과학관 국립과천과학관 전국과학관길라잡이",
+            "length": 3078,
+            "storedLength": 3078,
+            "fullLength": 3078,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "developer-event",
+            "free-admission",
+            "seoul-location",
+            "future-date-after-2026-10-24"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "dev-event.vercel.app:1259:OpenAI OpenAI DevDay Exchange 20",
+          "status": "captured",
+          "question": "2026년 10월 서울 무료 개발자 행사 일정",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://dev-event.vercel.app/event/detail/3212",
+            "finalUrl": "https://dev-event.vercel.app/event/detail/3212",
+            "hostname": "dev-event.vercel.app",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "OpenAI DevDay Exchange 2026 - 서울 | DEV EVENT",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "OpenAI OpenAI DevDay Exchange 2026 - 서울 일시2026.10.22 (목) 14:00 ~ 23:59 오프라인무료세미나AI 참여하기 전 세계의 개발자와 테크 분야 창업자가 한자리에 모이는 OpenAI의 대표 개발자 커뮤니티 행사입니다. 8개 도시를 순회하며 개최 도시별로 특색 있게 진행되고, 서울 회차는 2026년 10월 22일(목) 오후 2시에 시작합니다. 선도적인 팀들이 차세대 AI 제품을 어떻게 만들어가고 있는지 이야기를 나누고, 개발자와 창업자가 아이디어를 공유하며 OpenAI 팀과 직접 교류할 수 있는 자리입니다. 이런 분께\n해요 OpenAI 제품·엔지니어링 팀에게 직접 기술 이야기를 듣고 싶은 개발자 Codex를 실제 프로젝트에 적용한 사례가 궁금한 분 AI 제품을 만들고 있는 창업자와 개발·제품 리더 연구자, 예술·디자인 분야에서 AI를 다루는 분 다루는 내용 OpenAI 연사의 키노트 세션 OpenAI 제품과 엔지니어링 팀의 기술 세션 선도적인 창업자와 개발자들이 공유하는 실제 프로젝트 및 Codex 활용 사례 프로젝트에 바로 적용할 수 있는 핸즈온 가이드 세션 OpenAI 팀과 업계를 이끄는 빌더와 함께 하는 오픈 토크 참가 안내 1차 신청은 2026년 9월 4일에 마감됐지만, 현재 접수된 신청서를 검토하는 동안에도 계속 신청할 수 있습니다. 신청 후 승인을 거쳐 참가가 확정됩니다. 신청 시 ChatGPT 계정에 등록된\n회사·소속, 직책, LinkedIn, OpenAI Organization ID(org-로 시작), 국가·지역, 참석 희망 도시, 본인의 역할을 입력합니다. 역할은 개발자, 연구원, 예술·디자인 분야 종사자, 창업자, 개발·제품 리더, 기타 중에서 선택합니다. 행사 장소와 전체 프로그램은 참가 신청이 승인된 후 안내됩니다. 개최 도시 도시 일자 벵갈루루 10월 16일 도쿄 10월 20일 서울 10월 22일 베를린 10월 26일 파리 10월 28일 런던 11월 3일 상파울루 11월 6일 멕시코시티 11월 10일 행사 요약 항목 내용 일시 2026. 10. 22(목) 14:00 시작 장소 서울 (참가 신청 승인 후 안내) 대상 개발자, 창업자, 연구자, 개발·제품 리더 참가비 행사 페이지에 안내되지 않음 접수 1차 2026. 9. 4(금) 마감 이후에도 계속 신청 가능 (승인제, 좌석 한정) 참가비와 상세 장소, 연사 명단은 행사 페이지에 아직 안내돼 있지 않습니다. 매주 데브이벤트 소식을 받아보세요 일요일 저녁 8시 개발자 행사를 메일로 보내드려요 무료 구독하기",
+            "length": 1259,
+            "storedLength": 1259,
+            "fullLength": 1259,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [
+            {
+              "id": "dev-event.vercel.app:1259:OpenAI OpenAI DevDay Exchange 20-segment-1",
+              "text": "오프라인무료세미나AI 참여하기 전 세계의 개발자와 테크 분야 창업자가 한자리에 모이는 OpenAI의 대표 개발자 커뮤니티 행사입니다.",
+              "start": 71,
+              "end": 145,
+              "sourceSpan": {
+                "start": 71,
+                "end": 145
+              },
+              "sourceSpanBasis": "body.text UTF-16 code units"
+            }
+          ],
+          "requiredAnswerItems": [
+            "developer-event",
+            "free-admission",
+            "seoul-location",
+            "future-date-after-2026-10-24"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "mediahub.seoul.go.kr:5782:구독자1,203,166명 월누적 방문자1,115,829명 ",
+          "status": "captured",
+          "question": "2026년 10월 서울 무료 개발자 행사 일정",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://mediahub.seoul.go.kr/news/newsMain.do",
+            "finalUrl": "https://mediahub.seoul.go.kr/news/newsMain.do",
+            "hostname": "mediahub.seoul.go.kr",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "서울시 - 내 손안에 서울",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "구독자1,203,166명 월누적 방문자1,115,829명 활동 중인 시민기자1,251명 서울 나이트라이프 완전 정복! 시민기자들의 찐후기 ‘24시간 활력경제도시, 서울’로 한층 여유롭고 풍성해진 서울의 밤을 서울시민기자가 직접 경험해 보고 그 후기를 소개해 드립니다. 여러분도 함께, 퇴근 후 운동과 문화생활을 즐기고, 늦은 밤까지 이어지는 관광명소와 골목맛집을 방문해 보세요! 낮과는 또 다른 서울의 매력을 만나볼 수 있습니다. 서울 나이트라이프① 야간문화생활 지금 서울 곳곳에서는 전시·영화·독서·축제 등 다채로운 야간 문화 프로그램이 시민들을 기다립니다. 주요 시립 문화시설의 ‘문화로 야금야금(夜金)’ 운영을 화~수요일, 금~일요일 밤 9시로 확대한 곳이 많습니다. 이제 퇴근 후, 서울역사박물관, 서울공예박물관을 찾아도 늦지 않아요. 밤 9시까지 운영하는 문화시설을 찾아 여유롭게 문화생활을 누려보세요. ☞ ‘문화로 야금야금’ 프로그램 보기 가을밤의 정취를 만끽할 수 있는 야외 문화공간도\n합니다. 서울숲에서는 10월 24일 토요일, 밤하늘 아래에서 영화를 볼 수 있는 ‘가을밤 정원극장’이, 송현녹지광장에서는 11월 30일까지 늦은 밤 조명과 어우러진 ‘야외 조각 전시’를 감상할 수 있습니다. 11월 1일까지 매주 금·토·일 운영하는 청계천 ‘책읽는 맑은 냇가’에서 즐기는 야간 독서도 빼놓을 수 없겠지요. 도심 곳곳을 수놓는 미디어아트도 서울의 밤을 더욱 풍성하게 만듭니다. DDP에서는 매일 오후 7시부터 11시까지 야외 미디어 쇼가 펼쳐지고, 세종문화회관 외벽 아뜰리에 광화와 광화문광장의 해치마당 미디어월, 청계천 오간수교 미디어파사드, 노들섬의 아뜰리에 노들, 서울로미디어캔버스 등에서도 다양한 미디어아트 작품을 만날 수 있습니다. 서울 곳곳에서 가을밤 축제도 이어집니다. 10월 31일에는 뚝섬한강공원에서 마지막 ‘한강 드론 라이트 쇼’가 열리고, 10월 25일까지 진행되는 ‘차 없는 잠수교 뚜벅뚜벅 축제’에서는 밤 10시까지 축제를 즐길 수 있습니다. 이번 잠수교 축제에서는 특별히 '치킨데이' 행사로 꾸며진다고 하네요. 이밖에도 월드컵공원 하늘공원에서 열리는 ‘서울억새축제’에서도 10월 23일까지 매일 밤 음악과 화려한 조명이 어우러지는 라이팅쇼가 펼쳐집니다. 어르신이라면 복지관 야간 시범 사업 '복지 夜 놀자'를 이용해 보세요. 낮 시간에 복지관을 찾기 어려운 어르신들을 위해 ‘시립노인종합복지관’ 5개소(강서·성북·노원·광진노인종합복지관, 서울노인복지센터)의 문을 저녁까지 열고, 야간에도 체육활동과 문학, 영화감상 등 다양한 프로그램을 시범운영합니다. 관련 기사 더 보기 ☞ 어르신의 저녁이 즐거워진다! 복지관 야간 운영부터 가을밤 축제까지 ☞ 매주 금요일 밤은 전시 관람의 날! 퇴근 후 여유롭게 즐긴 서울역사박물관 ☞ 돗자리 펴니 서울숲이 영화관 됐다! 가을밤 '정원극장' ☞ 낮엔 조각, 밤엔 영화! 별빛 우산과 함께 즐긴 서울조각페스티벌 ☞ 몰입독서하고 야간투어까지! 가을 청계천을 온전히 누리는 방법 ☞ 광화문·청계천·노들섬까지! 가을밤 물들이는 서울 미디어아트 감상 스폿 ☞ 야구장의 함성이 한강 밤하늘로! ‘K-야구’로 돌아온 드론 라이트 쇼 ☞ 일요일은 잠수교로! 밤 10시까지 즐기는 ‘뚜벅뚜벅 축제’ 서울 나이트라이프② 야간운동 선선한 바람이 부는 가을, 퇴근 후 서울의 밤을 달리며 건강을 챙겨보세요. 10월 매주 목요일 오후 7시에는 서울광장이 야간 운동공간으로 바뀌고, 광화문과 반포, 양재에서는 달빛 아래 함께 달리는 러닝 프로그램도 운영됩니다. 지하철역 유휴공간을 활용한 ‘펀스테이션’에서 운동을 즐기며 일상 속 건강한 습관을 만들어 보는 것도\n합니다. 서울 곳곳을 걸으며 건강도 챙기고, 손목닥터9988 포인트도 받을 수 있는 ‘밤산책 3종 챌린지’ 도전도\n합니다. 서울의 대표 야간 명소와 서울달빛야장을 방문하고, 가족∙연인∙친구 등과 함께 저녁 산책을 즐기거나, 25개 자치구별 대표 산책 코스를 완주하는 등 다양한 방식으로 도전할 수 있습니다. 가벼운 발걸음으로 건강을 챙기면서 서울의 새로운 밤 풍경도 발견해 보세요. 관련 기사 더 보기 ☞ 가을밤 3,000보 산책하고 포인트까지! 손목닥터9988 밤 산책 도전 ☞ 양머리하고 달리는 재미? '양재천 달빛야행런' 생생 체험기! ☞ 목요일 저녁은 운동하는 날! ‘운동하는 서울광장’으로 모여라! ☞ '갓생'은 퇴근 후 시작! 지하철로 떠나는 야간 웰니스 루틴\n☞ 서울의 밤 걸으며, 건강과 포인트 챙겨요! 손목닥터9988 야간걷기 챌린지 서울 나이트라이프③ 야시장 서울의 가을밤은 맛있는 먹거리와 함께 더욱 풍성해집니다. 서울 자치구의 전통시장과 상점가에서는 먹거리와 문화 프로그램을 함께 즐길 수 있는 ‘전통시장 야간 음식문화 축제’가 열립니다. 특히 ‘서울 달빛야장’으로 선정된 6개 상권(▴건대맛의거리 ▴상봉먹자골목 ▴창동역상점가 ▴사당1동 먹자골목 ▴사당오락 달빛야장 ▴신사 세로수길)과 해당 행정동에서는 오후 5시부터 자정까지 10% 할인 혜택을 누릴 수 있는 ‘달빛상품권’(상품권은 10월 23일 오전 10시부터 서울페이+ 앱에서 구매 가능)도 이용할 수 있으니 다양한 먹거리를 더욱 알뜰하게 즐겨 보세요. 10월 23일부터 29일까지 DDP와 서울 전역에서는 ‘2026 서울미식주간’이 열립니다. 한식부터 양식, 아시안 푸드, 그릴, 채식, 바·펍, 카페·디저트까지 다채로운 미식의 세계를 다양한 프로그램과 함께 만날 수 있습니다. 광화문과 DDP 등 서울의 명소를 둘러보고 인근 골목 맛집에서 특별한 한 끼를 즐기거나 집 근처 골목을 천천히 거닐며 나만의 숨은 맛집을 발견해 보는 건 어떨까요? 관련 기사 더 보기 ☞ 신흥시장이 더 힙해졌다! 늦은 밤까지 즐기는 ‘전통시장 야간·음식문화 축제’ ☞ 엽전으로 할인받고, 야외공연까지! 동네마다 야시장이 들썩들썩 ☞ 먹거리와 공연이 풍성! 가을밤 전통시장으로 떠나는 야시장 나들이 ☞ 퇴근길, 배꼽시계가 울리면 전통시장으로! 야간 음식문화 축제 열린다 ☞ 광화문 야경부터 을지로 골목, 종로 포차까지! 직접 걸어본 서울의 밤 ☞ 백남준·유영국 미디어아트 보고 맛집 투어! 가을밤 DDP\n코스 서울 나이트라이프④ 야간여행 서울의 밤은 낮과 또 다른 볼거리를 선사합니다. 서울의 역사와 문화가 깃든 거리를 걸으며 낮과 다른 매력을 발견해 보세요. 서울도보해설관광 야간 코스에 참여하면 문화관광해설사와 함께 서울의 주요 명소를 걸으며 역사·문화·관광 이야기를 들을 수 있습니다. 현재 야간 코스에는 서울로 야행, 낙산성곽, 청계천, 덕수궁, 정동, 창경궁, 광화문광장, 인사동, 남산골한옥마을까지 9개 코스와 이번에 새로 추가된 ‘남산성곽’까지 10개 코스가 있습니다. 야간 운항을 증편한 한강버스를 타고 반짝이는 서울의 야경을 여유롭게 즐겨보는 건 어떨까요? 여의도 서울달은 10월까지 매주 금·토요일에는 밤 11시까지 운영 시간을 확대했어요. 이 밖에도 서울도서관 옥상정원 ‘하늘뜰’과 서울시청 본관 ‘하늘전망대’, 정동전망대 등 도심의 무료 전망대에서 여유로운 야경을 즐길 수도 있습니다. 각기 다른 매력으로 빛나는 서울의 밤, 취향에 맞는 야경 명소에서 잊지 못할 추억을 만들어 보세요. 관련 기사 더 보기 ☞ 서울도보해설관광 새 코스, ‘남산성곽 야간코스’ 다녀왔어요! ☞ 이야기에 빠져든다! 밤에 더 멋진 '힙당동' 골목 걸으며 역사 탐방 ☞ 화려한 불빛 뒤에 이런 역사가! 밤에 걸어본 ‘명동스퀘어’ ☞ 퇴근 후 길어진 서울의 밤! 한강버스부터 야간운동∙조각페스티벌까지 ☞ 추석 연휴, 보름달 못 봤다면? 여의도공원 '서울달'에서 소원 빌어보자! ☞ 밤이라 더 낭만 가득! 시청 일대 전망대 3곳부터 야외도서관까지 울긋불긋~ 남산으로 가을소풍가요! 11월 투어·체험 신청 어? 여기 물이 새네! 상수도 누수 최초 신고하면 3만 원 포상 '종로3가'가 세계 1위 된 이유? 활기 넘치는 야장부터 고즈넉한 한옥까지 이렇게까지 예쁠 일? 하루 피로 싹 풀리는 한강 노을 명소\n! 특별기획 특별기획더보기 #코스의발견 #200%즐기기 #체크리스트 #여기어때? #주말엔여기! 더보기 테마뉴스 테마뉴스더보기 운동하기 좋은 가을이니까 밤에도 지지 않는 즐거움! 많이 본 뉴스 01 가을밤 '반짝반짝 남산밤길' 걸어요! 700명 현장 접수 02 청계천 밤길 달리는 자율주행버스! '청계 A01' 출발 03 '종로3가'가 세계 1위 된 이유? 활기 넘치는 야장부터 고즈넉한 한옥까지 04 6개 야장 상권에서 10% 할인! '달빛상품권' 발행 05 낮에는 은빛 억새, 밤에는 화려한 라이팅쇼! '서울억새축제' 즐기기 06 봉은사 명상부터 한옥 전시까지 '웰니스 트래블 위크' 07 옥수에서 구파발까지! 3호선 타고 떠나는 서울 역사 여행 08 가을은 짧으니까, 이번 주말도 알차게 즐겨주-시월! 09 가을 탄다 싶다면 가보세요! 힐링·예술·체험 다 되는 '서울식물원' 10 테마파크 못지않게 즐겁다! 북서울꿈의숲 12경 따라 가을 나들이 사실은 이렇습니다! 서울시 팩트브리핑 사실은 이렇습니다! 서울시 팩트브리핑더보기 해명·설명 자료 보기 (카드뉴스) 용산공원, 오래된 약속이자 서울의 미래입니다! 2026.10.23. [서울시 팩트브리핑] 내부 검토 평가보고서의 삭제 지시나 은폐 의혹은 사실이 아니며, 명백한 허위 왜곡 보도입니다 2026.10.23. (카드뉴스) 잠수교! 서울 최초의 한강 보행전용교 된다! 2026.10.22. [서울시 팩트브리핑] 해당 보고서는 용산공원조성특별법 취지에 따라 본체부지 전체를 온전한 공원으로 조성하기 위한 기초자료입니다 2026.10.22. 시민기자 뉴스 시민기자더보기 '종로3가'가 세계 1위 된 이유? 활기 넘치는 야장부터 고즈넉한 한옥까지 시민기자 김대진 ‘서울 카페·디저트 50선’, 직접 가보니! 3색 매력의 디저트 여행 시민기자 조수연 이렇게까지 예쁠 일? 하루 피로 싹 풀리는 한강 노을 명소\n! 시민기자 장미화 창문 열기 전 확인하세요! '서울시 대기질 정보 알림' 신청해 보니 시민기자 최현우 서울 도심이 발아래 펼쳐진다! 새로 열린 북악산 1.32km 시민기자 최용수 제주·철원의 로컬\n를 서울에서 맛보세요! '로컬트립 가을소풍' 시민기자 정향선 연희동 골목마다 감성이 가득! '서울디자인로드'에서 취향을 발견하다 시민기자 최정윤 강아지도 신나는 가을 정원으로 초대합니다! '매헌시민의숲' 정원 축제 시민기자 서지희 1년에 딱 한 번! 억새·댑싸리·코스모스 어우러진 하늘공원 '억새축제' 시민기자 박우영 함께 걷고, 배우고, 교감하다! '동물행동페스타'서 반려견과 특별한 하루 시민기자 이정민 전문칼럼 전문칼럼더보기 4호선, 창동차량기지 떠나 진접차량기지에서 새 출발! 시민기자 한우진 알아두면 도움되는 교통상식 오늘 폰 좀 내려놓을까요? 가족을 위한 스마트폰 사용법 서울시립병원 건강 고민 해결소 이벤트·공모전 이벤트 서울시 착한가격업소 방문 이벤트 공모전 시민의 시선으로 기록하는 노들글로벌예술섬 사진·숏폼 공모전 공모전 2026 서울영상공모전 <서울 밤로그> (기간연장) 공모전 제12회 서울 29초 영화제 공모전 2026 서울로미디어캔버스 네이처 프로젝트전 2차 공모 이벤트 공모전 뉴스레터 2026.10.23. 금 지난 뉴스레터 보기 가을은 짧으니까, 이번 주말도 알차게 즐겨주-시월! '모두가 안전한 핼러윈' 인파 밀집 예상 14개 지역 집중관리 맛집 가세요? 할인·무료 혜택 챙기세요! 서울레스토랑위크 뉴스레터 구독하기\n구독 시민기자 활동안내 모바일 앱을 다운로드하세요 Google Play App Store 관련 누리집 바로가기 정지 재생 이전 관련누리집 응답소 상상대로 서울 정보소통광장 열린데이터광장 부동산정보광장 공공서비스예약 보육포털 일자리포털 문화포털 평생학습포털 청년몽땅 정보통 대기환경정보 에코마일리지 스마트서울맵 온라인시장실 시민참여예산 여론조사 엠보팅 다음 관련누리집",
+            "length": 5782,
+            "storedLength": 5782,
+            "fullLength": 5782,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "developer-event",
+            "free-admission",
+            "seoul-location",
+            "future-date-after-2026-10-24"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "lib.seoul.go.kr:4022:본문 바로가기(skip to content)\n바로가기 도서",
+          "status": "captured",
+          "question": "2026년 10월 서울 무료 개발자 행사 일정",
+          "search": {
+            "engine": null,
+            "query": null,
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://lib.seoul.go.kr/",
+            "finalUrl": "https://lib.seoul.go.kr/",
+            "hostname": "lib.seoul.go.kr",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "서울도서관",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "본문 바로가기(skip to content)\n바로가기 도서관정보 바로가기 1 | 1 전자책ㆍ오디오북 내서재 모바일회원증 1 | 1 개관 2026년 10월 24일 09:00 ~ 18:00 대출 : 567권 반납 : 558권 예약 : 76권 보존서고 신청 : 61권 한 주간 새로 들어온 도서는 137권 입니다. 현재 서울도서관 누적 대출권수 : 4,768,540권 공지사항 (한국잡지협회와 함께하는) 매거진 토크 콘서트 한국잡지협회와 함께하는 매거진 토크 콘서트 올해가 한국 최초의 잡지가 발간된지 130주년이라는 사실, 알고 계셨나요?이를 기념하여, 한국잡지협회와 서울도서관이 함께 마련한 매거진 토크 콘서트에 초대합니다!- 운영일시 -2026... 공지사항더보기 서울스마트도서관 도서교체 일정(2026. 10. 30.(금) 15:00 ~ 18:00) 안내2026-10-23 서울스마트도서관 및 후문 무인반납기 서비스 일시 중단 안내 (10. 23.~24., 30.~31.)2026-10-21 2026년 서울시 공공도서관 이용자 조사 안내2026-10-12 서울형 작가와의 만남 10월 작가힙톡(Hip-Talk) 행사 안내2026-09-22 📢 서울야외도서관 여름방학 끝! 9월 4일 하반기 개장(9.4.~11.1.)2026-08-20 보도자료더보기 자치구도서관공지더보기 임산부의 날 앞두고 가족 독서 한마당…서울시 ‘엄마 북(Book) 돋움’ 특별행사2026-10-08 서울책보고·서울아트책보고서 즐기는 독서의 계절…가을 특별 콘텐츠 풍성2026-09-11 서울도서관·시청서 QR 찍으면 전자책 20만 권이 와르르… 9월 서울은 지금 읽는 중2026-08-25 글로벌 무대 서는 서울야외도서관…서울시, 세계도서관정보대회서 K-독서문화 알린다2026-08-04 “방송통신대학교 교재, 서울도서관에서 빌려 보세요”…시민 평생학습 지원 확대2026-07-28 [강남구립못골도서관] 못골마을학교 제72회_꼼지락 꼼지락, 나의 마음 그리기2026-10-24 [강남구립못골도서관][재능기부] 톡!톡! 청소년 선배의 신기한 과학 실험실 6탄2026-10-24 [구산동도서관마을] 구산동도서관마을 개관 11주년 기념 행사2026-10-24 [마포구립서강도서관] [11월/행사] 11월 문화프로그램 안내2026-10-23 [마포구립서강도서관] [11-12월/성인] Book Cx클래스 '오일파스텔로 그리는 따뜻한 하루'2026-10-23 전자책ㆍ오디오북 스마트도서관 회원증발급 희망도서신청 프로그램신청 도서관에 바란다 전자책ㆍ오디오북 스마트도서관 회원증발급 희망도서신청 프로그램신청 도서관에 바란다 독서문화 프로그램신청 (한국잡지협회와 함께하는) 매거진 토크 콘서트 한국잡지협회와 함께하는 매거진 토크 콘서트 올해가 한국 최초의 잡지가 발간된지 130주년이라는 사실, 알고 계셨나요?이를 기념하여, 한국잡지협회와 서울도서관이 함께 마련한 매거진 토크 콘서트에 초대합니다!- 운영일시 -2026. 10. 30. (금) 19:00-20:30 프로그램신청 (정여울)2026년 한글 점자 반포 100주년 기념 문학낭독... 2026년 한글 점자 반포 100주년 기념 문학낭독회「헤르만 헤세와 함께하는 낭독의 밤」서울 문화의 밤 「문화로 야금야금」 연계 프로그램#서울도서관 #서울문화의밤 #문화로야금야금 #한글점자의날 #훈맹정음100주년 #문학낭독회 #정여울서울도서관에서 만나는 특별한 문학낭독회!\n도서 서가 [10월 서평] 사서가 들려주는 책 이야기 우리 용호동에서 만나사서 조윤희 공지희의 『우리 용호동에서 만나』는 재개발이 한창인 용호동을 배경으로, 그곳에서 살아가는 사람들의 모습을 여섯 편의 이야기로 담아낸 동화집이다. 벤치에 누워 시간을 보내는 아저씨, 카페를바라보는 할머니, 손수 만든 수레를 끌고 동네를 돌아다니는 할아버지, 골목 벽에 그림을 그리는 청년 등 작품 속 인물들은 처음에는 조금 낯설고 이상하게 느껴진다. 하지만 이야기가 진행될수록 그들의 행동에는 ...\n도서 서가 [책피는 서울도서관] 낭만 가득, 가을 산책 [책피는 서울도서관]>10월 북큐레이션\n도서 서가 [책피는 서울도서관] 책, 어떻게 우리에게 닿았을까 [책피는 서울도서관] > 9월 북큐레이션\n도서 서가 [9월 서평] 사서가 들려주는 책 이야기 귀찮지만 행복해 볼까사서 이해연 번역가 권남희의 일상에는 거창하지 않지만 오래 마음에 남는 순간들이 있다. 수많은 일본 문학 작품을 우리말로 옮겨 온 권남희작가는 이 책에서 번역가로 살아가며 만난 사람들과 일, 가족과 여행에 관한 이야기를 솔직하고 유쾌하게 풀어낸다. 작가와의 인연, 번역 과정에서 겪은 에피소드부터 아이를 키우며 일했던 시간, 나이 들어가며 새롭게 발견한 즐거움까지 다양한 이야기가 자연스럽게 이어진다. 자...\n도서 서가 [책피는 서울도서관] 여름 밤, 서가 사이에서 [책피는 서울도서관] >8월 북큐레이션\n도서 서가 [8월 서평] 서울도서관 사서가 들려주는 책 이야기 > [서평] 여성 귀신이 되다 사서 장지혜 '한국 귀신' 하면 누가 제일 먼저 떠오르나요? 십중팔구 하얀 소복을 입고 긴 머리를 풀어 헤친 '처녀 귀신'일 거예요. 옛날 무서운 이야기의 단골손님이기도 하고, 요즘엔 학교 교복을 입고 나타나는 귀신으로 바뀌기도 했죠. 그런데 가만히 생각해 보면, 왜 우리 옛날이야기 속 귀신들은 대부분 '결혼 안 한 억울한 여성'일까요? 맨날 원\n도서 서가 [7월 서평] 서울도서관 사서가 들려주는 책 이야기 내일은 내 일이 가까워질거야 > 어린 시절 반에서 하던 장래희망 조사를 참 좋아했습니다. 친구들의 이름 옆에 적힌 꿈을 보며 그들의 미래를 상상하는 일이 즐거웠기 때문입니다. 누군가는 의사, 누군가는 선생님, 또 누군가는 화가나 과학자를 꿈꾸며 반짝이는 눈으로 자신의 미래를 이야기하곤 했습니다. 저 또한 꿈이 많았습니다. 미래를 자유롭게 그려보는 시간은 어린 시절의 큰 즐거움 중 하나였답니다. 어른이 된 지금도 저는 ...\n도서 서가 [책피는 서울도서관] 내일을 그리는 사람들 [책피는 서울도서관]>7월 북큐레이션 이전 다음 새로 들어온 책 대출이 많은 책 사서\n도서 총류 챗GPT·제미나이·클로드까지 모두를 위한 AI ... 역사 두 도시의 대화 :1794년 파리와 2026년 ... 종교 은둔 :고통을 자유로 바꾼 41명의 숨은 수행자... 기술 과학 모두를 위한 반도체 특별 과외 :큰글자도서 [큰... 문학 알록달록 쌍둥이 .1 ,달록이의 충치를 숨겨라! 문학 (슈뻘맨의) 숨은 범인 찾기 :두뇌 개발 액티비... 사회 과학 다시 쓰는 나의 이력서 :경계인의 시선으로 기록... 기술 과학 음식 지능 :다이어트, 대사, 건강한 식생활의 ... 기술 과학 박언휘 원장의 저속노화의 비법 :한 번뿐인 삶,... 철학 내 안의 어린아이가 울고 있다면 이전 다음 작별하지 않는다 :한강 장편소설 문학 모순 :양귀자 장편소설 문학 달리기를 말할 때 내가 하고 싶은 이야기 :세계... 문학 완전한 행복 :정유정 장편소설 문학 혼모노 :성해나 소설집 문학 홍학의 자리 :정해연 장편소설 문학 바깥은 여름 :김애란 소설 문학 가공범 문학 파과 :구병모 장편소설 문학 코스모스 :특별판 자연 과학 이전 다음 사회 과학 북적북적 우리 동네가 좋아 기술 과학 떡지순례 :오늘도 인생 떡볶이를 찾아 떠날 거야 문학 태구는 이웃들이 궁금하다 문학 열세 살의 걷기 클럽 :김혜정 창작동화 문학 별별 동네 역사 네가 다시 제주였으면 좋겠어 :그림으로 남긴 순간들 문학 나의 손이 내게 말했다 :이정화 에세이 문학 혼여행 기록집 :내가 차린 고요 총류 퇴근 후, 책방 여행 기술 과학 (대한민국) 빵집 대장정 :빵 특파원 개띠랑과 ... 이전 다음 행사달력 보기 Y E A R 2026 M O N T H 10 D A Y 24 2026.10 24 정기휴관일 2026년 10월26일 월요일 찾아오시는 길 전화번호 이용안내 리플릿 서울도서관 X 동네책방 1 | 1 이전 자동 롤링 정지 자동 롤링 시작 다음 서울책보고 서울아트책보고 서울의 도서관 찾기 서울의 책방 찾기 처음 방문하셨나요? GO > 서울의 전체도서관 통합검색 GO > 챗봇 '서울톡' 도서관이용시간 회원증발급 대출·연장·예약·반납 도서관 이용 예절 인사말 층별 안내 자주 물어보는 질문 찾아오시는길",
+            "length": 4022,
+            "storedLength": 4022,
+            "fullLength": 4022,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [
+            "developer-event",
+            "free-admission",
+            "seoul-location",
+            "future-date-after-2026-10-24"
+          ],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        }
+      ],
+      "relevantSegmentCount": 1,
+      "satisfiedAnswerItems": [],
+      "missingAnswerItems": [
+        "developer-event",
+        "free-admission",
+        "seoul-location",
+        "future-date-after-2026-10-24"
+      ],
+      "disqualifiedEvidence": [
+        {
+          "url": "https://dev-event.vercel.app/event/detail/3212",
+          "reason": "event-ended-2026-10-22-before-reference-date"
+        }
+      ],
+      "notes": [
+        "The developer event is dated 2026-10-22 and had ended before the reference date."
+      ]
+    }
+  ],
+  "officialHostChecks": {
+    "postgresql.org": {
+      "official": true,
+      "lookalikeRejected": true,
+      "userinfoRejected": true
+    },
+    "docs.github.com": {
+      "official": true,
+      "lookalikeRejected": true,
+      "userinfoRejected": true
+    },
+    "weather.go.kr": {
+      "official": true,
+      "lookalikeRejected": true,
+      "userinfoRejected": true
+    },
+    "msit.go.kr": {
+      "official": true,
+      "lookalikeRejected": true,
+      "userinfoRejected": true
+    },
+    "motir.go.kr": {
+      "official": true,
+      "lookalikeRejected": true,
+      "userinfoRejected": true
+    },
+    "science.seoul.go.kr": {
+      "official": true,
+      "lookalikeRejected": true,
+      "userinfoRejected": true
+    }
+  },
+  "truncationFinding": "fetchWebPageText uses extractReadablePageText defaultMaxTextLength=8000; saved GitHub body is 8000 UTF-16 units and ends bas..., while focused collector omitted textTruncated/fullTextLength metadata."
+}

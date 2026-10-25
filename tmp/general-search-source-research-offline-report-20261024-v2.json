@@ -1,0 +1,2152 @@
+{
+  "version": 1,
+  "type": "offline-general-search-source-research-evaluation",
+  "generatedAt": "2026-10-24T04:08:27.628Z",
+  "noWebSearch": true,
+  "noGeminiCalls": true,
+  "inputFile": "tmp/general-search-source-research-live-20261024T035949Z.json",
+  "budgets": {
+    "maxSearchHttpAttempts": 12,
+    "maxBodyHttpAttempts": 24,
+    "maxSelectedPages": 4
+  },
+  "questions": [
+    {
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "rawCandidateCount": 8,
+      "eligibleCandidateCount": 6,
+      "officialEligibleCount": 6,
+      "selectedRelevantCount": 2,
+      "unrelatedSelectedUrlCount": 1,
+      "previousSelectedUrls": [
+        "https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch",
+        "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+        "https://papago-plus.com/about"
+      ],
+      "improvedSelectedUrls": [
+        "https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch",
+        "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal"
+      ],
+      "fallback": [
+        {
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "domain": "developer.mozilla.org",
+          "rawCandidateCount": 7,
+          "eligibleCandidateCount": 6,
+          "fallbackRequired": false,
+          "reason": ""
+        }
+      ],
+      "bodyTruncation": [
+        {
+          "url": "https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch",
+          "status": "likely-truncated",
+          "observedLength": 8000,
+          "limit": 8000
+        },
+        {
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+          "status": "not-observed",
+          "observedLength": 917,
+          "limit": 8000
+        },
+        {
+          "url": "https://papago-plus.com/about",
+          "status": "not-observed",
+          "observedLength": 4532,
+          "limit": 8000
+        }
+      ],
+      "additionalSearchNeeded": false,
+      "unknowns": [
+        "본문 전체가 fixture에 없으므로 본문 의미 적합성·실제 절단 내용·가격/코드 누락 여부는 unknown으로 유지",
+        "HTTP 200 응답의 HTML 메뉴/푸터/광고 여부는 저장된 후보 메타데이터만으로 확정할 수 없음"
+      ],
+      "diagnostics": [
+        {
+          "score": 39,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "mdn",
+              "fetch",
+              "api"
+            ],
+            "titleHits": [
+              "mdn",
+              "fetch",
+              "api"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "developer.mozilla.org"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 3,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch",
+          "title": "Utiliser l'API Fetch - Les API Web | MDN새 창 열림",
+          "selected": true,
+          "exclusionReason": ""
+        },
+        {
+          "score": 22,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "abort"
+            ],
+            "titleHits": [
+              "abort"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "developer.mozilla.org"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort",
+          "title": "AbortController: abort() method새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 22,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "abort"
+            ],
+            "titleHits": [
+              "abort"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "developer.mozilla.org"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController",
+          "title": "AbortController새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 32,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "abort",
+              "signal"
+            ],
+            "titleHits": [
+              "abort",
+              "signal"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "developer.mozilla.org"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 3,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+          "title": "AbortController: signal property새 창 열림",
+          "selected": true,
+          "exclusionReason": ""
+        },
+        {
+          "score": 22,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "abort"
+            ],
+            "titleHits": [
+              "abort"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "developer.mozilla.org"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/AbortController",
+          "title": "AbortController: AbortController() constructor새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 25,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "mdn"
+            ],
+            "titleHits": [
+              "mdn"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "developer.mozilla.org"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 3,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://developer.mozilla.org/ko/",
+          "title": "MDN Web Docsdeveloper.mozilla.org›en-US새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "developer.mozilla.org"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams",
+          "title": "Using readable streams새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 0,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": false,
+            "officialTextSignal": false,
+            "requiredSourceMatch": false,
+            "requiredHosts": [
+              "developer.mozilla.org"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://papago-plus.com/about",
+          "title": "파파고 플러스새 창 열림",
+          "selected": false,
+          "exclusionReason": "required-host-mismatch"
+        }
+      ]
+    },
+    {
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "rawCandidateCount": 21,
+      "eligibleCandidateCount": 8,
+      "officialEligibleCount": 8,
+      "selectedRelevantCount": 2,
+      "unrelatedSelectedUrlCount": 0,
+      "previousSelectedUrls": [
+        "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+        "https://kubernetes.io/docs/concepts/workloads/pods/probes/"
+      ],
+      "improvedSelectedUrls": [
+        "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+        "https://kubernetes.io/docs/concepts/workloads/pods/probes/"
+      ],
+      "fallback": [
+        {
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "domain": "kubernetes.io",
+          "rawCandidateCount": 21,
+          "eligibleCandidateCount": 8,
+          "fallbackRequired": false,
+          "reason": ""
+        }
+      ],
+      "bodyTruncation": [
+        {
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+          "status": "likely-truncated",
+          "observedLength": 8000,
+          "limit": 8000
+        },
+        {
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+          "status": "likely-truncated",
+          "observedLength": 7999,
+          "limit": 8000
+        }
+      ],
+      "additionalSearchNeeded": false,
+      "unknowns": [
+        "본문 전체가 fixture에 없으므로 본문 의미 적합성·실제 절단 내용·가격/코드 누락 여부는 unknown으로 유지",
+        "HTTP 200 응답의 HTML 메뉴/푸터/광고 여부는 저장된 후보 메타데이터만으로 확정할 수 없음"
+      ],
+      "diagnostics": [
+        {
+          "score": 32,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "liveness",
+              "probe"
+            ],
+            "titleHits": [
+              "liveness",
+              "probe"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 3,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+          "title": "Configure Liveness, Readiness and Startup Probes새 창 열림",
+          "selected": true,
+          "exclusionReason": ""
+        },
+        {
+          "score": 32,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "liveness",
+              "probe"
+            ],
+            "titleHits": [
+              "liveness",
+              "probe"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 3,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+          "title": "Liveness, Readiness, and Startup Probes새 창 열림",
+          "selected": true,
+          "exclusionReason": ""
+        },
+        {
+          "score": 17,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "kubernetes"
+            ],
+            "titleHits": [
+              "kubernetes"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 3,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": -8
+          },
+          "url": "https://kubernetes.io/",
+          "title": "Kuberneteskubernetes.io›docs새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 25,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "kubernetes"
+            ],
+            "titleHits": [
+              "kubernetes"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [
+              1,
+              24
+            ],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 3,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/",
+          "title": "Kubernetes API Reference Docs새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/",
+          "title": "Container Lifecycle Hooks새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 22,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "kubernetes"
+            ],
+            "titleHits": [
+              "kubernetes"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/concepts/containers/images/",
+          "title": "Images - Kubernetes새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 22,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "kubernetes"
+            ],
+            "titleHits": [
+              "kubernetes"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/concepts/windows/intro/",
+          "title": "Windows containers in Kubernetes새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/disruptions/",
+          "title": "Disruptions새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/",
+          "title": "kubeadm init새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 22,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [
+              "kubernetes"
+            ],
+            "titleHits": [
+              "kubernetes"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/reference/instrumentation/metrics/",
+          "title": "Kubernetes Metrics Reference새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "documentation",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "kubernetes.io"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/",
+          "title": "Pull an Image from a Private Registry새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        }
+      ]
+    },
+    {
+      "question": "Python 최신 안정 버전",
+      "rawCandidateCount": 2,
+      "eligibleCandidateCount": 0,
+      "officialEligibleCount": 0,
+      "selectedRelevantCount": 0,
+      "unrelatedSelectedUrlCount": 2,
+      "previousSelectedUrls": [
+        "https://papago-plus.com/about",
+        "https://www.navercorp.com/"
+      ],
+      "improvedSelectedUrls": [],
+      "fallback": [
+        {
+          "query": "site:python.org/downloads latest stable Python release download",
+          "domain": "python.org",
+          "rawCandidateCount": 0,
+          "eligibleCandidateCount": 0,
+          "fallbackRequired": true,
+          "reason": "no-eligible-results-after-http-200"
+        }
+      ],
+      "bodyTruncation": [
+        {
+          "url": "https://papago-plus.com/about",
+          "status": "not-observed",
+          "observedLength": 4532,
+          "limit": 8000
+        },
+        {
+          "url": "https://www.navercorp.com/",
+          "status": "not-observed",
+          "observedLength": 2264,
+          "limit": 8000
+        }
+      ],
+      "additionalSearchNeeded": true,
+      "unknowns": [
+        "본문 전체가 fixture에 없으므로 본문 의미 적합성·실제 절단 내용·가격/코드 누락 여부는 unknown으로 유지",
+        "HTTP 200 응답의 HTML 메뉴/푸터/광고 여부는 저장된 후보 메타데이터만으로 확정할 수 없음"
+      ],
+      "diagnostics": [
+        {
+          "score": 0,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": false,
+            "officialTextSignal": false,
+            "requiredSourceMatch": false,
+            "requiredHosts": [
+              "python.org"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://papago-plus.com/about",
+          "title": "파파고 플러스새 창 열림",
+          "selected": false,
+          "exclusionReason": "required-host-mismatch"
+        },
+        {
+          "score": -8,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": false,
+            "officialTextSignal": false,
+            "requiredSourceMatch": false,
+            "requiredHosts": [
+              "python.org"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": -8
+          },
+          "url": "https://www.navercorp.com/",
+          "title": "© NAVER Corp.새 창 열림",
+          "selected": false,
+          "exclusionReason": "required-host-mismatch"
+        }
+      ]
+    },
+    {
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "rawCandidateCount": 2,
+      "eligibleCandidateCount": 0,
+      "officialEligibleCount": 0,
+      "selectedRelevantCount": 0,
+      "unrelatedSelectedUrlCount": 2,
+      "previousSelectedUrls": [
+        "https://papago-plus.com/about",
+        "https://www.navercorp.com/"
+      ],
+      "improvedSelectedUrls": [],
+      "fallback": [
+        {
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "domain": "postgresql.org",
+          "rawCandidateCount": 0,
+          "eligibleCandidateCount": 0,
+          "fallbackRequired": true,
+          "reason": "no-eligible-results-after-http-200"
+        },
+        {
+          "query": "site:dev.mysql.com/doc/refman JSON data type MySQL official",
+          "domain": "dev.mysql.com",
+          "rawCandidateCount": 0,
+          "eligibleCandidateCount": 0,
+          "fallbackRequired": true,
+          "reason": "no-eligible-results-after-http-200"
+        }
+      ],
+      "bodyTruncation": [
+        {
+          "url": "https://papago-plus.com/about",
+          "status": "not-observed",
+          "observedLength": 4532,
+          "limit": 8000
+        },
+        {
+          "url": "https://www.navercorp.com/",
+          "status": "not-observed",
+          "observedLength": 2264,
+          "limit": 8000
+        }
+      ],
+      "additionalSearchNeeded": true,
+      "unknowns": [
+        "본문 전체가 fixture에 없으므로 본문 의미 적합성·실제 절단 내용·가격/코드 누락 여부는 unknown으로 유지",
+        "HTTP 200 응답의 HTML 메뉴/푸터/광고 여부는 저장된 후보 메타데이터만으로 확정할 수 없음"
+      ],
+      "diagnostics": [
+        {
+          "score": 0,
+          "signals": {
+            "kind": "comparison",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": false,
+            "officialTextSignal": false,
+            "requiredSourceMatch": false,
+            "requiredHosts": [
+              "postgresql.org",
+              "mysql.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://papago-plus.com/about",
+          "title": "파파고 플러스새 창 열림",
+          "selected": false,
+          "exclusionReason": "required-host-mismatch"
+        },
+        {
+          "score": -8,
+          "signals": {
+            "kind": "comparison",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": false,
+            "officialTextSignal": false,
+            "requiredSourceMatch": false,
+            "requiredHosts": [
+              "postgresql.org",
+              "mysql.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": -8
+          },
+          "url": "https://www.navercorp.com/",
+          "title": "© NAVER Corp.새 창 열림",
+          "selected": false,
+          "exclusionReason": "required-host-mismatch"
+        }
+      ]
+    },
+    {
+      "question": "AWS Lambda 요청 요금",
+      "rawCandidateCount": 41,
+      "eligibleCandidateCount": 28,
+      "officialEligibleCount": 28,
+      "selectedRelevantCount": 3,
+      "unrelatedSelectedUrlCount": 0,
+      "previousSelectedUrls": [
+        "https://aws.amazon.com/ko/lambda/pricing/",
+        "https://aws.amazon.com/ko/",
+        "https://docs.aws.amazon.com/whitepapers/latest/big-data-analytics-options/aws-lambda.html"
+      ],
+      "improvedSelectedUrls": [
+        "https://aws.amazon.com/ko/lambda/pricing/",
+        "https://aws.amazon.com/ko/",
+        "https://docs.aws.amazon.com/lambda/latest/dg/lambda-monitoring.html"
+      ],
+      "fallback": [
+        {
+          "query": "site:aws.amazon.com AWS Lambda request pricing free tier",
+          "domain": "aws.amazon.com",
+          "rawCandidateCount": 40,
+          "eligibleCandidateCount": 28,
+          "fallbackRequired": false,
+          "reason": ""
+        },
+        {
+          "query": "site:docs.aws.amazon.com/lambda latest pricing request charges",
+          "domain": "docs.aws.amazon.com",
+          "rawCandidateCount": 29,
+          "eligibleCandidateCount": 23,
+          "fallbackRequired": false,
+          "reason": ""
+        }
+      ],
+      "bodyTruncation": [
+        {
+          "url": "https://aws.amazon.com/ko/lambda/pricing/",
+          "status": "likely-truncated",
+          "observedLength": 7999,
+          "limit": 8000
+        },
+        {
+          "url": "https://aws.amazon.com/ko/",
+          "status": "not-observed",
+          "observedLength": 2477,
+          "limit": 8000
+        },
+        {
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/big-data-analytics-options/aws-lambda.html",
+          "status": "not-observed",
+          "observedLength": 7420,
+          "limit": 8000
+        }
+      ],
+      "additionalSearchNeeded": false,
+      "unknowns": [
+        "본문 전체가 fixture에 없으므로 본문 의미 적합성·실제 절단 내용·가격/코드 누락 여부는 unknown으로 유지",
+        "HTTP 200 응답의 HTML 메뉴/푸터/광고 여부는 저장된 후보 메타데이터만으로 확정할 수 없음"
+      ],
+      "diagnostics": [
+        {
+          "score": 26,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws"
+            ],
+            "titleHits": [
+              "aws"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [
+              2
+            ],
+            "securityPenalty": 0,
+            "pricing": 4,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/tracking-free-tier-usage.html",
+          "title": "Tracking your AWS Free Tier usage - AWS Billing새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 26,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws"
+            ],
+            "titleHits": [
+              "aws"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [
+              2
+            ],
+            "securityPenalty": 0,
+            "pricing": 4,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html",
+          "title": "Explore AWS services with AWS Free Tier - AWS Billing새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 26,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws"
+            ],
+            "titleHits": [
+              "aws"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [
+              2
+            ],
+            "securityPenalty": 0,
+            "pricing": 4,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-free-tier.html",
+          "title": "Trying services using AWS Free Tier (before July 15, 2025) - AWS Billing새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 33,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws",
+              "lambda"
+            ],
+            "titleHits": [
+              "aws",
+              "lambda"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 4,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://aws.amazon.com/ko/lambda/pricing/",
+          "title": "AWS Lambda 요금새 창 열림",
+          "selected": true,
+          "exclusionReason": ""
+        },
+        {
+          "score": 25,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws",
+              "lambda"
+            ],
+            "titleHits": [
+              "aws",
+              "lambda"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": -4
+          },
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/big-data-analytics-options/aws-lambda.html",
+          "title": "AWS Lambda - Big Data Analytics Options on AWS새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 29,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws",
+              "lambda"
+            ],
+            "titleHits": [
+              "aws",
+              "lambda"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-monitoring.html",
+          "title": "Monitoring, debugging, and troubleshooting Lambda Event Functions - AWS Lambda새 창 열림",
+          "selected": true,
+          "exclusionReason": ""
+        },
+        {
+          "score": 26,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws"
+            ],
+            "titleHits": [
+              "aws"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [
+              2
+            ],
+            "securityPenalty": 0,
+            "pricing": 4,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://docs.aws.amazon.com/ko_kr/awsaccountbilling/latest/aboutv2/using-free-tier-api.html",
+          "title": "프리 티어 API 사용 - AWS 결제새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 33,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws",
+              "lambda"
+            ],
+            "titleHits": [
+              "aws",
+              "lambda"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 4,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://aws.amazon.com/ko/",
+          "title": "Amazon Web Services, Incaws.amazon.com›컴퓨팅›AWS Lambda›요금새 창 열림",
+          "selected": true,
+          "exclusionReason": ""
+        },
+        {
+          "score": 22,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws"
+            ],
+            "titleHits": [
+              "aws"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://docs.aws.amazon.com/solutions/latest/automated-security-response-on-aws/cost.html",
+          "title": "Cost - Automated Security Response on AWS새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "price",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://aws.amazon.com/ko/blogs/korea/aws-free-tier-update-new-customers-can-get-started-and-explore-aws-with-up-to-200-in-credits/",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 22,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws"
+            ],
+            "titleHits": [
+              "aws"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://aws.amazon.com/marketplace/reviews/reviews-list/prodview-qouiwrpqaezmm",
+          "title": "AWS Marketplace: CircleCI - MCP Server Reviews새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        },
+        {
+          "score": 22,
+          "signals": {
+            "kind": "price",
+            "termHits": [
+              "aws"
+            ],
+            "titleHits": [
+              "aws"
+            ],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "aws.amazon.com",
+              "docs.aws.amazon.com"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://aws.amazon.com/marketplace/reviews/reviews-list/B00UIO8C3A?rating=5",
+          "title": "AWS Marketplace: N2W Backup & Recovery for AWS Standard Edition Reviews새 창 열림",
+          "selected": false,
+          "exclusionReason": "duplicate-host-or-lower-coverage"
+        }
+      ]
+    },
+    {
+      "question": "React 최신 버전",
+      "rawCandidateCount": 11,
+      "eligibleCandidateCount": 2,
+      "officialEligibleCount": 2,
+      "selectedRelevantCount": 2,
+      "unrelatedSelectedUrlCount": 0,
+      "previousSelectedUrls": [
+        "https://react.dev/blog/2024/12/05/react-19",
+        "https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components"
+      ],
+      "improvedSelectedUrls": [
+        "https://react.dev/blog/2025/10/01/react-19-2",
+        "https://react.dev/blog/2024/12/05/react-19"
+      ],
+      "fallback": [
+        {
+          "query": "site:react.dev/blog latest React release official",
+          "domain": "react.dev",
+          "rawCandidateCount": 11,
+          "eligibleCandidateCount": 2,
+          "fallbackRequired": false,
+          "reason": ""
+        }
+      ],
+      "bodyTruncation": [
+        {
+          "url": "https://react.dev/blog/2024/12/05/react-19",
+          "status": "likely-truncated",
+          "observedLength": 8000,
+          "limit": 8000
+        },
+        {
+          "url": "https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components",
+          "status": "not-observed",
+          "observedLength": 6548,
+          "limit": 8000
+        }
+      ],
+      "additionalSearchNeeded": false,
+      "unknowns": [
+        "본문 전체가 fixture에 없으므로 본문 의미 적합성·실제 절단 내용·가격/코드 누락 여부는 unknown으로 유지",
+        "HTTP 200 응답의 HTML 메뉴/푸터/광고 여부는 저장된 후보 메타데이터만으로 확정할 수 없음"
+      ],
+      "diagnostics": [
+        {
+          "score": 27,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": true,
+            "role": 0,
+            "release": 12,
+            "releaseDocument": true,
+            "versionRank": [
+              19
+            ],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog/2024/12/05/react-19",
+          "title": "새 창 열림",
+          "selected": true,
+          "exclusionReason": ""
+        },
+        {
+          "score": 5,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": true,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [],
+            "securityPenalty": -10,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": true,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [
+              18
+            ],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog/2022/03/29/react-v18",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 5,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": true,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [],
+            "securityPenalty": -10,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog/2025/12/11/denial-of-service-and-source-code-exposure-in-react-server-components",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": true,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog/2023/05/03/react-canaries",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 27,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": true,
+            "role": 0,
+            "release": 12,
+            "releaseDocument": true,
+            "versionRank": [
+              19,
+              2
+            ],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog/2025/10/01/react-19-2",
+          "title": "새 창 열림",
+          "selected": true,
+          "exclusionReason": ""
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": true,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [
+              18
+            ],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog/2022/03/08/react-18-upgrade-guide",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": true,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog/2023/03/16/introducing-react-dev",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": true,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog/2024/02/15/react-labs-what-we-have-been-working-on-february-2024",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": true,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [
+              19
+            ],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog/2024/04/25/react-19-upgrade-guide",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        },
+        {
+          "score": 15,
+          "signals": {
+            "kind": "version",
+            "termHits": [],
+            "titleHits": [],
+            "subjectHits": [],
+            "officialHost": true,
+            "officialTextSignal": false,
+            "requiredSourceMatch": true,
+            "requiredHosts": [
+              "react.dev"
+            ],
+            "hasBody": false,
+            "bodyTokens": 0,
+            "noiseRatio": 0,
+            "date": false,
+            "fresh": 0,
+            "article": false,
+            "role": 0,
+            "release": 0,
+            "releaseDocument": false,
+            "versionRank": [],
+            "securityPenalty": 0,
+            "pricing": 0,
+            "documentation": 0,
+            "sourceCoverage": 0,
+            "bodyQuality": 0,
+            "noisePenalty": 0,
+            "pathPenalty": 0
+          },
+          "url": "https://react.dev/blog",
+          "title": "새 창 열림",
+          "selected": false,
+          "exclusionReason": "no-topical-relevance"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "rawCandidateCount": 85,
+    "eligibleCandidateCount": 44,
+    "officialEligibleCount": 44,
+    "selectedRelevantCount": 9,
+    "unrelatedSelectedUrlCount": 5,
+    "newFallbackQuestions": [
+      "Python 최신 안정 버전",
+      "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교"
+    ],
+    "additionalSearchNeededQuestions": [
+      "Python 최신 안정 버전",
+      "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교"
+    ],
+    "searchBudgetExceeded": false,
+    "bodyBudgetExceeded": false
+  },
+  "limitations": [
+    "저장 결과를 덮어쓰지 않음",
+    "본문 전체·HTML 원문이 없어 파서가 메뉴/푸터/광고를 읽었는지는 unknown",
+    "8,000자 bodyLength는 절단 가능성만 표시하며 내용 누락을 단정하지 않음"
+  ]
+}

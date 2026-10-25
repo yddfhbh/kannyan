@@ -12,6 +12,10 @@
     "preview:tetolb": "node scripts/preview-tetolb.js",
     "register": "node src/deploy-commands.js",
     "start": "node src/index.js",
+    "evaluate:general-search": "node scripts/evaluate-general-search.js",
+    "dry-run:general-search-snapshot": "node scripts/run-general-search-source-snapshot-dry-run.js",
+    "prepare:general-search-evaluation": "node scripts/prepare-general-search-general-evaluation.js",
+    "experiment:general-search-gemini": "node scripts/run-general-search-gemini-experiment.js",
     "uci": "node src/chess/kannyan-uci.js",
     "check": "node --test",
     "test": "node --test"

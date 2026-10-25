@@ -1,0 +1,402 @@
+{
+  "fixture": "test/fixtures/general-search-evaluation.json",
+  "replayOf": null,
+  "capturedAt": null,
+  "now": "2026-10-23T13:40:41.936Z",
+  "cases": [
+    {
+      "id": "weather-date",
+      "question": "2026년 10월 23일 부산 날씨",
+      "legacy": {
+        "evidence": "rejected",
+        "reason": "strict weather scope"
+      },
+      "prototype": {
+        "status": "verified",
+        "verifiedFacts": 1,
+        "partial": false,
+        "facts": [
+          {
+            "id": "fact-1-0",
+            "status": "verified",
+            "subject": "부산",
+            "predicate": "precipitation",
+            "value": "2026",
+            "unit": "",
+            "targetDate": "2026-10-23",
+            "targetLocation": "부산",
+            "temporalResolutionConfidence": "high",
+            "attributes": [
+              "2026년 10월 23일"
+            ],
+            "scopeText": "\n2026년 10월 23일 부산은 흐리고 저녁부터 비가 내리겠다.",
+            "contextSpan": "2026년 10월 23일 부산은 흐리고 저녁부터 비가 내리겠다.",
+            "sourceSpan": {
+              "start": 0,
+              "end": 35
+            },
+            "quote": "2026년 10월 23일 부산은 흐리고 저녁부터 비가 내리겠다.",
+            "url": "https://weather.example/busan",
+            "failures": []
+          }
+        ],
+        "citations": [
+          {
+            "url": "https://weather.example/busan",
+            "title": "부산 예보"
+          }
+        ],
+        "metrics": {
+          "elapsedMs": 31,
+          "searches": 0,
+          "reads": 1,
+          "facts": 1,
+          "verifiedFacts": 1,
+          "geminiCalls": 0,
+          "wallMs": 32,
+          "httpRequests": 0
+        }
+      },
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "prototype-has-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 1,
+        "selectedCandidateCount": 1,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 1,
+        "bodyExtractionSuccessRate": 1,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": [
+          "https://weather.example/busan"
+        ]
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 1,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "node-lts",
+      "question": "Node.js 최신 LTS",
+      "legacy": {
+        "evidence": "rejected",
+        "reason": "official-domain path"
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 1,
+          "searches": 0,
+          "reads": 1,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 1,
+          "httpRequests": 0
+        }
+      },
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 1,
+        "selectedCandidateCount": 1,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 1,
+        "bodyExtractionSuccessRate": 1,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 1,
+        "selectedUrls": [
+          "https://docs.example/node"
+        ]
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "ai-news",
+      "question": "최근 일주일 AI 뉴스",
+      "legacy": {
+        "evidence": "rejected",
+        "reason": "article review mismatch"
+      },
+      "prototype": {
+        "status": "verified",
+        "verifiedFacts": 1,
+        "partial": false,
+        "facts": [
+          {
+            "id": "fact-1-0",
+            "status": "verified",
+            "subject": "",
+            "predicate": "weather",
+            "value": "2026",
+            "unit": "",
+            "targetDate": "2026-10-20",
+            "targetLocation": "",
+            "temporalResolutionConfidence": "high",
+            "attributes": [
+              "2026년 10월 20일"
+            ],
+            "scopeText": "2026-10-20\n2026년 10월 20일 새 AI 모델이 공개됐다.",
+            "contextSpan": "2026년 10월 20일 새 AI 모델이 공개됐다.",
+            "sourceSpan": {
+              "start": 0,
+              "end": 28
+            },
+            "quote": "2026년 10월 20일 새 AI 모델이 공개됐다.",
+            "url": "https://news.example/ai",
+            "failures": []
+          }
+        ],
+        "citations": [
+          {
+            "url": "https://news.example/ai",
+            "title": "AI 모델 공개"
+          }
+        ],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 0,
+          "reads": 1,
+          "facts": 1,
+          "verifiedFacts": 1,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 0
+        }
+      },
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "prototype-has-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 1,
+        "selectedCandidateCount": 1,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 1,
+        "bodyExtractionSuccessRate": 1,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": [
+          "https://news.example/ai"
+        ]
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 1,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "stale-or-unrelated",
+      "question": "오늘 부산 날씨",
+      "legacy": {
+        "evidence": "rejected",
+        "reason": "old or unrelated source"
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [
+          {
+            "id": "fact-1-0",
+            "status": "rejected",
+            "subject": "",
+            "predicate": "weather",
+            "value": "2025",
+            "unit": "",
+            "targetDate": "2025-01-01",
+            "targetLocation": "",
+            "temporalResolutionConfidence": "high",
+            "attributes": [
+              "2025년 1월 1일"
+            ],
+            "scopeText": "\n2025년 1월 1일 서울에서 행사가 열렸다.",
+            "contextSpan": "2025년 1월 1일 서울에서 행사가 열렸다.",
+            "sourceSpan": {
+              "start": 0,
+              "end": 25
+            },
+            "quote": "2025년 1월 1일 서울에서 행사가 열렸다.",
+            "url": "https://news.example/story",
+            "failures": [
+              "requested-date-not-in-scope",
+              "requested-location-not-in-scope",
+              "fact-value-missing"
+            ]
+          }
+        ],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 0,
+          "reads": 1,
+          "facts": 1,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 0
+        }
+      },
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 1,
+        "selectedCandidateCount": 1,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 1,
+        "bodyExtractionSuccessRate": 1,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": [
+          "https://news.example/story"
+        ]
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 1,
+        "codeLocationIssueCount": 1,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    }
+  ],
+  "comparison": {
+    "total": 4,
+    "independentlyReviewedCases": 0,
+    "legacyRetrieved": 0,
+    "prototypeVerified": 2,
+    "prototypePartial": 0,
+    "unverifiedFacts": 1,
+    "duplicateIdCount": 0,
+    "mappingErrorCount": 0,
+    "explicitlyVerifiedFacts": 2,
+    "clearlyWrongAcceptedFacts": null,
+    "labeledAcceptedFacts": null,
+    "labeledContradictionAcceptedFacts": null,
+    "codeDateIssueCount": 1,
+    "codeLocationIssueCount": 1,
+    "codeSubjectValueMixCount": 0,
+    "unrelatedBodyAcceptedCount": 0,
+    "duplicateEvidenceCount": 0,
+    "normalFactsRejected": 0,
+    "answerOutcomes": {
+      "complete": 2,
+      "partial": 0,
+      "hold": 2
+    },
+    "failureReasons": {
+      "requested-date-not-in-scope": 1,
+      "requested-location-not-in-scope": 1,
+      "fact-value-missing": 1
+    },
+    "conclusion": "코드 검증 통과 수치와 독립 정답 기반 사실 정확도를 분리함; 독립 검토가 끝나지 않은 항목은 정확도에서 제외"
+  },
+  "gemini": {
+    "enabled": false,
+    "calls": 0,
+    "expectedCallsWithoutExecution": null,
+    "estimatedInputTokens": null,
+    "estimatedOutputTokens": null,
+    "estimatedCostUsd": null,
+    "costNote": "요금표 변동을 피하기 위해 단가가 제공되지 않으면 null; API 호출은 이번 평가에서 실행하지 않음"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "dryRun": true,
+  "inputFile": "tmp/general-search-focused-gemini-runner-input-20261024.json",
+  "noWebSearch": true,
+  "webHttpRequests": 0,
+  "noHoldout": true,
+  "developmentQuestionDenominator": 18,
+  "retryCalls": 0,
+  "fallbackCalls": 0,
+  "apiKeyConfigured": false,
+  "questionCount": 2,
+  "holdQuestionCount": 4,
+  "maxApiCalls": 2,
+  "plannedCalls": 2,
+  "cases": [
+    {
+      "id": "focus-02",
+      "question": "GitHub Actions 요금제",
+      "officialUrls": [
+        "https://docs.github.com/en/billing/concepts/product-billing/github-actions"
+      ],
+      "requiredAnswerItems": [
+        "free-allowance-by-plan",
+        "overage-billing-rule",
+        "unit-price-table"
+      ],
+      "plannedHttpCalls": 1,
+      "status": "ready",
+      "preflight": {
+        "ok": true,
+        "failures": []
+      }
+    },
+    {
+      "id": "focus-05",
+      "question": "2026-10-24 기준 과학기술정보통신부 장관",
+      "officialUrls": [
+        "https://www.msit.go.kr/index.do"
+      ],
+      "requiredAnswerItems": [
+        "minister-name-and-title",
+        "evidence-date",
+        "incumbency-at-2026-10-24"
+      ],
+      "plannedHttpCalls": 1,
+      "status": "ready",
+      "preflight": {
+        "ok": true,
+        "failures": []
+      }
+    }
+  ],
+  "holds": [
+    {
+      "id": "focus-01",
+      "question": "PostgreSQL 최신 안정 버전",
+      "plannedHttpCalls": 0,
+      "status": "hold",
+      "reason": [
+        "official-snapshot-missing"
+      ]
+    },
+    {
+      "id": "focus-03",
+      "question": "2026-10-24 서울 날씨",
+      "plannedHttpCalls": 0,
+      "status": "hold",
+      "reason": [
+        "official-snapshot-missing"
+      ]
+    },
+    {
+      "id": "focus-04",
+      "question": "2026-10-18~24 반도체 뉴스",
+      "plannedHttpCalls": 0,
+      "status": "hold",
+      "reason": [
+        "official-snapshot-missing"
+      ]
+    },
+    {
+      "id": "focus-06",
+      "question": "2026년 10월 서울 무료 개발자 행사 일정",
+      "plannedHttpCalls": 0,
+      "status": "hold",
+      "reason": [
+        "official-snapshot-missing"
+      ]
+    }
+  ]
+}

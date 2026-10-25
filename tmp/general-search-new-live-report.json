@@ -1,0 +1,1604 @@
+{
+  "fixture": "development-live",
+  "replayOf": null,
+  "capturedAt": "2026-10-23T02:21:20.328Z",
+  "now": "2026-10-23T13:41:26.646Z",
+  "cases": [
+    {
+      "id": "live-1",
+      "question": "오늘 서울 날씨",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 64,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 64,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-2",
+      "question": "내일 제주 날씨",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 9,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 9,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-3",
+      "question": "오늘 대전 미세먼지",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 4,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 4,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-4",
+      "question": "내일 뉴욕 날씨",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 4,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 4,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-5",
+      "question": "Python 최신 안정 버전",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 11,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 11,
+          "httpRequests": 4
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 4,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-6",
+      "question": "React 최신 버전",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-7",
+      "question": "PostgreSQL 최신 버전",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 1,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-8",
+      "question": "Docker Engine 최신 버전",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-9",
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 3,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 3,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-10",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-11",
+      "question": "최근 일주일 반도체 뉴스",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 3,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 3,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-12",
+      "question": "최근 일주일 생성형 AI 뉴스",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-13",
+      "question": "최근 일주일 한국 과학기술 뉴스",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-14",
+      "question": "OpenAI API 최신 가격",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-15",
+      "question": "GitHub Actions 요금제",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-16",
+      "question": "AWS Lambda 요청 요금",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 1,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 1,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-17",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 1,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 1,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-18",
+      "question": "부산 불꽃축제 올해 일정",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-19",
+      "question": "대한민국 과학기술정보통신부 장관은 누구인가",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-20",
+      "question": "WHO 본부가 있는 도시와 기관 역할",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-21",
+      "question": "MacBook Air와 Dell XPS 13의 공식 사양 비교",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-22",
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-23",
+      "question": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 4,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 4,
+          "httpRequests": 4
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 4,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    },
+    {
+      "id": "live-24",
+      "question": "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교",
+      "legacy": {
+        "status": "no-evidence",
+        "citations": []
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 1,
+          "reads": 0,
+          "facts": 0,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 2
+        }
+      },
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "label": {
+        "status": "미평가",
+        "independentlyReviewed": false,
+        "facts": []
+      },
+      "quality": {
+        "candidateCount": 0,
+        "selectedCandidateCount": 0,
+        "maxModelCandidates": 12,
+        "candidatesOmittedByReadBudget": 0,
+        "bodyExtractionAttempted": 0,
+        "bodyExtractionSucceeded": 0,
+        "bodyExtractionSuccessRate": null,
+        "boilerplateOrAdCandidateCount": 0,
+        "officialSignalCandidateCount": 0,
+        "selectedUrls": []
+      },
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0,
+        "labeledAcceptedFacts": null,
+        "labeledContradictionAcceptedFacts": null
+      }
+    }
+  ],
+  "comparison": {
+    "total": 24,
+    "independentlyReviewedCases": 0,
+    "legacyRetrieved": 0,
+    "prototypeVerified": 0,
+    "prototypePartial": 0,
+    "unverifiedFacts": 0,
+    "duplicateIdCount": 0,
+    "mappingErrorCount": 0,
+    "explicitlyVerifiedFacts": 0,
+    "clearlyWrongAcceptedFacts": null,
+    "labeledAcceptedFacts": null,
+    "labeledContradictionAcceptedFacts": null,
+    "codeDateIssueCount": 0,
+    "codeLocationIssueCount": 0,
+    "codeSubjectValueMixCount": 0,
+    "unrelatedBodyAcceptedCount": 0,
+    "duplicateEvidenceCount": 0,
+    "normalFactsRejected": 0,
+    "answerOutcomes": {
+      "complete": 0,
+      "partial": 0,
+      "hold": 24
+    },
+    "failureReasons": {},
+    "conclusion": "코드 검증 통과 수치와 독립 정답 기반 사실 정확도를 분리함; 독립 검토가 끝나지 않은 항목은 정확도에서 제외"
+  },
+  "gemini": {
+    "enabled": false,
+    "calls": 0,
+    "expectedCallsWithoutExecution": 12,
+    "estimatedInputTokens": 0,
+    "estimatedOutputTokens": 1440,
+    "estimatedCostUsd": null,
+    "costNote": "요금표 변동을 피하기 위해 단가가 제공되지 않으면 null; API 호출은 이번 평가에서 실행하지 않음"
+  }
+}

@@ -1,0 +1,5077 @@
+{
+  "version": 1,
+  "experiment": "general-search-gemini",
+  "generatedAt": "2026-10-23T10:56:47.682Z",
+  "inputFile": "tmp/general-search-web-bodies-experiment.json",
+  "envFile": "/home/ubuntu/discord-bot-new/.env",
+  "questionCount": 8,
+  "maxApiCalls": 12,
+  "model": "gemini-3.5-flash-lite",
+  "models": [
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-3.6-flash",
+    "gemini-2.5-flash",
+    "gemma-4-26b-a4b-it",
+    "gemma-4-31b-it"
+  ],
+  "apiKeyConfigured": true,
+  "calls": 8,
+  "elapsedMs": 68808,
+  "results": [
+    {
+      "id": "live-1",
+      "question": "오늘 서울 날씨",
+      "facts": [
+        {
+          "id": "fact-1-0",
+          "status": "rejected",
+          "subject": "서울",
+          "attributes": [
+            "3일"
+          ],
+          "quote": "서울의 날씨 홈 > 여행정보 > 서울의 날씨 서울의 날씨 3일 예보 3일 예보 표 : 항목별(오늘, 내일, 모레) 날짜, 날씨, 최저/최고기온(℃), 강수확률 항목",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "visitseoul.net",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "semantic-review: Boilerplate navigation text rather than a direct weather answer."
+          ]
+        },
+        {
+          "id": "fact-1-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2026-10-23"
+          ],
+          "quote": "오늘 : 2026-10-23",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "visitseoul.net",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: Contains only a date string, not weather information."
+          ]
+        },
+        {
+          "id": "fact-1-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2026-10-24"
+          ],
+          "quote": "내일 : 2026-10-24",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "visitseoul.net",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "-25 ",
+            "13℃",
+            "0℃",
+            "21℃",
+            "12℃",
+            "24℃",
+            "10%",
+            "0%",
+            "20%",
+            "2.5",
+            "-23 ",
+            "-24 ",
+            "-26 ",
+            "-27 ",
+            "15℃",
+            "23℃",
+            "11℃",
+            "2026-10-25",
+            "2026-10-23",
+            "2026-10-24",
+            "2026-10-26",
+            "2026-10-27"
+          ],
+          "quote": "모레 : 2026-10-25 날씨 맑음 구름많음 구름많음 최저/최고기온 (℃) 13℃ / 0℃ 13℃ / 21℃ 12℃ / 24℃ 강수확률 10% / 0% 20% / 10% - 대기오염 상세 대기오염 상세 표 : 항목(오늘예보, 내일예보, 모레예보), 미세먼지(PM10), 초미세먼지(PM2.5) 항목 오늘예보 내일예보 모레예보 미세먼지 (PM10) 좋음 보통 좋음 초미세먼지 (PM2.5) 좋음 보통 좋음 주간예보 주간예보 표 : 항목별 날짜, 날씨, 최저/최고기온(℃) 항목 2026-10-23 2026-10-24 2026-10-25 2026-10-26 2026-10-27 날씨 맑음 구름많음 구름많음 흐림 맑음 최저/최고기온 (℃) 13℃ / 0℃ 13℃ / 21℃ 12℃ / 24℃ 15℃ / 23℃ 11℃ / 15℃ 제공 : 케이웨더(Kweather)",
+          "sourceUrl": "https://korean.visitseoul.net/weather",
+          "sourceTitle": "visitseoul.net",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: General forecast table without a verified reliable reference date tied to the query context in the snippet."
+          ]
+        },
+        {
+          "id": "fact-2-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "절기상 서리가 내린다는 '상강'인 오늘, 아침 기온이 크게 떨어졌지만 낮 기온은 평년 수준을 회복하겠습니다.",
+          "sourceUrl": "https://imnews.imbc.com/replay/2026/nwtoday/article/6860141_37012.html",
+          "sourceTitle": "[날씨] 절기 &apos;상강&apos; 아침 쌀쌀, 한낮 포근‥태풍 &apos;참피&apos; 영향, 남부·제주 비",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: General introductory statement lacking specific temperature or meteorological data for Seoul."
+          ]
+        },
+        {
+          "id": "fact-2-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "남부와 제주도는 태풍의 간접 영향으로 비가 내리겠습니다.",
+          "sourceUrl": "https://imnews.imbc.com/replay/2026/nwtoday/article/6860141_37012.html",
+          "sourceTitle": "[날씨] 절기 &apos;상강&apos; 아침 쌀쌀, 한낮 포근‥태풍 &apos;참피&apos; 영향, 남부·제주 비",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "10도",
+            "21도"
+          ],
+          "quote": "오늘 아침 전국 대부분 지역이 10도 아래로 쌀쌀하겠지만 낮부터는 기온이 21도 안팎으로 올라 다소 포근하겠습니다.",
+          "sourceUrl": "https://imnews.imbc.com/replay/2026/nwtoday/article/6860141_37012.html",
+          "sourceTitle": "[날씨] 절기 &apos;상강&apos; 아침 쌀쌀, 한낮 포근‥태풍 &apos;참피&apos; 영향, 남부·제주 비",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: General statement about nationwide weather without specific mention of Seoul."
+          ]
+        },
+        {
+          "id": "fact-2-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "태풍 '참피'의 간접 영향으로 제주는 오늘 오후부터, 남부지방은 밤부터 비가 내리기 시작해 일요일 충청과 강원 동해안까지 확대되겠습니다.",
+          "sourceUrl": "https://imnews.imbc.com/replay/2026/nwtoday/article/6860141_37012.html",
+          "sourceTitle": "[날씨] 절기 &apos;상강&apos; 아침 쌀쌀, 한낮 포근‥태풍 &apos;참피&apos; 영향, 남부·제주 비",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: Discusses typhoon effects in Jeju and southern regions, not Seoul's weather."
+          ]
+        },
+        {
+          "id": "fact-2-4",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "20",
+            "60mm",
+            "100mm",
+            "150mm"
+          ],
+          "quote": "모레까지 전남과 경남엔 20~60mm, 제주도는 최대 100mm의 비가 내리겠고, 제주 산지에는 강수량이 150mm가 넘는 곳도 있겠습니다.",
+          "sourceUrl": "https://imnews.imbc.com/replay/2026/nwtoday/article/6860141_37012.html",
+          "sourceTitle": "[날씨] 절기 &apos;상강&apos; 아침 쌀쌀, 한낮 포근‥태풍 &apos;참피&apos; 영향, 남부·제주 비",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-5",
+          "status": "verified",
+          "subject": "서울",
+          "attributes": [
+            "7.3도",
+            "2.5도",
+            "21도",
+            "23도"
+          ],
+          "quote": "현재 아침 기온 서울 7.3도, 춘천 2.5도를 보이고 있고 낮 최고기온은 서울 21도, 광주 23도를 보이겠습니다.",
+          "sourceUrl": "https://imnews.imbc.com/replay/2026/nwtoday/article/6860141_37012.html",
+          "sourceTitle": "[날씨] 절기 &apos;상강&apos; 아침 쌀쌀, 한낮 포근‥태풍 &apos;참피&apos; 영향, 남부·제주 비",
+          "validationFailures": [
+            "semantic-review: Provides specific current and forecast temperatures for Seoul today."
+          ]
+        },
+        {
+          "id": "fact-2-6",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "주말 동안 남부지방을 중심으로 비가 오겠고, 다음 주 초에 다시 기온이 떨어질 전망입니다.",
+          "sourceUrl": "https://imnews.imbc.com/replay/2026/nwtoday/article/6860141_37012.html",
+          "sourceTitle": "[날씨] 절기 &apos;상강&apos; 아침 쌀쌀, 한낮 포근‥태풍 &apos;참피&apos; 영향, 남부·제주 비",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "중부 지방은 구름만 다소 지나겠지만, 남부 지방은 태풍 '참피'의 간접 영향으로 비가 내릴 전망입니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "[날씨] 태풍 &#039;참피&#039; 영향 제주·남부 비…곳곳 강풍 유의",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "우선 오늘 밤부터 제주와 남해안에 비가 내리기 시작해, 내일은 남부 지방으로, 모레는 충청 이남으로 확대되겠습니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "[날씨] 태풍 &#039;참피&#039; 영향 제주·남부 비…곳곳 강풍 유의",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "150mm",
+            "60mm",
+            "5",
+            "40mm"
+          ],
+          "quote": "모레까지 제주 산지에 최대 150mm 이상의 많은 비가 쏟아지겠고, 전남과 경남에 최대 60mm, 대구와 경북에는 5~40mm의 비가 내리겠습니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "[날씨] 태풍 &#039;참피&#039; 영향 제주·남부 비…곳곳 강풍 유의",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "비가 내릴 때는 강한 바람에도 주의가 필요합니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "[날씨] 태풍 &#039;참피&#039; 영향 제주·남부 비…곳곳 강풍 유의",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-4",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "해상 날씨도 좋지 않겠는데요.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "[날씨] 태풍 &#039;참피&#039; 영향 제주·남부 비…곳곳 강풍 유의",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-5",
+          "status": "rejected",
+          "subject": "서울",
+          "attributes": [
+            "13도",
+            "21도"
+          ],
+          "quote": "내일 아침 기온은 서울 13도로 출발해, 낮 기온은 서울과 수원 21도까지 오르며 일교차가 크게 벌어지겠습니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "[날씨] 태풍 &#039;참피&#039; 영향 제주·남부 비…곳곳 강풍 유의",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-6",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "비가 그친 후에는 날씨가 또다시 추워지겠는데요.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "[날씨] 태풍 &#039;참피&#039; 영향 제주·남부 비…곳곳 강풍 유의",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-7",
+          "status": "rejected",
+          "subject": "서울",
+          "attributes": [
+            "2도"
+          ],
+          "quote": "특히 다음 주 수요일에는 서울의 아침 기온이 2도까지 곤두박질치겠습니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "[날씨] 태풍 &#039;참피&#039; 영향 제주·남부 비…곳곳 강풍 유의",
+          "validationFailures": [
+            "semantic-review-not-approved",
+            "semantic-review-rejected",
+            "semantic-review-reason: Refers to next week's weather rather than today's weather in Seoul.",
+            "semantic-review: Refers to next week's weather rather than today's weather in Seoul."
+          ]
+        },
+        {
+          "id": "fact-3-8",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "지금까지 날씨 전해드렸습니다.",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "[날씨] 태풍 &#039;참피&#039; 영향 제주·남부 비…곳곳 강풍 유의",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-9",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "23"
+          ],
+          "quote": "'jebo23' 친구 추가 라인 앱에서 'jebo23' 친구 추가 jebo23@yna.co.kr ⓒ연합뉴스TV, 무단 전재-재배포, AI 학습 및 활용 금지 # 날씨 # 풍랑 # 강풍 # 비 # 일교차 # 기온전망 # 강수전망 # 태풍참피",
+          "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "sourceTitle": "[날씨] 태풍 &#039;참피&#039; 영향 제주·남부 비…곳곳 강풍 유의",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "5 ",
+            "30mm",
+            "23 ",
+            "17",
+            "30",
+            "2026.10.23"
+          ],
+          "quote": "기사 본문 영역 뉴스 5 [퇴근길 날씨] 모레까지 남부·제주에 비…시간당 20~30mm 강한 비 주의 입력 2026.10.23 (17:26) 수정 2026.10.23 (17:30) 읽어주기 기능은 크롬기반의 브라우저에서만 사용하실 수 있습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "5,550",
+            "30 ",
+            "751.69 "
+          ],
+          "quote": "AI 요약 동영상 고정 취소 이전 코스피 5,550.30 코스닥 751.69 클로징 다음 태풍이 밀어 올린 수증기로 인해 현재 제주도와 남해안에 비가 내리고 있습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "제주도에선 빗줄기가 강해지며 호우주의보가 내려졌는데요, 비구름이 점차 북상하며 내일 오후엔 충청과 강원 동해안까지 비가 확대되겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "250mm",
+            "20",
+            "80mm",
+            "100mm"
+          ],
+          "quote": "모레까지 예상되는 비의 양은 제주 산지에 최대 250mm 이상, 전남광주와 경남에 20~80mm, 많은 곳은 100mm가 넘겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-4",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "20",
+            "30mm"
+          ],
+          "quote": "특히 남해안과 제주도에선 시간당 20~30mm 안팎의 강한 비가 쏟아지는 곳이 있겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-5",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "비와 함께 바람도 강하게 불 것으로 보여 안전사고에 유의하셔야겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-6",
+          "status": "rejected",
+          "subject": "서울",
+          "attributes": [
+            "13도",
+            "17도",
+            "5",
+            "7도"
+          ],
+          "quote": "내일 아침 기온은 서울 13도, 부산 17도로 오늘보다 5~7도 정도 높겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-7",
+          "status": "rejected",
+          "subject": "서울",
+          "attributes": [
+            "21도",
+            "19도"
+          ],
+          "quote": "낮 기온은 서울 21도, 대전과 대구, 광주 19도로 오늘과 비슷하겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "semantic-review-not-approved",
+            "semantic-review-rejected",
+            "semantic-review-reason: Lacks explicit reference date in the quote snippet to verify today's context safely.",
+            "semantic-review: Lacks explicit reference date in the quote snippet to verify today's context safely."
+          ]
+        },
+        {
+          "id": "fact-4-8",
+          "status": "rejected",
+          "subject": "서울",
+          "attributes": [
+            "2도"
+          ],
+          "quote": "수요일 서울의 아침 기온이 2도까지 떨어져 올가을 들어 가장 춥겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "semantic-review-not-approved",
+            "semantic-review-rejected",
+            "semantic-review-reason: Refers to Wednesday's forecast, not directly today's weather.",
+            "semantic-review: Refers to Wednesday's forecast, not directly today's weather."
+          ]
+        },
+        {
+          "id": "fact-4-9",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "날씨 정보 전해드렸습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-10",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "30mm",
+            "-23 ",
+            "17",
+            "18",
+            "2026-10-23"
+          ],
+          "quote": "[퇴근길 날씨] 모레까지 남부·제주에 비…시간당 20~30mm 강한 비 주의 입력 2026-10-23 17:26:18",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-11",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "-23 ",
+            "17",
+            "30",
+            "37",
+            "2026-10-23"
+          ],
+          "quote": "수정2026-10-23 17:30:37",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-12",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "5 "
+          ],
+          "quote": "뉴스 5 태풍이 밀어 올린 수증기로 인해 현재 제주도와 남해안에 비가 내리고 있습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-13",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "제주도에선 빗줄기가 강해지며 호우주의보가 내려졌는데요, 비구름이 점차 북상하며 내일 오후엔 충청과 강원 동해안까지 비가 확대되겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-14",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "250mm",
+            "20",
+            "80mm",
+            "100mm"
+          ],
+          "quote": "모레까지 예상되는 비의 양은 제주 산지에 최대 250mm 이상, 전남광주와 경남에 20~80mm, 많은 곳은 100mm가 넘겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-15",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "20",
+            "30mm"
+          ],
+          "quote": "특히 남해안과 제주도에선 시간당 20~30mm 안팎의 강한 비가 쏟아지는 곳이 있겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-16",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "비와 함께 바람도 강하게 불 것으로 보여 안전사고에 유의하셔야겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-17",
+          "status": "rejected",
+          "subject": "서울",
+          "attributes": [
+            "13도",
+            "17도",
+            "5",
+            "7도"
+          ],
+          "quote": "내일 아침 기온은 서울 13도, 부산 17도로 오늘보다 5~7도 정도 높겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "relative-date-mismatch",
+            "relative-date-does-not-resolve",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-18",
+          "status": "rejected",
+          "subject": "서울",
+          "attributes": [
+            "21도",
+            "19도"
+          ],
+          "quote": "낮 기온은 서울 21도, 대전과 대구, 광주 19도로 오늘과 비슷하겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "semantic-review-not-approved",
+            "semantic-review-rejected",
+            "semantic-review-reason: Duplicate of fact-4-7.",
+            "semantic-review: Duplicate of fact-4-7."
+          ]
+        },
+        {
+          "id": "fact-4-19",
+          "status": "rejected",
+          "subject": "서울",
+          "attributes": [
+            "2도"
+          ],
+          "quote": "수요일 서울의 아침 기온이 2도까지 떨어져 올가을 들어 가장 춥겠습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "semantic-review-not-approved",
+            "semantic-review-rejected",
+            "semantic-review-reason: Duplicate of fact-4-8.",
+            "semantic-review: Duplicate of fact-4-8."
+          ]
+        },
+        {
+          "id": "fact-4-20",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "날씨 정보 전해드렸습니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-21",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2 ",
+            "3 ",
+            "2",
+            "4 ",
+            "5 ",
+            "6 ",
+            "3.8도"
+          ],
+          "quote": "2 전북에서 초등학교 운동회 참석한 이 대통령 “찾다 찾다 여기까지” 3 ‘여론조사비 대납 의혹’ 오세훈, 2심서 무죄…“명태균 진술 믿기 어려워” 4 “이란 ‘그림자 선단’ 비축유 고갈…아시아행 유조선 물량 소진” 5 “다이소 잡아라” 초저가 생활용품점 뛰어든 대형마트 6 WMO “올겨울 역대 최강 엘니뇨” 경고…태평양 수온 3.8도↑ 한반도 영향은?",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-22",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "준비중입니다.",
+          "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8693743&ref=A",
+          "sourceTitle": "KBS 뉴스",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        }
+      ],
+      "verifiedFacts": [
+        {
+          "id": "fact-2-5",
+          "status": "verified",
+          "subject": "서울",
+          "attributes": [
+            "7.3도",
+            "2.5도",
+            "21도",
+            "23도"
+          ],
+          "quote": "현재 아침 기온 서울 7.3도, 춘천 2.5도를 보이고 있고 낮 최고기온은 서울 21도, 광주 23도를 보이겠습니다.",
+          "sourceUrl": "https://imnews.imbc.com/replay/2026/nwtoday/article/6860141_37012.html",
+          "sourceTitle": "[날씨] 절기 &apos;상강&apos; 아침 쌀쌀, 한낮 포근‥태풍 &apos;참피&apos; 영향, 남부·제주 비",
+          "validationFailures": []
+        }
+      ],
+      "status": "verified",
+      "partial": true,
+      "semanticReview": {
+        "approveFactIds": [
+          "fact-2-5"
+        ],
+        "rejectFactIds": [
+          "fact-4-7",
+          "fact-4-18",
+          "fact-1-0",
+          "fact-3-7",
+          "fact-4-8",
+          "fact-4-19",
+          "fact-1-1",
+          "fact-1-3",
+          "fact-2-0",
+          "fact-2-2",
+          "fact-2-3",
+          "fact-1-2",
+          "fact-2-1",
+          "fact-2-4",
+          "fact-2-6",
+          "fact-3-0",
+          "fact-3-1",
+          "fact-3-2",
+          "fact-3-3",
+          "fact-3-4",
+          "fact-3-5",
+          "fact-3-6",
+          "fact-3-8",
+          "fact-3-9",
+          "fact-4-0",
+          "fact-4-1",
+          "fact-4-2",
+          "fact-4-3",
+          "fact-4-4",
+          "fact-4-5",
+          "fact-4-6",
+          "fact-4-9",
+          "fact-4-10",
+          "fact-4-11",
+          "fact-4-12",
+          "fact-4-13",
+          "fact-4-14",
+          "fact-4-15",
+          "fact-4-16",
+          "fact-4-17",
+          "fact-4-20",
+          "fact-4-21",
+          "fact-4-22"
+        ],
+        "reasonById": {
+          "fact-2-5": "Provides specific current and forecast temperatures for Seoul today.",
+          "fact-4-7": "Lacks explicit reference date in the quote snippet to verify today's context safely.",
+          "fact-4-18": "Duplicate of fact-4-7.",
+          "fact-1-0": "Boilerplate navigation text rather than a direct weather answer.",
+          "fact-3-7": "Refers to next week's weather rather than today's weather in Seoul.",
+          "fact-4-8": "Refers to Wednesday's forecast, not directly today's weather.",
+          "fact-4-19": "Duplicate of fact-4-8.",
+          "fact-1-1": "Contains only a date string, not weather information.",
+          "fact-1-3": "General forecast table without a verified reliable reference date tied to the query context in the snippet.",
+          "fact-2-0": "General introductory statement lacking specific temperature or meteorological data for Seoul.",
+          "fact-2-2": "General statement about nationwide weather without specific mention of Seoul.",
+          "fact-2-3": "Discusses typhoon effects in Jeju and southern regions, not Seoul's weather.",
+          "fact-1-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-6": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-0": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-3": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-5": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-6": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-8": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-9": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-0": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-3": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-5": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-6": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-9": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-10": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-11": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-12": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-13": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-14": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-15": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-16": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-17": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-20": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-21": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-22": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+        },
+        "invalid": false,
+        "requestSucceeded": true,
+        "responseSchemaValid": true,
+        "selectedFactIds": [
+          "fact-2-5",
+          "fact-4-7",
+          "fact-4-18",
+          "fact-1-0",
+          "fact-3-7",
+          "fact-4-8",
+          "fact-4-19",
+          "fact-1-1",
+          "fact-1-3",
+          "fact-2-0",
+          "fact-2-2",
+          "fact-2-3"
+        ],
+        "omittedFactIds": [
+          "fact-1-2",
+          "fact-2-1",
+          "fact-2-4",
+          "fact-2-6",
+          "fact-3-0",
+          "fact-3-1",
+          "fact-3-2",
+          "fact-3-3",
+          "fact-3-4",
+          "fact-3-5",
+          "fact-3-6",
+          "fact-3-8",
+          "fact-3-9",
+          "fact-4-0",
+          "fact-4-1",
+          "fact-4-2",
+          "fact-4-3",
+          "fact-4-4",
+          "fact-4-5",
+          "fact-4-6",
+          "fact-4-9",
+          "fact-4-10",
+          "fact-4-11",
+          "fact-4-12",
+          "fact-4-13",
+          "fact-4-14",
+          "fact-4-15",
+          "fact-4-16",
+          "fact-4-17",
+          "fact-4-20",
+          "fact-4-21",
+          "fact-4-22"
+        ],
+        "calls": 1,
+        "model": "gemini-3.5-flash-lite",
+        "elapsedMs": 32816
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "duplicateFactIdCount": 0,
+        "unknownFactIdCount": 0,
+        "missingFactIdCount": 0,
+        "modelApprovedFactCount": 1,
+        "codeVerifiedModelApprovalCount": 1,
+        "codeRejectedModelApprovalCount": 0,
+        "clearlyWrongAcceptedFactCount": 0,
+        "selectedFactCount": 12,
+        "omittedFactCount": 32
+      },
+      "model": "gemini-3.5-flash-lite",
+      "callsForCase": 1,
+      "callsAfterCase": 1,
+      "processingMs": 32853
+    },
+    {
+      "id": "live-2",
+      "question": "내일 제주 날씨",
+      "facts": [
+        {
+          "id": "fact-1-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2026년 10월 23일"
+          ],
+          "quote": "더 뛰는 뉴스 심층분석 이슈 트래커 현장 속으로 노동과 이슈 AT가 만난 사람들 CEO is 단독기사 더 깊은 뉴스 더 다른 뉴스 더 함께 뉴스 요즈음 더 착한 뉴스 오피니언 전문가 칼럼 데스크 칼럼 기자수첩 사설 기업과 경제 경제 산업 생활경제 건설·교통·에너지 금융 마켓 제약바이오 뉴스 정치 사회 문화 전국 네트워크 메트로 인천 수도권 충청 대구·경북 부산·경남 호남 포럼&컨퍼런스 PDF 보기 2026년 10월 23일 Friday",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-1",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "150",
+            "-23 ",
+            "17",
+            "36",
+            "2026-10-23"
+          ],
+          "quote": "더 뛰는 뉴스 심층분석 이슈 트래커 현장 속으로 노동과 이슈 AT가 만난 사람들 CEO is 단독기사 더 깊은 뉴스 더 다른 뉴스 더 함께 뉴스 요즈음 더 착한 뉴스 오피니언 전문가 칼럼 데스크 칼럼 기자수첩 사설 뉴스 정치 사회 문화 기업과 경제 경제 산업 생활경제 건설·교통·에너지 금융 마켓 제약바이오 전국 네트워크 메트로 인천 수도권 충청 대구·경북 부산·경남 호남 PDF 지면보기 뉴스 정치 사회 문화 포럼&컨퍼런스 PDF보기 기업과경제 전국네트워크 Home > 뉴스 > 사회 > 사회일반 [내일 주말 날씨] 남부지방·제주 많은 비… 제주도 최대 150㎜ 황수영 기자 입력 2026-10-23 17:36",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "semantic-review-not-approved",
+            "semantic-review-rejected",
+            "semantic-review-reason: 헤드라인 및 사이트 탐색 메뉴 등 불필요한 보조 텍스트가 포함되어 있어 정확한 날씨 정보로 채택하기 어렵습니다.",
+            "semantic-review: 헤드라인 및 사이트 탐색 메뉴 등 불필요한 보조 텍스트가 포함되어 있어 정확한 날씨 정보로 채택하기 어렵습니다."
+          ]
+        },
+        {
+          "id": "fact-1-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "-23 ",
+            "17",
+            "36",
+            "2026-10-23"
+          ],
+          "quote": "수정 2026-10-23 17:36",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-3",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "24일",
+            "25일"
+          ],
+          "quote": "advertisement advertisement [아시아타임즈=황수영 기자] 오는 24일부터 25일 사이 전남권과 경남권, 제주도를 중심으로 강하고 많은 비가 내리는 곳이 있겠다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 광범위한 기간 예보 문구로 내일 제주 날씨를 특정하기에 충분하지 않습니다."
+          ]
+        },
+        {
+          "id": "fact-1-4",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "22일"
+          ],
+          "quote": "지난 22일 오전 서울 광화문 사거리에서 몸을 움츠린 시민들이 출근길을 재촉하고 있다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-5",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "5",
+            "10",
+            "80",
+            "150",
+            "24일"
+          ],
+          "quote": "(사진=연합뉴스) 기상청에 따르면 오는 24일 예상 강수량은 강원남부동해안∙산지 5㎜ 안팎,강원동해안∙산지 5~10㎜, 대전∙충남남동부, 충북중∙남부 5~10㎜, 대전∙세종∙충남, 충북 5㎜, 제주도 80~150㎜ 안팎으로 예보됐다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-6",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "8",
+            "17도",
+            "16",
+            "21도",
+            "15도"
+          ],
+          "quote": "이날 오전 최저기온은 8~17도, 오후 최고기온은 16~21도로 중부내륙을 중심으로 일교차가 15도 안팎으로 크겠다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-7",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "13도",
+            "10도",
+            "12도",
+            "14도",
+            "16도",
+            "15도",
+            "17도",
+            "19도"
+          ],
+          "quote": "전국 주요도시별 오전 기온은 서울 13도, 춘천 10도, 강릉 13도, 안동 12도, 수원 14도, 대전 13도, 전주 13도, 대구 14도, 울산 16도, 여수 15도, 부산 17도, 제주 19도, 광주 14도로 예보됐다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 제주 날씨의 일부 기온 정보만 부분적으로 언급하고 있어 종합적인 날씨 답변에 불충분합니다."
+          ]
+        },
+        {
+          "id": "fact-1-8",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "또한 전국 자외선 지수는 '낮음'~'보통' 수준으로 예보됐다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-9",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "25일"
+          ],
+          "quote": "오는 25일에도 남부지방과 제주도를 중심으로 비가 내리는 곳이 있겠다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-10",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "5",
+            "10",
+            "40",
+            "80",
+            "150"
+          ],
+          "quote": "이날 예상 강수량은 강원동해안∙산지 5~10㎜, 대전∙세종∙충남, 충북 5㎜ 안팎,경북중∙북부, 울릉도∙독도 5~40㎜, 제주도 80~150㎜으로 예보됐다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-11",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "9",
+            "18도",
+            "16",
+            "21도",
+            "15도"
+          ],
+          "quote": "이날 오전 최저기온은 9~18도, 오후 최고기온은 16~21도로 중부내륙을 중심으로 일교차가 15도 안팎으로 크겠다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-12",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "12도",
+            "10도",
+            "15도",
+            "13도",
+            "14도",
+            "17도",
+            "18도",
+            "21도",
+            "16도"
+          ],
+          "quote": "전국 주요도시별 오전 기온은 서울 12도, 춘천 10도, 강릉 15도, 안동 13도, 수원 13도, 대전 14도, 전주 15도, 대구 15도, 울산 17도, 여수 17도, 부산 18도, 제주 21도, 광주 16도로 예보됐다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 다른 기사 버전의 기온 수치이며 상대적 정보로 직접 답변 검증에 불확실성이 있습니다."
+          ]
+        },
+        {
+          "id": "fact-1-13",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [],
+          "quote": "기상청은 비가 많이 내리는 전남권과 경남권, 제주도에서는 하천변 산책로 또는 지하차도 등 이용 시 고립될 수 있으니 출입을 자제하고, 저지대 침수와 하천 범람 및 급류에 각별히 유의할 것을 당부했다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-14",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "◇알고 있으면 유용한 '생활의 꿀팁' 비를 맞은 우산은 접어 두지 말고 펼친 채 그늘에서 말리면 곰팡이 냄새가 나는 것을 방지할 수 있다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-15",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "- 건전한 토론문화를 위해, 타인에게 불쾌감을 주는 욕설/비방/허위/명예훼손/도배 등의 댓글은 표시가 제한됩니다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-16",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "0 ",
+            "250 ",
+            "2026 ",
+            "23일"
+          ],
+          "quote": "0 /250 등록 중요기사 [2026 국감]홍범식 LG유플러스 대표 \"해킹 은폐 귀책 확인되면 책임 지겠다\" 우리금융 \"여의도 ABL타워 매각…연내 완료 가능성 커\" [이건희의 선택]③평생 모아 국민에게 남겼다…세계 무대 오른 컬렉션 [이건희의 선택]②사람은 키우고 불량품은 버렸다…체질 바꾼 '신경영' [2026 국감] 배경훈 \"PHP 취약점, 범부처 차원 종합적 대책 마련할 것\" 유류할증료 폭증에도 역대급 매출…항공업계 수익성 변수는 '화물 운송' [2026 국감]홍범식 LG유플러스 대표 \"해킹 은폐 귀책 확인되면 책임 지겠다\" 23일 국감서 LG유플러스 해킹 고의 은폐 의혹 질타 홍범식 대표 \"회사 귀책사유 확인되면 합당한 책임\" 해킹 증거 보존·고객 안내 관련 비판도 이어져 [아시아타임즈=김민솔 기자] 홍범식 LG유플러스 대표가 해킹 사고 은폐 및 증거인멸 의혹과 관련해 회사의 귀책사유가 확인될 경우 합당한 책임을 지겠다고 밝혔다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-17",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "23일"
+          ],
+          "quote": "홍 대표는 23일 국회 과학기술정보방송통신위원회 종합국정감사에 출석해, 해킹 사고를 고의로 은폐하거나 조사를 방해한 사실이 확인되면 위약금을 면제할 것이냐는 조경태 국민의힘 의원의 질의에 \"사법당국의 판단이 나오고 정부 지침이 있으면 그에 맞는 합당한 책임을 지도록 하겠다\"고 말했다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-18",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "LG유플러스의 유심 보안 조치 안내와 관련한 비판도 나왔다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-19",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "조경태 의원은 LG유플러스가 '고객님의 안전한 통신서비스 이용을 위해 유심 자동 업데이트를 진행한다'고 안내했다며, 유심 교체·업데이트에 대한 시급성이나 경각심을 고객에게 충분히 전달하지 않았다고 지적했다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-20",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "23일",
+            "1일"
+          ],
+          "quote": "23일 재계에 따르면 'KH 컬렉션' 국외순회전은 이달 1일부터 영국 런던 영국박물관에서 열리고 있다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-21",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "정선의 '인왕제색도'와 김홍도의 '추성부도'를 비롯해 고려와 조선시대의 문화재가 기증됐다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-22",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [],
+          "quote": "서울에서 시작된 전시는 광주와 대구, 청주, 제주를 비롯해 경남과 부산, 울산 등으로 확대됐다.",
+          "sourceUrl": "https://www.asiatime.co.kr/article/20261023500332",
+          "sourceTitle": "더 뛰는 뉴스",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "21일"
+          ],
+          "quote": "가을비가 내리는 21일 서울 종로구 광화문네거리에서 한 시민이 옷을 두른 채 출근길을 서두르고 있다.",
+          "sourceUrl": "https://www.news1.kr/society/weather-disaster/6329449",
+          "sourceTitle": "'참피' 영향에 25일까지 제주·남부 최대 150㎜ 폭우[내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "21 ",
+            "1 ",
+            "2026.10.21"
+          ],
+          "quote": "2026.10.21 ⓒ 뉴스1 김성진 기자",
+          "sourceUrl": "https://www.news1.kr/society/weather-disaster/6329449",
+          "sourceTitle": "'참피' 영향에 25일까지 제주·남부 최대 150㎜ 폭우[내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-0",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "16",
+            "21도",
+            "5도",
+            "24일",
+            "20일"
+          ],
+          "quote": "24일 낮 최고 16~21도…평년 수준 기온 회복 남부지방 중심 비 확대…제주 산지 강한 비 주의 ▲서울의 아침 최저기온이 5도까지 떨어지는 등 추운 날씨를 보인 20일 서울 영등포구 여의도역 일대에서 두꺼운 외투를 입은 시민들이 출근길 발걸음을 재촉하고 있다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 일부 기온 및 기상 개요를 포함하나 종합적인 제주 날씨의 핵심 내용이 부족합니다."
+          ]
+        },
+        {
+          "id": "fact-3-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "5",
+            "10도"
+          ],
+          "quote": "이날 기상청은 \"북쪽의 찬 공기가 유입되면서 아침 기온은 전날보다 5~10도가량 낮아지고, 바람도 강하게 불어 체감온도는 더욱 낮겠으니, 급격한 기온 변화로 인한 면역력 저하 등 건강관리에 유의하길 바란다\"고 예보했다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "24일"
+          ],
+          "quote": "조현호 기자 hyunho@ (이투데이DB) 토요일인 24일에는 최근 이어진 가을 추위가 물러가면서 기온이 평년 수준을 되찾겠다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-3",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [],
+          "quote": "다만 남부지방과 제주도를 중심으로 많은 비가 내리고 강한 바람까지 불 것으로 예상돼 주의가 필요하다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-4",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "8",
+            "17도",
+            "16",
+            "21도",
+            "23일"
+          ],
+          "quote": "23일 기상청에 따르면 다음 날 전국의 아침 최저기온은 8~17도, 낮 최고기온은 16~21도로 예보됐다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-5",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "21일"
+          ],
+          "quote": "지난 21일부터 이어진 추위가 누그러지면서 대부분 지역의 기온이 평년과 비슷하거나 다소 높아지겠다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-6",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [],
+          "quote": "주말 동안 중부지방은 구름이 많은 가운데 남부지방과 제주도는 대체로 흐리고 비가 내리겠다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-7",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [],
+          "quote": "동해상에 자리한 고기압과 제주 남쪽 해상을 통과하는 기압골의 영향을 받는 데 따른 것이다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 기상 원인에 대한 설명으로 직접적인 제주 날씨 예보 수치와 거리가 있습니다."
+          ]
+        },
+        {
+          "id": "fact-3-8",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "23일",
+            "24일"
+          ],
+          "quote": "23일 오후 제주도에서 시작된 비는 밤사이 전남과 경남으로 번지고 24일에는 남부지방 대부분으로 확대되겠다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-9",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "25일"
+          ],
+          "quote": "25일에는 비구름이 북쪽으로 이동하면서 충청권과 강원 동해안·산지에도 비가 예상된다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-10",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "반면 전라권과 경상권 내륙, 남해안은 비가 차츰 그치겠다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-11",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "50",
+            "100",
+            "20",
+            "60",
+            "40",
+            "23일",
+            "25일"
+          ],
+          "quote": "23일부터 25일까지 예상 강수량은 제주도 50~100㎜, 광주·전남과 부산·울산·경남 20~60㎜, 대구·경북과 충청권 5~40㎜ 등이다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-12",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "5",
+            "20"
+          ],
+          "quote": "전북은 5~20㎜, 강원 동해안·산지는 5㎜ 안팎의 비가 내리겠다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-13",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "150"
+          ],
+          "quote": "제주 산지와 중산간 지역에서는 강수량이 150㎜를 넘어서는 곳도 있겠다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 산지 지역 강수량 일부만 언급하여 전체 제주 날씨를 대변하지 못합니다."
+          ]
+        },
+        {
+          "id": "fact-3-14",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "20",
+            "30",
+            "23일",
+            "24일",
+            "25일"
+          ],
+          "quote": "특히 제주도에는 23일 밤부터 24일 새벽, 24일 밤부터 25일 새벽 사이 시간당 20~30㎜의 집중호우가 쏟아질 가능성이 있다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-15",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "55",
+            "70",
+            "24일"
+          ],
+          "quote": "24일 새벽부터 남해안에는 순간풍속 시속 55㎞ 이상, 제주 서부에는 시속 70㎞ 이상의 바람이 불 것으로 예상된다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 일부 지역의 풍속 예상치만 부분적으로 다루고 있습니다."
+          ]
+        },
+        {
+          "id": "fact-3-16",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "90"
+          ],
+          "quote": "제주 산지 일부 지역은 시속 90㎞ 이상의 돌풍이 불 수 있어 강풍특보가 내려질 가능성도 있다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 특보 가능성에 대한 추정적 서술입니다."
+          ]
+        },
+        {
+          "id": "fact-3-17",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "5",
+            "24일"
+          ],
+          "quote": "제주도 남쪽 먼바다와 남해 동부 바깥 먼바다의 물결은 24일 새벽부터 5m 이상으로 높아질 수 있다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-18",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "13도",
+            "14도",
+            "10도",
+            "15도",
+            "19도",
+            "24일"
+          ],
+          "quote": "24일 주요 도시의 아침 최저기온은 △서울 13도 △인천 14도 △춘천 10도 △강릉 13도 △대전 13도 △대구 14도 △전주 14도 △광주 14도 △부산 15도 △제주 19도다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 아침 최저기온 단일 항목에 국한됩니다."
+          ]
+        },
+        {
+          "id": "fact-3-19",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "21도",
+            "20도",
+            "19도",
+            "22도"
+          ],
+          "quote": "낮 최고기온은 △서울 21도 △인천 21도 △춘천 20도 △강릉 20도 △대전 19도 △대구 19도 △전주 20도 △광주 19도 △부산 19도 △제주 22도로 예상된다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 낮 최고기온 단일 항목에 국한됩니다."
+          ]
+        },
+        {
+          "id": "fact-3-20",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "26일"
+          ],
+          "quote": "기상청은 “태풍 참피의 진로와 세력에 따라 26일까지 강수 구역과 비의 양이 달라질 수 있다”며 “최신 기상정보를 확인해 달라”고 당부했다.",
+          "sourceUrl": "https://www.etoday.co.kr/news/view/2639587",
+          "sourceTitle": "주말 기습 추위 꺾인다…남부는 최대 150㎜ 폭우에 강풍 [내일 날씨]",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-0",
+          "status": "verified",
+          "subject": "제주",
+          "attributes": [
+            "80",
+            "150mm",
+            "70km",
+            "8도",
+            "21도",
+            "250mm",
+            "24일"
+          ],
+          "quote": "내일 제주도 80~150mm 비, 남해·동해안 바람 70km/h…오늘 밤부터 해상 풍랑 위험 기온 8도~21도, 남부·제주도 흐리고 많은 비…교통·해안가·시설물 안전 유의 [내일 날씨] 제주도 최대 250mm 폭우…전남남해안·경남남해안 강풍·높은 물결 주의 / 사진=기상청 (PPSS 박은숙 기자) 내일(24일)은 제주도와 전남권, 경남권을 중심으로 강하고 많은 비가 예상된다.",
+          "sourceUrl": "https://www.ppss.kr/news/articleView.html?idxno=317105",
+          "sourceTitle": "[내일 날씨] 제주도 최대 250mm 폭우…전남남해안·경남남해안 강풍·높은 물결 주의",
+          "validationFailures": [
+            "semantic-review: 내일 제주도의 강수량, 기온, 주의사항 등 날씨 정보를 가장 직접적이고 구체적으로 담고 있습니다."
+          ]
+        },
+        {
+          "id": "fact-4-1",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "80",
+            "150mm",
+            "200mm",
+            "250mm"
+          ],
+          "quote": "당분간 제주도 지역에는 80~150mm, 특히 남부·동부는 200mm 이상, 산지·중산간은 250mm 이상 많은 비가 내릴 전망이다.",
+          "sourceUrl": "https://www.ppss.kr/news/articleView.html?idxno=317105",
+          "sourceTitle": "[내일 날씨] 제주도 최대 250mm 폭우…전남남해안·경남남해안 강풍·높은 물결 주의",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "20mm",
+            "80mm",
+            "100mm"
+          ],
+          "quote": "전남과 경남 남해안은 20mm~80mm(일부 100mm 이상)가 예보됐고, 부산·울산 등 경남 해안은 시간당 20mm 수준의 강한 비가 집중될 것으로 나타났다.",
+          "sourceUrl": "https://www.ppss.kr/news/articleView.html?idxno=317105",
+          "sourceTitle": "[내일 날씨] 제주도 최대 250mm 폭우…전남남해안·경남남해안 강풍·높은 물결 주의",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "6",
+            "9시"
+          ],
+          "quote": "비는 아침 6~9시 전남남해안과 부산·울산·경남 해안부터 내리기 시작해 점차 확대된다.",
+          "sourceUrl": "https://www.ppss.kr/news/articleView.html?idxno=317105",
+          "sourceTitle": "[내일 날씨] 제주도 최대 250mm 폭우…전남남해안·경남남해안 강풍·높은 물결 주의",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-4",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [
+            "30",
+            "65km",
+            "1.5",
+            "3.5"
+          ],
+          "quote": "해상에서는 제주도 해상과 남해·서해남부 먼바다를 중심으로 바람 30~65km/h, 파고 1.5~3.5m 이상 높은 물결이 예보됐다.",
+          "sourceUrl": "https://www.ppss.kr/news/articleView.html?idxno=317105",
+          "sourceTitle": "[내일 날씨] 제주도 최대 250mm 폭우…전남남해안·경남남해안 강풍·높은 물결 주의",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-5",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "8도",
+            "17도",
+            "16도",
+            "21도"
+          ],
+          "quote": "기온은 아침 8도~17도, 낮 16도~21도 분포로 평년과 비슷하거나 다소 높겠다.",
+          "sourceUrl": "https://www.ppss.kr/news/articleView.html?idxno=317105",
+          "sourceTitle": "[내일 날씨] 제주도 최대 250mm 폭우…전남남해안·경남남해안 강풍·높은 물결 주의",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-6",
+          "status": "rejected",
+          "subject": "제주",
+          "attributes": [],
+          "quote": "중부지방은 구름 많겠고, 남부·제주도는 흐리고 비가 예상된다.",
+          "sourceUrl": "https://www.ppss.kr/news/articleView.html?idxno=317105",
+          "sourceTitle": "[내일 날씨] 제주도 최대 250mm 폭우…전남남해안·경남남해안 강풍·높은 물결 주의",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        }
+      ],
+      "verifiedFacts": [
+        {
+          "id": "fact-4-0",
+          "status": "verified",
+          "subject": "제주",
+          "attributes": [
+            "80",
+            "150mm",
+            "70km",
+            "8도",
+            "21도",
+            "250mm",
+            "24일"
+          ],
+          "quote": "내일 제주도 80~150mm 비, 남해·동해안 바람 70km/h…오늘 밤부터 해상 풍랑 위험 기온 8도~21도, 남부·제주도 흐리고 많은 비…교통·해안가·시설물 안전 유의 [내일 날씨] 제주도 최대 250mm 폭우…전남남해안·경남남해안 강풍·높은 물결 주의 / 사진=기상청 (PPSS 박은숙 기자) 내일(24일)은 제주도와 전남권, 경남권을 중심으로 강하고 많은 비가 예상된다.",
+          "sourceUrl": "https://www.ppss.kr/news/articleView.html?idxno=317105",
+          "sourceTitle": "[내일 날씨] 제주도 최대 250mm 폭우…전남남해안·경남남해안 강풍·높은 물결 주의",
+          "validationFailures": []
+        }
+      ],
+      "status": "verified",
+      "partial": true,
+      "semanticReview": {
+        "approveFactIds": [
+          "fact-4-0"
+        ],
+        "rejectFactIds": [
+          "fact-1-1",
+          "fact-1-7",
+          "fact-1-12",
+          "fact-3-0",
+          "fact-3-7",
+          "fact-3-13",
+          "fact-3-15",
+          "fact-3-16",
+          "fact-3-18",
+          "fact-3-19",
+          "fact-1-3",
+          "fact-1-0",
+          "fact-1-2",
+          "fact-1-4",
+          "fact-1-5",
+          "fact-1-6",
+          "fact-1-8",
+          "fact-1-9",
+          "fact-1-10",
+          "fact-1-11",
+          "fact-1-13",
+          "fact-1-14",
+          "fact-1-15",
+          "fact-1-16",
+          "fact-1-17",
+          "fact-1-18",
+          "fact-1-19",
+          "fact-1-20",
+          "fact-1-21",
+          "fact-1-22",
+          "fact-2-0",
+          "fact-2-1",
+          "fact-3-1",
+          "fact-3-2",
+          "fact-3-3",
+          "fact-3-4",
+          "fact-3-5",
+          "fact-3-6",
+          "fact-3-8",
+          "fact-3-9",
+          "fact-3-10",
+          "fact-3-11",
+          "fact-3-12",
+          "fact-3-14",
+          "fact-3-17",
+          "fact-3-20",
+          "fact-4-1",
+          "fact-4-2",
+          "fact-4-3",
+          "fact-4-4",
+          "fact-4-5",
+          "fact-4-6"
+        ],
+        "reasonById": {
+          "fact-1-1": "헤드라인 및 사이트 탐색 메뉴 등 불필요한 보조 텍스트가 포함되어 있어 정확한 날씨 정보로 채택하기 어렵습니다.",
+          "fact-1-7": "제주 날씨의 일부 기온 정보만 부분적으로 언급하고 있어 종합적인 날씨 답변에 불충분합니다.",
+          "fact-1-12": "다른 기사 버전의 기온 수치이며 상대적 정보로 직접 답변 검증에 불확실성이 있습니다.",
+          "fact-3-0": "일부 기온 및 기상 개요를 포함하나 종합적인 제주 날씨의 핵심 내용이 부족합니다.",
+          "fact-3-7": "기상 원인에 대한 설명으로 직접적인 제주 날씨 예보 수치와 거리가 있습니다.",
+          "fact-3-13": "산지 지역 강수량 일부만 언급하여 전체 제주 날씨를 대변하지 못합니다.",
+          "fact-3-15": "일부 지역의 풍속 예상치만 부분적으로 다루고 있습니다.",
+          "fact-3-16": "특보 가능성에 대한 추정적 서술입니다.",
+          "fact-3-18": "아침 최저기온 단일 항목에 국한됩니다.",
+          "fact-3-19": "낮 최고기온 단일 항목에 국한됩니다.",
+          "fact-1-3": "광범위한 기간 예보 문구로 내일 제주 날씨를 특정하기에 충분하지 않습니다.",
+          "fact-4-0": "내일 제주도의 강수량, 기온, 주의사항 등 날씨 정보를 가장 직접적이고 구체적으로 담고 있습니다.",
+          "fact-1-0": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-5": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-6": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-8": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-9": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-10": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-11": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-13": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-14": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-15": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-16": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-17": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-18": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-19": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-20": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-21": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-22": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-0": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-3": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-5": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-6": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-8": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-9": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-10": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-11": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-12": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-14": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-17": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-20": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-3": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-5": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-6": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+        },
+        "invalid": false,
+        "requestSucceeded": true,
+        "responseSchemaValid": true,
+        "selectedFactIds": [
+          "fact-1-1",
+          "fact-4-0",
+          "fact-1-7",
+          "fact-1-12",
+          "fact-3-0",
+          "fact-3-7",
+          "fact-3-13",
+          "fact-3-15",
+          "fact-3-16",
+          "fact-3-18",
+          "fact-3-19",
+          "fact-1-3"
+        ],
+        "omittedFactIds": [
+          "fact-1-0",
+          "fact-1-2",
+          "fact-1-4",
+          "fact-1-5",
+          "fact-1-6",
+          "fact-1-8",
+          "fact-1-9",
+          "fact-1-10",
+          "fact-1-11",
+          "fact-1-13",
+          "fact-1-14",
+          "fact-1-15",
+          "fact-1-16",
+          "fact-1-17",
+          "fact-1-18",
+          "fact-1-19",
+          "fact-1-20",
+          "fact-1-21",
+          "fact-1-22",
+          "fact-2-0",
+          "fact-2-1",
+          "fact-3-1",
+          "fact-3-2",
+          "fact-3-3",
+          "fact-3-4",
+          "fact-3-5",
+          "fact-3-6",
+          "fact-3-8",
+          "fact-3-9",
+          "fact-3-10",
+          "fact-3-11",
+          "fact-3-12",
+          "fact-3-14",
+          "fact-3-17",
+          "fact-3-20",
+          "fact-4-1",
+          "fact-4-2",
+          "fact-4-3",
+          "fact-4-4",
+          "fact-4-5",
+          "fact-4-6"
+        ],
+        "calls": 2,
+        "model": "gemini-3.5-flash-lite",
+        "elapsedMs": 36285
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "duplicateFactIdCount": 0,
+        "unknownFactIdCount": 0,
+        "missingFactIdCount": 0,
+        "modelApprovedFactCount": 1,
+        "codeVerifiedModelApprovalCount": 1,
+        "codeRejectedModelApprovalCount": 0,
+        "clearlyWrongAcceptedFactCount": 0,
+        "selectedFactCount": 12,
+        "omittedFactCount": 41
+      },
+      "model": "gemini-3.5-flash-lite",
+      "callsForCase": 1,
+      "callsAfterCase": 2,
+      "processingMs": 3485
+    },
+    {
+      "id": "live-3",
+      "question": "오늘 대전 미세먼지",
+      "facts": [
+        {
+          "id": "fact-1-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "측정소끼리 순위를 매기거나 비교해 보여주지는 않습니다 — 하루치 차이는 바람과 측정소 위치에 크게 좌우되기 때문입니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "0.045"
+          ],
+          "quote": "등급이 가장 높은 항목은 오존0.045ppm 지금 좋음보통나쁨매우나쁨 기준선과 비교하면 우리가 본 것 막대의 네 칸은 좋음·보통·나쁨·매우나쁨입니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "항목마다 단위가 달라 값끼리는 비교할 수 없어, 대신 ‘등급 위에서 어디쯤인지’를 그렸습니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "10"
+          ],
+          "quote": "미세먼지와 초미세먼지는 뭐가 다른가 미세먼지지름 10㎛ 이하.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-4",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2.5"
+          ],
+          "quote": "초미세먼지지름 2.5㎛ 이하.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-5",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "→ 아래 「이 숫자에 대하여」에서 자세히 오늘의 예보 — 국립환경과학원 “고농도 오존 생성에 유리한 조건이 형성되지 않아 농도가 높지 않을 것으로 예상됩니다.” 전 권역이 '보통'으로 예상됩니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-6",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "-23 ",
+            "17",
+            "00 ",
+            "2026-10-23"
+          ],
+          "quote": "서울은 오존 보통, 미세먼지 좋음입니다.— 국립환경과학원 대기질 예보, 2026-10-23 발표 갱신 2026-10-23 17:00 · 출처 한국환경공단 에어코리아 · 공공누리 제3유형(출처표시·변경금지) · 공식 값은 airkorea.or.kr에서 확인 이 숫자에 대하여 미세먼지와 초미세먼지는 무엇이 다른지, 여름 공기에서 왜 오존이 문제가 되는지, 그리고 ‘좋음·보통·나쁨’은 누가 정하는지에 대한 설명입니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: Provides information specifically for Seoul ('서울은 오존 보통, 미세먼지 좋음입니다') rather than Daejeon."
+          ]
+        },
+        {
+          "id": "fact-1-7",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "1"
+          ],
+          "quote": "1미세먼지와 초미세먼지, 무엇이 다른가 이름이 비슷해서 같은 것의 정도 차이처럼 들립니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-8",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "50",
+            "70",
+            "10",
+            "2.5"
+          ],
+          "quote": "머리카락50~70㎛ 미세먼지10㎛ 이하 초미세먼지2.5㎛ 이하 미세먼지(PM10)는 지름이 10마이크로미터 이하인 먼지입니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: Gives general definitions of particulate matter sizes rather than today's fine dust data for Daejeon."
+          ]
+        },
+        {
+          "id": "fact-1-9",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2.5"
+          ],
+          "quote": "초미세먼지(PM2.5)는 2.5마이크로미터 이하입니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-10",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "30",
+            "15"
+          ],
+          "quote": "★ 그래서 기준도 따로 있습니다 미세먼지는 30㎍/㎥까지가 ‘좋음’인데, 초미세먼지는 15㎍/㎥까지입니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-11",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "20"
+          ],
+          "quote": "같은 숫자 20이라도 미세먼지면 ‘좋음’이고 초미세먼지면 ‘보통’입니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-12",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "초미세먼지 숫자가 더 작다고 해서 덜 나쁜 게 아닙니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-13",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2"
+          ],
+          "quote": "2여름인데 왜 오존인가 공기가 나쁘다고 하면 대개 미세먼지를 떠올립니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-14",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2",
+            "5시"
+          ],
+          "quote": "그래서 기온이 높고 볕이 강한 날, 그중에서도 오후 2~5시에 가장 높습니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-15",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "오늘 예보가 ‘나쁨’인 이유는 아직 오지 않은 오후를 보고 있기 때문입니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "relative-date-does-not-resolve",
+            "requested-location-not-in-scope",
+            "semantic-review: Contains general commentary about forecast timing rather than actual fine dust measurements for today."
+          ]
+        },
+        {
+          "id": "fact-1-16",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "미세먼지는 아침에 나쁘면 하루 종일 나쁘지만, 오존은 하루 안에서 크게 오르내립니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-17",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "1시",
+            "0.030 ",
+            "0.090 ",
+            "0.150 ",
+            "0.151",
+            "15 ",
+            "35 ",
+            "75 ",
+            "76",
+            "30 ",
+            "80 ",
+            "150 ",
+            "151",
+            "0.060 ",
+            "0.200 ",
+            "0.201",
+            "2 ",
+            "9 ",
+            "15.01",
+            "0.020 ",
+            "0.050 ",
+            "24시"
+          ],
+          "quote": "항목 좋음 보통 나쁨 매우나쁨 오존 (ppm, 1시간) ~0.030 ~0.090 ~0.150 0.151~ 초미세먼지 (㎍/㎥) ~15 ~35 ~75 76~ 미세먼지 (㎍/㎥) ~30 ~80 ~150 151~ 이산화질소 (ppm) ~0.030 ~0.060 ~0.200 0.201~ 일산화탄소 (ppm) ~2 ~9 ~15 15.01~ 아황산가스 (ppm) ~0.020 ~0.050 ~0.150 0.151~ ★ 한 가지 덧붙이면 미세먼지 등급 기준은 원래 24시간 이동평균을 전제로 만들어졌습니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: Lists general grade criteria tables rather than specific current measurements for today."
+          ]
+        },
+        {
+          "id": "fact-1-18",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "1시"
+          ],
+          "quote": "이 페이지가 보여주는 건 1시간 값이라, 미세먼지 등급은 참고로만 보시는 게 맞습니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: Contains a disclaimer about 1-hour values rather than actual data."
+          ]
+        },
+        {
+          "id": "fact-1-19",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "-03 ",
+            "10",
+            "00",
+            "2026-08-03"
+          ],
+          "quote": "참고 자료 · 한국환경공단 에어코리아 — 대기오염정보 조회 서비스(시도별 실시간 측정정보), 2026-08-03 10:00",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-20",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "-03 ",
+            "2026-08-03"
+          ],
+          "quote": "수신 · 국립환경과학원 — 대기질 예보, 2026-08-03 발표 · 에어코리아 — 통합대기환경지수(CAI) 등급 구분 기준 · 미세먼지 종합포털 — 미세먼지·초미세먼지 정의 및 크기 비교 ※ 표시된 값은 우리가 마지막으로 받아온 시점 기준이며, 공식 값은 각 기관에서 확인하실 수 있습니다.",
+          "sourceUrl": "https://gaiabeacon.com/observatory/air/daejeon/",
+          "sourceTitle": "대전 오늘의 공기 — 실시간 미세먼지·대기질 | 지구 관측소",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: Refers to standard definitions and reference sources from an old date (August 2026)."
+          ]
+        },
+        {
+          "id": "fact-2-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "3",
+            "36"
+          ],
+          "quote": "3년치 미세먼지를 한 그래프로 달을 넘기지 않아도 36개월이 한 번에 나와요.달을 하나씩 넘기지 않아도 아래 「달마다 미세먼지 흐름」에서 3년을 누르면 36개월이 한 번에 나와요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: Describes general website features (3-year graphs) rather than today's fine dust status."
+          ]
+        },
+        {
+          "id": "fact-2-1",
+          "status": "rejected",
+          "subject": "대전",
+          "attributes": [
+            "3",
+            "2026",
+            "9",
+            "10.0",
+            "0일"
+          ],
+          "quote": "3년 흐름 보기 × 대전광역시 서구 미세먼지 · 대기질 리포트 2026년 9월 대전 서구 초미세먼지는 평균 10.0㎍/㎥, 나쁨인 날은 0일.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: Refers to a past month (September 2026) rather than today's conditions."
+          ]
+        },
+        {
+          "id": "fact-2-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "452",
+            "242",
+            "268",
+            "27,753",
+            "464,189명",
+            "21.5℃"
+          ],
+          "quote": "다른 화면 바로가기 매매 랭킹 전세 랭킹 월세 랭킹 환경 랭킹 매매 현황 임대차 현황 환경 현황 라벨 읽을거리 동네 물어보기NEW 이 동네 바로가기 동네 레포트 매매 거래 내역452건 전세 계약 내역242건 월세 계약 내역268건 가게27,753곳 인구464,189명 날씨 리포트평균 21.5℃ 지금 미세먼지 에어코리아 실시간 측정 보고 있는 곳서구 (정림동 측정소)서구 값으로 돌아가기 불러오는 중이에요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: Indicates that real-time measurements are loading ('불러오는 중이에요') rather than providing today's data."
+          ]
+        },
+        {
+          "id": "fact-2-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "오늘 흐름과 예보 불러오는 중이에요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "relative-date-reference-missing",
+            "requested-location-not-in-scope",
+            "semantic-review: Indicates that the forecast is currently loading ('불러오는 중이에요') and contains no actual data."
+          ]
+        },
+        {
+          "id": "fact-2-4",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "4",
+            "10"
+          ],
+          "quote": "예보는 에어코리아 권역 단위예요(오존 예보는 4~10월에만 나와요).",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-5",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "맨 위 문장은 에어코리아 미세먼지 행동요령과 오존 행동요령, 고농도 미세먼지 대응요령(나쁨부터 외출할 때 보건용 마스크, 자연 환기 자제)을 따랐어요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: Describes behavioral guidelines rather than actual fine dust levels for today."
+          ]
+        },
+        {
+          "id": "fact-2-6",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2026",
+            "9"
+          ],
+          "quote": "지금 날씨불러오는 중이에요.자세히 보기 › 이 동네 미세먼지·대기질 데이터로 AI 분석하기 서구 2026년 9월 미세먼지·대기질 정제 데이터를 프롬프트로 만들어 드려요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-7",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "ChatGPT, Gemini, Claude 가운데 어디에 붙여넣어도 미세먼지·대기질 진단을 받아볼 수 있어요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-8",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "1",
+            "2",
+            "3",
+            "2026",
+            "9",
+            "10",
+            "19.7",
+            "2.5",
+            "10.0"
+          ],
+          "quote": "달마다 미세먼지 흐름 1년 2년 3년 그래프를 짚으면 그달 값이 보여요 미세먼지 · 대기질 현황 2026년 9월 기준 에어코리아 집계 이번 달 미세먼지(PM10)는 19.7㎍/㎥, 초미세먼지(PM2.5)는 10.0㎍/㎥였어요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-9",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "51%"
+          ],
+          "quote": "미세먼지 가운데 51%가 초미세먼지예요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-10",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "환경부 나쁨 기준을 넘은 날은 미세먼지·초미세먼지 모두 없었어요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-11",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "10 ",
+            "10"
+          ],
+          "quote": "수치 읽는 법 · 건강 영향 안내 PM10 — 미세먼지 지름 10㎛ 이하의 입자.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-12",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2.5 ",
+            "2.5"
+          ],
+          "quote": "외출 최소화 PM2.5 — 초미세먼지 지름 2.5㎛ 이하의 초미세 입자.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-13",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "0.09 ",
+            "10 ",
+            "19.7",
+            "35",
+            "2.5 ",
+            "10.0",
+            "21",
+            "0.0322",
+            "0.06",
+            "2.5",
+            "0일"
+          ],
+          "quote": "낮 시간대 야외활동 자제 0.09 초과 호흡기 질환자·어린이 외출 금지, 일반인도 실내 활동 권장 PM10 월평균 19.7㎍/㎥좋음 최댓값 35㎍/㎥ PM10 나쁨일수 0일 매우나쁨 0일 PM2.5 월평균 10.0㎍/㎥좋음 최댓값 21㎍/㎥ PM2.5 나쁨일수 0일 매우나쁨 0일 오존 (O₃) 0.0322ppm 기준 0.06ppm 초미세먼지(PM2.5)는 이 달 모든 날 측정값이 있어요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-14",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2.5 ",
+            "2026",
+            "9",
+            "14.7",
+            "28.6",
+            "311.6",
+            "45.3",
+            "54.7",
+            "65.9",
+            "79.9",
+            "89.0",
+            "95.7",
+            "105.7",
+            "118.6",
+            "1212.7",
+            "1315.6",
+            "1421.0",
+            "1514.6",
+            "1612.6",
+            "176.0",
+            "186.6",
+            "196.9",
+            "208.0",
+            "2113.0",
+            "229.7",
+            "2310.4",
+            "2416.9",
+            "2516.1",
+            "267.3",
+            "278.0",
+            "2813.1",
+            "2912.6",
+            "3010.6",
+            "0",
+            "15",
+            "16",
+            "35",
+            "36",
+            "75",
+            "76",
+            "54%",
+            "7일",
+            "14일"
+          ],
+          "quote": "일별 미세먼지 7일 14일 한 달 그래프를 짚으면 그날 값이 보여요 일별 PM2.5 수준 2026년 9월 기준 일별 PM2.5 농도 (㎍/㎥) 14.7좋음 28.6좋음 311.6좋음 45.3좋음 54.7좋음 65.9좋음 79.9좋음 89.0좋음 95.7좋음 105.7좋음 118.6좋음 1212.7좋음 1315.6보통 1421.0보통 1514.6좋음 1612.6좋음 176.0좋음 186.6좋음 196.9좋음 208.0좋음 2113.0좋음 229.7좋음 2310.4좋음 2416.9보통 2516.1보통 267.3좋음 278.0좋음 2813.1좋음 2912.6좋음 3010.6좋음 좋음 (0~15) 보통 (16~35) 나쁨 (36~75) 매우나쁨 (76+) 미정 (그 날 측정값이 오지 않았어요) 기타 대기오염물질 월평균 2026년 9월 기준 네 가지 모두 환경부 기준 아래였고, 그중 오존(O₃)이 기준의 54%로 가장 높았어요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-15",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "0.0028",
+            "0.02",
+            "14%",
+            "0.36",
+            "9",
+            "4%",
+            "0.0322",
+            "8시",
+            "0.06",
+            "54%",
+            "0.0099",
+            "17%",
+            "2025.10 ",
+            "2026.09 ",
+            "2.5",
+            "2026",
+            "3",
+            "23.8",
+            "2025",
+            "10",
+            "8.4"
+          ],
+          "quote": "이산화황 (SO₂) 0.0028ppm 환경부 기준 0.02ppm 대비 14% 일산화탄소 (CO) 0.36ppm 환경부 기준 9ppm 대비 4% 오존 (O₃) 0.0322ppm 환경부 8시간 기준 0.06ppm 대비 54% 이산화질소 (NO₂) 0.0099ppm 환경부 기준 0.06ppm 대비 17% 월별 미세먼지 상세 2025.10 ~ 2026.09 초미세먼지(PM2.5) 월평균은 2026년 3월이 23.8㎍/㎥로 가장 높았고, 2025년 10월이 8.4㎍/㎥로 가장 낮았어요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-16",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "12"
+          ],
+          "quote": "표에 담긴 12개월을 비교한 거예요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-17",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "12",
+            "6"
+          ],
+          "quote": "초미세먼지 나쁨인 날이 있었던 달은 12개월 가운데 6개월이에요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-18",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2026",
+            "2",
+            "4일"
+          ],
+          "quote": "가장 많았던 달은 2026년 2월로 4일이었어요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-19",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "10 ",
+            "81",
+            "2.5 ",
+            "36",
+            "76"
+          ],
+          "quote": "측정소 한 곳의 하루 최고값이 아니라, 그날 이 지역 측정소들을 평균한 값이에요 나쁨일수 나쁨·매우나쁨 등급이었던 날을 합해 센 수 (PM10 81㎍/㎥ 이상 / PM2.5 36㎍/㎥ 이상) 매우나쁨일수 매우나쁨 등급이었던 날 수 (PM2.5 76㎍/㎥ 이상) PM2.5 관측일 그 달 이 지역 초미세먼지 기록이 있는 날 수예요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-20",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "10"
+          ],
+          "quote": "미세먼지(PM10)와 가스 항목은 기록이 있는 날이 이와 다를 수 있어요 측정 없음 그 달 초미세먼지 기록이 하루도 없다는 뜻이에요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-21",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2.5 ",
+            "10 ",
+            "2026.09 ",
+            "19.7 ",
+            "35 ",
+            "10.0 ",
+            "21 ",
+            "2026.08 ",
+            "16.3 ",
+            "29 ",
+            "9.4 ",
+            "19 ",
+            "2026.07 ",
+            "17.7 ",
+            "33 ",
+            "9.1 ",
+            "2026.06 ",
+            "21.6 ",
+            "11.7 ",
+            "2026.05 ",
+            "25.3 ",
+            "48 ",
+            "12.8 ",
+            "27 ",
+            "2026.04 ",
+            "36.3 ",
+            "113 ",
+            "15.2 ",
+            "39 ",
+            "2026.03 ",
+            "38.2 ",
+            "69 ",
+            "23.8 ",
+            "42 ",
+            "2026.02 ",
+            "41.8 ",
+            "103 ",
+            "21.7 ",
+            "55 ",
+            "2026.01 ",
+            "31.3 ",
+            "84 ",
+            "16.9 ",
+            "49 ",
+            "2025.12 ",
+            "29.6 ",
+            "68 ",
+            "16.2 ",
+            "2025.11 ",
+            "33.8 ",
+            "62 ",
+            "18.9 ",
+            "2025.10 ",
+            "15.5 ",
+            "28 ",
+            "8.4 ",
+            "16 ",
+            "2026",
+            "27",
+            "8.8",
+            "11.0",
+            "0일",
+            "30일",
+            "31일",
+            "1일",
+            "3일",
+            "28일",
+            "4일",
+            "29일",
+            "2일"
+          ],
+          "quote": "\"0일\"(그런 날이 없었다)과 다릅니다 월 PM2.5 관측일 PM10 평균 PM10 최댓값 PM10 나쁨 PM2.5 평균 PM2.5 최댓값 PM2.5 나쁨 PM2.5 매우나쁨 2026.09 30일 중 30일 19.7 35 0일 10.0 21 0일 0일 2026.08 31일 중 31일 16.3 29 0일 9.4 19 0일 0일 2026.07 31일 중 31일 17.7 33 0일 9.1 19 0일 0일 2026.06 30일 중 30일 21.6 33 0일 11.7 19 0일 0일 2026.05 31일 중 31일 25.3 48 0일 12.8 27 0일 0일 2026.04 30일 중 30일 36.3 113 1일 15.2 39 1일 0일 2026.03 31일 중 31일 38.2 69 0일 23.8 42 3일 0일 2026.02 28일 중 28일 41.8 103 1일 21.7 55 4일 0일 2026.01 31일 중 31일 31.3 84 1일 16.9 49 3일 0일 2025.12 31일 중 31일 29.6 68 0일 16.2 42 1일 0일 2025.11 30일 중 29일 33.8 62 0일 18.9 39 2일 0일 2025.10 31일 중 31일 15.5 28 0일 8.4 16 0일 0일 안의 동네 미세먼지 2026년 9월 기준 27개 동네의 초미세먼지 월평균은 8.8~11.0㎍/㎥로 고른 편이에요.",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-22",
+          "status": "rejected",
+          "subject": "대전",
+          "attributes": [
+            "2.5 ",
+            "10 ",
+            "25.9 ",
+            "40 ",
+            "11.0 ",
+            "22 ",
+            "17.3 ",
+            "39 ",
+            "10.8 ",
+            "17.7 ",
+            "33 ",
+            "10.3 ",
+            "19 ",
+            "18.2 ",
+            "23 ",
+            "21.3 ",
+            "9.8 ",
+            "19.4 ",
+            "9.2 ",
+            "32 ",
+            "8.8 ",
+            "20 ",
+            "30일",
+            "0일"
+          ],
+          "quote": "안의 동네 PM2.5 관측일 PM10 평균 PM10 최댓값 PM10 나쁨 PM2.5 평균 PM2.5 최댓값 PM2.5 나쁨 PM2.5 매우나쁨 우명동 30일 중 30일 25.9 40 0일 11.0 22 0일 0일 원정동 30일 중 30일 25.9 40 0일 11.0 22 0일 0일 월평동 30일 중 30일 17.3 39 0일 10.8 22 0일 0일 만년동 30일 중 30일 17.7 33 0일 10.3 19 0일 0일 가장동 30일 중 30일 18.2 39 0일 10.3 23 0일 0일 변동 30일 중 30일 18.2 39 0일 10.3 23 0일 0일 용문동 30일 중 30일 18.2 39 0일 10.3 23 0일 0일 도안동 30일 중 30일 21.3 40 0일 9.8 22 0일 0일 갈마동 30일 중 30일 19.4 33 0일 9.2 19 0일 0일 괴정동 30일 중 30일 19.4 33 0일 9.2 19 0일 0일 내동 30일 중 30일 19.4 33 0일 9.2 19 0일 0일 둔산동 30일 중 30일 19.4 33 0일 9.2 19 0일 0일 탄방동 30일 중 30일 19.4 33 0일 9.2 19 0일 0일 가수원동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 관저동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 괴곡동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 도마동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 매노동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 복수동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 봉곡동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 산직동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 오동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 용촌동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 장안동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 정림동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 평촌동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 흑석동 30일 중 30일 18.2 32 0일 8.8 20 0일 0일 대전광역시 이웃 동네 바로가기",
+          "sourceUrl": "https://sinnake-town.com/region/3017000000/air",
+          "sourceTitle": "서구 미세먼지 · 대기질 리포트",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-0",
+          "status": "rejected",
+          "subject": "대전",
+          "attributes": [
+            "14",
+            "29 ",
+            "251 ",
+            "2026.05.29",
+            "26일"
+          ],
+          "quote": "바로가기 뉴스·행사 인쇄 pdf 다운로드 img 다운로드 URL 복사 SNS 레이어팝업 열기 facebook 바로가기 twitter 바로가기 pinterest 바로가기 google 바로가기 weibo 바로가기 renrenwang 바로가기 Home 소식 뉴스·행사 대전시, 금강유역환경청·14개 기업과 미세먼지 감축 협약 작성일 2026.05.29 조회수 251 (대전=연합뉴스) 박주영 기자 = 대전시는 26일 시청 중회의실에서 금강유역환경청, 대기오염물질 배출사업장 14개 기업과 미세먼지 저감을 위한 자발적 감축 협약을 했다.",
+          "sourceUrl": "https://www.investkorea.org/dj-kr/bbs/i-948/detail.do?ntt_sn=491761",
+          "sourceTitle": "대전 < invest Korea",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "semantic-review: Refers to an old news article from May 2026 about a reduction agreement rather than today's fine dust levels."
+          ]
+        },
+        {
+          "id": "fact-3-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2029",
+            "34",
+            "17%",
+            "188"
+          ],
+          "quote": "이들 기업은 2029년까지 방지시설 교체와 공정개선 등을 통해 사업장에서 발생하는 대기오염물질을 기준배출량 대비 34t(17%) 이상 감축하고, 친환경 설비 개선에 188억원을 투자할 계획이다.",
+          "sourceUrl": "https://www.investkorea.org/dj-kr/bbs/i-948/detail.do?ntt_sn=491761",
+          "sourceTitle": "대전 < invest Korea",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2026.05.26"
+          ],
+          "quote": "무단 전재-재배포 금지.> 원본기사 보기 출처: 연합뉴스(2026.05.26.) 목록",
+          "sourceUrl": "https://www.investkorea.org/dj-kr/bbs/i-948/detail.do?ntt_sn=491761",
+          "sourceTitle": "대전 < invest Korea",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        }
+      ],
+      "verifiedFacts": [],
+      "status": "insufficient-evidence",
+      "partial": false,
+      "semanticReview": {
+        "approveFactIds": [],
+        "rejectFactIds": [
+          "fact-2-1",
+          "fact-3-0",
+          "fact-1-6",
+          "fact-1-15",
+          "fact-2-3",
+          "fact-1-8",
+          "fact-1-17",
+          "fact-1-18",
+          "fact-1-20",
+          "fact-2-0",
+          "fact-2-2",
+          "fact-2-5",
+          "fact-1-0",
+          "fact-1-1",
+          "fact-1-2",
+          "fact-1-3",
+          "fact-1-4",
+          "fact-1-5",
+          "fact-1-7",
+          "fact-1-9",
+          "fact-1-10",
+          "fact-1-11",
+          "fact-1-12",
+          "fact-1-13",
+          "fact-1-14",
+          "fact-1-16",
+          "fact-1-19",
+          "fact-2-4",
+          "fact-2-6",
+          "fact-2-7",
+          "fact-2-8",
+          "fact-2-9",
+          "fact-2-10",
+          "fact-2-11",
+          "fact-2-12",
+          "fact-2-13",
+          "fact-2-14",
+          "fact-2-15",
+          "fact-2-16",
+          "fact-2-17",
+          "fact-2-18",
+          "fact-2-19",
+          "fact-2-20",
+          "fact-2-21",
+          "fact-2-22",
+          "fact-3-1",
+          "fact-3-2"
+        ],
+        "reasonById": {
+          "fact-2-1": "Refers to a past month (September 2026) rather than today's conditions.",
+          "fact-3-0": "Refers to an old news article from May 2026 about a reduction agreement rather than today's fine dust levels.",
+          "fact-1-6": "Provides information specifically for Seoul ('서울은 오존 보통, 미세먼지 좋음입니다') rather than Daejeon.",
+          "fact-1-15": "Contains general commentary about forecast timing rather than actual fine dust measurements for today.",
+          "fact-2-3": "Indicates that the forecast is currently loading ('불러오는 중이에요') and contains no actual data.",
+          "fact-1-8": "Gives general definitions of particulate matter sizes rather than today's fine dust data for Daejeon.",
+          "fact-1-17": "Lists general grade criteria tables rather than specific current measurements for today.",
+          "fact-1-18": "Contains a disclaimer about 1-hour values rather than actual data.",
+          "fact-1-20": "Refers to standard definitions and reference sources from an old date (August 2026).",
+          "fact-2-0": "Describes general website features (3-year graphs) rather than today's fine dust status.",
+          "fact-2-2": "Indicates that real-time measurements are loading ('불러오는 중이에요') rather than providing today's data.",
+          "fact-2-5": "Describes behavioral guidelines rather than actual fine dust levels for today.",
+          "fact-1-0": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-3": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-5": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-7": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-9": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-10": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-11": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-12": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-13": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-14": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-16": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-19": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-6": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-7": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-8": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-9": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-10": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-11": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-12": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-13": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-14": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-15": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-16": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-17": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-18": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-19": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-20": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-21": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-22": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+        },
+        "invalid": false,
+        "requestSucceeded": true,
+        "responseSchemaValid": true,
+        "selectedFactIds": [
+          "fact-2-1",
+          "fact-3-0",
+          "fact-1-6",
+          "fact-1-15",
+          "fact-2-3",
+          "fact-1-8",
+          "fact-1-17",
+          "fact-1-18",
+          "fact-1-20",
+          "fact-2-0",
+          "fact-2-2",
+          "fact-2-5"
+        ],
+        "omittedFactIds": [
+          "fact-1-0",
+          "fact-1-1",
+          "fact-1-2",
+          "fact-1-3",
+          "fact-1-4",
+          "fact-1-5",
+          "fact-1-7",
+          "fact-1-9",
+          "fact-1-10",
+          "fact-1-11",
+          "fact-1-12",
+          "fact-1-13",
+          "fact-1-14",
+          "fact-1-16",
+          "fact-1-19",
+          "fact-2-4",
+          "fact-2-6",
+          "fact-2-7",
+          "fact-2-8",
+          "fact-2-9",
+          "fact-2-10",
+          "fact-2-11",
+          "fact-2-12",
+          "fact-2-13",
+          "fact-2-14",
+          "fact-2-15",
+          "fact-2-16",
+          "fact-2-17",
+          "fact-2-18",
+          "fact-2-19",
+          "fact-2-20",
+          "fact-2-21",
+          "fact-2-22",
+          "fact-3-1",
+          "fact-3-2"
+        ],
+        "calls": 3,
+        "model": "gemini-3.5-flash-lite",
+        "elapsedMs": 40295
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "duplicateFactIdCount": 0,
+        "unknownFactIdCount": 0,
+        "missingFactIdCount": 0,
+        "modelApprovedFactCount": 0,
+        "codeVerifiedModelApprovalCount": 0,
+        "codeRejectedModelApprovalCount": 0,
+        "clearlyWrongAcceptedFactCount": 0,
+        "selectedFactCount": 12,
+        "omittedFactCount": 35
+      },
+      "model": "gemini-3.5-flash-lite",
+      "callsForCase": 1,
+      "callsAfterCase": 3,
+      "processingMs": 4037
+    },
+    {
+      "id": "live-4",
+      "question": "내일 뉴욕 날씨",
+      "facts": [
+        {
+          "id": "fact-1-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "40",
+            "42",
+            "74",
+            "9 ",
+            "05",
+            "24 ",
+            "-4",
+            "12.8 °C",
+            "11 km",
+            "59 %",
+            "1023 ",
+            "16 km",
+            "0 %",
+            "2 km",
+            "04",
+            "56 ",
+            "24시",
+            "06",
+            "00 ",
+            "07",
+            "08",
+            "09",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "21",
+            "22",
+            "00",
+            "2026.10.23"
+          ],
+          "quote": "기온 체감 온도 강수량 날씨 레이더 Satellite 풍속 강풍 구름량 기압 CAPE 적설량 습도 바다 대기 오염 풍향 에니메이션 ECMWF, GFS, ICON, GEM Two New High-Resolution Weather Models on Ventusky 세계 / 미국 / New York 40°42'북 / 74°0'서 / 고도 9 m / 05:24 2026.10.23, America/New_York (UTC-4) 12.8 °C 풍속 11 km/h 습도 59 % 기압 1023 hPa 시계 16 km 구름량 0 % 기상대 정보 Manhattan/dwntwn, 거리: 2 km (04:56 2026.10.23) 레이더 지도 열기 다음 24시간 06:00 07:00 08:00 09:00 10:00 11:00 12:00 13:00 14:00 15:00 16:00 17:00 18:00 19:00 20:00 21:00 22:00 23:00 00:00",
+          "sourceUrl": "https://www.ventusky.com/ko/new-york",
+          "sourceTitle": "Ventusky",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 현재 시각(2026.10.23)의 날씨 정보와 다음 24시간의 일부 시간대별 정보만 포함되어 있으며, '내일' 뉴욕의 날씨에 대한 명확하고 정돈된 예보를 직접적으로 제공하지 않습니다."
+          ]
+        },
+        {
+          "id": "fact-1-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "9 °C",
+            "0 mm",
+            "50 %",
+            "17 km",
+            "8 °C",
+            "15 km",
+            "11 °C",
+            "22 km",
+            "43 km",
+            "12 °C",
+            "40 %",
+            "25 km",
+            "13 °C",
+            "30 %",
+            "24 km",
+            "14 °C",
+            "23 km",
+            "15 °C",
+            "20 km",
+            "13 km",
+            "16 °C",
+            "11 km",
+            "10 km",
+            "9 km",
+            "6 km",
+            "7 km",
+            "10 °C",
+            "20 %",
+            "10 %",
+            "3 km",
+            "7 °C",
+            "8 km",
+            "6 °C",
+            "5 °C",
+            "5 km",
+            "4 °C",
+            "3 °C",
+            "0 %",
+            "242026.10",
+            "252026.10",
+            "262026.10",
+            "272026.10",
+            "282026.10",
+            "292026.10",
+            "302026.10",
+            "31 ",
+            "00 ",
+            "05",
+            "08",
+            "11",
+            "14",
+            "17",
+            "4 km",
+            "24 ",
+            "13 ",
+            "2 ",
+            "23 ",
+            "25 ",
+            "26 ",
+            "27 ",
+            "28 ",
+            "29 ",
+            "30 ",
+            "01 ",
+            "02 ",
+            "03 ",
+            "04 ",
+            "05 ",
+            "232026.10",
+            "2026.10.24",
+            "2026.10.25",
+            "2026.10.26",
+            "2026.10.27",
+            "2026.10.28",
+            "2026.10.29",
+            "2026.10.30",
+            "2026.10.31",
+            "2026.10.23"
+          ],
+          "quote": "내일 9 °C 0 mm 50 % 북 17 km/h 8 °C 0 mm 50 % 북 15 km/h 8 °C 0 mm 50 % 북 17 km/h 11 °C 0 mm 50 % 북 22 km/h 강풍: 43 km/h 12 °C 0 mm 40 % 북동 25 km/h 13 °C 0 mm 30 % 북동 24 km/h 14 °C 0 mm 40 % 북동 23 km/h 15 °C 0 mm 40 % 북동 20 km/h 15 °C 0 mm 30 % 북동 13 km/h 16 °C 0 mm 30 % 북동 11 km/h 16 °C 0 mm 40 % 북동 10 km/h 15 °C 0 mm 40 % 북동 9 km/h 13 °C 0 mm 30 % 북동 6 km/h 11 °C 0 mm 30 % 동 7 km/h 10 °C 0 mm 20 % 동 7 km/h 9 °C 0 mm 20 % 동 7 km/h 8 °C 0 mm 10 % 북 3 km/h 7 °C 0 mm 10 % 북서 8 km/h 6 °C 0 mm 10 % 북서 9 km/h 6 °C 0 mm 10 % 북서 8 km/h 5 °C 0 mm 10 % 북 7 km/h 5 °C 0 mm 10 % 북 5 km/h 4 °C 0 mm 10 % 북서 8 km/h 4 °C 0 mm 10 % 북서 9 km/h 3 °C 0 mm 0 % 북서 9 km/h 예보 2026.10.242026.10.252026.10.262026.10.272026.10.282026.10.292026.10.302026.10.31 02:00 05:00 08:00 11:00 14:00 17:00 20:00 23:00 5 °C 0 mm 10 % 북 7 km/h 4 °C 0 mm 10 % 북서 9 km/h 4 °C 0 mm 10 % 북서 8 km/h 13 °C 0 mm 0 % 북서 4 km/h 16 °C 0 mm 0 % 남 7 km/h 15 °C 0 mm 0 % 남 13 km/h 11 °C 0 mm 0 % 남 15 km/h 9 °C 0 mm 0 % 남서 11 km/h Meteogram 24 13 2 금 23 토 24 일 25 월 26 화 27 수 28 목 29 금 30 토 31 일 01 월 02 화 03 수 04 목 05 바다 2026.10.232026.10.242026.10.252026.10.262026.10.272026.10.282026.10.292026.10.302026.10.31 웹카메라 ● Manhattan 7 km New York State Mesonet at the University at Albany 대기 오염 (AQI) 공기질 지수(AQI)는 환경 보호국에서 개발했습니다.",
+          "sourceUrl": "https://www.ventusky.com/ko/new-york",
+          "sourceTitle": "Ventusky",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 여러 날짜의 예보와 수치가 무분별하게 섞여 있어 내일 뉴욕의 날씨를 특정하기 어렵고 상대적인 날짜 정보가 명확하지 않습니다."
+          ]
+        },
+        {
+          "id": "fact-1-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "232026.10",
+            "242026.10",
+            "252026.10",
+            "262026.10",
+            "272026.10",
+            "28 ",
+            "2026.10.23",
+            "2026.10.24",
+            "2026.10.25",
+            "2026.10.26",
+            "2026.10.27",
+            "2026.10.28"
+          ],
+          "quote": "기상대 정보 제공자 aqicn.org 좋음 보통 민감군영향 나쁨 매우나쁨 위험 기상대 정보;거리 해와 달 2026.10.232026.10.242026.10.252026.10.262026.10.272026.10.28 위치: 시간: 단계: 고도: 위치: 시간: 조명: 고도: 날짜 출 몰 출 조명 단계 시간 길이",
+          "sourceUrl": "https://www.ventusky.com/ko/new-york",
+          "sourceTitle": "Ventusky",
+          "validationFailures": [
+            "requested-date-not-in-scope",
+            "requested-location-not-in-scope",
+            "semantic-review: 대기 오염 및 해와 달 관련 정보 위주로 구성되어 있어 내일 뉴욕의 날씨를 직접적으로 답변하기에 적절하지 않습니다."
+          ]
+        }
+      ],
+      "verifiedFacts": [],
+      "status": "insufficient-evidence",
+      "partial": false,
+      "semanticReview": {
+        "approveFactIds": [],
+        "rejectFactIds": [
+          "fact-1-0",
+          "fact-1-1",
+          "fact-1-2"
+        ],
+        "reasonById": {
+          "fact-1-0": "현재 시각(2026.10.23)의 날씨 정보와 다음 24시간의 일부 시간대별 정보만 포함되어 있으며, '내일' 뉴욕의 날씨에 대한 명확하고 정돈된 예보를 직접적으로 제공하지 않습니다.",
+          "fact-1-1": "여러 날짜의 예보와 수치가 무분별하게 섞여 있어 내일 뉴욕의 날씨를 특정하기 어렵고 상대적인 날짜 정보가 명확하지 않습니다.",
+          "fact-1-2": "대기 오염 및 해와 달 관련 정보 위주로 구성되어 있어 내일 뉴욕의 날씨를 직접적으로 답변하기에 적절하지 않습니다."
+        },
+        "invalid": false,
+        "requestSucceeded": true,
+        "responseSchemaValid": true,
+        "selectedFactIds": [
+          "fact-1-1",
+          "fact-1-0",
+          "fact-1-2"
+        ],
+        "omittedFactIds": [],
+        "calls": 4,
+        "model": "gemini-3.5-flash-lite",
+        "elapsedMs": 44244
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "duplicateFactIdCount": 0,
+        "unknownFactIdCount": 0,
+        "missingFactIdCount": 0,
+        "modelApprovedFactCount": 0,
+        "codeVerifiedModelApprovalCount": 0,
+        "codeRejectedModelApprovalCount": 0,
+        "clearlyWrongAcceptedFactCount": 0,
+        "selectedFactCount": 3,
+        "omittedFactCount": 0
+      },
+      "model": "gemini-3.5-flash-lite",
+      "callsForCase": 1,
+      "callsAfterCase": 4,
+      "processingMs": 5393
+    },
+    {
+      "id": "live-5",
+      "question": "Python 최신 안정 버전",
+      "facts": [],
+      "verifiedFacts": [],
+      "status": "insufficient-evidence",
+      "partial": false,
+      "semanticReview": {
+        "approveFactIds": [],
+        "rejectFactIds": [],
+        "reasonById": {},
+        "invalid": false,
+        "requestSucceeded": true,
+        "responseSchemaValid": true,
+        "selectedFactIds": [],
+        "omittedFactIds": [],
+        "calls": 5,
+        "model": "gemini-3.5-flash-lite",
+        "elapsedMs": 53634
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "duplicateFactIdCount": 0,
+        "unknownFactIdCount": 0,
+        "missingFactIdCount": 0,
+        "modelApprovedFactCount": 0,
+        "codeVerifiedModelApprovalCount": 0,
+        "codeRejectedModelApprovalCount": 0,
+        "clearlyWrongAcceptedFactCount": 0,
+        "selectedFactCount": 0,
+        "omittedFactCount": 0
+      },
+      "model": "gemini-3.5-flash-lite",
+      "callsForCase": 1,
+      "callsAfterCase": 5,
+      "processingMs": 9571
+    },
+    {
+      "id": "live-6",
+      "question": "React 최신 버전",
+      "facts": [
+        {
+          "id": "fact-1-0",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "Next.js 프로젝트에서 React 버전을 업데이트하는 방법은 다음과 같은 단계를 포함합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "Yongku Lee (Koo)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Discusses Next.js project updates, not the specific latest version of React."
+          ]
+        },
+        {
+          "id": "fact-1-1",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "현재 React 버전 확인 먼저 현재 프로젝트에서 사용 중인 React와 React DOM의 버전을 확인해야 합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "Yongku Lee (Koo)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Mentions checking current React version, not the latest version itself."
+          ]
+        },
+        {
+          "id": "fact-1-2",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "최신 React 버전 확인 최신 React 버전은 React 공식 홈페이지 또는 npm에서 확인할 수 있습니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "Yongku Lee (Koo)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Does not specify the exact latest React version number."
+          ]
+        },
+        {
+          "id": "fact-1-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "3"
+          ],
+          "quote": "npm 사용 시: npm show react version yarn 사용 시: yarn info react version 3.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "Yongku Lee (Koo)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: Provides commands to check version, not the latest version itself."
+          ]
+        },
+        {
+          "id": "fact-1-4",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "React 및 React DOM 업데이트 npm을 사용하는 경우: 터미널에서 다음 명령어를 사용하여 React와 React DOM을 최신 버전으로 업데이트합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "Yongku Lee (Koo)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Describes update steps rather than stating the latest React version."
+          ]
+        },
+        {
+          "id": "fact-1-5",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "npm update react react-dom 특정 버전으로 업데이트하려면 다음 명령어를 사용합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "Yongku Lee (Koo)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Describes update commands rather than the latest version number."
+          ]
+        },
+        {
+          "id": "fact-1-6",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "npm install react@latest react-dom@latest yarn을 사용하는 경우: 다음 명령어로 React와 React DOM을 최신 버전으로 업데이트합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "Yongku Lee (Koo)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Provides an npm/yarn command for the latest version rather than the version number itself."
+          ]
+        },
+        {
+          "id": "fact-1-7",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "yarn upgrade react react-dom 특정 버전을 설치하고 싶다면 다음과 같이 명령어를 입력합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "Yongku Lee (Koo)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Provides upgrade commands, not the latest version."
+          ]
+        },
+        {
+          "id": "fact-1-8",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "4"
+          ],
+          "quote": "yarn add react@latest react-dom@latest 4.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "Yongku Lee (Koo)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: Provides a yarn command, not the version number."
+          ]
+        },
+        {
+          "id": "fact-1-9",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "React 버전 업데이트는 프로젝트에 중대한 영향을 줄 수 있으므로, 주의 깊게 진행하고, 가능한 한 변경 사항에 대한 테스트를 철저히 수행하는 것이 중요합니다.",
+          "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "sourceTitle": "Yongku Lee (Koo)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: General advice on version updates, not providing the latest version."
+          ]
+        },
+        {
+          "id": "fact-2-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "-22 ",
+            "04",
+            "52 ",
+            "26 ",
+            "2026-09-22"
+          ],
+          "quote": "최근 변경최근 토론 특수 기능 React(라이브러리) 최근 수정 시각: 2026-09-22 04:26:52 26 편집 편집 편집 권한이 부족합니다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "18 ",
+            "4.2"
+          ],
+          "quote": "함수 문법 (React 18 이후)4.2.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "18 ",
+            "4.3"
+          ],
+          "quote": "함수 문법 (React 18 이전)4.3.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "16 ",
+            "4.4"
+          ],
+          "quote": "클래스 문법 (React 16 이전 및 클라이언트 오류 추적용)4.4.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-4",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "9"
+          ],
+          "quote": "React Native9.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-5",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "10"
+          ],
+          "quote": "React Router10.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-6",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2025년 10월 7일"
+          ],
+          "quote": "2025년 10월 7일, 원 개발 팀 소속이었던 메타 플랫폼즈를 포함해 Amazon, Microsoft와 Vercel 등 여러 기업의 후원을 통해 React 재단을 발족하여 이제 이 라이브러리는 재단이 관리하는 오픈 소스 프로젝트가 되었다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-7",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "SPA을 전제로 하고 있으며, Dirty checking 및 Virtual DOM(가상 DOM), 그리고 고도화된 비교 알고리즘(Diffing)을 통해 변경된 요소 만을 선별적으로 갱신함으로써 대규모 데이터 업데이트가 자주 발생하는 모던 웹 환경에서 최적의 퍼포먼스 및 렌더링 성능을 보여준다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-8",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "거기에 기본적으로 프레임워크가 아니라 라이브러리인지라 다른 프레임워크에 간편하게 붙여서 사용하는 것도 가능하며, React Hooks라는 강력한 함수들을 지원하면서 사실상 웹 프론트엔드 개발의 표준으로 자리 잡았다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-9",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "0.3",
+            "0.4",
+            "0.5",
+            "0.8",
+            "0.9",
+            "0.10",
+            "0.11",
+            "0.12",
+            "0.13",
+            "0.14",
+            "15.0",
+            "16.0",
+            "17.0",
+            "18.0",
+            "19.0",
+            "3.1",
+            "2013년 5월 29일",
+            "2013년 7월 17일",
+            "2013년 10월 16일",
+            "2013년 12월 20일",
+            "2014년 2월 20일",
+            "2014년 3월 21일",
+            "2014년 7월 17일",
+            "2014년 10월 28일",
+            "2015년 3월 10일",
+            "2015년 10월 7일",
+            "2016년 4월 7일",
+            "2017년 9월 26일",
+            "2020년 10월 20일",
+            "2022년 3월 29일",
+            "2024년 12월 5일"
+          ],
+          "quote": "버전 목록[편집] 0.3.0: 2013년 5월 29일 0.4.0: 2013년 7월 17일 0.5.0: 2013년 10월 16일 0.8.0: 2013년 12월 20일 0.9.0: 2014년 2월 20일 0.10.0: 2014년 3월 21일 0.11.0: 2014년 7월 17일 0.12.0: 2014년 10월 28일 0.13.0: 2015년 3월 10일 0.14.0: 2015년 10월 7일 15.0.0: 2016년 4월 7일 16.0.0: 2017년 9월 26일 17.0.0: 2020년 10월 20일 18.0.0: 2022년 3월 29일 19.0.0: 2024년 12월 5일 3.1.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-10",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "19.0",
+            "19 ",
+            "2024년 12월 5일"
+          ],
+          "quote": "19.0[편집] 2024년 12월 5일, React 19 정식 버전이 발표되었으며, 아래 기능이 추가되었다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-11",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "비동기 대응 가능한 유틸리티 훅 함수 추가 (useTransition, useActionState) <form> 태그는 자체 Context를 가지며, useFormStatus 훅을 통해 인접한 <form> 양식 상태를 가져올 수 있다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-12",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "1"
+          ],
+          "quote": "서버 컴포넌트와 서버 함수[1]을 통해 서버로부터 값을 불러오거나 변경하는 추상적 기능 추가 useOptimistic 훅 함수를 통한 낙관적 상태 관리 지원 비동기와 컨텍스트(useContext) 자원을 가져올 수 있는 신규 Hook, use 훅 추가 자원 미리 불러오기(resource preloading) ref 는 이제 일반 속성이 되어 useRef 훅이 불필요하며, 콜백 작성 시 useEffect 처럼 정리 함수 반환 가능.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-13",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "createContext 로 만든 컨텍스트 자체가 이제 Provider 역할을 하게 됨(소비는 useContext 및 use 훅 사용) 초기화를 제외한 재렌더링 시 상태를 관리할 수 있는 지연 상태 관리 훅 useDeferredValue 추가 <meta> 태그 직접 지원 CSS 관련 태그 직접 지원(<style> 태그를 컴포넌트 안에 넣을 수 있다.) <script async> 태그와 속성 조합으로 비동기 스크립트 지원, react가 스크립트 자원 관리.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-14",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "19.1",
+            "19.1 ",
+            "2025년 3월 28일"
+          ],
+          "quote": "19.1[편집] 2025년 3월 28일, 19.1 버전이 출시되었으며 아래 기능이 적용되었다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-15",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "기타 향상점 및 React DOM, React native 기능 향상은 공식 릴리즈 문서를 확인한다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-16",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "19.2",
+            "19.2 ",
+            "2025년 10월 1일"
+          ],
+          "quote": "19.2[편집] 2025년 10월 1일, 19.2 버전이 출시되었으며 아래 기능이 적용되었다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-17",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "cacheSignal 서버 컴포넌트 함수를 통해 React 하이드레이션을 마친 후 진행중인 업무 처리를 중단하는 신호를 보낼 수 있게 되었다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-18",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "개발자 도구 성능 탭에 React 성능을 추가하여 렌더링 성능 측정이 용이해졌다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-19",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "19.3",
+            "19.3 ",
+            "2025년 9월 9일"
+          ],
+          "quote": "19.3[편집] 2025년 9월 9일, 19.3 버전이 출시되었으며 아래 기능이 적용되었다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-20",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "비동기 API인 browser() 함수로 브라우저 구분을 use() API와 연동하여 서버단 여부를 쉽게 구분할 수 있다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-21",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "18 "
+          ],
+          "quote": "함수 문법 (React 18 이후)[편집] React 18 이후 권장하는 방식이다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-22",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "18 ",
+            "19"
+          ],
+          "quote": "함수 문법 (React 18 이전)[편집] 이 문법은 React 18 이후 제거될 예정이지만 19에서는 아직 쓸 수 있다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-23",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "18 "
+          ],
+          "quote": "하지만, ReactDOM 객체 내 메소드가 점진적으로 제거되고 있기 때문에, React 18 이상이면 관리 방식이 더 유연해진 최신 문법 사용을 권장한다.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "React(라이브러리)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: Mentions React 18 or higher, but does not provide the specific latest version."
+          ]
+        },
+        {
+          "id": "fact-3-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "고객님의 안정적인 서비스 운영을 위해 React 서버 컴포넌트의 최신 보안 업데이트를 권고드립니다.",
+          "sourceUrl": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+          "sourceTitle": "React 서버 컴포넌트 보안 업데이트 권고(2025.12.09)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: Discusses security updates for React server components, not the latest version number."
+          ]
+        },
+        {
+          "id": "fact-3-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "업데이트 상세 내용 대상 서비스: 퀵서버호스팅 가상서버호스팅 이지업 서버호스팅 개요: React 서버 컴포넌트에서 사전 인증 원격 코드 실행(RCE) 취약점이 발견되었습니다.",
+          "sourceUrl": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+          "sourceTitle": "React 서버 컴포넌트 보안 업데이트 권고(2025.12.09)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "6634 ",
+            "-2025",
+            "-55182 ",
+            "-66478 ",
+            "2025/12/03"
+          ],
+          "quote": "참고 사이트: https://knvd.krcert.or.kr/detailSecNo.do?IDX=6634 https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components https://nvd.nist.gov/vuln/detail/CVE-2025-55182 https://nvd.nist.gov/vuln/detail/CVE-2025-66478 더 나은 서비스를 제공하기 위해 항상 노력하겠습니다.",
+          "sourceUrl": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+          "sourceTitle": "React 서버 컴포넌트 보안 업데이트 권고(2025.12.09)",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        }
+      ],
+      "verifiedFacts": [],
+      "status": "insufficient-evidence",
+      "partial": false,
+      "semanticReview": {
+        "approveFactIds": [],
+        "rejectFactIds": [
+          "fact-1-2",
+          "fact-1-1",
+          "fact-1-4",
+          "fact-1-6",
+          "fact-1-9",
+          "fact-2-23",
+          "fact-3-0",
+          "fact-1-0",
+          "fact-1-3",
+          "fact-1-5",
+          "fact-1-7",
+          "fact-1-8",
+          "fact-2-0",
+          "fact-2-1",
+          "fact-2-2",
+          "fact-2-3",
+          "fact-2-4",
+          "fact-2-5",
+          "fact-2-6",
+          "fact-2-7",
+          "fact-2-8",
+          "fact-2-9",
+          "fact-2-10",
+          "fact-2-11",
+          "fact-2-12",
+          "fact-2-13",
+          "fact-2-14",
+          "fact-2-15",
+          "fact-2-16",
+          "fact-2-17",
+          "fact-2-18",
+          "fact-2-19",
+          "fact-2-20",
+          "fact-2-21",
+          "fact-2-22",
+          "fact-3-1",
+          "fact-3-2"
+        ],
+        "reasonById": {
+          "fact-1-2": "Does not specify the exact latest React version number.",
+          "fact-1-1": "Mentions checking current React version, not the latest version itself.",
+          "fact-1-4": "Describes update steps rather than stating the latest React version.",
+          "fact-1-6": "Provides an npm/yarn command for the latest version rather than the version number itself.",
+          "fact-1-9": "General advice on version updates, not providing the latest version.",
+          "fact-2-23": "Mentions React 18 or higher, but does not provide the specific latest version.",
+          "fact-3-0": "Discusses security updates for React server components, not the latest version number.",
+          "fact-1-0": "Discusses Next.js project updates, not the specific latest version of React.",
+          "fact-1-3": "Provides commands to check version, not the latest version itself.",
+          "fact-1-5": "Describes update commands rather than the latest version number.",
+          "fact-1-7": "Provides upgrade commands, not the latest version.",
+          "fact-1-8": "Provides a yarn command, not the version number.",
+          "fact-2-0": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-3": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-5": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-6": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-7": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-8": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-9": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-10": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-11": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-12": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-13": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-14": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-15": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-16": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-17": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-18": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-19": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-20": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-21": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-2-22": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+        },
+        "invalid": false,
+        "requestSucceeded": true,
+        "responseSchemaValid": true,
+        "selectedFactIds": [
+          "fact-1-2",
+          "fact-1-1",
+          "fact-1-4",
+          "fact-1-6",
+          "fact-1-9",
+          "fact-2-23",
+          "fact-3-0",
+          "fact-1-0",
+          "fact-1-3",
+          "fact-1-5",
+          "fact-1-7",
+          "fact-1-8"
+        ],
+        "omittedFactIds": [
+          "fact-2-0",
+          "fact-2-1",
+          "fact-2-2",
+          "fact-2-3",
+          "fact-2-4",
+          "fact-2-5",
+          "fact-2-6",
+          "fact-2-7",
+          "fact-2-8",
+          "fact-2-9",
+          "fact-2-10",
+          "fact-2-11",
+          "fact-2-12",
+          "fact-2-13",
+          "fact-2-14",
+          "fact-2-15",
+          "fact-2-16",
+          "fact-2-17",
+          "fact-2-18",
+          "fact-2-19",
+          "fact-2-20",
+          "fact-2-21",
+          "fact-2-22",
+          "fact-3-1",
+          "fact-3-2"
+        ],
+        "calls": 6,
+        "model": "gemini-3.5-flash-lite",
+        "elapsedMs": 59622
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "duplicateFactIdCount": 0,
+        "unknownFactIdCount": 0,
+        "missingFactIdCount": 0,
+        "modelApprovedFactCount": 0,
+        "codeVerifiedModelApprovalCount": 0,
+        "codeRejectedModelApprovalCount": 0,
+        "clearlyWrongAcceptedFactCount": 0,
+        "selectedFactCount": 12,
+        "omittedFactCount": 25
+      },
+      "model": "gemini-3.5-flash-lite",
+      "callsForCase": 1,
+      "callsAfterCase": 6,
+      "processingMs": 6367
+    },
+    {
+      "id": "live-7",
+      "question": "PostgreSQL 최신 버전",
+      "facts": [
+        {
+          "id": "fact-1-0",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "17.5",
+            "16.9",
+            "15.13",
+            "14.18 ",
+            "13.21 ",
+            "14.18",
+            "13.21",
+            "2025년 5월 8일"
+          ],
+          "quote": "Amazon RDS for PostgreSQL, 마이너 버전 17.5, 16.9, 15.13, 14.18 및 13.21 지원 게시된 날짜: 2025년 5월 8일 이제 Amazon Relational Database Service(Amazon RDS) for PostgreSQL에서 최신 마이너 버전인 17.5, 16.9, 15.13, 14.18, 13.21을 지원합니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/about-aws/whats-new/2025/05/amazon-rds-postgresql-supports-new-minor-versions/",
+          "sourceTitle": "Amazon RDS for PostgreSQL, 마이너 버전 17.5, 16.9, 15.13, 14.18 및 13.21 지원",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Refers only to Amazon RDS support for specific older minor versions from May 2025 and does not provide the general latest version of PostgreSQL."
+          ]
+        },
+        {
+          "id": "fact-1-1",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "이전 버전의 PostgreSQL에서 알려진 보안 취약점을 해결하고 PostgreSQL 커뮤니티에서 추가된 버그 수정의 이점을 누리려면 최신 마이너 버전으로 업그레이드하는 것이 좋습니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/about-aws/whats-new/2025/05/amazon-rds-postgresql-supports-new-minor-versions/",
+          "sourceTitle": "Amazon RDS for PostgreSQL, 마이너 버전 17.5, 16.9, 15.13, 14.18 및 13.21 지원",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: General recommendation text about upgrading to a minor version without specifying the current latest version."
+          ]
+        },
+        {
+          "id": "fact-1-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "1.5",
+            "1",
+            "2.4",
+            "5 "
+          ],
+          "quote": "이번 릴리스에는 pg_repack 1.5.1, pg_logical 2.4.5 같은 PostgreSQL 확장 프로그램에 대한 업데이트도 포함되어 있습니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/about-aws/whats-new/2025/05/amazon-rds-postgresql-supports-new-minor-versions/",
+          "sourceTitle": "Amazon RDS for PostgreSQL, 마이너 버전 17.5, 16.9, 15.13, 14.18 및 13.21 지원",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-3",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "자동 마이너 버전 업그레이드 및 블루/그린 배포를 비롯한 데이터베이스 인스턴스 업그레이드에 대한 자세한 내용은 Amazon RDS 사용 설명서를 참조하세요.",
+          "sourceUrl": "https://aws.amazon.com/ko/about-aws/whats-new/2025/05/amazon-rds-postgresql-supports-new-minor-versions/",
+          "sourceTitle": "Amazon RDS for PostgreSQL, 마이너 버전 17.5, 16.9, 15.13, 14.18 및 13.21 지원",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-4",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "Amazon RDS for PostgreSQL을 사용하면 클라우드에서 PostgreSQL 배포를 간편하게 설정, 운영, 확장할 수 있습니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/about-aws/whats-new/2025/05/amazon-rds-postgresql-supports-new-minor-versions/",
+          "sourceTitle": "Amazon RDS for PostgreSQL, 마이너 버전 17.5, 16.9, 15.13, 14.18 및 13.21 지원",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-1-5",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "요금 내역 및 리전별 가용성은 Amazon RDS for PostgreSQL 요금 페이지를 확인하세요.",
+          "sourceUrl": "https://aws.amazon.com/ko/about-aws/whats-new/2025/05/amazon-rds-postgresql-supports-new-minor-versions/",
+          "sourceTitle": "Amazon RDS for PostgreSQL, 마이너 버전 17.5, 16.9, 15.13, 14.18 및 13.21 지원",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-2-0",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "151 ",
+            "234784 ",
+            "11 ",
+            "60 ",
+            "-2026",
+            "-6473",
+            "7",
+            "-6475",
+            "8",
+            "-6477",
+            "3",
+            "-6479",
+            "4",
+            "10",
+            "-6637",
+            "5",
+            "-6476",
+            "12",
+            "-6473 ",
+            "18.4 ",
+            "17.10 ",
+            "16.14 ",
+            "15.18 ",
+            "14.23 ",
+            "-6475 ",
+            "-6477 ",
+            "-6479 ",
+            "-6637 ",
+            "-6476 ",
+            "2026.09.11"
+          ],
+          "quote": "fnctId=bbs,fnctNo=151 글번호 234784 PostgreSQL 제품 보안 업데이트 권고 작성일 2026.09.11 수정일 2026.09.11 작성자 김도현 조회수 60 □ 개요 o PostgreSQL 재단은 자사 제품에서 발생하는 취약점을 해결한 보안 업데이트 발표 [1]~[6] o 영향을 받는 버전을 사용 중인 사용자는 해결 방안에 따라 최신 버전으로 업데이트 권고 □ 설명 o PostgreSQL에서 발생하는 Integer Overflow or Wraparound 취약점(CVE-2026-6473) [1][7] o PostgreSQL에서 발생하는 UNIX Symbolic Link (Symlink) Following 취약점(CVE-2026-6475) [2][8] o PostgreSQL에서 발생하는 Use of Inherently Dangerous Function 취약점(CVE-2026-6477) [3][9] o PostgreSQL에서 발생하는 Uncontrolled Recursion 취약점(CVE-2026-6479) [4][10] o PostgreSQL에서 발생하는 Stack-based Buffer Overflow 취약점(CVE-2026-6637) [5][11] o PostgreSQL에서 발생하는 SQL Injection 취약점(CVE-2026-6476) [6][12] □ 영향을 받는 제품 및 해결 방안 취약점 제품명 영향받는 버전 해결 버전 CVE-2026-6473 PostgreSQL 18.4 미만 18.4 이상 CVE-2026-6473 PostgreSQL 17.10 미만 17.10 이상 CVE-2026-6473 PostgreSQL 16.14 미만 16.14 이상 CVE-2026-6473 PostgreSQL 15.18 미만 15.18 이상 CVE-2026-6473 PostgreSQL 14.23 미만 14.23 이상 CVE-2026-6475 PostgreSQL 18.4 미만 18.4 이상 CVE-2026-6475 PostgreSQL 17.10 미만 17.10 이상 CVE-2026-6475 PostgreSQL 16.14 미만 16.14 이상 CVE-2026-6475 PostgreSQL 15.18 미만 15.18 이상 CVE-2026-6475 PostgreSQL 14.23 미만 14.23 이상 CVE-2026-6477 PostgreSQL 18.4 미만 18.4 이상 CVE-2026-6477 PostgreSQL 17.10 미만 17.10 이상 CVE-2026-6477 PostgreSQL 16.14 미만 16.14 이상 CVE-2026-6477 PostgreSQL 15.18 미만 15.18 이상 CVE-2026-6477 PostgreSQL 14.23 미만 14.23 이상 CVE-2026-6479 PostgreSQL 18.4 미만 18.4 이상 CVE-2026-6479 PostgreSQL 17.10 미만 17.10 이상 CVE-2026-6479 PostgreSQL 16.14 미만 16.14 이상 CVE-2026-6479 PostgreSQL 15.18 미만 15.18 이상 CVE-2026-6479 PostgreSQL 14.23 미만 14.23 이상 CVE-2026-6637 PostgreSQL 18.4 미만 18.4 이상 CVE-2026-6637 PostgreSQL 17.10 미만 17.10 이상 CVE-2026-6637 PostgreSQL 16.14 미만 16.14 이상 CVE-2026-6637 PostgreSQL 15.18 미만 15.18 이상 CVE-2026-6637 PostgreSQL 14.23 미만 14.23 이상 CVE-2026-6476 PostgreSQL 18.4 미만 18.4 이상 CVE-2026-6476 PostgreSQL 17.10 미만 17.10 이상 ※ 하단의 참고 사이트를 확인하여 업데이트 수행 [1]~[6] □ 참고사이트 [1] https://www.postgresql.org/support/security/CVE-2026-6473/ [2] https://www.postgresql.org/support/security/CVE-2026-6475/ [3] https://www.postgresql.org/support/security/CVE-2026-6477/ [4] https://www.postgresql.org/support/security/CVE-2026-6479/ [5] https://www.postgresql.org/support/security/CVE-2026-6637/ [6] https://www.postgresql.org/support/security/CVE-2026-6476/ [7] https://nvd.nist.gov/vuln/detail/CVE-2026-6473 [8] https://nvd.nist.gov/vuln/detail/CVE-2026-6475 [9] https://nvd.nist.gov/vuln/detail/CVE-2026-6477 [10] https://nvd.nist.gov/vuln/detail/CVE-2026-6479 [11] https://nvd.nist.gov/vuln/detail/CVE-2026-6637 [12] https://nvd.nist.gov/vuln/detail/CVE-2026-6476 첨부파일 첨부파일이(가) 없습니다.",
+          "sourceUrl": "https://itc.chosun.ac.kr/itc/2623/subview.do?enc=Zm5jdDF8QEB8JTJGYmJzJTJGaXRjJTJGMTUxJTJGMjM0Nzg0JTJGYXJ0Y2xWaWV3LmRvJTNG",
+          "sourceTitle": "보안권고문",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Contains security advisory information with various version thresholds for vulnerabilities, but does not provide a definitive, direct statement of the overall latest version of PostgreSQL."
+          ]
+        },
+        {
+          "id": "fact-3-0",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [],
+          "quote": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전 피드백 현재 Azure Database for PostgreSQL은 다음 주요 버전을 지원합니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Introductory sentence about supported versions in Azure, lacking specific version numbers."
+          ]
+        },
+        {
+          "id": "fact-3-1",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "18 ",
+            "18.6"
+          ],
+          "quote": "PostgreSQL 버전 18 현재 부 릴리스는 18.6입니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Refers to Azure Database for PostgreSQL's supported minor release for version 18, but lacks a reliable universal reference date for the absolute latest global PostgreSQL release."
+          ]
+        },
+        {
+          "id": "fact-3-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "이 최신 릴리스의 새로운 기능과 개선 사항에 대해 자세히 알아보려면 PostgreSQL 설명서를 참조하세요.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: Boilerplate sentence directing users to the PostgreSQL documentation."
+          ]
+        },
+        {
+          "id": "fact-3-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "18 "
+          ],
+          "quote": "제한점 특정 PostgreSQL 확장은 PG18 릴리스에서 지원되지 않습니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-4",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "새 비동기 I/O io_method = io_uring를 사용하도록 서버를 구성할 수 없습니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-5",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "17 ",
+            "17.11"
+          ],
+          "quote": "PostgreSQL 버전 17 현재 부 릴리스는 17.11입니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Refers to Azure's specific minor release for version 17 without a definitive global reference date."
+          ]
+        },
+        {
+          "id": "fact-3-6",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "이 최신 릴리스의 새로운 기능과 개선 사항에 대해 자세히 알아보려면 PostgreSQL 설명서를 참조하세요.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: Boilerplate sentence directing users to the PostgreSQL documentation."
+          ]
+        },
+        {
+          "id": "fact-3-7",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "16 ",
+            "16.15"
+          ],
+          "quote": "PostgreSQL 버전 16 현재 부 릴리스는 16.15입니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Refers to Azure's specific minor release for version 16 without a definitive global reference date."
+          ]
+        },
+        {
+          "id": "fact-3-8",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "이 부 릴리스의 향상된 기능 및 수정 사항에 대한 자세한 내용은 PostgreSQL 설명서를 참조하세요.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-9",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "15 ",
+            "15.19"
+          ],
+          "quote": "PostgreSQL 버전 15 현재 부 릴리스는 15.19입니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Refers to Azure's specific minor release for version 15 without a definitive global reference date."
+          ]
+        },
+        {
+          "id": "fact-3-10",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "이 부 릴리스의 향상된 기능 및 수정 사항에 대한 자세한 내용은 PostgreSQL 설명서를 참조하세요.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-11",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "14 ",
+            "14.24"
+          ],
+          "quote": "PostgreSQL 버전 14 현재 부 릴리스는 14.24입니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Refers to Azure's specific minor release for version 14 without a definitive global reference date."
+          ]
+        },
+        {
+          "id": "fact-3-12",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "이 부 릴리스의 향상된 기능 및 수정 사항에 대한 자세한 내용은 PostgreSQL 설명서를 참조하세요.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-13",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "13",
+            "13.23"
+          ],
+          "quote": "PostgreSQL 버전 13(추가 지원) 현재 부 릴리스는 13.23입니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: Refers to Azure's specific minor release for version 13 without a definitive global reference date."
+          ]
+        },
+        {
+          "id": "fact-3-14",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "이 부 릴리스의 향상된 기능 및 수정 사항에 대한 자세한 내용은 PostgreSQL 설명서를 참조하세요.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-15",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "12",
+            "12.22"
+          ],
+          "quote": "PostgreSQL 버전 12(추가 지원) 현재 부 릴리스는 12.22입니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-16",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "이 부 릴리스의 향상된 기능 및 수정 사항에 대한 자세한 내용은 PostgreSQL 설명서를 참조하세요.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-17",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "11",
+            "11.22"
+          ],
+          "quote": "PostgreSQL 버전 11(추가 지원) 현재 부 릴리스는 11.22입니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-18",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "이 부 릴리스의 향상된 기능 및 수정 사항에 대한 자세한 내용은 PostgreSQL 설명서를 참조하세요.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-19",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "업그레이드 관리 PostgreSQL 프로젝트는 보고된 버그를 수정하기 위해 부 릴리스를 정기적으로 제공합니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-20",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "Azure Database for PostgreSQL은 서비스의 월별 배포 중에 부 릴리스로 서버를 자동으로 패치합니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-21",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "11",
+            "16"
+          ],
+          "quote": "이 기능은 특정 주 버전(예: PostgreSQL 11)에서 더 높은 지원 버전(예: PostgreSQL 16)으로 인스턴스를 업그레이드하는 프로세스를 크게 간소화합니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-22",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "기본 운영 체제는 서비스의 필수적인 부분입니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-3-23",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "PostgreSQL 엔진 결함 관리 Microsoft에는 오픈 소스 Postgres 프로젝트에서 풀 타임으로 작업하는 커밋한 사람 및 기여자 팀이 있으며 커뮤니티의 장기 멤버입니다.",
+          "sourceUrl": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "sourceTitle": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-0",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "7",
+            "18.2",
+            "1 ",
+            "5 ",
+            "1",
+            "143.8 "
+          ],
+          "quote": "Zenless Zone Zero Opera GX VPN 앱 Chaos Zero Nightmare 7-Zip Android 에뮬레이터 Where Winds Meet Telegram Desktop 네이티브 PC 포트 Quiver Launcher Loom AI 챗봇 RoS: Legacy Vivaldi 인디 게임 Windows / 앱 / 개발 / 데이터베이스 / PostgreSQL / 지난 버전 PostgreSQL 18.2.1 PostgreSQL 5 리뷰 1개 143.8 k 다운로드 보안 PostgreSQL 구형 버전 바로 여기가 Windows용 PostgreSQL의 이전 버전이 필요할 때 찾아가야 할 곳입니다.",
+          "sourceUrl": "https://postgresql.kr.uptodown.com/windows/versions",
+          "sourceTitle": "PostgreSQL",
+          "validationFailures": [
+            "freshness-not-established",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        },
+        {
+          "id": "fact-4-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "비호환성 문제나 기타 오류가 발생했을 때, 이 페이지에서 Windows의 아키텍처에 맞춰 호환되고 안전한 파일들을 금방 찾아볼 수 있습니다.",
+          "sourceUrl": "https://postgresql.kr.uptodown.com/windows/versions",
+          "sourceTitle": "PostgreSQL",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: 관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+          ]
+        }
+      ],
+      "verifiedFacts": [],
+      "status": "insufficient-evidence",
+      "partial": false,
+      "semanticReview": {
+        "approveFactIds": [],
+        "rejectFactIds": [
+          "fact-1-0",
+          "fact-2-0",
+          "fact-1-1",
+          "fact-3-0",
+          "fact-3-1",
+          "fact-3-2",
+          "fact-3-5",
+          "fact-3-6",
+          "fact-3-7",
+          "fact-3-9",
+          "fact-3-11",
+          "fact-3-13",
+          "fact-1-2",
+          "fact-1-3",
+          "fact-1-4",
+          "fact-1-5",
+          "fact-3-3",
+          "fact-3-4",
+          "fact-3-8",
+          "fact-3-10",
+          "fact-3-12",
+          "fact-3-14",
+          "fact-3-15",
+          "fact-3-16",
+          "fact-3-17",
+          "fact-3-18",
+          "fact-3-19",
+          "fact-3-20",
+          "fact-3-21",
+          "fact-3-22",
+          "fact-3-23",
+          "fact-4-0",
+          "fact-4-1"
+        ],
+        "reasonById": {
+          "fact-1-0": "Refers only to Amazon RDS support for specific older minor versions from May 2025 and does not provide the general latest version of PostgreSQL.",
+          "fact-2-0": "Contains security advisory information with various version thresholds for vulnerabilities, but does not provide a definitive, direct statement of the overall latest version of PostgreSQL.",
+          "fact-1-1": "General recommendation text about upgrading to a minor version without specifying the current latest version.",
+          "fact-3-0": "Introductory sentence about supported versions in Azure, lacking specific version numbers.",
+          "fact-3-1": "Refers to Azure Database for PostgreSQL's supported minor release for version 18, but lacks a reliable universal reference date for the absolute latest global PostgreSQL release.",
+          "fact-3-2": "Boilerplate sentence directing users to the PostgreSQL documentation.",
+          "fact-3-5": "Refers to Azure's specific minor release for version 17 without a definitive global reference date.",
+          "fact-3-6": "Boilerplate sentence directing users to the PostgreSQL documentation.",
+          "fact-3-7": "Refers to Azure's specific minor release for version 16 without a definitive global reference date.",
+          "fact-3-9": "Refers to Azure's specific minor release for version 15 without a definitive global reference date.",
+          "fact-3-11": "Refers to Azure's specific minor release for version 14 without a definitive global reference date.",
+          "fact-3-13": "Refers to Azure's specific minor release for version 13 without a definitive global reference date.",
+          "fact-1-2": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-3": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-1-5": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-3": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-4": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-8": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-10": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-12": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-14": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-15": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-16": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-17": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-18": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-19": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-20": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-21": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-22": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-3-23": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-0": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실",
+          "fact-4-1": "관련성 검토 입력 상한으로 모델에 보내지 않은 사실"
+        },
+        "invalid": false,
+        "requestSucceeded": true,
+        "responseSchemaValid": true,
+        "selectedFactIds": [
+          "fact-1-0",
+          "fact-2-0",
+          "fact-1-1",
+          "fact-3-0",
+          "fact-3-1",
+          "fact-3-2",
+          "fact-3-5",
+          "fact-3-6",
+          "fact-3-7",
+          "fact-3-9",
+          "fact-3-11",
+          "fact-3-13"
+        ],
+        "omittedFactIds": [
+          "fact-1-2",
+          "fact-1-3",
+          "fact-1-4",
+          "fact-1-5",
+          "fact-3-3",
+          "fact-3-4",
+          "fact-3-8",
+          "fact-3-10",
+          "fact-3-12",
+          "fact-3-14",
+          "fact-3-15",
+          "fact-3-16",
+          "fact-3-17",
+          "fact-3-18",
+          "fact-3-19",
+          "fact-3-20",
+          "fact-3-21",
+          "fact-3-22",
+          "fact-3-23",
+          "fact-4-0",
+          "fact-4-1"
+        ],
+        "calls": 7,
+        "model": "gemini-3.5-flash-lite",
+        "elapsedMs": 65175
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "duplicateFactIdCount": 0,
+        "unknownFactIdCount": 0,
+        "missingFactIdCount": 0,
+        "modelApprovedFactCount": 0,
+        "codeVerifiedModelApprovalCount": 0,
+        "codeRejectedModelApprovalCount": 0,
+        "clearlyWrongAcceptedFactCount": 0,
+        "selectedFactCount": 12,
+        "omittedFactCount": 21
+      },
+      "model": "gemini-3.5-flash-lite",
+      "callsForCase": 1,
+      "callsAfterCase": 7,
+      "processingMs": 5561
+    },
+    {
+      "id": "live-8",
+      "question": "Docker Engine 최신 버전",
+      "facts": [
+        {
+          "id": "fact-1-0",
+          "status": "rejected",
+          "subject": "버전",
+          "attributes": [
+            "2026 ",
+            "1",
+            "-2026",
+            "-34040",
+            "2",
+            "-34040 ",
+            "29.3",
+            "1 ",
+            "744",
+            "-4",
+            "9",
+            "2 ",
+            "118 "
+          ],
+          "quote": "본문 바로가기 KISA 인터넷 보호나라&KrCERT 정보보호 서비스 주요사업 소개 기업 서비스 개인 서비스 서비스 신청하기 침해사고 원인분석 및 대응조치 사이버위협 경보단계 정보보호 용어 취약점 정보 침해사고 신고 신고안내 신고하기 보안상담 알림마당 공지사항 보안공지 보고서/가이드 카드뉴스 자세히 알아보기 KrCERT/CC Welcome Message Vision&Mission Traffic Light Protocol Contact APCERT AGM & Conference 2026 이용안내 FAQ 개인정보처리방침 보호나라 RSS 서비스 닫기 KISA 인터넷 보호나라&KrCERT ENG 정보보호 서비스 주요사업 소개 기업 서비스 개인 서비스 서비스 신청하기 침해사고 원인분석 및 대응조치 사이버위협 경보단계 정보보호 용어 취약점 정보 침해사고 신고 신고안내 신고하기 보안상담 알림마당 공지사항 보안공지 보고서/가이드 카드뉴스 자세히 알아보기 KrCERT/CC Welcome Message Vision&Mission Traffic Light Protocol Contact APCERT AGM & Conference 2026 이용안내 FAQ 개인정보처리방침 보호나라 RSS 서비스 닫기 보안공지 홈 알림마당 보안공지 □ 개요 o Docker社는 자사 제품에서 발생하는 취약점을 해결한 보안 업데이트 발표 [1] o 영향을 받는 버전을 사용 중인 사용자는 해결 방안에 따라 최신 버전으로 업데이트 권고 □ 설명 o Docker Engine에서 발생하는 Authentication Bypass Using an Alternate Path or Channel 취약점(CVE-2026-34040) [1][2] □ 영향을 받는 제품 및 해결 방안 취약점 제품명 영향받는 버전 해결 버전 CVE-2026-34040 Docker Engine 29.3.1 미만 29.3.1 ※ 하단의 참고 사이트를 확인하여 업데이트 수행 [1] □ 참고사이트 [1] https://github.com/moby/moby/security/advisories/GHSA-x744-4wpc-v9h2 [2] https://nvd.nist.gov/vuln/detail/CVE-2026-34040 □ 문의사항 o 한국인터넷진흥원 사이버민원센터 : 국번없이 118 □ 작성 : 위협대응단 AI취약점대응팀 페이스북 트위터 네이버밴드",
+          "sourceUrl": "https://www.boho.or.kr/kr/bbs/view.do?bbsId=B0000133&menuNo=205020&nttId=72022",
+          "sourceTitle": "KISA 보호나라&KrCERT/CC",
+          "validationFailures": [
+            "boilerplate",
+            "freshness-not-established",
+            "semantic-review: Docker Engine 최신 보안 업데이트 버전(29.3.1) 및 취약점 정보를 직접적으로 다루고 있습니다."
+          ]
+        },
+        {
+          "id": "fact-2-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "10"
+          ],
+          "quote": "수정 만다라케 직구방법 — 재고·배송비·결제 확인 10.",
+          "sourceUrl": "https://go.lazyscheme.com/",
+          "sourceTitle": "필요한 공식 정보까지가장 짧은 길",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 만다라케 직구방법과 관련된 내용으로 Docker Engine 최신 버전 질문과 무관합니다."
+          ]
+        },
+        {
+          "id": "fact-3-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "-09 ",
+            "15",
+            "16",
+            "05 ",
+            "2026-10-09"
+          ],
+          "quote": "나무위키:대문 최근 수정 시각: 2026-10-09 15:16:05 20k 편집 편집 편집 권한이 부족합니다.",
+          "sourceUrl": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+          "sourceTitle": "나무위키:대문",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 나무위키 대문 페이지로 Docker Engine과 관련이 없습니다."
+          ]
+        },
+        {
+          "id": "fact-3-1",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "2026",
+            "1",
+            "5 "
+          ],
+          "quote": "나무위키 도움말 개선 프로젝트(재개설) 프로젝트 목록 나무위키의 규정 기본방침 문서 관리 방침 · 토론 관리 방침 · 이용자 관리 방침 · 운영 관리 방침 (운영진 선출) 편집지침 일반 문서 · 특수 문서 · 특정 분야 (인문사회 · 과학기술 · 문화예술) · 등재 기준 · 표제어 편집합의 일반 문서 · 특수 문서 · 특정 분야 (인문사회 · 과학기술 · 문화예술 · 창작물 · 비디오 게임) · 등재 기준 프로젝트 프로젝트 지침 나무위키의 도움말 FAQ 나무위키 · 계정 · 문서 열람 · 편집 및 역사 페이지 · 이미지 업로드 · 문서 이동 · 기타 문의 도움말 규정 · 기능 · 편집 · 문법 (심화 · 수식 · CSS · 개발) · 토론 · 설정 · 소명 · 권리침해 · 자주 하는 실수 · 문서 삭제식 이동 · 더미 나무위키의 운영 운영진 관리자 · 중재자 · 역대 운영진 · 운영진 지원 · 운영 도움말 (관리 · 중재 · 권한) · 운영위원회 (의견 제시) · 운영회의 (시행규칙 · 안건 건의) · 운영진 임명 회의 (진행 중인 회의) 기타 접근 제한 (문서 목록) · 봇 리스트 · 투명성 보고서 · 소급 적용 규정 일람 · 공지 목록 · 규정 개정 토론 시행규칙 나무위키의 기능 메타 문서 분류 (파일 · 템플릿) · 프로젝트 · 틀 · 보존문서 · 주요 페이지 링크 · 문서 작성 요청 기능 계정 (내 문서함) · 게시판 · 연습장 (토론) · 엔진 (업데이트) · 통계 주요 운영 알림 2026년 제1회 (비상) 비정기 운영회의의 합의안에 의해 나무위키:v5 엔진 업데이트 의견 수렴 문서가 생성되었습니다.",
+          "sourceUrl": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+          "sourceTitle": "나무위키:대문",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 나무위키 도움말 및 규정 관련 내용으로 Docker Engine과 무관합니다."
+          ]
+        },
+        {
+          "id": "fact-3-2",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [
+            "1.5"
+          ],
+          "quote": "문서 관리 방침 변경 내용 보기 이용자 관리 방침 변경 내용 보기 나무위키:편집합의/특정 분야/창작물/비디오 게임에서 1.5.",
+          "sourceUrl": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+          "sourceTitle": "나무위키:대문",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 나무위키 문서 관리 방침 내용으로 Docker Engine과 무관합니다."
+          ]
+        },
+        {
+          "id": "fact-3-3",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "인터넷 유명인의 비판, 논란, 사건 사고 서술 - 사건사고 발생 사실을 인정한 경우 관련 개정에 관한 토론이 진행 중입니다.",
+          "sourceUrl": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+          "sourceTitle": "나무위키:대문",
+          "validationFailures": [
+            "requested-location-not-in-scope",
+            "semantic-review: 나무위키 사건사고 서술 관련 토론 내용으로 Docker Engine과 무관합니다."
+          ]
+        },
+        {
+          "id": "fact-4-0",
+          "status": "rejected",
+          "subject": "",
+          "attributes": [],
+          "quote": "기업서비스 닫기 기업서비스 보안상담 침해사고 신고 내 서버 돌보미 보안 취약점 점검 SW 공급망 보안 체계 진단 홈페이지 보안강화 DDoS 사이버대피소 C-TAS 사이버 위기대응 모의훈련 사이버 시큐리티 훈련 플랫폼 DNS 싱크홀 해킹진단도구",
+          "sourceUrl": "https://www.boho.or.kr/",
+          "sourceTitle": "KISA 보호나라&KrCERT/CC",
+          "validationFailures": [
+            "freshness-not-established",
+            "requested-location-not-in-scope",
+            "semantic-review: KISA 보호나라의 일반 기업 서비스 목록으로 특정 Docker Engine 버전 정보를 담고 있지 않습니다."
+          ]
+        }
+      ],
+      "verifiedFacts": [],
+      "status": "insufficient-evidence",
+      "partial": false,
+      "semanticReview": {
+        "approveFactIds": [
+          "fact-1-0"
+        ],
+        "rejectFactIds": [
+          "fact-2-0",
+          "fact-3-0",
+          "fact-3-1",
+          "fact-3-2",
+          "fact-3-3",
+          "fact-4-0"
+        ],
+        "reasonById": {
+          "fact-1-0": "Docker Engine 최신 보안 업데이트 버전(29.3.1) 및 취약점 정보를 직접적으로 다루고 있습니다.",
+          "fact-2-0": "만다라케 직구방법과 관련된 내용으로 Docker Engine 최신 버전 질문과 무관합니다.",
+          "fact-3-0": "나무위키 대문 페이지로 Docker Engine과 관련이 없습니다.",
+          "fact-3-1": "나무위키 도움말 및 규정 관련 내용으로 Docker Engine과 무관합니다.",
+          "fact-3-2": "나무위키 문서 관리 방침 내용으로 Docker Engine과 무관합니다.",
+          "fact-3-3": "나무위키 사건사고 서술 관련 토론 내용으로 Docker Engine과 무관합니다.",
+          "fact-4-0": "KISA 보호나라의 일반 기업 서비스 목록으로 특정 Docker Engine 버전 정보를 담고 있지 않습니다."
+        },
+        "invalid": false,
+        "requestSucceeded": true,
+        "responseSchemaValid": true,
+        "selectedFactIds": [
+          "fact-1-0",
+          "fact-2-0",
+          "fact-3-0",
+          "fact-3-1",
+          "fact-3-2",
+          "fact-3-3",
+          "fact-4-0"
+        ],
+        "omittedFactIds": [],
+        "calls": 8,
+        "model": "gemini-3.5-flash-lite",
+        "elapsedMs": 66712
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "duplicateFactIdCount": 0,
+        "unknownFactIdCount": 0,
+        "missingFactIdCount": 0,
+        "modelApprovedFactCount": 1,
+        "codeVerifiedModelApprovalCount": 0,
+        "codeRejectedModelApprovalCount": 1,
+        "clearlyWrongAcceptedFactCount": 0,
+        "selectedFactCount": 7,
+        "omittedFactCount": 0
+      },
+      "model": "gemini-3.5-flash-lite",
+      "callsForCase": 1,
+      "callsAfterCase": 8,
+      "processingMs": 1541
+    }
+  ],
+  "evaluation": {
+    "independentAnswerLabels": false,
+    "note": "독립 정답 라벨이 없어 사실의 정확성을 확정하지 않음. 모델 승인과 코드 검증 결과만 기록함.",
+    "totals": {
+      "modelCallSuccessCount": 8,
+      "responseSchemaValidCount": 8,
+      "duplicateFactIdCount": 0,
+      "missingFactIdCount": 0,
+      "modelApprovedFactCount": 3,
+      "codeVerifiedModelApprovalCount": 2,
+      "codeRejectedModelApprovalCount": 1,
+      "clearlyWrongAcceptedFactCount": 0,
+      "normalFactsOverRejectedCount": null,
+      "answerOutcomes": {
+        "complete": 0,
+        "partial": 2,
+        "hold": 6
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "description": "독립 검토자가 원문 URL과 인용을 대조하기 전까지는 정답으로 사용하지 않는 라벨 장부. facts의 status는 근거에 의해 지지됨, 근거와 모순됨, 근거 부족, 질문과 무관함 중 하나이며 미검토 항목은 빈 배열로 둔다.",
+  "schemaVersion": 1,
+  "cases": [
+    { "question": "오늘 서울 날씨", "category": "정확한 날짜와 시간이 중요한 정보", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "내일 제주 날씨", "category": "정확한 날짜와 시간이 중요한 정보", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "오늘 대전 미세먼지", "category": "정확한 날짜와 시간이 중요한 정보", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "내일 뉴욕 날씨", "category": "일부 정보만 확인 가능한 질문", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "Python 최신 안정 버전", "category": "소프트웨어 공식 릴리스·버전", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "React 최신 버전", "category": "소프트웨어 공식 릴리스·버전", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "PostgreSQL 최신 버전", "category": "소프트웨어 공식 릴리스·버전", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "Docker Engine 최신 버전", "category": "소프트웨어 공식 릴리스·버전", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "MDN Fetch API 공식 문서에서 abort signal 사용법", "category": "기술 공식 문서", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "Kubernetes 공식 문서의 liveness probe 설명", "category": "기술 공식 문서", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "최근 일주일 반도체 뉴스", "category": "최근 뉴스 및 사건", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "최근 일주일 생성형 AI 뉴스", "category": "최근 뉴스 및 사건", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "최근 일주일 한국 과학기술 뉴스", "category": "최근 뉴스 및 사건", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "OpenAI API 최신 가격", "category": "검색 자료 자체가 부정확하거나 부족한 질문", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "GitHub Actions 요금제", "category": "여러 출처를 비교해야 하는 질문", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "AWS Lambda 요청 요금", "category": "정확한 수치가 중요한 정보", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "서울 이번 달 무료 개발자 행사 일정", "category": "최근 뉴스 및 사건", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "부산 불꽃축제 올해 일정", "category": "정확한 날짜와 시간이 중요한 정보", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "대한민국 과학기술정보통신부 장관은 누구인가", "category": "역사·과학·일반 상식", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "WHO 본부가 있는 도시와 기관 역할", "category": "역사·과학·일반 상식", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "MacBook Air와 Dell XPS 13의 공식 사양 비교", "category": "여러 출처를 비교해야 하는 질문", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교", "category": "여러 출처를 비교해야 하는 질문", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인", "category": "소프트웨어 공식 릴리스·버전", "independentlyReviewed": false, "status": "미평가", "facts": [] },
+    { "question": "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교", "category": "여러 출처를 비교해야 하는 질문", "independentlyReviewed": false, "status": "미평가", "facts": [] }
+  ]
+}

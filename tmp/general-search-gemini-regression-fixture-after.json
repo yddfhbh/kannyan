@@ -1,0 +1,391 @@
+{
+  "fixture": "test/fixtures/general-search-gemini-regression.json",
+  "replayOf": null,
+  "capturedAt": null,
+  "now": "2026-10-23T13:26:31.894Z",
+  "cases": [
+    {
+      "id": "duplicate-document-ids",
+      "question": "2026년 10월 23일 서울 날씨",
+      "legacy": {
+        "status": "retrieved",
+        "citations": [
+          {
+            "url": "https://fixture.test/a",
+            "title": "서울 예보 A"
+          },
+          {
+            "url": "https://fixture.test/b",
+            "title": "서울 예보 B"
+          }
+        ]
+      },
+      "prototype": {
+        "status": "verified",
+        "verifiedFacts": 2,
+        "partial": false,
+        "facts": [
+          {
+            "id": "fact-1-0",
+            "status": "verified",
+            "subject": "서울",
+            "predicate": "temperature",
+            "value": "2026",
+            "unit": "",
+            "targetDate": "2026-10-23",
+            "targetLocation": "서울",
+            "temporalResolutionConfidence": "high",
+            "attributes": [
+              "20도",
+              "2026년 10월 23일"
+            ],
+            "scopeText": "\n2026년 10월 23일 서울은 맑고 20도이다.",
+            "contextSpan": "2026년 10월 23일 서울은 맑고 20도이다.",
+            "sourceSpan": {
+              "start": 0,
+              "end": 27
+            },
+            "quote": "2026년 10월 23일 서울은 맑고 20도이다.",
+            "url": "https://fixture.test/a",
+            "failures": []
+          },
+          {
+            "id": "fact-2-0",
+            "status": "verified",
+            "subject": "서울",
+            "predicate": "temperature",
+            "value": "2026",
+            "unit": "",
+            "targetDate": "2026-10-23",
+            "targetLocation": "서울",
+            "temporalResolutionConfidence": "high",
+            "attributes": [
+              "18도",
+              "2026년 10월 23일"
+            ],
+            "scopeText": "\n2026년 10월 23일 서울은 흐리고 18도이다.",
+            "contextSpan": "2026년 10월 23일 서울은 흐리고 18도이다.",
+            "sourceSpan": {
+              "start": 0,
+              "end": 28
+            },
+            "quote": "2026년 10월 23일 서울은 흐리고 18도이다.",
+            "url": "https://fixture.test/b",
+            "failures": []
+          }
+        ],
+        "citations": [
+          {
+            "url": "https://fixture.test/a",
+            "title": "서울 예보 A"
+          },
+          {
+            "url": "https://fixture.test/b",
+            "title": "서울 예보 B"
+          }
+        ],
+        "metrics": {
+          "elapsedMs": 32,
+          "searches": 0,
+          "reads": 2,
+          "facts": 2,
+          "verifiedFacts": 2,
+          "geminiCalls": 0,
+          "wallMs": 32,
+          "httpRequests": 0
+        }
+      },
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "prototype-has-verified-quote",
+      "semanticReview": null,
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 2,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0
+      }
+    },
+    {
+      "id": "today-must-not-take-tomorrow",
+      "question": "오늘 서울 날씨",
+      "legacy": {
+        "status": "retrieved",
+        "citations": [
+          {
+            "url": "https://fixture.test/forecast",
+            "title": "서울 예보"
+          }
+        ]
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [
+          {
+            "id": "fact-1-0",
+            "status": "rejected",
+            "subject": "서울",
+            "predicate": "temperature",
+            "value": "13도",
+            "unit": "도",
+            "targetDate": "2026-10-24",
+            "targetLocation": "서울",
+            "temporalResolutionConfidence": "high",
+            "attributes": [
+              "13도"
+            ],
+            "scopeText": "2026-10-23\n내일 아침 기온은 서울 13도",
+            "contextSpan": "내일 아침 기온은 서울 13도",
+            "sourceSpan": {
+              "start": 0,
+              "end": 16
+            },
+            "quote": "내일 아침 기온은 서울 13도",
+            "url": "https://fixture.test/forecast",
+            "failures": [
+              "requested-date-not-in-scope",
+              "relative-date-mismatch",
+              "relative-date-does-not-resolve"
+            ]
+          }
+        ],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 1,
+          "searches": 0,
+          "reads": 1,
+          "facts": 1,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 1,
+          "httpRequests": 0
+        }
+      },
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 2,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0
+      }
+    },
+    {
+      "id": "valid-tomorrow",
+      "question": "내일 서울 날씨",
+      "legacy": {
+        "status": "retrieved",
+        "citations": [
+          {
+            "url": "https://fixture.test/forecast",
+            "title": "서울 예보"
+          }
+        ]
+      },
+      "prototype": {
+        "status": "verified",
+        "verifiedFacts": 1,
+        "partial": false,
+        "facts": [
+          {
+            "id": "fact-1-0",
+            "status": "verified",
+            "subject": "서울",
+            "predicate": "temperature",
+            "value": "13도",
+            "unit": "도",
+            "targetDate": "2026-10-24",
+            "targetLocation": "서울",
+            "temporalResolutionConfidence": "high",
+            "attributes": [
+              "13도"
+            ],
+            "scopeText": "2026-10-23\n내일 아침 기온은 서울 13도",
+            "contextSpan": "내일 아침 기온은 서울 13도",
+            "sourceSpan": {
+              "start": 0,
+              "end": 16
+            },
+            "quote": "내일 아침 기온은 서울 13도",
+            "url": "https://fixture.test/forecast",
+            "failures": []
+          }
+        ],
+        "citations": [
+          {
+            "url": "https://fixture.test/forecast",
+            "title": "서울 예보"
+          }
+        ],
+        "metrics": {
+          "elapsedMs": 1,
+          "searches": 0,
+          "reads": 1,
+          "facts": 1,
+          "verifiedFacts": 1,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 0
+        }
+      },
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "prototype-has-verified-quote",
+      "semanticReview": null,
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 1,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 0,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0
+      }
+    },
+    {
+      "id": "unrelated-material",
+      "question": "오늘 서울 날씨",
+      "legacy": {
+        "status": "retrieved",
+        "citations": [
+          {
+            "url": "https://fixture.test/mixed",
+            "title": "혼합 자료"
+          }
+        ]
+      },
+      "prototype": {
+        "status": "insufficient-evidence",
+        "verifiedFacts": 0,
+        "partial": false,
+        "facts": [
+          {
+            "id": "fact-1-0",
+            "status": "rejected",
+            "subject": "서울",
+            "predicate": "temperature",
+            "value": "20도",
+            "unit": "도",
+            "targetDate": "",
+            "targetLocation": "서울",
+            "temporalResolutionConfidence": "unresolved",
+            "attributes": [
+              "20도"
+            ],
+            "scopeText": "2026-10-23\n서울 날씨는 맑고 20도이다.",
+            "contextSpan": "서울 날씨는 맑고 20도이다.",
+            "sourceSpan": {
+              "start": 0,
+              "end": 16
+            },
+            "quote": "서울 날씨는 맑고 20도이다.",
+            "url": "https://fixture.test/mixed",
+            "failures": [
+              "requested-date-not-in-scope",
+              "temporal-context-missing"
+            ]
+          }
+        ],
+        "citations": [],
+        "metrics": {
+          "elapsedMs": 2,
+          "searches": 0,
+          "reads": 1,
+          "facts": 1,
+          "verifiedFacts": 0,
+          "geminiCalls": 0,
+          "wallMs": 2,
+          "httpRequests": 0
+        }
+      },
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": false,
+        "failures": []
+      },
+      "difference": "no-verified-quote",
+      "semanticReview": null,
+      "evaluation": {
+        "duplicateIdCount": 0,
+        "mappingErrorCount": 0,
+        "duplicateEvidenceCount": 0,
+        "explicitlyVerifiedFacts": 0,
+        "clearlyWrongAcceptedFacts": null,
+        "codeDateIssueCount": 2,
+        "codeLocationIssueCount": 0,
+        "codeSubjectValueMixCount": 0,
+        "unrelatedBodyAcceptedCount": 0,
+        "normalFactsRejected": 0
+      }
+    }
+  ],
+  "comparison": {
+    "total": 4,
+    "legacyRetrieved": 4,
+    "prototypeVerified": 2,
+    "prototypePartial": 0,
+    "unverifiedFacts": 2,
+    "duplicateIdCount": 0,
+    "mappingErrorCount": 0,
+    "explicitlyVerifiedFacts": 3,
+    "clearlyWrongAcceptedFacts": null,
+    "codeDateIssueCount": 4,
+    "codeLocationIssueCount": 0,
+    "codeSubjectValueMixCount": 0,
+    "unrelatedBodyAcceptedCount": 0,
+    "duplicateEvidenceCount": 0,
+    "normalFactsRejected": 0,
+    "answerOutcomes": {
+      "complete": 2,
+      "partial": 0,
+      "hold": 2
+    },
+    "failureReasons": {
+      "requested-date-not-in-scope": 2,
+      "relative-date-mismatch": 1,
+      "relative-date-does-not-resolve": 1,
+      "temporal-context-missing": 1
+    },
+    "conclusion": "코드 검증 통과 수치와 독립 정답 기반 사실 정확도를 분리함; 독립 정답 라벨이 없으면 clearlyWrongAcceptedFacts는 null"
+  },
+  "gemini": {
+    "enabled": false,
+    "calls": 0
+  }
+}

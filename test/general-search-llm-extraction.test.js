@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assessRequiredAnswerItems, parseEvidenceExtractionResponse, validateExtractedEvidenceFact } from '../src/general-search-llm-extraction.js';
+import { assessRequiredAnswerItems, buildEvidenceExtractionInput, buildEvidenceExtractionPrompt, createGeminiEvidenceExtractor, parseEvidenceExtractionResponse, parseGeminiEvidenceResponse, validateExtractedEvidenceFact } from '../src/general-search-llm-extraction.js';
 
 test('quote 복원은 한국어와 이모지의 JavaScript UTF-16 위치를 사용한다', () => {
   const source = { url: 'https://source.test/ko', pageText: '고양이 🐈‍⬛ 서울의 기온은 20도이다.' };
@@ -51,4 +51,83 @@ test('AWS 무료 요청 quote는 위치 검증 후에도 무료 tier 근거로 �
   const requirements = assessRequiredAnswerItems('AWS Lambda 요청 요금', parsed.verified);
   assert.ok(requirements.satisfied.includes('free-tier'));
   assert.ok(requirements.missing.includes('request-price'));
+});
+
+test('usage request includes bounded official segments and prompts for calls and argument relationships', () => {
+  const quote = 'client.run(store, callback) runs callback within the supplied store.';
+  const example = 'const result = client.run(store, () => work());';
+  const argument = 'The store argument supplies the context for the callback.';
+  const callback = 'The callback receives additional arguments after store.';
+  const segments = [quote, example, argument, callback];
+  const body = `${'Background details. '.repeat(240)}\n${segments.join('\n')}`;
+  const page = { sourceId: 'source-1', url: 'https://docs.example.org/api/client', pageText: body,
+    relevantSegments: segments.map((text, index) => ({ id: `segment-${index + 1}`, text,
+      start: body.indexOf(text), end: body.indexOf(text) + text.length })) };
+  const input = buildEvidenceExtractionInput('client.run 사용법', [page]);
+  assert.equal(input.sources.length, 1);
+  assert.equal(input.sources[0].segments.length, 4);
+  assert.deepEqual(input.sources[0].segments.map((segment) => segment.text), segments);
+  assert.ok(input.sources[0].body.length > 4800);
+  const prompt = buildEvidenceExtractionPrompt(input.question, [page]);
+  assert.ok(prompt.includes(quote));
+  assert.ok(prompt.includes(example));
+  assert.ok(prompt.includes('what each documented argument supplies'));
+  assert.ok(!prompt.includes('Background details.'));
+});
+
+test('Gemini response diagnostics distinguish empty extraction, missing text, and rejected claims', () => {
+  const quote = 'client.run(store, callback) runs callback within the supplied store.';
+  const page = { sourceId: 'source-1', url: 'https://docs.example.org/api/client', pageText: quote,
+    relevantSegments: [{ id: 'segment-1', text: quote, start: 0, end: quote.length }] };
+  const response = (facts, finishReason = 'STOP') => ({ candidates: [{ finishReason, content: { parts: [{ text: JSON.stringify({ facts, status: 'ok' }) }] } }] });
+  const empty = parseGeminiEvidenceResponse(response([]), [page], { strictSemantic: true });
+  assert.equal(empty.responseSchemaValid, true);
+  assert.equal(empty.rawFactCount, 0);
+  assert.deepEqual(empty.diagnostics, { responseReceived: true, candidateCount: 1, finishReason: 'STOP', responseTextLength: JSON.stringify({ facts: [], status: 'ok' }).length,
+    parseStatus: 'empty-facts', inputSourceCount: 1, inputSegmentCount: 1 });
+  const base = { sourceId: 'source-1', subject: 'client.run', relation: 'usage', unit: '', quote, appliesAt: null };
+  const claims = parseGeminiEvidenceResponse(response([{ ...base, value: 'client.run(store, callback)' }, { ...base, value: 'client.run(missing, callback)' }]), [page], { strictSemantic: true });
+  assert.equal(claims.rawFactCount, 2);
+  assert.equal(claims.verified.length, 1);
+  assert.equal(claims.facts[1].status, 'rejected');
+  assert.equal(claims.diagnostics.parseStatus, 'facts-present');
+  const noText = parseGeminiEvidenceResponse({ candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [] } }] }, [page]);
+  assert.equal(noText.responseSchemaValid, false);
+  assert.equal(noText.diagnostics.parseStatus, 'empty-response-text');
+  assert.equal(noText.diagnostics.finishReason, 'MAX_TOKENS');
+  const noCandidate = parseGeminiEvidenceResponse({ candidates: [] }, [page]);
+  assert.equal(noCandidate.diagnostics.parseStatus, 'missing-candidate');
+  assert.equal(noCandidate.diagnostics.candidateCount, 0);
+});
+
+test('offline fetch replay confirms the outgoing request contains the selected source and records an empty model answer', async () => {
+  const previousFetch = globalThis.fetch;
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousKeys = process.env.GEMINI_API_KEYS;
+  let payload;
+  try {
+    process.env.GEMINI_API_KEY = 'offline-test-key';
+    delete process.env.GEMINI_API_KEYS;
+    globalThis.fetch = async (_url, options) => {
+      payload = JSON.parse(options.body);
+      return { ok: true, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: '{"facts":[],"status":"evidence-insufficient"}' }] } }] }) };
+    };
+    const quote = 'client.run(store, callback) runs callback within the supplied store.';
+    const pages = [{ sourceId: 'source-1', url: 'https://docs.example.org/api/client', pageText: quote,
+      relevantSegments: [{ id: 'segment-1', text: quote, start: 0, end: quote.length }] }];
+    const result = await createGeminiEvidenceExtractor()({ question: 'client.run 사용법', pages });
+    const sent = JSON.parse(payload.contents[0].parts[0].text.split('Input: ')[1]);
+    assert.equal(sent.sources[0].url, pages[0].url);
+    assert.equal(sent.sources[0].segments[0].text, quote);
+    assert.equal(result.rawFactCount, 0);
+    assert.equal(result.diagnostics.parseStatus, 'empty-facts');
+    assert.equal(result.diagnostics.inputSourceCount, 1);
+    assert.equal(result.diagnostics.inputSegmentCount, 1);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+    if (previousKeys === undefined) delete process.env.GEMINI_API_KEYS;
+    else process.env.GEMINI_API_KEYS = previousKeys;
+  }
 });

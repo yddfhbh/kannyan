@@ -1,0 +1,577 @@
+{
+  "version": 2,
+  "generatedAt": "2026-10-24T02:47:21.753Z",
+  "reportPath": "tmp/general-search-offline-reassessment-20261024-semantic-consistent-v2.json",
+  "labelPolicy": [
+    "supported",
+    "unsupported",
+    "needs-review",
+    "unreviewed"
+  ],
+  "cases": [
+    {
+      "id": "gemini-01",
+      "question": "MDN Fetch API AbortSignal 사용법",
+      "originalQuestion": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "requiredAnswerItems": [
+        "fact-value"
+      ],
+      "securedAnswerItems": [
+        "fact-value",
+        "authoritative-source"
+      ],
+      "missingAnswerItems": [],
+      "finalOutcome": "complete",
+      "holdReasons": [],
+      "officialSource": {
+        "required": true,
+        "satisfied": true
+      },
+      "coverage": {
+        "verifiedCoverage": 1,
+        "potentialCoverage": 1
+      },
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "gemini-01-fact-1",
+          "reviewLabel": "unreviewed",
+          "subject": "AbortSignal",
+          "relation": "사용법",
+          "value": "AbortSignal 객체 인스턴스입니다. 취득 요청과 통신하다가 필요한 경우 AbortController를 통해 요청을 중단할 수 있습니다.",
+          "unit": null,
+          "quote": "signal AbortSignal 객체 인스턴스입니다. 취득 요청과 통신하다가 필요한 경우 AbortController를 통해 요청을 중단할 수 있습니다.",
+          "boundedContext": "signal AbortSignal 객체 인스턴스입니다. 취득 요청과 통신하다가 필요한 경우 AbortController를 통해 요청을 중단할 수 있습니다.",
+          "sourceUrl": "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "structuralValidation": {
+            "status": "verified",
+            "failures": [],
+            "sourceSpan": {
+              "start": 3040,
+              "end": 3126
+            },
+            "quoteInSource": true
+          },
+          "semanticValidation": {
+            "status": "supported",
+            "supported": true,
+            "reasons": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "hardReasons": []
+          },
+          "officiality": {
+            "required": true,
+            "satisfied": true
+          },
+          "requiredAnswerItems": [
+            "fact-value"
+          ],
+          "validationFailures": []
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote 및 bounded context를 대조해 supported/unsupported/needs-review 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-02",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "originalQuestion": "Kubernetes 공식 문서의 liveness probe 설명",
+      "requiredAnswerItems": [
+        "fact-value"
+      ],
+      "securedAnswerItems": [
+        "fact-value"
+      ],
+      "missingAnswerItems": [],
+      "finalOutcome": "partial",
+      "holdReasons": [
+        "검증된 일부 사실은 보존하지만 필수 항목·공식성·의미 검토가 남음"
+      ],
+      "officialSource": {
+        "required": true,
+        "satisfied": false
+      },
+      "coverage": {
+        "verifiedCoverage": 0,
+        "potentialCoverage": 1
+      },
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "gemini-02-fact-1",
+          "reviewLabel": "unreviewed",
+          "subject": "liveness probe",
+          "relation": "확인 항목",
+          "value": "컨테이너 재시작이 필요한 상태인지",
+          "unit": null,
+          "quote": "liveness는 컨테이너 재시작이 필요한 상태인지를 확인합니다.",
+          "boundedContext": "liveness는 컨테이너 재시작이 필요한 상태인지를 확인합니다.",
+          "sourceUrl": "https://www.speedykorea.com/blog/kubernetes-startup-readiness-liveness-probes",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "structuralValidation": {
+            "status": "verified",
+            "failures": [],
+            "sourceSpan": {
+              "start": 1602,
+              "end": 1638
+            },
+            "quoteInSource": true
+          },
+          "semanticValidation": {
+            "status": "supported",
+            "supported": true,
+            "reasons": [
+              "field-not-supported-by-quote:subject",
+              "field-not-supported-by-quote:relation"
+            ],
+            "hardReasons": []
+          },
+          "officiality": {
+            "required": true,
+            "satisfied": false
+          },
+          "requiredAnswerItems": [
+            "fact-value"
+          ],
+          "validationFailures": []
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote 및 bounded context를 대조해 supported/unsupported/needs-review 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-03",
+      "question": "Python 최신 안정 버전",
+      "originalQuestion": "Python 최신 안정 버전",
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "securedAnswerItems": [],
+      "missingAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "finalOutcome": "hold",
+      "holdReasons": [
+        "근거·공식성·출처 위치 중 하나 이상이 답변을 보류시킴"
+      ],
+      "officialSource": {
+        "required": true,
+        "satisfied": false
+      },
+      "coverage": {
+        "verifiedCoverage": 0,
+        "potentialCoverage": 0
+      },
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "gemini-03-fact-1",
+          "reviewLabel": "unreviewed",
+          "subject": "Python",
+          "relation": "최신 안정 버전",
+          "value": "3.14",
+          "unit": null,
+          "quote": "오늘은 Python 3.14 설치법과 함께 시스템 환경을 망가뜨리지 않고 버전을 전환하는 방법을 정리해 보겠습니다.",
+          "boundedContext": "오늘은 Python 3.14 설치법과 함께 시스템 환경을 망가뜨리지 않고 버전을 전환하는 방법을 정리해 보겠습니다.",
+          "sourceUrl": "https://cliearl.github.io/posts/linux/python-install/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "structuralValidation": {
+            "status": "verified",
+            "failures": [],
+            "sourceSpan": {
+              "start": 117,
+              "end": 181
+            },
+            "quoteInSource": true
+          },
+          "semanticValidation": {
+            "status": "unsupported",
+            "supported": false,
+            "reasons": [
+              "field-not-supported-by-quote:relation",
+              "installation-article-is-not-current-official-version-evidence"
+            ],
+            "hardReasons": [
+              "installation-article-is-not-current-official-version-evidence"
+            ]
+          },
+          "officiality": {
+            "required": true,
+            "satisfied": false
+          },
+          "requiredAnswerItems": [
+            "version",
+            "release-status",
+            "freshness"
+          ],
+          "validationFailures": []
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote 및 bounded context를 대조해 supported/unsupported/needs-review 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-04",
+      "question": "PostgreSQL과 MySQL의 JSON 기능 비교",
+      "originalQuestion": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "requiredAnswerItems": [
+        "service-a",
+        "service-b",
+        "comparison-attributes",
+        "authoritative-source"
+      ],
+      "securedAnswerItems": [
+        "service-a",
+        "comparison-attributes"
+      ],
+      "missingAnswerItems": [
+        "service-b",
+        "authoritative-source"
+      ],
+      "finalOutcome": "partial",
+      "holdReasons": [
+        "검증된 일부 사실은 보존하지만 필수 항목·공식성·의미 검토가 남음"
+      ],
+      "officialSource": {
+        "required": true,
+        "satisfied": false
+      },
+      "coverage": {
+        "verifiedCoverage": 0,
+        "potentialCoverage": 0.5
+      },
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "gemini-04-fact-1",
+          "reviewLabel": "unreviewed",
+          "subject": "PostgreSQL",
+          "relation": "지원 기능",
+          "value": "JSON 데이터 형식",
+          "unit": null,
+          "quote": "또한 JSON 데이터 형식을 다루거나 NoSQL 스타일의 데이터 저장 및 처리를 지원하는 유연성 덕분에 비정형 데이터를 저장 및 관리할 수 있는 장점을 가지고 있습니다.",
+          "boundedContext": "또한 JSON 데이터 형식을 다루거나 NoSQL 스타일의 데이터 저장 및 처리를 지원하는 유연성 덕분에 비정형 데이터를 저장 및 관리할 수 있는 장점을 가지고 있습니다.",
+          "sourceUrl": "https://www.elancer.co.kr/blog/detail/737",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "structuralValidation": {
+            "status": "verified",
+            "failures": [],
+            "sourceSpan": {
+              "start": 532,
+              "end": 626
+            },
+            "quoteInSource": true
+          },
+          "semanticValidation": {
+            "status": "supported",
+            "supported": true,
+            "reasons": [
+              "field-not-supported-by-quote:subject",
+              "field-not-supported-by-quote:relation"
+            ],
+            "hardReasons": []
+          },
+          "officiality": {
+            "required": true,
+            "satisfied": false
+          },
+          "requiredAnswerItems": [
+            "service-a",
+            "service-b",
+            "comparison-attributes",
+            "authoritative-source"
+          ],
+          "validationFailures": []
+        },
+        {
+          "factId": "gemini-04-fact-2",
+          "reviewLabel": "unreviewed",
+          "subject": "PostgreSQL",
+          "relation": "특징",
+          "value": "강력한 JSON 타입 및 일부 NoSQL 기능 지원",
+          "unit": null,
+          "quote": "PostgreSQL은 MySQL과 다르게 강력한 JSON 타입을 제공하며, 일부 NoSQL 기능도 지원해 비정형 데이터도 관리할 수 있는 장점이 있습니다.",
+          "boundedContext": "PostgreSQL은 MySQL과 다르게 강력한 JSON 타입을 제공하며, 일부 NoSQL 기능도 지원해 비정형 데이터도 관리할 수 있는 장점이 있습니다.",
+          "sourceUrl": "https://www.elancer.co.kr/blog/detail/737",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "structuralValidation": {
+            "status": "verified",
+            "failures": [],
+            "sourceSpan": {
+              "start": 3744,
+              "end": 3830
+            },
+            "quoteInSource": true
+          },
+          "semanticValidation": {
+            "status": "supported",
+            "supported": true,
+            "reasons": [
+              "field-not-supported-by-quote:relation",
+              "field-not-supported-by-quote:value"
+            ],
+            "hardReasons": []
+          },
+          "officiality": {
+            "required": true,
+            "satisfied": false
+          },
+          "requiredAnswerItems": [
+            "service-a",
+            "service-b",
+            "comparison-attributes",
+            "authoritative-source"
+          ],
+          "validationFailures": []
+        },
+        {
+          "factId": "gemini-04-fact-3",
+          "reviewLabel": "unreviewed",
+          "subject": "PostgreSQL",
+          "relation": "JSON 관련 타입",
+          "value": "json 및 jsonb 타입",
+          "unit": null,
+          "quote": "PostgreSQL에는 json과 jsonb 타입이 있다.",
+          "boundedContext": "PostgreSQL에는 json과 jsonb 타입이 있다.",
+          "sourceUrl": "https://w00lam.github.io/posts/postgresql-data-integrity-jsonb/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "structuralValidation": {
+            "status": "verified",
+            "failures": [],
+            "sourceSpan": {
+              "start": 6180,
+              "end": 6212
+            },
+            "quoteInSource": true
+          },
+          "semanticValidation": {
+            "status": "supported",
+            "supported": true,
+            "reasons": [
+              "field-not-supported-by-quote:relation",
+              "field-not-supported-by-quote:value"
+            ],
+            "hardReasons": []
+          },
+          "officiality": {
+            "required": true,
+            "satisfied": false
+          },
+          "requiredAnswerItems": [
+            "service-a",
+            "service-b",
+            "comparison-attributes",
+            "authoritative-source"
+          ],
+          "validationFailures": []
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote 및 bounded context를 대조해 supported/unsupported/needs-review 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-05",
+      "question": "AWS Lambda 요청 요금",
+      "originalQuestion": "AWS Lambda 요청 요금",
+      "requiredAnswerItems": [
+        "request-price",
+        "free-tier",
+        "pricing-conditions"
+      ],
+      "securedAnswerItems": [
+        "free",
+        "free-tier",
+        "pricing-conditions"
+      ],
+      "missingAnswerItems": [
+        "request-price"
+      ],
+      "finalOutcome": "partial",
+      "holdReasons": [
+        "검증된 일부 사실은 보존하지만 필수 항목·공식성·의미 검토가 남음"
+      ],
+      "officialSource": {
+        "required": false,
+        "satisfied": true
+      },
+      "coverage": {
+        "verifiedCoverage": 0,
+        "potentialCoverage": 0.6666666666666666
+      },
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "gemini-05-fact-1",
+          "reviewLabel": "unreviewed",
+          "subject": "AWS Lambda",
+          "relation": "요금 부과 기준",
+          "value": "함수 요청 수와 코드를 실행하는 데 걸리는 기간",
+          "unit": null,
+          "quote": "함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다.",
+          "boundedContext": "함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "structuralValidation": {
+            "status": "verified",
+            "failures": [],
+            "sourceSpan": {
+              "start": 283,
+              "end": 324
+            },
+            "quoteInSource": true
+          },
+          "semanticValidation": {
+            "status": "supported",
+            "supported": true,
+            "reasons": [
+              "field-not-supported-by-quote:subject",
+              "field-not-supported-by-quote:relation"
+            ],
+            "hardReasons": []
+          },
+          "officiality": {
+            "required": false,
+            "satisfied": true
+          },
+          "requiredAnswerItems": [
+            "request-price",
+            "free-tier",
+            "pricing-conditions"
+          ],
+          "validationFailures": []
+        },
+        {
+          "factId": "gemini-05-fact-2",
+          "reviewLabel": "unreviewed",
+          "subject": "AWS Lambda 프리 티어",
+          "relation": "포함 내역",
+          "value": "월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간",
+          "unit": null,
+          "quote": "AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+          "boundedContext": "AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "structuralValidation": {
+            "status": "verified",
+            "failures": [],
+            "sourceSpan": {
+              "start": 1282,
+              "end": 1392
+            },
+            "quoteInSource": true
+          },
+          "semanticValidation": {
+            "status": "supported",
+            "supported": true,
+            "reasons": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "hardReasons": []
+          },
+          "officiality": {
+            "required": false,
+            "satisfied": true
+          },
+          "requiredAnswerItems": [
+            "request-price",
+            "free-tier",
+            "pricing-conditions"
+          ],
+          "validationFailures": []
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote 및 bounded context를 대조해 supported/unsupported/needs-review 중 하나로 라벨링; 자동 확정 금지"
+    },
+    {
+      "id": "gemini-06",
+      "question": "React 최신 버전",
+      "originalQuestion": "React 최신 버전",
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "securedAnswerItems": [],
+      "missingAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "finalOutcome": "hold",
+      "holdReasons": [
+        "근거·공식성·출처 위치 중 하나 이상이 답변을 보류시킴"
+      ],
+      "officialSource": {
+        "required": true,
+        "satisfied": false
+      },
+      "coverage": {
+        "verifiedCoverage": 0,
+        "potentialCoverage": 0
+      },
+      "label": "unreviewed",
+      "facts": [
+        {
+          "factId": "gemini-06-fact-1",
+          "reviewLabel": "unreviewed",
+          "subject": "React",
+          "relation": "버전",
+          "value": "19.3.0",
+          "unit": "",
+          "quote": "버전 19.3.0 (2026.",
+          "boundedContext": "버전 19.3.0 (2026.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%BC%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "sourceTitle": "",
+          "sourceDate": null,
+          "structuralValidation": {
+            "status": "rejected",
+            "failures": [
+              "source-url-not-supplied",
+              "quote-not-in-source",
+              "source-span-mismatch",
+              "invalid-applies-at"
+            ],
+            "sourceSpan": null,
+            "quoteInSource": false
+          },
+          "semanticValidation": {
+            "status": "unsupported",
+            "supported": false,
+            "reasons": [
+              "latest-version-official-source-required"
+            ],
+            "hardReasons": [
+              "latest-version-official-source-required"
+            ]
+          },
+          "officiality": {
+            "required": true,
+            "satisfied": false
+          },
+          "requiredAnswerItems": [
+            "version",
+            "release-status",
+            "freshness"
+          ],
+          "validationFailures": [
+            "source-url-not-supplied",
+            "quote-not-in-source",
+            "source-span-mismatch",
+            "invalid-applies-at"
+          ]
+        }
+      ],
+      "reviewInstruction": "원문 URL의 실제 본문과 quote 및 bounded context를 대조해 supported/unsupported/needs-review 중 하나로 라벨링; 자동 확정 금지"
+    }
+  ]
+}

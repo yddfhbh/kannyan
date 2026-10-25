@@ -1,0 +1,828 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-24T05:02:58.846Z",
+  "noWebSearch": true,
+  "noGeminiCalls": true,
+  "noHoldout": true,
+  "inputFile": "tmp/general-search-gemini-experiment-input-20261024-final-validation.json",
+  "bodiesFile": "tmp/general-search-bodies-final-semantic.json",
+  "researchFile": "tmp/general-search-source-research-offline-report-20261024-v2.json",
+  "maxQuestions": 6,
+  "maxGeminiCalls": 6,
+  "actualGeminiCalls": 0,
+  "tokenUsage": {
+    "input": "unknown",
+    "output": "unknown",
+    "cost": "unknown",
+    "reason": "No tokenizer or model response was used in dry-run"
+  },
+  "targetUrlAudit": {
+    "kubernetes": [
+      {
+        "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+        "discoveredInRecentResearch": true,
+        "discoveredInFinalCandidates": false,
+        "selectedInFinalGeminiInput": false,
+        "bodySnapshotExists": false,
+        "bodyLength": 0,
+        "near8000": false,
+        "official": true,
+        "status": "missing-from-final-snapshot"
+      },
+      {
+        "url": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+        "discoveredInRecentResearch": true,
+        "discoveredInFinalCandidates": false,
+        "selectedInFinalGeminiInput": false,
+        "bodySnapshotExists": false,
+        "bodyLength": 0,
+        "near8000": false,
+        "official": true,
+        "status": "missing-from-final-snapshot"
+      }
+    ],
+    "react": [
+      {
+        "url": "https://react.dev/blog/2025/10/01/react-19-2",
+        "discoveredInRecentResearch": true,
+        "discoveredInFinalCandidates": false,
+        "selectedInFinalGeminiInput": false,
+        "bodySnapshotExists": false,
+        "bodyLength": 0,
+        "near8000": false,
+        "official": true,
+        "status": "missing-from-final-snapshot"
+      }
+    ],
+    "mdn": [
+      {
+        "url": "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+        "discoveredInRecentResearch": false,
+        "discoveredInFinalCandidates": true,
+        "selectedInFinalGeminiInput": true,
+        "bodySnapshotExists": true,
+        "bodyLength": 6075,
+        "near8000": false,
+        "official": true,
+        "status": "snapshot-present"
+      },
+      {
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API",
+        "discoveredInRecentResearch": false,
+        "discoveredInFinalCandidates": false,
+        "selectedInFinalGeminiInput": false,
+        "bodySnapshotExists": false,
+        "bodyLength": 0,
+        "near8000": false,
+        "official": true,
+        "status": "missing-from-final-snapshot"
+      },
+      {
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController",
+        "discoveredInRecentResearch": true,
+        "discoveredInFinalCandidates": false,
+        "selectedInFinalGeminiInput": false,
+        "bodySnapshotExists": false,
+        "bodyLength": 0,
+        "near8000": false,
+        "official": true,
+        "status": "missing-from-final-snapshot"
+      },
+      {
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+        "discoveredInRecentResearch": true,
+        "discoveredInFinalCandidates": false,
+        "selectedInFinalGeminiInput": false,
+        "bodySnapshotExists": false,
+        "bodyLength": 0,
+        "near8000": false,
+        "official": true,
+        "status": "missing-from-final-snapshot"
+      }
+    ],
+    "aws": [
+      {
+        "url": "https://aws.amazon.com/ko/lambda/pricing/",
+        "discoveredInRecentResearch": true,
+        "discoveredInFinalCandidates": true,
+        "selectedInFinalGeminiInput": true,
+        "bodySnapshotExists": true,
+        "bodyLength": 7999,
+        "near8000": true,
+        "official": true,
+        "status": "snapshot-present"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "gemini-01",
+      "originalQuestion": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "requiredAnswerItems": [
+        "fact-value",
+        "usage-procedure"
+      ],
+      "selectedOriginalUrls": [
+        "https://velog.io/@ehdgus8054/Fetch-API",
+        "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+        "https://developer.mozilla.org/ko/"
+      ],
+      "officiality": {
+        "selectedOfficialBodyCount": 2,
+        "officialEvidenceSufficient": true
+      },
+      "sources": [
+        {
+          "url": "https://velog.io/@ehdgus8054/Fetch-API",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 8000,
+          "truncation": "unknown-near-8000-limit",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 308,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+          "selected": true,
+          "official": true,
+          "bodySnapshotExists": true,
+          "bodyLength": 6075,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 348,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://developer.mozilla.org/ko/",
+          "selected": true,
+          "official": true,
+          "bodySnapshotExists": true,
+          "bodyLength": 202,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 106,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 2,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        }
+      ],
+      "gemini": {
+        "sourceUrlsActuallyPassed": [
+          "https://velog.io/@ehdgus8054/Fetch-API",
+          "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+          "https://developer.mozilla.org/ko/"
+        ],
+        "relatedSegmentsPassedAsSegments": false,
+        "fullBodyContainsRelatedText": true,
+        "inputTokens": "unknown",
+        "outputTokens": "unknown",
+        "cost": "unknown"
+      },
+      "latestnessRequired": false,
+      "execution": {
+        "evidenceStatus": "available-for-dry-run",
+        "experimentCallAllowed": true,
+        "answerOutcome": "partial"
+      },
+      "sourceDiscoveryAudit": [
+        {
+          "url": "https://velog.io/@ehdgus8054/Fetch-API",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://developer.mozilla.org/ko/",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        }
+      ]
+    },
+    {
+      "id": "gemini-02",
+      "originalQuestion": "Kubernetes 공식 문서의 liveness probe 설명",
+      "requiredAnswerItems": [
+        "fact-value"
+      ],
+      "selectedOriginalUrls": [
+        "https://www.speedykorea.com/blog/kubernetes-startup-readiness-liveness-probes",
+        "https://ttlab.hopto.org/blog/kubernetes/2026-07-26-kubernetes-probes-liveness-readiness-startup",
+        "https://docs.cloud.google.com/service-mesh/docs/gateway/configure-readiness-probes?hl=ko"
+      ],
+      "officiality": {
+        "selectedOfficialBodyCount": 0,
+        "officialEvidenceSufficient": false
+      },
+      "sources": [
+        {
+          "url": "https://www.speedykorea.com/blog/kubernetes-startup-readiness-liveness-probes",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 5942,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 274,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://ttlab.hopto.org/blog/kubernetes/2026-07-26-kubernetes-probes-liveness-readiness-startup",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 8000,
+          "truncation": "unknown-near-8000-limit",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 946,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://docs.cloud.google.com/service-mesh/docs/gateway/configure-readiness-probes?hl=ko",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 1983,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 981,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        }
+      ],
+      "gemini": {
+        "sourceUrlsActuallyPassed": [
+          "https://www.speedykorea.com/blog/kubernetes-startup-readiness-liveness-probes",
+          "https://ttlab.hopto.org/blog/kubernetes/2026-07-26-kubernetes-probes-liveness-readiness-startup",
+          "https://docs.cloud.google.com/service-mesh/docs/gateway/configure-readiness-probes?hl=ko"
+        ],
+        "relatedSegmentsPassedAsSegments": false,
+        "fullBodyContainsRelatedText": true,
+        "inputTokens": "unknown",
+        "outputTokens": "unknown",
+        "cost": "unknown"
+      },
+      "latestnessRequired": false,
+      "execution": {
+        "evidenceStatus": "insufficient-evidence",
+        "experimentCallAllowed": true,
+        "answerOutcome": "hold"
+      },
+      "sourceDiscoveryAudit": [
+        {
+          "url": "https://www.speedykorea.com/blog/kubernetes-startup-readiness-liveness-probes",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://ttlab.hopto.org/blog/kubernetes/2026-07-26-kubernetes-probes-liveness-readiness-startup",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://docs.cloud.google.com/service-mesh/docs/gateway/configure-readiness-probes?hl=ko",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        }
+      ]
+    },
+    {
+      "id": "gemini-03",
+      "originalQuestion": "Python 최신 안정 버전",
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "selectedOriginalUrls": [
+        "https://cliearl.github.io/posts/linux/python-install/",
+        "https://ko.console-linux.com/?p=276",
+        "https://www.python.org/downloads/release/python-3913/",
+        "https://navix.navercorp.com/docs/releasenotes/navix-9.8-release/"
+      ],
+      "officiality": {
+        "selectedOfficialBodyCount": 1,
+        "officialEvidenceSufficient": true
+      },
+      "sources": [
+        {
+          "url": "https://cliearl.github.io/posts/linux/python-install/",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 1749,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 261,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://ko.console-linux.com/?p=276",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 2878,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 639,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://www.python.org/downloads/release/python-3913/",
+          "selected": true,
+          "official": true,
+          "bodySnapshotExists": true,
+          "bodyLength": 4816,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 307,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://navix.navercorp.com/docs/releasenotes/navix-9.8-release/",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 5370,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 812,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        }
+      ],
+      "gemini": {
+        "sourceUrlsActuallyPassed": [
+          "https://cliearl.github.io/posts/linux/python-install/",
+          "https://ko.console-linux.com/?p=276",
+          "https://www.python.org/downloads/release/python-3913/",
+          "https://navix.navercorp.com/docs/releasenotes/navix-9.8-release/"
+        ],
+        "relatedSegmentsPassedAsSegments": false,
+        "fullBodyContainsRelatedText": true,
+        "inputTokens": "unknown",
+        "outputTokens": "unknown",
+        "cost": "unknown"
+      },
+      "latestnessRequired": true,
+      "execution": {
+        "evidenceStatus": "available-for-dry-run",
+        "experimentCallAllowed": true,
+        "answerOutcome": "partial"
+      },
+      "sourceDiscoveryAudit": [
+        {
+          "url": "https://cliearl.github.io/posts/linux/python-install/",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://ko.console-linux.com/?p=276",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://www.python.org/downloads/release/python-3913/",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://navix.navercorp.com/docs/releasenotes/navix-9.8-release/",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        }
+      ]
+    },
+    {
+      "id": "gemini-04",
+      "originalQuestion": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "requiredAnswerItems": [
+        "service-a",
+        "service-b",
+        "comparison-attributes",
+        "authoritative-source"
+      ],
+      "selectedOriginalUrls": [
+        "https://www.elancer.co.kr/blog/detail/737",
+        "https://namu.wiki/w/PostgreSQL#s-2",
+        "https://namu.wiki/w/PostgreSQL#s-4.1",
+        "https://w00lam.github.io/posts/postgresql-data-integrity-jsonb/"
+      ],
+      "officiality": {
+        "selectedOfficialBodyCount": 0,
+        "officialEvidenceSufficient": false
+      },
+      "sources": [
+        {
+          "url": "https://www.elancer.co.kr/blog/detail/737",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 8000,
+          "truncation": "unknown-near-8000-limit",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 289,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://namu.wiki/w/PostgreSQL#s-2",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 5452,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 210,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://namu.wiki/w/PostgreSQL#s-4.1",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 5500,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 210,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://w00lam.github.io/posts/postgresql-data-integrity-jsonb/",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 8000,
+          "truncation": "unknown-near-8000-limit",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 261,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        }
+      ],
+      "gemini": {
+        "sourceUrlsActuallyPassed": [
+          "https://www.elancer.co.kr/blog/detail/737",
+          "https://namu.wiki/w/PostgreSQL#s-2",
+          "https://namu.wiki/w/PostgreSQL#s-4.1",
+          "https://w00lam.github.io/posts/postgresql-data-integrity-jsonb/"
+        ],
+        "relatedSegmentsPassedAsSegments": false,
+        "fullBodyContainsRelatedText": true,
+        "inputTokens": "unknown",
+        "outputTokens": "unknown",
+        "cost": "unknown"
+      },
+      "latestnessRequired": false,
+      "execution": {
+        "evidenceStatus": "insufficient-evidence",
+        "experimentCallAllowed": true,
+        "answerOutcome": "hold"
+      },
+      "sourceDiscoveryAudit": [
+        {
+          "url": "https://www.elancer.co.kr/blog/detail/737",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://namu.wiki/w/PostgreSQL#s-2",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://namu.wiki/w/PostgreSQL#s-4.1",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://w00lam.github.io/posts/postgresql-data-integrity-jsonb/",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        }
+      ]
+    },
+    {
+      "id": "gemini-05",
+      "originalQuestion": "AWS Lambda 요청 요금",
+      "requiredAnswerItems": [
+        "request-price",
+        "free-tier",
+        "pricing-conditions"
+      ],
+      "selectedOriginalUrls": [
+        "https://aws.amazon.com/ko/lambda/pricing/",
+        "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+        "https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/lambda-concurrency.html",
+        "https://aws.amazon.com/ko/"
+      ],
+      "officiality": {
+        "selectedOfficialBodyCount": 3,
+        "officialEvidenceSufficient": true
+      },
+      "sources": [
+        {
+          "url": "https://aws.amazon.com/ko/lambda/pricing/",
+          "selected": true,
+          "official": true,
+          "bodySnapshotExists": true,
+          "bodyLength": 7999,
+          "truncation": "unknown-near-8000-limit",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 1489,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 3224,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 194,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/lambda-concurrency.html",
+          "selected": true,
+          "official": true,
+          "bodySnapshotExists": true,
+          "bodyLength": 7999,
+          "truncation": "unknown-near-8000-limit",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 538,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://aws.amazon.com/ko/",
+          "selected": true,
+          "official": true,
+          "bodySnapshotExists": true,
+          "bodyLength": 2479,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 273,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        }
+      ],
+      "gemini": {
+        "sourceUrlsActuallyPassed": [
+          "https://aws.amazon.com/ko/lambda/pricing/",
+          "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+          "https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/lambda-concurrency.html",
+          "https://aws.amazon.com/ko/"
+        ],
+        "relatedSegmentsPassedAsSegments": false,
+        "fullBodyContainsRelatedText": true,
+        "inputTokens": "unknown",
+        "outputTokens": "unknown",
+        "cost": "unknown"
+      },
+      "latestnessRequired": false,
+      "execution": {
+        "evidenceStatus": "available-for-dry-run",
+        "experimentCallAllowed": true,
+        "answerOutcome": "partial"
+      },
+      "sourceDiscoveryAudit": [
+        {
+          "url": "https://aws.amazon.com/ko/lambda/pricing/",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/lambda-concurrency.html",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://aws.amazon.com/ko/",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        }
+      ]
+    },
+    {
+      "id": "gemini-06",
+      "originalQuestion": "React 최신 버전",
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "selectedOriginalUrls": [
+        "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+        "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+        "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/"
+      ],
+      "officiality": {
+        "selectedOfficialBodyCount": 0,
+        "officialEvidenceSufficient": false
+      },
+      "sources": [
+        {
+          "url": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 1247,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 254,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 8000,
+          "truncation": "unknown-near-8000-limit",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 721,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        },
+        {
+          "url": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+          "selected": true,
+          "official": false,
+          "bodySnapshotExists": true,
+          "bodyLength": 971,
+          "truncation": "not-observed",
+          "normalizedBody": true,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "relevantSegmentLength": 905,
+          "relevantSegmentTokenEstimate": "unknown",
+          "relevantSegmentHasCoreTerms": true,
+          "relevantSegmentCount": 4,
+          "geminiInputMode": "full-page-blocks; source-selection spans are not passed as bounded segments"
+        }
+      ],
+      "gemini": {
+        "sourceUrlsActuallyPassed": [
+          "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/"
+        ],
+        "relatedSegmentsPassedAsSegments": false,
+        "fullBodyContainsRelatedText": true,
+        "inputTokens": "unknown",
+        "outputTokens": "unknown",
+        "cost": "unknown"
+      },
+      "latestnessRequired": true,
+      "execution": {
+        "evidenceStatus": "insufficient-evidence",
+        "experimentCallAllowed": true,
+        "answerOutcome": "hold"
+      },
+      "sourceDiscoveryAudit": [
+        {
+          "url": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        },
+        {
+          "url": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+          "candidateFoundInFinalBodies": true,
+          "selectedInFinalInput": true,
+          "bodySnapshotExists": true
+        }
+      ]
+    }
+  ],
+  "integrationAudit": {
+    "prepareUsesFinalBodies": true,
+    "prepareUsesSnapshotSelection": false,
+    "runnerUsesPreparedSources": true,
+    "runnerUsesRelatedSegments": false,
+    "extractionAndQuoteValidationImplemented": true,
+    "semanticValidationImplemented": true,
+    "independentMeaningReviewImplemented": false,
+    "completePartialHoldConnected": true,
+    "overall": "partial: snapshot and extraction/validation exist, but bounded source-selection segments and independent semantic review are not connected in the runner"
+  },
+  "sensitiveDetection": {
+    "githubActionsBlockPreserved": true,
+    "actualSecretValuesIncluded": false,
+    "ruleTypes": [
+      "credential assignment (API key/access token/secret/password/client secret)",
+      "provider key prefix",
+      "PEM private key header",
+      "Authorization or x-api-key bearer header"
+    ],
+    "falsePositiveRisk": "possible: generic documentation words can trigger only when followed by an assignment-like value; review blocked source manually without exposing the value"
+  },
+  "sshCommand": "ssh <user>@<host> \"cd /home/ubuntu/discord-bot-new && GEMINI_API_KEYS=\"<redacted>\" node scripts/run-general-search-gemini-experiment.js --input=<absolute-path-to-this-worktree>/tmp/general-search-gemini-experiment-input-20261024-final-validation.json --output=<absolute-path-to-this-worktree>/tmp/general-search-gemini-experiment-run-20261024-final.json --limit=6\"",
+  "note": "The SSH command is a template with a redacted key placeholder; do not print or store a personal API key. Actual execution remains disabled for this validation."
+}

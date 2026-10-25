@@ -1,0 +1,2249 @@
+{
+  "version": 2,
+  "experiment": "general-search-llm-direct-extraction-ab",
+  "generatedAt": "2026-10-24T01:59:03.120Z",
+  "inputFile": "tmp/general-search-gemini-experiment-input-20261024-ab.json",
+  "aReportFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-gemini-experiment-run-20261024-ssh.json",
+  "aReportFound": true,
+  "envFile": "/home/ubuntu/discord-bot-new/.env",
+  "questionCount": 6,
+  "maxApiCalls": 6,
+  "calls": 6,
+  "model": "gemini-3.5-flash-lite",
+  "apiKeyConfigured": true,
+  "elapsedMs": 16842,
+  "results": [
+    {
+      "id": "gemini-01",
+      "question": "MDN Fetch API AbortSignal 사용법",
+      "sourceQuestion": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "methodA": {
+        "storedReport": {
+          "id": "gemini-05",
+          "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "partial": false,
+          "semanticReview": {
+            "approveFactIds": [],
+            "rejectFactIds": [],
+            "reasonById": {},
+            "invalid": false,
+            "requestSucceeded": true,
+            "responseSchemaValid": true,
+            "selectedFactIds": [],
+            "omittedFactIds": [],
+            "calls": 5,
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 48045
+          },
+          "evaluation": {
+            "responseSchemaValid": true,
+            "duplicateFactIdCount": 0,
+            "unknownFactIdCount": 0,
+            "missingFactIdCount": 0,
+            "modelApprovedFactCount": 0,
+            "codeVerifiedModelApprovalCount": 0,
+            "codeRejectedModelApprovalCount": 0,
+            "clearlyWrongAcceptedFactCount": null,
+            "codeDateIssueCount": 0,
+            "codeLocationIssueCount": 0,
+            "codeSubjectValueMixCount": 0,
+            "unrelatedBodyAcceptedCount": 0,
+            "selectedFactCount": 0,
+            "omittedFactCount": 0
+          },
+          "model": "gemini-3.5-flash-lite",
+          "callsForCase": 1,
+          "callsAfterCase": 5,
+          "processingMs": 11388
+        },
+        "replay": {
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "answerRequirements": {
+            "required": [
+              "fact-value"
+            ],
+            "satisfied": [],
+            "missing": [
+              "fact-value"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "status": "incomplete-requirements"
+          }
+        }
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "AbortSignal",
+            "relation": "사용법",
+            "value": "AbortSignal 객체 인스턴스입니다. 취득 요청과 통신하다가 필요한 경우 AbortController를 통해 요청을 중단할 수 있습니다.",
+            "unit": null,
+            "sourceUrl": "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+            "quote": "signal AbortSignal 객체 인스턴스입니다. 취득 요청과 통신하다가 필요한 경우 AbortController를 통해 요청을 중단할 수 있습니다.",
+            "sourceSpan": {
+              "start": 1207,
+              "end": 1309
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [],
+            "uncertainties": [],
+            "status": "rejected",
+            "validationFailures": [
+              "source-span-mismatch"
+            ]
+          }
+        ],
+        "verified": [],
+        "responseSchemaValid": true,
+        "evidenceStatus": "evidence-insufficient",
+        "calls": 1,
+        "model": "gemini-3.5-flash-lite",
+        "verifiedFacts": []
+      },
+      "callsForCase": 1,
+      "processingMs": 2571
+    },
+    {
+      "id": "gemini-02",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "sourceQuestion": "Kubernetes 공식 문서의 liveness probe 설명",
+      "methodA": {
+        "storedReport": {
+          "id": "gemini-06",
+          "question": "Kubernetes 공식 문서의 liveness probe 설명",
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "partial": false,
+          "semanticReview": {
+            "approveFactIds": [],
+            "rejectFactIds": [],
+            "reasonById": {},
+            "invalid": false,
+            "requestSucceeded": true,
+            "responseSchemaValid": true,
+            "selectedFactIds": [],
+            "omittedFactIds": [],
+            "calls": 6,
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 50280
+          },
+          "evaluation": {
+            "responseSchemaValid": true,
+            "duplicateFactIdCount": 0,
+            "unknownFactIdCount": 0,
+            "missingFactIdCount": 0,
+            "modelApprovedFactCount": 0,
+            "codeVerifiedModelApprovalCount": 0,
+            "codeRejectedModelApprovalCount": 0,
+            "clearlyWrongAcceptedFactCount": null,
+            "codeDateIssueCount": 0,
+            "codeLocationIssueCount": 0,
+            "codeSubjectValueMixCount": 0,
+            "unrelatedBodyAcceptedCount": 0,
+            "selectedFactCount": 0,
+            "omittedFactCount": 0
+          },
+          "model": "gemini-3.5-flash-lite",
+          "callsForCase": 1,
+          "callsAfterCase": 6,
+          "processingMs": 2253
+        },
+        "replay": {
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "answerRequirements": {
+            "required": [
+              "fact-value"
+            ],
+            "satisfied": [],
+            "missing": [
+              "fact-value"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "status": "incomplete-requirements"
+          }
+        }
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "liveness probe",
+            "relation": "확인 항목",
+            "value": "컨테이너 재시작이 필요한 상태인지",
+            "unit": null,
+            "sourceUrl": "https://www.speedykorea.com/blog/kubernetes-startup-readiness-liveness-probes",
+            "quote": "liveness는 컨테이너 재시작이 필요한 상태인지를 확인합니다.",
+            "sourceSpan": {
+              "start": 26,
+              "end": 56
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [],
+            "uncertainties": [],
+            "status": "rejected",
+            "validationFailures": [
+              "source-span-mismatch"
+            ]
+          }
+        ],
+        "verified": [],
+        "responseSchemaValid": true,
+        "evidenceStatus": "evidence-insufficient",
+        "calls": 2,
+        "model": "gemini-3.5-flash-lite",
+        "verifiedFacts": []
+      },
+      "callsForCase": 1,
+      "processingMs": 1735
+    },
+    {
+      "id": "gemini-03",
+      "question": "Python 최신 안정 버전",
+      "sourceQuestion": "Python 최신 안정 버전",
+      "methodA": {
+        "storedReport": {
+          "id": "gemini-03",
+          "question": "Python 최신 안정 버전",
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "partial": false,
+          "semanticReview": {
+            "approveFactIds": [],
+            "rejectFactIds": [],
+            "reasonById": {},
+            "invalid": false,
+            "requestSucceeded": true,
+            "responseSchemaValid": true,
+            "selectedFactIds": [],
+            "omittedFactIds": [],
+            "calls": 3,
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 27981
+          },
+          "evaluation": {
+            "responseSchemaValid": true,
+            "duplicateFactIdCount": 0,
+            "unknownFactIdCount": 0,
+            "missingFactIdCount": 0,
+            "modelApprovedFactCount": 0,
+            "codeVerifiedModelApprovalCount": 0,
+            "codeRejectedModelApprovalCount": 0,
+            "clearlyWrongAcceptedFactCount": null,
+            "codeDateIssueCount": 0,
+            "codeLocationIssueCount": 0,
+            "codeSubjectValueMixCount": 0,
+            "unrelatedBodyAcceptedCount": 0,
+            "selectedFactCount": 0,
+            "omittedFactCount": 0
+          },
+          "model": "gemini-3.5-flash-lite",
+          "callsForCase": 1,
+          "callsAfterCase": 3,
+          "processingMs": 2327
+        },
+        "replay": {
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "answerRequirements": {
+            "required": [
+              "version",
+              "release-status",
+              "freshness"
+            ],
+            "satisfied": [],
+            "missing": [
+              "version",
+              "release-status",
+              "freshness"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "status": "incomplete-requirements"
+          }
+        }
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "Python",
+            "relation": "최신 안정 버전",
+            "value": "3.14",
+            "unit": null,
+            "sourceUrl": "https://cliearl.github.io/posts/linux/python-install/",
+            "quote": "오늘은 Python 3.14 설치법과 함께 시스템 환경을 망가뜨리지 않고 버전을 전환하는 방법을 정리해 보겠습니다.",
+            "sourceSpan": {
+              "start": 57,
+              "end": 68
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [],
+            "uncertainties": [],
+            "status": "rejected",
+            "validationFailures": [
+              "source-span-mismatch"
+            ]
+          }
+        ],
+        "verified": [],
+        "responseSchemaValid": true,
+        "evidenceStatus": "evidence-insufficient",
+        "calls": 3,
+        "model": "gemini-3.5-flash-lite",
+        "verifiedFacts": []
+      },
+      "callsForCase": 1,
+      "processingMs": 2298
+    },
+    {
+      "id": "gemini-04",
+      "question": "PostgreSQL과 MySQL의 JSON 기능 비교",
+      "sourceQuestion": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "methodA": {
+        "storedReport": {
+          "id": "gemini-12",
+          "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "partial": false,
+          "semanticReview": {
+            "approveFactIds": [],
+            "rejectFactIds": [],
+            "reasonById": {},
+            "invalid": false,
+            "requestSucceeded": true,
+            "responseSchemaValid": true,
+            "selectedFactIds": [],
+            "omittedFactIds": [],
+            "calls": 12,
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 84003
+          },
+          "evaluation": {
+            "responseSchemaValid": true,
+            "duplicateFactIdCount": 0,
+            "unknownFactIdCount": 0,
+            "missingFactIdCount": 0,
+            "modelApprovedFactCount": 0,
+            "codeVerifiedModelApprovalCount": 0,
+            "codeRejectedModelApprovalCount": 0,
+            "clearlyWrongAcceptedFactCount": null,
+            "codeDateIssueCount": 0,
+            "codeLocationIssueCount": 0,
+            "codeSubjectValueMixCount": 0,
+            "unrelatedBodyAcceptedCount": 0,
+            "selectedFactCount": 0,
+            "omittedFactCount": 0
+          },
+          "model": "gemini-3.5-flash-lite",
+          "callsForCase": 1,
+          "callsAfterCase": 12,
+          "processingMs": 11843
+        },
+        "replay": {
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "answerRequirements": {
+            "required": [
+              "service-a",
+              "service-b",
+              "comparison-attributes"
+            ],
+            "satisfied": [],
+            "missing": [
+              "service-a",
+              "service-b",
+              "comparison-attributes"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "status": "incomplete-requirements"
+          }
+        }
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "PostgreSQL",
+            "relation": "지원 기능",
+            "value": "JSON 데이터 형식",
+            "unit": null,
+            "sourceUrl": "https://www.elancer.co.kr/blog/detail/737",
+            "quote": "또한 JSON 데이터 형식을 다루거나 NoSQL 스타일의 데이터 저장 및 처리를 지원하는 유연성 덕분에 비정형 데이터를 저장 및 관리할 수 있는 장점을 가지고 있습니다.",
+            "sourceSpan": {
+              "start": 574,
+              "end": 668
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [],
+            "uncertainties": [],
+            "status": "rejected",
+            "validationFailures": [
+              "source-span-mismatch"
+            ]
+          },
+          {
+            "subject": "PostgreSQL",
+            "relation": "특징",
+            "value": "강력한 JSON 타입 및 일부 NoSQL 기능 지원",
+            "unit": null,
+            "sourceUrl": "https://www.elancer.co.kr/blog/detail/737",
+            "quote": "PostgreSQL은 MySQL과 다르게 강력한 JSON 타입을 제공하며, 일부 NoSQL 기능도 지원해 비정형 데이터도 관리할 수 있는 장점이 있습니다.",
+            "sourceSpan": {
+              "start": 3394,
+              "end": 3474
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [],
+            "uncertainties": [],
+            "status": "rejected",
+            "validationFailures": [
+              "source-span-mismatch"
+            ]
+          },
+          {
+            "subject": "PostgreSQL",
+            "relation": "JSON 관련 타입",
+            "value": "json 및 jsonb 타입",
+            "unit": null,
+            "sourceUrl": "https://w00lam.github.io/posts/postgresql-data-integrity-jsonb/",
+            "quote": "PostgreSQL에는 json과 jsonb 타입이 있다.",
+            "sourceSpan": {
+              "start": 7436,
+              "end": 7464
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [],
+            "uncertainties": [],
+            "status": "rejected",
+            "validationFailures": [
+              "source-span-mismatch"
+            ]
+          }
+        ],
+        "verified": [],
+        "responseSchemaValid": true,
+        "evidenceStatus": "evidence-insufficient",
+        "calls": 4,
+        "model": "gemini-3.5-flash-lite",
+        "verifiedFacts": []
+      },
+      "callsForCase": 1,
+      "processingMs": 3357
+    },
+    {
+      "id": "gemini-05",
+      "question": "AWS Lambda 요청 요금",
+      "sourceQuestion": "AWS Lambda 요청 요금",
+      "methodA": {
+        "storedReport": {
+          "id": "gemini-08",
+          "question": "AWS Lambda 요청 요금",
+          "facts": [
+            {
+              "id": "fact-1-0",
+              "status": "verified",
+              "subject": "요청",
+              "predicate": "price",
+              "value": "무료",
+              "unit": "무료",
+              "targetDate": "",
+              "targetLocation": "요청",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다.",
+              "contextSpan": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다.",
+              "sourceSpan": {
+                "start": 0,
+                "end": 135
+              },
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "semantic-review: Directly supports AWS Lambda request pricing information by mentioning free tier start."
+              ]
+            },
+            {
+              "id": "fact-1-1",
+              "status": "rejected",
+              "subject": "aws",
+              "predicate": "price",
+              "value": "2",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [
+                "2",
+                "86 ",
+                "34%"
+              ],
+              "quote": "Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다.",
+              "contextSpan": "x86 또는 Arm 아키텍처에 구축된 프로세서에서 Lambda 함수를 실행할 수 있습니다. Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다.",
+              "sourceSpan": {
+                "start": 801,
+                "end": 916
+              },
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "requested-location-not-in-scope",
+                "semantic-review: Unrelated to request pricing details, discusses Graviton2 price-performance comparison."
+              ]
+            },
+            {
+              "id": "fact-1-2",
+              "status": "verified",
+              "subject": "요청",
+              "predicate": "price",
+              "value": "100만 건",
+              "unit": "건",
+              "targetDate": "",
+              "targetLocation": "요청",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [
+                "100만",
+                "40만",
+                "86 ",
+                "2 "
+              ],
+              "quote": "AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+              "contextSpan": "자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+              "sourceSpan": {
+                "start": 1282,
+                "end": 1392
+              },
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "semantic-review: Provides precise pricing and free tier details for AWS Lambda requests (1 million free requests per month)."
+              ]
+            },
+            {
+              "id": "fact-1-3",
+              "status": "rejected",
+              "subject": "aws",
+              "predicate": "price",
+              "value": "",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다.",
+              "contextSpan": "AWS Lambda는 컴퓨팅 절감형 플랜에 참여합니다. 이는 1년 또는 3년 기간의 일정 사용량 약정(시간당 USD 단위)을 조건으로, Amazon Elastic Compute Cloud(Amazon EC2), AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다.",
+              "sourceSpan": {
+                "start": 1628,
+                "end": 1683
+              },
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "requested-location-not-in-scope",
+                "semantic-review: Contains generic text about Savings Plans rather than specific request pricing facts."
+              ]
+            },
+            {
+              "id": "fact-1-4",
+              "status": "rejected",
+              "subject": "aws",
+              "predicate": "price",
+              "value": "",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다.",
+              "contextSpan": "Savings는 기간 및 프로비저닝된 동시성에 적용됩니다. 자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다.",
+              "sourceSpan": {
+                "start": 1776,
+                "end": 1852
+              },
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "requested-location-not-in-scope",
+                "semantic-review: Refers to AWS Pricing Calculator rather than specific request pricing facts."
+              ]
+            },
+            {
+              "id": "fact-1-5",
+              "status": "rejected",
+              "subject": "요청",
+              "predicate": "price",
+              "value": "000",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "요청",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [
+                "000 ",
+                "0.02448 USD",
+                "48.96 USD",
+                "2 ",
+                "20 USD",
+                "91.40 USD",
+                "160.36 USD"
+              ],
+              "quote": "000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여",
+              "contextSpan": "m7g.xlarge 인스턴스(vCPU 4개, 메모리 16GB, Graviton3)를 사용하도록 Lambda 관리형 인스턴스 용량 공급자를 구성하고, 비용 절감을 극대화하기 위해 3년 컴퓨팅 절감형 플랜을 사용하는 설정입니다. 월별 요금 요청 요금 월별 요청: 요청 1억 건 요청 요금: 요청 100만 건당 0.20 USD 월별 요청 요금 = 100M / 1M x 0.20 USD = 20 USD 컴퓨팅 요금 인스턴스 유형: m7g.xlarge EC2 온디맨드 요금: 시간당 0.1632 USD(미국 동부 버지니아 북부) 3년 컴퓨팅 절감형 플랜 할인(72%) 적용 시: 시간당 0.0457 USD 예상 인스턴스 시간: 월 최대 2,000시간(워크로드 패턴 및 다중 동시성 기준) 월별 EC2 인스턴스 요금: 2,000 × 0.0457 USD = 91.40 USD 관리 수수료 요금 관리 수수료: EC2 온디맨드 요금의 15% 시간당 관리 수수료: 0.1632 USD × 0.15 = 시간당 0.02448 USD 월별 관리 수수료: 2,000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여",
+              "sourceSpan": {
+                "start": 7334,
+                "end": 7568
+              },
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "calculation-example-not-unit-price",
+                "semantic-review: Contains fragmented and ambiguous example calculations rather than direct standalone facts."
+              ]
+            },
+            {
+              "id": "fact-2-0",
+              "status": "rejected",
+              "subject": "aws",
+              "predicate": "price",
+              "value": "",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "자세한 내용은 AWS Lambda 요금을 참조하십시오.",
+              "contextSpan": "동시성 한도는 특정 AWS 리전에 있는 AWS 계정의 모든 함수에서 공유됩니다. 자세한 내용은 AWS Lambda 요금을 참조하십시오.",
+              "sourceSpan": {
+                "start": 291,
+                "end": 321
+              },
+              "sourceUrl": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+              "sourceTitle": "Lambda 함수의 동시성 한도 증가 요청 | AWS re:Post",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "requested-location-not-in-scope",
+                "semantic-review: Unrelated page and context about concurrency limits rather than Lambda request pricing."
+              ]
+            },
+            {
+              "id": "fact-2-1",
+              "status": "rejected",
+              "subject": "aws",
+              "predicate": "price",
+              "value": "4",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [
+                "4"
+              ],
+              "quote": "AWS 공식업데이트됨 4년 전 Lambda Extension이 Timeout Error의 원인인지 어떻게 트러블슈팅 할 수 있나요?",
+              "contextSpan": "AWS 공식업데이트됨 2년 전 Lambda 예약된 동시성 문제를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 4년 전 Lambda Extension이 Timeout Error의 원인인지 어떻게 트러블슈팅 할 수 있나요?",
+              "sourceSpan": {
+                "start": 3109,
+                "end": 3182
+              },
+              "sourceUrl": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+              "sourceTitle": "Lambda 함수의 동시성 한도 증가 요청 | AWS re:Post",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "requested-location-not-in-scope",
+                "semantic-review: Unrelated support article about timeout errors and concurrency."
+              ]
+            }
+          ],
+          "verifiedFacts": [
+            {
+              "id": "fact-1-0",
+              "status": "verified",
+              "subject": "요청",
+              "predicate": "price",
+              "value": "무료",
+              "unit": "무료",
+              "targetDate": "",
+              "targetLocation": "요청",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다.",
+              "contextSpan": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다.",
+              "sourceSpan": {
+                "start": 0,
+                "end": 135
+              },
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": []
+            },
+            {
+              "id": "fact-1-2",
+              "status": "verified",
+              "subject": "요청",
+              "predicate": "price",
+              "value": "100만 건",
+              "unit": "건",
+              "targetDate": "",
+              "targetLocation": "요청",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [
+                "100만",
+                "40만",
+                "86 ",
+                "2 "
+              ],
+              "quote": "AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+              "contextSpan": "자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+              "sourceSpan": {
+                "start": 1282,
+                "end": 1392
+              },
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": []
+            }
+          ],
+          "status": "verified",
+          "partial": true,
+          "semanticReview": {
+            "approveFactIds": [
+              "fact-1-0",
+              "fact-1-2"
+            ],
+            "rejectFactIds": [
+              "fact-1-1",
+              "fact-1-3",
+              "fact-1-4",
+              "fact-1-5",
+              "fact-2-0",
+              "fact-2-1"
+            ],
+            "reasonById": {
+              "fact-1-0": "Directly supports AWS Lambda request pricing information by mentioning free tier start.",
+              "fact-1-1": "Unrelated to request pricing details, discusses Graviton2 price-performance comparison.",
+              "fact-1-2": "Provides precise pricing and free tier details for AWS Lambda requests (1 million free requests per month).",
+              "fact-1-3": "Contains generic text about Savings Plans rather than specific request pricing facts.",
+              "fact-1-4": "Refers to AWS Pricing Calculator rather than specific request pricing facts.",
+              "fact-1-5": "Contains fragmented and ambiguous example calculations rather than direct standalone facts.",
+              "fact-2-0": "Unrelated page and context about concurrency limits rather than Lambda request pricing.",
+              "fact-2-1": "Unrelated support article about timeout errors and concurrency."
+            },
+            "invalid": false,
+            "requestSucceeded": true,
+            "responseSchemaValid": true,
+            "selectedFactIds": [
+              "fact-1-0",
+              "fact-1-2",
+              "fact-1-5",
+              "fact-1-3",
+              "fact-1-1",
+              "fact-1-4",
+              "fact-2-1",
+              "fact-2-0"
+            ],
+            "omittedFactIds": [],
+            "calls": 8,
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 56075
+          },
+          "evaluation": {
+            "responseSchemaValid": true,
+            "duplicateFactIdCount": 0,
+            "unknownFactIdCount": 0,
+            "missingFactIdCount": 0,
+            "modelApprovedFactCount": 2,
+            "codeVerifiedModelApprovalCount": 2,
+            "codeRejectedModelApprovalCount": 0,
+            "clearlyWrongAcceptedFactCount": null,
+            "codeDateIssueCount": 0,
+            "codeLocationIssueCount": 0,
+            "codeSubjectValueMixCount": 0,
+            "unrelatedBodyAcceptedCount": 0,
+            "selectedFactCount": 8,
+            "omittedFactCount": 0
+          },
+          "model": "gemini-3.5-flash-lite",
+          "callsForCase": 1,
+          "callsAfterCase": 8,
+          "processingMs": 3873
+        },
+        "replay": {
+          "facts": [
+            {
+              "id": "fact-1-0",
+              "subject": "요청",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "무료",
+              "unit": "무료",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "요청",
+              "attributes": [],
+              "quote": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다.",
+              "quoteStart": 0,
+              "sourceSpan": {
+                "start": 0,
+                "end": 135
+              },
+              "contextSpan": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다.",
+              "scopeText": "\nAWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "",
+                "output": "",
+                "currency": "원",
+                "tokenUnit": "",
+                "raw": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다. 워크로드 인식 클러스터 크기 조정 로직을 생성하고 이벤트 통합을 유지 관리하며 간편하게 런타임을 관리합니다. Lambda에서는 사실상 모든 유형의 애플리케이션이나 백엔드 서비스에 대한 코드를 별도의 관리 없이 실행할 수 있으며, 사용한 만큼만 비용을 지불합니다. 함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다. Lambda는 Amazon Simple Notification Service(SNS) 또는 Amazon EventBridge와 같은 이벤트 알림 트리거에 대한 응답으로 실행을 시작할 때마다 요청 수, Amazon API Gateway 또는 AWS Console에서 테스트 호출을 포함한 AWS SDK를 통한 호출 수를 계산합니다. 기간은 코드가 실행을 시작한 시간부터 반환되거나 종료될 때까지 시간으로 계산되며, 최대 1밀리초 단위로 반올림됩니다*. 요금은 함수에 할당한 메모리 양에 따라 결정됩니다. AWS Lambda 리소스 모델에서 함수에 사용할 메모리 양을 선택하면 이에 비례하여 CPU 용량과 기타 리소스가 할당됩니다. 메모리 크기가 증가하면 함수에 사용할 수 있는 CPU도 그만큼 증가하게 됩니다. 자세히 알아보려면 함수 구성 설명서를 참조하세요. x86 또는 Arm 아키텍처에 구축된 프로세서에서 Lambda 함수를 실행할 수 있습니다. Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다. 이는 웹 및 모바일 백엔드, 데이터, 미디어 처리와 같은 다양한 서버리스 워크로드에 적용됩니다. * 기간 요금은 함수의 핸들러에서 실행되는 코드 및 핸들러 외부에 선언된 초기화 코드에 적용됩니다. AWS Lambda 확장을 사용하는 Lambda 함수의 경우 기간에는 종료 단계 중에 마지막으로 실행 중인 확장의 코드 실행이 완료될 때까지 소요되는 시간도 포함됩니다. SnapStart로 구성된 Lambda 함수의 경우 런타임을 로드하는 데 걸리는 시간, 런타임 후크에서 실행되는 모든 코드, 복원력을 위해 생성된 스냅샷의 복사본을 생성하는 중에 실행되는 초기화 코드도 기간에 포함됩니다. 자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다. 또한 프리 티어에는 요청당 첫 6MB를 초과하는 월별 100GiB의 HTTP 응답 스트리밍이 무료로 포함됩니다. Lambda는 특정 월 사용량 임계값 위의 온디맨드 기간에 대한 구간별 요금 옵션도 제공합니다. AWS Lambda는 컴퓨팅 절감형 플랜에 참여합니다. 이는 1년 또는 3년 기간의 일정 사용량 약정(시간당 USD 단위)을 조건으로, Amazon Elastic Compute Cloud(Amazon EC2), AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다. Compute Savings Plans를 통해 AWS Lambda에서 최대 17%를 절감할 수 있습니다. Savings는 기간 및 프로비저닝된 동시성에 적용됩니다. 자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다. 지금 사용자 지정 예상 요금 생성 AWS Lambda 요금 {regionSelector} 아키텍처 시간 요청 x86 요금 {stringOf!lambda/lambda!Lambda!Duration![operation]} 처음 6십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 9십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 150억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} Arm 요금 {stringOf!lambda/lambda!Lambda!Duration-ARM![operation]} 처음 75억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 112억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 187억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> 비동기식 이벤트(S3, SNS, EventBridge, StepFunctions, Cloudwatch Logs의 이벤트 포함): 처음 256KB 동안은 각 비동기식 이벤트당 요청 1개에 대해 요금이 부과됩니다. 256KB를 초과하는 개별 이벤트 크기에는 최대 1MB까지 64KB 청크당 추가 요청 1개로 요금이 부과됩니다. 기간 비용은 함수에 할당한 메모리 양에 따라 결정됩니다. 128MB와 10,240MB 사이에서 1MB 증분 단위로 함수에 필요한 양의 메모리를 할당할 수 있습니다. 아래 표에는 첫 번째 요금 구간, 예를 들어 미국 동부(오하이오)에서 최대 6십억GB-초/월 안에 포함되는 사용량에 대해 서로 다른 메모리 크기에 연결된 1ms당 요금 예제가 나와 있습니다. x86 요금 Arm 요금 x86 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Arm 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Lambda 온디맨드 기간 요금 구간은 계정 내의 동일한 아키텍처(각각 x86 또는 Arm)와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. AWS Organizations에서 통합 결제를 사용하는 경우 요금 구간은 조직의 계정 내에서 동일한 아키텍처와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. Lambda 관리형 인스턴스 Lambda 관리형 인스턴스를 사용하면 Lambda의 서버리스 개발자 경험과 EC2의 비용 효율성 및 하드웨어 유연성을 결합하여 VPC의 완전 관리형 EC2 인스턴스에서 Lambda 함수를 실행할 수 있습니다. 이 기능은 Lambda의 운영 단순성을 유지하면서 비용은 최적화하려는 안정적인 대용량 워크로드에 적합합니다. Lambda 관리형 인스턴스를 사용하면 워크로드 요구 사항에 맞게 다양한 현재 세대 EC2 인스턴스 유형 중에서 선택하고, EC2 인스턴스 절감형 플랜, 컴퓨팅 절감형 플랜, 예약 인스턴스를 비롯한 EC2 요금 옵션의 이점을 활용하고, 동일한 실행 환경 내에서 다수의 요청을 동시에 처리하여 리소스 활용도를 극대화할 수 있습니다. Lambda는 익숙한 Lambda 프로그래밍 모델을 유지하고 SQS, Kinesis 및 Kafka와 같은 이벤트 소스와의 원활한 통합을 유지하면서 인스턴스 프로비저닝, 스케일링, 패치 및 수명 주기 관리를 자동으로 관리합니다. 요금: Lambda 관리형 인스턴스 요금에는 세 가지 구성 요소가 있습니다. 1. 요청 요금: 요청 100만 건당 0.20 USD 2. 컴퓨팅 관리 수수료: Lambda에서 프로비저닝하고 관리하는 인스턴스에 대한 EC2 온디맨드 인스턴스 요금의 15% 프리미엄 부과(각 인스턴스 유형별 프리미엄은 아래 제공) 3. EC2 인스턴스 요금: 표준 EC2 인스턴스 요금은 용량 공급자가 프로비저닝한 인스턴스에 적용됩니다. 컴퓨팅 절감형 플랜, 예약 인스턴스 또는 기타 EC2 요금 옵션을 사용하여 비용을 절감할 수 있습니다. 참고로 Lambda 관리형 인스턴스 함수는 Lambda(기본값) 컴퓨팅 유형 함수와 달리 각 요청의 실행 기간에 대해 별도로 비용을 지불하지 않습니다. 이벤트 소스 매핑: Kafka 또는 SQS와 같은 이벤트 소스와 함께 프로비저닝된 이벤트 폴러 단위(EPU)를 사용하는 워크로드의 경우 표준 EPU 요금이 적용됩니다. 관리 수수료 요금 예제: 처리량이 많은 API 서비스 요청당 평균 소요 시간이 200ms인 월 1억 개의 요청을 처리하는, 트래픽이 많은 API 서비스를 실행한다고 가정해 보겠습니다. m7g.xlarge 인스턴스(vCPU 4개, 메모리 16GB, Graviton3)를 사용하도록 Lambda 관리형 인스턴스 용량 공급자를 구성하고, 비용 절감을 극대화하기 위해 3년 컴퓨팅 절감형 플랜을 사용하는 설정입니다. 월별 요금 요청 요금 월별 요청: 요청 1억 건 요청 요금: 요청 100만 건당 0.20 USD 월별 요청 요금 = 100M / 1M x 0.20 USD = 20 USD 컴퓨팅 요금 인스턴스 유형: m7g.xlarge EC2 온디맨드 요금: 시간당 0.1632 USD(미국 동부 버지니아 북부) 3년 컴퓨팅 절감형 플랜 할인(72%) 적용 시: 시간당 0.0457 USD 예상 인스턴스 시간: 월 최대 2,000시간(워크로드 패턴 및 다중 동시성 기준) 월별 EC2 인스턴스 요금: 2,000 × 0.0457 USD = 91.40 USD 관리 수수료 요금 관리 수수료: EC2 온디맨드 요금의 15% 시간당 관리 수수료: 0.1632 USD × 0.15 = 시간당 0.02448 USD 월별 관리 수수료: 2,000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여, 탄력적이고 비용 효율적인 장기 실행 워크로드를 구현합니다. 내구성 함수에서는 선택적 데이터가 장기간 저장되는 체크포인트인 “step(단계)”와 “wait(대기)” 같은 내구성 작업을 사용하기 때문에, 중단 후 함수 실행을 재개할 수 있게 합니다. 함수가 재개되면 시스템은 재생을 수행하여, 이벤트 핸들러를 처음부터 자동으로 다시 실행합니다. 이때 완료된 체크포인트는 건너뛰고 중단 지점부터 계속 진행합니다. 수명 주기에는 실행을 완료하기 위해 여러 하위 호출(대기 작업, 재시도 또는 인프라 장애 후 재개 시 발생하는 Lambda 함수 간접 호출)이 포함될 수도 있습니다. 재생의 하위 간접 호출 요금을 포함한 기존 Lambda 컴퓨팅 요금이 적용됩니다. 대기 작업을 사용하는 경우 함수는 실행을 일시 중단하며, 온디맨드 함수는 실행이 재개될 때까지 기간 요금이..."
+              },
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "pricing-menu-not-request-price"
+              ],
+              "normalizedQuote": "awslambda개요기능요금시작하기리소스faq파트너awslambda요금무료로시작요금견적요청하기개요awslambda는서버를프로비저닝하거나관리하지않고도코드를실행할수있는서버리스컴퓨팅서비스입니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-1",
+              "subject": "aws",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "2",
+              "unit": "",
+              "normalizedQuantity": 2,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [
+                "2",
+                "86 ",
+                "34%"
+              ],
+              "quote": "Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다.",
+              "quoteStart": 801,
+              "sourceSpan": {
+                "start": 801,
+                "end": 916
+              },
+              "contextSpan": "x86 또는 Arm 아키텍처에 구축된 프로세서에서 Lambda 함수를 실행할 수 있습니다. Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다.",
+              "scopeText": "\nx86 또는 Arm 아키텍처에 구축된 프로세서에서 Lambda 함수를 실행할 수 있습니다. Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "",
+                "output": "",
+                "currency": "원",
+                "tokenUnit": "",
+                "raw": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다. 워크로드 인식 클러스터 크기 조정 로직을 생성하고 이벤트 통합을 유지 관리하며 간편하게 런타임을 관리합니다. Lambda에서는 사실상 모든 유형의 애플리케이션이나 백엔드 서비스에 대한 코드를 별도의 관리 없이 실행할 수 있으며, 사용한 만큼만 비용을 지불합니다. 함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다. Lambda는 Amazon Simple Notification Service(SNS) 또는 Amazon EventBridge와 같은 이벤트 알림 트리거에 대한 응답으로 실행을 시작할 때마다 요청 수, Amazon API Gateway 또는 AWS Console에서 테스트 호출을 포함한 AWS SDK를 통한 호출 수를 계산합니다. 기간은 코드가 실행을 시작한 시간부터 반환되거나 종료될 때까지 시간으로 계산되며, 최대 1밀리초 단위로 반올림됩니다*. 요금은 함수에 할당한 메모리 양에 따라 결정됩니다. AWS Lambda 리소스 모델에서 함수에 사용할 메모리 양을 선택하면 이에 비례하여 CPU 용량과 기타 리소스가 할당됩니다. 메모리 크기가 증가하면 함수에 사용할 수 있는 CPU도 그만큼 증가하게 됩니다. 자세히 알아보려면 함수 구성 설명서를 참조하세요. x86 또는 Arm 아키텍처에 구축된 프로세서에서 Lambda 함수를 실행할 수 있습니다. Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다. 이는 웹 및 모바일 백엔드, 데이터, 미디어 처리와 같은 다양한 서버리스 워크로드에 적용됩니다. * 기간 요금은 함수의 핸들러에서 실행되는 코드 및 핸들러 외부에 선언된 초기화 코드에 적용됩니다. AWS Lambda 확장을 사용하는 Lambda 함수의 경우 기간에는 종료 단계 중에 마지막으로 실행 중인 확장의 코드 실행이 완료될 때까지 소요되는 시간도 포함됩니다. SnapStart로 구성된 Lambda 함수의 경우 런타임을 로드하는 데 걸리는 시간, 런타임 후크에서 실행되는 모든 코드, 복원력을 위해 생성된 스냅샷의 복사본을 생성하는 중에 실행되는 초기화 코드도 기간에 포함됩니다. 자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다. 또한 프리 티어에는 요청당 첫 6MB를 초과하는 월별 100GiB의 HTTP 응답 스트리밍이 무료로 포함됩니다. Lambda는 특정 월 사용량 임계값 위의 온디맨드 기간에 대한 구간별 요금 옵션도 제공합니다. AWS Lambda는 컴퓨팅 절감형 플랜에 참여합니다. 이는 1년 또는 3년 기간의 일정 사용량 약정(시간당 USD 단위)을 조건으로, Amazon Elastic Compute Cloud(Amazon EC2), AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다. Compute Savings Plans를 통해 AWS Lambda에서 최대 17%를 절감할 수 있습니다. Savings는 기간 및 프로비저닝된 동시성에 적용됩니다. 자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다. 지금 사용자 지정 예상 요금 생성 AWS Lambda 요금 {regionSelector} 아키텍처 시간 요청 x86 요금 {stringOf!lambda/lambda!Lambda!Duration![operation]} 처음 6십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 9십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 150억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} Arm 요금 {stringOf!lambda/lambda!Lambda!Duration-ARM![operation]} 처음 75억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 112억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 187억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> 비동기식 이벤트(S3, SNS, EventBridge, StepFunctions, Cloudwatch Logs의 이벤트 포함): 처음 256KB 동안은 각 비동기식 이벤트당 요청 1개에 대해 요금이 부과됩니다. 256KB를 초과하는 개별 이벤트 크기에는 최대 1MB까지 64KB 청크당 추가 요청 1개로 요금이 부과됩니다. 기간 비용은 함수에 할당한 메모리 양에 따라 결정됩니다. 128MB와 10,240MB 사이에서 1MB 증분 단위로 함수에 필요한 양의 메모리를 할당할 수 있습니다. 아래 표에는 첫 번째 요금 구간, 예를 들어 미국 동부(오하이오)에서 최대 6십억GB-초/월 안에 포함되는 사용량에 대해 서로 다른 메모리 크기에 연결된 1ms당 요금 예제가 나와 있습니다. x86 요금 Arm 요금 x86 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Arm 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Lambda 온디맨드 기간 요금 구간은 계정 내의 동일한 아키텍처(각각 x86 또는 Arm)와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. AWS Organizations에서 통합 결제를 사용하는 경우 요금 구간은 조직의 계정 내에서 동일한 아키텍처와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. Lambda 관리형 인스턴스 Lambda 관리형 인스턴스를 사용하면 Lambda의 서버리스 개발자 경험과 EC2의 비용 효율성 및 하드웨어 유연성을 결합하여 VPC의 완전 관리형 EC2 인스턴스에서 Lambda 함수를 실행할 수 있습니다. 이 기능은 Lambda의 운영 단순성을 유지하면서 비용은 최적화하려는 안정적인 대용량 워크로드에 적합합니다. Lambda 관리형 인스턴스를 사용하면 워크로드 요구 사항에 맞게 다양한 현재 세대 EC2 인스턴스 유형 중에서 선택하고, EC2 인스턴스 절감형 플랜, 컴퓨팅 절감형 플랜, 예약 인스턴스를 비롯한 EC2 요금 옵션의 이점을 활용하고, 동일한 실행 환경 내에서 다수의 요청을 동시에 처리하여 리소스 활용도를 극대화할 수 있습니다. Lambda는 익숙한 Lambda 프로그래밍 모델을 유지하고 SQS, Kinesis 및 Kafka와 같은 이벤트 소스와의 원활한 통합을 유지하면서 인스턴스 프로비저닝, 스케일링, 패치 및 수명 주기 관리를 자동으로 관리합니다. 요금: Lambda 관리형 인스턴스 요금에는 세 가지 구성 요소가 있습니다. 1. 요청 요금: 요청 100만 건당 0.20 USD 2. 컴퓨팅 관리 수수료: Lambda에서 프로비저닝하고 관리하는 인스턴스에 대한 EC2 온디맨드 인스턴스 요금의 15% 프리미엄 부과(각 인스턴스 유형별 프리미엄은 아래 제공) 3. EC2 인스턴스 요금: 표준 EC2 인스턴스 요금은 용량 공급자가 프로비저닝한 인스턴스에 적용됩니다. 컴퓨팅 절감형 플랜, 예약 인스턴스 또는 기타 EC2 요금 옵션을 사용하여 비용을 절감할 수 있습니다. 참고로 Lambda 관리형 인스턴스 함수는 Lambda(기본값) 컴퓨팅 유형 함수와 달리 각 요청의 실행 기간에 대해 별도로 비용을 지불하지 않습니다. 이벤트 소스 매핑: Kafka 또는 SQS와 같은 이벤트 소스와 함께 프로비저닝된 이벤트 폴러 단위(EPU)를 사용하는 워크로드의 경우 표준 EPU 요금이 적용됩니다. 관리 수수료 요금 예제: 처리량이 많은 API 서비스 요청당 평균 소요 시간이 200ms인 월 1억 개의 요청을 처리하는, 트래픽이 많은 API 서비스를 실행한다고 가정해 보겠습니다. m7g.xlarge 인스턴스(vCPU 4개, 메모리 16GB, Graviton3)를 사용하도록 Lambda 관리형 인스턴스 용량 공급자를 구성하고, 비용 절감을 극대화하기 위해 3년 컴퓨팅 절감형 플랜을 사용하는 설정입니다. 월별 요금 요청 요금 월별 요청: 요청 1억 건 요청 요금: 요청 100만 건당 0.20 USD 월별 요청 요금 = 100M / 1M x 0.20 USD = 20 USD 컴퓨팅 요금 인스턴스 유형: m7g.xlarge EC2 온디맨드 요금: 시간당 0.1632 USD(미국 동부 버지니아 북부) 3년 컴퓨팅 절감형 플랜 할인(72%) 적용 시: 시간당 0.0457 USD 예상 인스턴스 시간: 월 최대 2,000시간(워크로드 패턴 및 다중 동시성 기준) 월별 EC2 인스턴스 요금: 2,000 × 0.0457 USD = 91.40 USD 관리 수수료 요금 관리 수수료: EC2 온디맨드 요금의 15% 시간당 관리 수수료: 0.1632 USD × 0.15 = 시간당 0.02448 USD 월별 관리 수수료: 2,000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여, 탄력적이고 비용 효율적인 장기 실행 워크로드를 구현합니다. 내구성 함수에서는 선택적 데이터가 장기간 저장되는 체크포인트인 “step(단계)”와 “wait(대기)” 같은 내구성 작업을 사용하기 때문에, 중단 후 함수 실행을 재개할 수 있게 합니다. 함수가 재개되면 시스템은 재생을 수행하여, 이벤트 핸들러를 처음부터 자동으로 다시 실행합니다. 이때 완료된 체크포인트는 건너뛰고 중단 지점부터 계속 진행합니다. 수명 주기에는 실행을 완료하기 위해 여러 하위 호출(대기 작업, 재시도 또는 인프라 장애 후 재개 시 발생하는 Lambda 함수 간접 호출)이 포함될 수도 있습니다. 재생의 하위 간접 호출 요금을 포함한 기존 Lambda 컴퓨팅 요금이 적용됩니다. 대기 작업을 사용하는 경우 함수는 실행을 일시 중단하며, 온디맨드 함수는 실행이 재개될 때까지 기간 요금이..."
+              },
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "graviton2에서실행되는awslambda함수는aws가설계한arm기반프로세서아키텍처를사용하여x86프로세서에서실행되는함수에비해최대34더나은가격대비성능을제공합니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-2",
+              "subject": "요청",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "100만 건",
+              "unit": "건",
+              "normalizedQuantity": 1000000,
+              "targetDate": "",
+              "targetLocation": "요청",
+              "attributes": [
+                "100만",
+                "40만",
+                "86 ",
+                "2 "
+              ],
+              "quote": "AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+              "quoteStart": 1282,
+              "sourceSpan": {
+                "start": 1282,
+                "end": 1392
+              },
+              "contextSpan": "자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+              "scopeText": "\n자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "verified",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "",
+                "output": "",
+                "currency": "원",
+                "tokenUnit": "",
+                "raw": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다. 워크로드 인식 클러스터 크기 조정 로직을 생성하고 이벤트 통합을 유지 관리하며 간편하게 런타임을 관리합니다. Lambda에서는 사실상 모든 유형의 애플리케이션이나 백엔드 서비스에 대한 코드를 별도의 관리 없이 실행할 수 있으며, 사용한 만큼만 비용을 지불합니다. 함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다. Lambda는 Amazon Simple Notification Service(SNS) 또는 Amazon EventBridge와 같은 이벤트 알림 트리거에 대한 응답으로 실행을 시작할 때마다 요청 수, Amazon API Gateway 또는 AWS Console에서 테스트 호출을 포함한 AWS SDK를 통한 호출 수를 계산합니다. 기간은 코드가 실행을 시작한 시간부터 반환되거나 종료될 때까지 시간으로 계산되며, 최대 1밀리초 단위로 반올림됩니다*. 요금은 함수에 할당한 메모리 양에 따라 결정됩니다. AWS Lambda 리소스 모델에서 함수에 사용할 메모리 양을 선택하면 이에 비례하여 CPU 용량과 기타 리소스가 할당됩니다. 메모리 크기가 증가하면 함수에 사용할 수 있는 CPU도 그만큼 증가하게 됩니다. 자세히 알아보려면 함수 구성 설명서를 참조하세요. x86 또는 Arm 아키텍처에 구축된 프로세서에서 Lambda 함수를 실행할 수 있습니다. Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다. 이는 웹 및 모바일 백엔드, 데이터, 미디어 처리와 같은 다양한 서버리스 워크로드에 적용됩니다. * 기간 요금은 함수의 핸들러에서 실행되는 코드 및 핸들러 외부에 선언된 초기화 코드에 적용됩니다. AWS Lambda 확장을 사용하는 Lambda 함수의 경우 기간에는 종료 단계 중에 마지막으로 실행 중인 확장의 코드 실행이 완료될 때까지 소요되는 시간도 포함됩니다. SnapStart로 구성된 Lambda 함수의 경우 런타임을 로드하는 데 걸리는 시간, 런타임 후크에서 실행되는 모든 코드, 복원력을 위해 생성된 스냅샷의 복사본을 생성하는 중에 실행되는 초기화 코드도 기간에 포함됩니다. 자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다. 또한 프리 티어에는 요청당 첫 6MB를 초과하는 월별 100GiB의 HTTP 응답 스트리밍이 무료로 포함됩니다. Lambda는 특정 월 사용량 임계값 위의 온디맨드 기간에 대한 구간별 요금 옵션도 제공합니다. AWS Lambda는 컴퓨팅 절감형 플랜에 참여합니다. 이는 1년 또는 3년 기간의 일정 사용량 약정(시간당 USD 단위)을 조건으로, Amazon Elastic Compute Cloud(Amazon EC2), AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다. Compute Savings Plans를 통해 AWS Lambda에서 최대 17%를 절감할 수 있습니다. Savings는 기간 및 프로비저닝된 동시성에 적용됩니다. 자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다. 지금 사용자 지정 예상 요금 생성 AWS Lambda 요금 {regionSelector} 아키텍처 시간 요청 x86 요금 {stringOf!lambda/lambda!Lambda!Duration![operation]} 처음 6십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 9십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 150억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} Arm 요금 {stringOf!lambda/lambda!Lambda!Duration-ARM![operation]} 처음 75억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 112억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 187억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> 비동기식 이벤트(S3, SNS, EventBridge, StepFunctions, Cloudwatch Logs의 이벤트 포함): 처음 256KB 동안은 각 비동기식 이벤트당 요청 1개에 대해 요금이 부과됩니다. 256KB를 초과하는 개별 이벤트 크기에는 최대 1MB까지 64KB 청크당 추가 요청 1개로 요금이 부과됩니다. 기간 비용은 함수에 할당한 메모리 양에 따라 결정됩니다. 128MB와 10,240MB 사이에서 1MB 증분 단위로 함수에 필요한 양의 메모리를 할당할 수 있습니다. 아래 표에는 첫 번째 요금 구간, 예를 들어 미국 동부(오하이오)에서 최대 6십억GB-초/월 안에 포함되는 사용량에 대해 서로 다른 메모리 크기에 연결된 1ms당 요금 예제가 나와 있습니다. x86 요금 Arm 요금 x86 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Arm 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Lambda 온디맨드 기간 요금 구간은 계정 내의 동일한 아키텍처(각각 x86 또는 Arm)와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. AWS Organizations에서 통합 결제를 사용하는 경우 요금 구간은 조직의 계정 내에서 동일한 아키텍처와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. Lambda 관리형 인스턴스 Lambda 관리형 인스턴스를 사용하면 Lambda의 서버리스 개발자 경험과 EC2의 비용 효율성 및 하드웨어 유연성을 결합하여 VPC의 완전 관리형 EC2 인스턴스에서 Lambda 함수를 실행할 수 있습니다. 이 기능은 Lambda의 운영 단순성을 유지하면서 비용은 최적화하려는 안정적인 대용량 워크로드에 적합합니다. Lambda 관리형 인스턴스를 사용하면 워크로드 요구 사항에 맞게 다양한 현재 세대 EC2 인스턴스 유형 중에서 선택하고, EC2 인스턴스 절감형 플랜, 컴퓨팅 절감형 플랜, 예약 인스턴스를 비롯한 EC2 요금 옵션의 이점을 활용하고, 동일한 실행 환경 내에서 다수의 요청을 동시에 처리하여 리소스 활용도를 극대화할 수 있습니다. Lambda는 익숙한 Lambda 프로그래밍 모델을 유지하고 SQS, Kinesis 및 Kafka와 같은 이벤트 소스와의 원활한 통합을 유지하면서 인스턴스 프로비저닝, 스케일링, 패치 및 수명 주기 관리를 자동으로 관리합니다. 요금: Lambda 관리형 인스턴스 요금에는 세 가지 구성 요소가 있습니다. 1. 요청 요금: 요청 100만 건당 0.20 USD 2. 컴퓨팅 관리 수수료: Lambda에서 프로비저닝하고 관리하는 인스턴스에 대한 EC2 온디맨드 인스턴스 요금의 15% 프리미엄 부과(각 인스턴스 유형별 프리미엄은 아래 제공) 3. EC2 인스턴스 요금: 표준 EC2 인스턴스 요금은 용량 공급자가 프로비저닝한 인스턴스에 적용됩니다. 컴퓨팅 절감형 플랜, 예약 인스턴스 또는 기타 EC2 요금 옵션을 사용하여 비용을 절감할 수 있습니다. 참고로 Lambda 관리형 인스턴스 함수는 Lambda(기본값) 컴퓨팅 유형 함수와 달리 각 요청의 실행 기간에 대해 별도로 비용을 지불하지 않습니다. 이벤트 소스 매핑: Kafka 또는 SQS와 같은 이벤트 소스와 함께 프로비저닝된 이벤트 폴러 단위(EPU)를 사용하는 워크로드의 경우 표준 EPU 요금이 적용됩니다. 관리 수수료 요금 예제: 처리량이 많은 API 서비스 요청당 평균 소요 시간이 200ms인 월 1억 개의 요청을 처리하는, 트래픽이 많은 API 서비스를 실행한다고 가정해 보겠습니다. m7g.xlarge 인스턴스(vCPU 4개, 메모리 16GB, Graviton3)를 사용하도록 Lambda 관리형 인스턴스 용량 공급자를 구성하고, 비용 절감을 극대화하기 위해 3년 컴퓨팅 절감형 플랜을 사용하는 설정입니다. 월별 요금 요청 요금 월별 요청: 요청 1억 건 요청 요금: 요청 100만 건당 0.20 USD 월별 요청 요금 = 100M / 1M x 0.20 USD = 20 USD 컴퓨팅 요금 인스턴스 유형: m7g.xlarge EC2 온디맨드 요금: 시간당 0.1632 USD(미국 동부 버지니아 북부) 3년 컴퓨팅 절감형 플랜 할인(72%) 적용 시: 시간당 0.0457 USD 예상 인스턴스 시간: 월 최대 2,000시간(워크로드 패턴 및 다중 동시성 기준) 월별 EC2 인스턴스 요금: 2,000 × 0.0457 USD = 91.40 USD 관리 수수료 요금 관리 수수료: EC2 온디맨드 요금의 15% 시간당 관리 수수료: 0.1632 USD × 0.15 = 시간당 0.02448 USD 월별 관리 수수료: 2,000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여, 탄력적이고 비용 효율적인 장기 실행 워크로드를 구현합니다. 내구성 함수에서는 선택적 데이터가 장기간 저장되는 체크포인트인 “step(단계)”와 “wait(대기)” 같은 내구성 작업을 사용하기 때문에, 중단 후 함수 실행을 재개할 수 있게 합니다. 함수가 재개되면 시스템은 재생을 수행하여, 이벤트 핸들러를 처음부터 자동으로 다시 실행합니다. 이때 완료된 체크포인트는 건너뛰고 중단 지점부터 계속 진행합니다. 수명 주기에는 실행을 완료하기 위해 여러 하위 호출(대기 작업, 재시도 또는 인프라 장애 후 재개 시 발생하는 Lambda 함수 간접 호출)이 포함될 수도 있습니다. 재생의 하위 간접 호출 요금을 포함한 기존 Lambda 컴퓨팅 요금이 적용됩니다. 대기 작업을 사용하는 경우 함수는 실행을 일시 중단하며, 온디맨드 함수는 실행이 재개될 때까지 기간 요금이..."
+              },
+              "extractionStatus": "candidate",
+              "verificationStage": "structurally-verified",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [],
+              "normalizedQuote": "awslambda프리티어에는월100만건의무료요청과월40만gb초의컴퓨팅시간이포함되어있으며x86및graviton2프로세서로구동되는기능에모두사용할수있습니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-3",
+              "subject": "aws",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [],
+              "quote": "AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다.",
+              "quoteStart": 1628,
+              "sourceSpan": {
+                "start": 1628,
+                "end": 1683
+              },
+              "contextSpan": "AWS Lambda는 컴퓨팅 절감형 플랜에 참여합니다. 이는 1년 또는 3년 기간의 일정 사용량 약정(시간당 USD 단위)을 조건으로, Amazon Elastic Compute Cloud(Amazon EC2), AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다.",
+              "scopeText": "\nAWS Lambda는 컴퓨팅 절감형 플랜에 참여합니다. 이는 1년 또는 3년 기간의 일정 사용량 약정(시간당 USD 단위)을 조건으로, Amazon Elastic Compute Cloud(Amazon EC2), AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "",
+                "output": "",
+                "currency": "원",
+                "tokenUnit": "",
+                "raw": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다. 워크로드 인식 클러스터 크기 조정 로직을 생성하고 이벤트 통합을 유지 관리하며 간편하게 런타임을 관리합니다. Lambda에서는 사실상 모든 유형의 애플리케이션이나 백엔드 서비스에 대한 코드를 별도의 관리 없이 실행할 수 있으며, 사용한 만큼만 비용을 지불합니다. 함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다. Lambda는 Amazon Simple Notification Service(SNS) 또는 Amazon EventBridge와 같은 이벤트 알림 트리거에 대한 응답으로 실행을 시작할 때마다 요청 수, Amazon API Gateway 또는 AWS Console에서 테스트 호출을 포함한 AWS SDK를 통한 호출 수를 계산합니다. 기간은 코드가 실행을 시작한 시간부터 반환되거나 종료될 때까지 시간으로 계산되며, 최대 1밀리초 단위로 반올림됩니다*. 요금은 함수에 할당한 메모리 양에 따라 결정됩니다. AWS Lambda 리소스 모델에서 함수에 사용할 메모리 양을 선택하면 이에 비례하여 CPU 용량과 기타 리소스가 할당됩니다. 메모리 크기가 증가하면 함수에 사용할 수 있는 CPU도 그만큼 증가하게 됩니다. 자세히 알아보려면 함수 구성 설명서를 참조하세요. x86 또는 Arm 아키텍처에 구축된 프로세서에서 Lambda 함수를 실행할 수 있습니다. Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다. 이는 웹 및 모바일 백엔드, 데이터, 미디어 처리와 같은 다양한 서버리스 워크로드에 적용됩니다. * 기간 요금은 함수의 핸들러에서 실행되는 코드 및 핸들러 외부에 선언된 초기화 코드에 적용됩니다. AWS Lambda 확장을 사용하는 Lambda 함수의 경우 기간에는 종료 단계 중에 마지막으로 실행 중인 확장의 코드 실행이 완료될 때까지 소요되는 시간도 포함됩니다. SnapStart로 구성된 Lambda 함수의 경우 런타임을 로드하는 데 걸리는 시간, 런타임 후크에서 실행되는 모든 코드, 복원력을 위해 생성된 스냅샷의 복사본을 생성하는 중에 실행되는 초기화 코드도 기간에 포함됩니다. 자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다. 또한 프리 티어에는 요청당 첫 6MB를 초과하는 월별 100GiB의 HTTP 응답 스트리밍이 무료로 포함됩니다. Lambda는 특정 월 사용량 임계값 위의 온디맨드 기간에 대한 구간별 요금 옵션도 제공합니다. AWS Lambda는 컴퓨팅 절감형 플랜에 참여합니다. 이는 1년 또는 3년 기간의 일정 사용량 약정(시간당 USD 단위)을 조건으로, Amazon Elastic Compute Cloud(Amazon EC2), AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다. Compute Savings Plans를 통해 AWS Lambda에서 최대 17%를 절감할 수 있습니다. Savings는 기간 및 프로비저닝된 동시성에 적용됩니다. 자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다. 지금 사용자 지정 예상 요금 생성 AWS Lambda 요금 {regionSelector} 아키텍처 시간 요청 x86 요금 {stringOf!lambda/lambda!Lambda!Duration![operation]} 처음 6십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 9십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 150억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} Arm 요금 {stringOf!lambda/lambda!Lambda!Duration-ARM![operation]} 처음 75억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 112억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 187억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> 비동기식 이벤트(S3, SNS, EventBridge, StepFunctions, Cloudwatch Logs의 이벤트 포함): 처음 256KB 동안은 각 비동기식 이벤트당 요청 1개에 대해 요금이 부과됩니다. 256KB를 초과하는 개별 이벤트 크기에는 최대 1MB까지 64KB 청크당 추가 요청 1개로 요금이 부과됩니다. 기간 비용은 함수에 할당한 메모리 양에 따라 결정됩니다. 128MB와 10,240MB 사이에서 1MB 증분 단위로 함수에 필요한 양의 메모리를 할당할 수 있습니다. 아래 표에는 첫 번째 요금 구간, 예를 들어 미국 동부(오하이오)에서 최대 6십억GB-초/월 안에 포함되는 사용량에 대해 서로 다른 메모리 크기에 연결된 1ms당 요금 예제가 나와 있습니다. x86 요금 Arm 요금 x86 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Arm 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Lambda 온디맨드 기간 요금 구간은 계정 내의 동일한 아키텍처(각각 x86 또는 Arm)와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. AWS Organizations에서 통합 결제를 사용하는 경우 요금 구간은 조직의 계정 내에서 동일한 아키텍처와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. Lambda 관리형 인스턴스 Lambda 관리형 인스턴스를 사용하면 Lambda의 서버리스 개발자 경험과 EC2의 비용 효율성 및 하드웨어 유연성을 결합하여 VPC의 완전 관리형 EC2 인스턴스에서 Lambda 함수를 실행할 수 있습니다. 이 기능은 Lambda의 운영 단순성을 유지하면서 비용은 최적화하려는 안정적인 대용량 워크로드에 적합합니다. Lambda 관리형 인스턴스를 사용하면 워크로드 요구 사항에 맞게 다양한 현재 세대 EC2 인스턴스 유형 중에서 선택하고, EC2 인스턴스 절감형 플랜, 컴퓨팅 절감형 플랜, 예약 인스턴스를 비롯한 EC2 요금 옵션의 이점을 활용하고, 동일한 실행 환경 내에서 다수의 요청을 동시에 처리하여 리소스 활용도를 극대화할 수 있습니다. Lambda는 익숙한 Lambda 프로그래밍 모델을 유지하고 SQS, Kinesis 및 Kafka와 같은 이벤트 소스와의 원활한 통합을 유지하면서 인스턴스 프로비저닝, 스케일링, 패치 및 수명 주기 관리를 자동으로 관리합니다. 요금: Lambda 관리형 인스턴스 요금에는 세 가지 구성 요소가 있습니다. 1. 요청 요금: 요청 100만 건당 0.20 USD 2. 컴퓨팅 관리 수수료: Lambda에서 프로비저닝하고 관리하는 인스턴스에 대한 EC2 온디맨드 인스턴스 요금의 15% 프리미엄 부과(각 인스턴스 유형별 프리미엄은 아래 제공) 3. EC2 인스턴스 요금: 표준 EC2 인스턴스 요금은 용량 공급자가 프로비저닝한 인스턴스에 적용됩니다. 컴퓨팅 절감형 플랜, 예약 인스턴스 또는 기타 EC2 요금 옵션을 사용하여 비용을 절감할 수 있습니다. 참고로 Lambda 관리형 인스턴스 함수는 Lambda(기본값) 컴퓨팅 유형 함수와 달리 각 요청의 실행 기간에 대해 별도로 비용을 지불하지 않습니다. 이벤트 소스 매핑: Kafka 또는 SQS와 같은 이벤트 소스와 함께 프로비저닝된 이벤트 폴러 단위(EPU)를 사용하는 워크로드의 경우 표준 EPU 요금이 적용됩니다. 관리 수수료 요금 예제: 처리량이 많은 API 서비스 요청당 평균 소요 시간이 200ms인 월 1억 개의 요청을 처리하는, 트래픽이 많은 API 서비스를 실행한다고 가정해 보겠습니다. m7g.xlarge 인스턴스(vCPU 4개, 메모리 16GB, Graviton3)를 사용하도록 Lambda 관리형 인스턴스 용량 공급자를 구성하고, 비용 절감을 극대화하기 위해 3년 컴퓨팅 절감형 플랜을 사용하는 설정입니다. 월별 요금 요청 요금 월별 요청: 요청 1억 건 요청 요금: 요청 100만 건당 0.20 USD 월별 요청 요금 = 100M / 1M x 0.20 USD = 20 USD 컴퓨팅 요금 인스턴스 유형: m7g.xlarge EC2 온디맨드 요금: 시간당 0.1632 USD(미국 동부 버지니아 북부) 3년 컴퓨팅 절감형 플랜 할인(72%) 적용 시: 시간당 0.0457 USD 예상 인스턴스 시간: 월 최대 2,000시간(워크로드 패턴 및 다중 동시성 기준) 월별 EC2 인스턴스 요금: 2,000 × 0.0457 USD = 91.40 USD 관리 수수료 요금 관리 수수료: EC2 온디맨드 요금의 15% 시간당 관리 수수료: 0.1632 USD × 0.15 = 시간당 0.02448 USD 월별 관리 수수료: 2,000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여, 탄력적이고 비용 효율적인 장기 실행 워크로드를 구현합니다. 내구성 함수에서는 선택적 데이터가 장기간 저장되는 체크포인트인 “step(단계)”와 “wait(대기)” 같은 내구성 작업을 사용하기 때문에, 중단 후 함수 실행을 재개할 수 있게 합니다. 함수가 재개되면 시스템은 재생을 수행하여, 이벤트 핸들러를 처음부터 자동으로 다시 실행합니다. 이때 완료된 체크포인트는 건너뛰고 중단 지점부터 계속 진행합니다. 수명 주기에는 실행을 완료하기 위해 여러 하위 호출(대기 작업, 재시도 또는 인프라 장애 후 재개 시 발생하는 Lambda 함수 간접 호출)이 포함될 수도 있습니다. 재생의 하위 간접 호출 요금을 포함한 기존 Lambda 컴퓨팅 요금이 적용됩니다. 대기 작업을 사용하는 경우 함수는 실행을 일시 중단하며, 온디맨드 함수는 실행이 재개될 때까지 기간 요금이..."
+              },
+              "extractionStatus": "held-no-reliable-value",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "awsfargate및lambda사용량에대해저렴한요금을제공하는유연한요금모델입니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-4",
+              "subject": "aws",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [],
+              "quote": "자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다.",
+              "quoteStart": 1776,
+              "sourceSpan": {
+                "start": 1776,
+                "end": 1852
+              },
+              "contextSpan": "Savings는 기간 및 프로비저닝된 동시성에 적용됩니다. 자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다.",
+              "scopeText": "\nSavings는 기간 및 프로비저닝된 동시성에 적용됩니다. 자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "",
+                "output": "",
+                "currency": "원",
+                "tokenUnit": "",
+                "raw": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다. 워크로드 인식 클러스터 크기 조정 로직을 생성하고 이벤트 통합을 유지 관리하며 간편하게 런타임을 관리합니다. Lambda에서는 사실상 모든 유형의 애플리케이션이나 백엔드 서비스에 대한 코드를 별도의 관리 없이 실행할 수 있으며, 사용한 만큼만 비용을 지불합니다. 함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다. Lambda는 Amazon Simple Notification Service(SNS) 또는 Amazon EventBridge와 같은 이벤트 알림 트리거에 대한 응답으로 실행을 시작할 때마다 요청 수, Amazon API Gateway 또는 AWS Console에서 테스트 호출을 포함한 AWS SDK를 통한 호출 수를 계산합니다. 기간은 코드가 실행을 시작한 시간부터 반환되거나 종료될 때까지 시간으로 계산되며, 최대 1밀리초 단위로 반올림됩니다*. 요금은 함수에 할당한 메모리 양에 따라 결정됩니다. AWS Lambda 리소스 모델에서 함수에 사용할 메모리 양을 선택하면 이에 비례하여 CPU 용량과 기타 리소스가 할당됩니다. 메모리 크기가 증가하면 함수에 사용할 수 있는 CPU도 그만큼 증가하게 됩니다. 자세히 알아보려면 함수 구성 설명서를 참조하세요. x86 또는 Arm 아키텍처에 구축된 프로세서에서 Lambda 함수를 실행할 수 있습니다. Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다. 이는 웹 및 모바일 백엔드, 데이터, 미디어 처리와 같은 다양한 서버리스 워크로드에 적용됩니다. * 기간 요금은 함수의 핸들러에서 실행되는 코드 및 핸들러 외부에 선언된 초기화 코드에 적용됩니다. AWS Lambda 확장을 사용하는 Lambda 함수의 경우 기간에는 종료 단계 중에 마지막으로 실행 중인 확장의 코드 실행이 완료될 때까지 소요되는 시간도 포함됩니다. SnapStart로 구성된 Lambda 함수의 경우 런타임을 로드하는 데 걸리는 시간, 런타임 후크에서 실행되는 모든 코드, 복원력을 위해 생성된 스냅샷의 복사본을 생성하는 중에 실행되는 초기화 코드도 기간에 포함됩니다. 자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다. 또한 프리 티어에는 요청당 첫 6MB를 초과하는 월별 100GiB의 HTTP 응답 스트리밍이 무료로 포함됩니다. Lambda는 특정 월 사용량 임계값 위의 온디맨드 기간에 대한 구간별 요금 옵션도 제공합니다. AWS Lambda는 컴퓨팅 절감형 플랜에 참여합니다. 이는 1년 또는 3년 기간의 일정 사용량 약정(시간당 USD 단위)을 조건으로, Amazon Elastic Compute Cloud(Amazon EC2), AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다. Compute Savings Plans를 통해 AWS Lambda에서 최대 17%를 절감할 수 있습니다. Savings는 기간 및 프로비저닝된 동시성에 적용됩니다. 자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다. 지금 사용자 지정 예상 요금 생성 AWS Lambda 요금 {regionSelector} 아키텍처 시간 요청 x86 요금 {stringOf!lambda/lambda!Lambda!Duration![operation]} 처음 6십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 9십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 150억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} Arm 요금 {stringOf!lambda/lambda!Lambda!Duration-ARM![operation]} 처음 75억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 112억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 187억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> 비동기식 이벤트(S3, SNS, EventBridge, StepFunctions, Cloudwatch Logs의 이벤트 포함): 처음 256KB 동안은 각 비동기식 이벤트당 요청 1개에 대해 요금이 부과됩니다. 256KB를 초과하는 개별 이벤트 크기에는 최대 1MB까지 64KB 청크당 추가 요청 1개로 요금이 부과됩니다. 기간 비용은 함수에 할당한 메모리 양에 따라 결정됩니다. 128MB와 10,240MB 사이에서 1MB 증분 단위로 함수에 필요한 양의 메모리를 할당할 수 있습니다. 아래 표에는 첫 번째 요금 구간, 예를 들어 미국 동부(오하이오)에서 최대 6십억GB-초/월 안에 포함되는 사용량에 대해 서로 다른 메모리 크기에 연결된 1ms당 요금 예제가 나와 있습니다. x86 요금 Arm 요금 x86 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Arm 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Lambda 온디맨드 기간 요금 구간은 계정 내의 동일한 아키텍처(각각 x86 또는 Arm)와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. AWS Organizations에서 통합 결제를 사용하는 경우 요금 구간은 조직의 계정 내에서 동일한 아키텍처와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. Lambda 관리형 인스턴스 Lambda 관리형 인스턴스를 사용하면 Lambda의 서버리스 개발자 경험과 EC2의 비용 효율성 및 하드웨어 유연성을 결합하여 VPC의 완전 관리형 EC2 인스턴스에서 Lambda 함수를 실행할 수 있습니다. 이 기능은 Lambda의 운영 단순성을 유지하면서 비용은 최적화하려는 안정적인 대용량 워크로드에 적합합니다. Lambda 관리형 인스턴스를 사용하면 워크로드 요구 사항에 맞게 다양한 현재 세대 EC2 인스턴스 유형 중에서 선택하고, EC2 인스턴스 절감형 플랜, 컴퓨팅 절감형 플랜, 예약 인스턴스를 비롯한 EC2 요금 옵션의 이점을 활용하고, 동일한 실행 환경 내에서 다수의 요청을 동시에 처리하여 리소스 활용도를 극대화할 수 있습니다. Lambda는 익숙한 Lambda 프로그래밍 모델을 유지하고 SQS, Kinesis 및 Kafka와 같은 이벤트 소스와의 원활한 통합을 유지하면서 인스턴스 프로비저닝, 스케일링, 패치 및 수명 주기 관리를 자동으로 관리합니다. 요금: Lambda 관리형 인스턴스 요금에는 세 가지 구성 요소가 있습니다. 1. 요청 요금: 요청 100만 건당 0.20 USD 2. 컴퓨팅 관리 수수료: Lambda에서 프로비저닝하고 관리하는 인스턴스에 대한 EC2 온디맨드 인스턴스 요금의 15% 프리미엄 부과(각 인스턴스 유형별 프리미엄은 아래 제공) 3. EC2 인스턴스 요금: 표준 EC2 인스턴스 요금은 용량 공급자가 프로비저닝한 인스턴스에 적용됩니다. 컴퓨팅 절감형 플랜, 예약 인스턴스 또는 기타 EC2 요금 옵션을 사용하여 비용을 절감할 수 있습니다. 참고로 Lambda 관리형 인스턴스 함수는 Lambda(기본값) 컴퓨팅 유형 함수와 달리 각 요청의 실행 기간에 대해 별도로 비용을 지불하지 않습니다. 이벤트 소스 매핑: Kafka 또는 SQS와 같은 이벤트 소스와 함께 프로비저닝된 이벤트 폴러 단위(EPU)를 사용하는 워크로드의 경우 표준 EPU 요금이 적용됩니다. 관리 수수료 요금 예제: 처리량이 많은 API 서비스 요청당 평균 소요 시간이 200ms인 월 1억 개의 요청을 처리하는, 트래픽이 많은 API 서비스를 실행한다고 가정해 보겠습니다. m7g.xlarge 인스턴스(vCPU 4개, 메모리 16GB, Graviton3)를 사용하도록 Lambda 관리형 인스턴스 용량 공급자를 구성하고, 비용 절감을 극대화하기 위해 3년 컴퓨팅 절감형 플랜을 사용하는 설정입니다. 월별 요금 요청 요금 월별 요청: 요청 1억 건 요청 요금: 요청 100만 건당 0.20 USD 월별 요청 요금 = 100M / 1M x 0.20 USD = 20 USD 컴퓨팅 요금 인스턴스 유형: m7g.xlarge EC2 온디맨드 요금: 시간당 0.1632 USD(미국 동부 버지니아 북부) 3년 컴퓨팅 절감형 플랜 할인(72%) 적용 시: 시간당 0.0457 USD 예상 인스턴스 시간: 월 최대 2,000시간(워크로드 패턴 및 다중 동시성 기준) 월별 EC2 인스턴스 요금: 2,000 × 0.0457 USD = 91.40 USD 관리 수수료 요금 관리 수수료: EC2 온디맨드 요금의 15% 시간당 관리 수수료: 0.1632 USD × 0.15 = 시간당 0.02448 USD 월별 관리 수수료: 2,000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여, 탄력적이고 비용 효율적인 장기 실행 워크로드를 구현합니다. 내구성 함수에서는 선택적 데이터가 장기간 저장되는 체크포인트인 “step(단계)”와 “wait(대기)” 같은 내구성 작업을 사용하기 때문에, 중단 후 함수 실행을 재개할 수 있게 합니다. 함수가 재개되면 시스템은 재생을 수행하여, 이벤트 핸들러를 처음부터 자동으로 다시 실행합니다. 이때 완료된 체크포인트는 건너뛰고 중단 지점부터 계속 진행합니다. 수명 주기에는 실행을 완료하기 위해 여러 하위 호출(대기 작업, 재시도 또는 인프라 장애 후 재개 시 발생하는 Lambda 함수 간접 호출)이 포함될 수도 있습니다. 재생의 하위 간접 호출 요금을 포함한 기존 Lambda 컴퓨팅 요금이 적용됩니다. 대기 작업을 사용하는 경우 함수는 실행을 일시 중단하며, 온디맨드 함수는 실행이 재개될 때까지 기간 요금이..."
+              },
+              "extractionStatus": "held-no-reliable-value",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "자세히알아보기awspricingcalculatorawslambda및아키텍처비용을단일예상비용으로계산할수있습니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-5",
+              "subject": "요청",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "000",
+              "unit": "",
+              "normalizedQuantity": 0,
+              "targetDate": "",
+              "targetLocation": "요청",
+              "attributes": [
+                "000 ",
+                "0.02448 USD",
+                "48.96 USD",
+                "2 ",
+                "20 USD",
+                "91.40 USD",
+                "160.36 USD"
+              ],
+              "quote": "000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여",
+              "quoteStart": 7334,
+              "sourceSpan": {
+                "start": 7334,
+                "end": 7568
+              },
+              "contextSpan": "m7g.xlarge 인스턴스(vCPU 4개, 메모리 16GB, Graviton3)를 사용하도록 Lambda 관리형 인스턴스 용량 공급자를 구성하고, 비용 절감을 극대화하기 위해 3년 컴퓨팅 절감형 플랜을 사용하는 설정입니다. 월별 요금 요청 요금 월별 요청: 요청 1억 건 요청 요금: 요청 100만 건당 0.20 USD 월별 요청 요금 = 100M / 1M x 0.20 USD = 20 USD 컴퓨팅 요금 인스턴스 유형: m7g.xlarge EC2 온디맨드 요금: 시간당 0.1632 USD(미국 동부 버지니아 북부) 3년 컴퓨팅 절감형 플랜 할인(72%) 적용 시: 시간당 0.0457 USD 예상 인스턴스 시간: 월 최대 2,000시간(워크로드 패턴 및 다중 동시성 기준) 월별 EC2 인스턴스 요금: 2,000 × 0.0457 USD = 91.40 USD 관리 수수료 요금 관리 수수료: EC2 온디맨드 요금의 15% 시간당 관리 수수료: 0.1632 USD × 0.15 = 시간당 0.02448 USD 월별 관리 수수료: 2,000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여",
+              "scopeText": "\nm7g.xlarge 인스턴스(vCPU 4개, 메모리 16GB, Graviton3)를 사용하도록 Lambda 관리형 인스턴스 용량 공급자를 구성하고, 비용 절감을 극대화하기 위해 3년 컴퓨팅 절감형 플랜을 사용하는 설정입니다. 월별 요금 요청 요금 월별 요청: 요청 1억 건 요청 요금: 요청 100만 건당 0.20 USD 월별 요청 요금 = 100M / 1M x 0.20 USD = 20 USD 컴퓨팅 요금 인스턴스 유형: m7g.xlarge EC2 온디맨드 요금: 시간당 0.1632 USD(미국 동부 버지니아 북부) 3년 컴퓨팅 절감형 플랜 할인(72%) 적용 시: 시간당 0.0457 USD 예상 인스턴스 시간: 월 최대 2,000시간(워크로드 패턴 및 다중 동시성 기준) 월별 EC2 인스턴스 요금: 2,000 × 0.0457 USD = 91.40 USD 관리 수수료 요금 관리 수수료: EC2 온디맨드 요금의 15% 시간당 관리 수수료: 0.1632 USD × 0.15 = 시간당 0.02448 USD 월별 관리 수수료: 2,000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "",
+                "output": "",
+                "currency": "원",
+                "tokenUnit": "",
+                "raw": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다. 워크로드 인식 클러스터 크기 조정 로직을 생성하고 이벤트 통합을 유지 관리하며 간편하게 런타임을 관리합니다. Lambda에서는 사실상 모든 유형의 애플리케이션이나 백엔드 서비스에 대한 코드를 별도의 관리 없이 실행할 수 있으며, 사용한 만큼만 비용을 지불합니다. 함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다. Lambda는 Amazon Simple Notification Service(SNS) 또는 Amazon EventBridge와 같은 이벤트 알림 트리거에 대한 응답으로 실행을 시작할 때마다 요청 수, Amazon API Gateway 또는 AWS Console에서 테스트 호출을 포함한 AWS SDK를 통한 호출 수를 계산합니다. 기간은 코드가 실행을 시작한 시간부터 반환되거나 종료될 때까지 시간으로 계산되며, 최대 1밀리초 단위로 반올림됩니다*. 요금은 함수에 할당한 메모리 양에 따라 결정됩니다. AWS Lambda 리소스 모델에서 함수에 사용할 메모리 양을 선택하면 이에 비례하여 CPU 용량과 기타 리소스가 할당됩니다. 메모리 크기가 증가하면 함수에 사용할 수 있는 CPU도 그만큼 증가하게 됩니다. 자세히 알아보려면 함수 구성 설명서를 참조하세요. x86 또는 Arm 아키텍처에 구축된 프로세서에서 Lambda 함수를 실행할 수 있습니다. Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다. 이는 웹 및 모바일 백엔드, 데이터, 미디어 처리와 같은 다양한 서버리스 워크로드에 적용됩니다. * 기간 요금은 함수의 핸들러에서 실행되는 코드 및 핸들러 외부에 선언된 초기화 코드에 적용됩니다. AWS Lambda 확장을 사용하는 Lambda 함수의 경우 기간에는 종료 단계 중에 마지막으로 실행 중인 확장의 코드 실행이 완료될 때까지 소요되는 시간도 포함됩니다. SnapStart로 구성된 Lambda 함수의 경우 런타임을 로드하는 데 걸리는 시간, 런타임 후크에서 실행되는 모든 코드, 복원력을 위해 생성된 스냅샷의 복사본을 생성하는 중에 실행되는 초기화 코드도 기간에 포함됩니다. 자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다. 또한 프리 티어에는 요청당 첫 6MB를 초과하는 월별 100GiB의 HTTP 응답 스트리밍이 무료로 포함됩니다. Lambda는 특정 월 사용량 임계값 위의 온디맨드 기간에 대한 구간별 요금 옵션도 제공합니다. AWS Lambda는 컴퓨팅 절감형 플랜에 참여합니다. 이는 1년 또는 3년 기간의 일정 사용량 약정(시간당 USD 단위)을 조건으로, Amazon Elastic Compute Cloud(Amazon EC2), AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다. Compute Savings Plans를 통해 AWS Lambda에서 최대 17%를 절감할 수 있습니다. Savings는 기간 및 프로비저닝된 동시성에 적용됩니다. 자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다. 지금 사용자 지정 예상 요금 생성 AWS Lambda 요금 {regionSelector} 아키텍처 시간 요청 x86 요금 {stringOf!lambda/lambda!Lambda!Duration![operation]} 처음 6십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 9십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 150억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} Arm 요금 {stringOf!lambda/lambda!Lambda!Duration-ARM![operation]} 처음 75억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 112억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 187억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> 비동기식 이벤트(S3, SNS, EventBridge, StepFunctions, Cloudwatch Logs의 이벤트 포함): 처음 256KB 동안은 각 비동기식 이벤트당 요청 1개에 대해 요금이 부과됩니다. 256KB를 초과하는 개별 이벤트 크기에는 최대 1MB까지 64KB 청크당 추가 요청 1개로 요금이 부과됩니다. 기간 비용은 함수에 할당한 메모리 양에 따라 결정됩니다. 128MB와 10,240MB 사이에서 1MB 증분 단위로 함수에 필요한 양의 메모리를 할당할 수 있습니다. 아래 표에는 첫 번째 요금 구간, 예를 들어 미국 동부(오하이오)에서 최대 6십억GB-초/월 안에 포함되는 사용량에 대해 서로 다른 메모리 크기에 연결된 1ms당 요금 예제가 나와 있습니다. x86 요금 Arm 요금 x86 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Arm 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Lambda 온디맨드 기간 요금 구간은 계정 내의 동일한 아키텍처(각각 x86 또는 Arm)와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. AWS Organizations에서 통합 결제를 사용하는 경우 요금 구간은 조직의 계정 내에서 동일한 아키텍처와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. Lambda 관리형 인스턴스 Lambda 관리형 인스턴스를 사용하면 Lambda의 서버리스 개발자 경험과 EC2의 비용 효율성 및 하드웨어 유연성을 결합하여 VPC의 완전 관리형 EC2 인스턴스에서 Lambda 함수를 실행할 수 있습니다. 이 기능은 Lambda의 운영 단순성을 유지하면서 비용은 최적화하려는 안정적인 대용량 워크로드에 적합합니다. Lambda 관리형 인스턴스를 사용하면 워크로드 요구 사항에 맞게 다양한 현재 세대 EC2 인스턴스 유형 중에서 선택하고, EC2 인스턴스 절감형 플랜, 컴퓨팅 절감형 플랜, 예약 인스턴스를 비롯한 EC2 요금 옵션의 이점을 활용하고, 동일한 실행 환경 내에서 다수의 요청을 동시에 처리하여 리소스 활용도를 극대화할 수 있습니다. Lambda는 익숙한 Lambda 프로그래밍 모델을 유지하고 SQS, Kinesis 및 Kafka와 같은 이벤트 소스와의 원활한 통합을 유지하면서 인스턴스 프로비저닝, 스케일링, 패치 및 수명 주기 관리를 자동으로 관리합니다. 요금: Lambda 관리형 인스턴스 요금에는 세 가지 구성 요소가 있습니다. 1. 요청 요금: 요청 100만 건당 0.20 USD 2. 컴퓨팅 관리 수수료: Lambda에서 프로비저닝하고 관리하는 인스턴스에 대한 EC2 온디맨드 인스턴스 요금의 15% 프리미엄 부과(각 인스턴스 유형별 프리미엄은 아래 제공) 3. EC2 인스턴스 요금: 표준 EC2 인스턴스 요금은 용량 공급자가 프로비저닝한 인스턴스에 적용됩니다. 컴퓨팅 절감형 플랜, 예약 인스턴스 또는 기타 EC2 요금 옵션을 사용하여 비용을 절감할 수 있습니다. 참고로 Lambda 관리형 인스턴스 함수는 Lambda(기본값) 컴퓨팅 유형 함수와 달리 각 요청의 실행 기간에 대해 별도로 비용을 지불하지 않습니다. 이벤트 소스 매핑: Kafka 또는 SQS와 같은 이벤트 소스와 함께 프로비저닝된 이벤트 폴러 단위(EPU)를 사용하는 워크로드의 경우 표준 EPU 요금이 적용됩니다. 관리 수수료 요금 예제: 처리량이 많은 API 서비스 요청당 평균 소요 시간이 200ms인 월 1억 개의 요청을 처리하는, 트래픽이 많은 API 서비스를 실행한다고 가정해 보겠습니다. m7g.xlarge 인스턴스(vCPU 4개, 메모리 16GB, Graviton3)를 사용하도록 Lambda 관리형 인스턴스 용량 공급자를 구성하고, 비용 절감을 극대화하기 위해 3년 컴퓨팅 절감형 플랜을 사용하는 설정입니다. 월별 요금 요청 요금 월별 요청: 요청 1억 건 요청 요금: 요청 100만 건당 0.20 USD 월별 요청 요금 = 100M / 1M x 0.20 USD = 20 USD 컴퓨팅 요금 인스턴스 유형: m7g.xlarge EC2 온디맨드 요금: 시간당 0.1632 USD(미국 동부 버지니아 북부) 3년 컴퓨팅 절감형 플랜 할인(72%) 적용 시: 시간당 0.0457 USD 예상 인스턴스 시간: 월 최대 2,000시간(워크로드 패턴 및 다중 동시성 기준) 월별 EC2 인스턴스 요금: 2,000 × 0.0457 USD = 91.40 USD 관리 수수료 요금 관리 수수료: EC2 온디맨드 요금의 15% 시간당 관리 수수료: 0.1632 USD × 0.15 = 시간당 0.02448 USD 월별 관리 수수료: 2,000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여, 탄력적이고 비용 효율적인 장기 실행 워크로드를 구현합니다. 내구성 함수에서는 선택적 데이터가 장기간 저장되는 체크포인트인 “step(단계)”와 “wait(대기)” 같은 내구성 작업을 사용하기 때문에, 중단 후 함수 실행을 재개할 수 있게 합니다. 함수가 재개되면 시스템은 재생을 수행하여, 이벤트 핸들러를 처음부터 자동으로 다시 실행합니다. 이때 완료된 체크포인트는 건너뛰고 중단 지점부터 계속 진행합니다. 수명 주기에는 실행을 완료하기 위해 여러 하위 호출(대기 작업, 재시도 또는 인프라 장애 후 재개 시 발생하는 Lambda 함수 간접 호출)이 포함될 수도 있습니다. 재생의 하위 간접 호출 요금을 포함한 기존 Lambda 컴퓨팅 요금이 적용됩니다. 대기 작업을 사용하는 경우 함수는 실행을 일시 중단하며, 온디맨드 함수는 실행이 재개될 때까지 기간 요금이..."
+              },
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "calculation-example-not-unit-price"
+              ],
+              "normalizedQuote": "000002448usd4896usd총월별요금요금합계요청요금ec2인스턴스요금관리수수료요금요금합계20usd9140usd4896usd16036usdlambda내구성함수요금lambda내구성함수는lambda의기존프로그래밍모델내에서신뢰할수있는다단계애플리케이션및ai워크플로를직접구축하는방법을간소화하여",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-2-0",
+              "subject": "aws",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [],
+              "quote": "자세한 내용은 AWS Lambda 요금을 참조하십시오.",
+              "quoteStart": 291,
+              "sourceSpan": {
+                "start": 291,
+                "end": 321
+              },
+              "contextSpan": "동시성 한도는 특정 AWS 리전에 있는 AWS 계정의 모든 함수에서 공유됩니다. 자세한 내용은 AWS Lambda 요금을 참조하십시오.",
+              "scopeText": "\n동시성 한도는 특정 AWS 리전에 있는 AWS 계정의 모든 함수에서 공유됩니다. 자세한 내용은 AWS Lambda 요금을 참조하십시오.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+              "sourceTitle": "Lambda 함수의 동시성 한도 증가 요청 | AWS re:Post",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "입력합니다. Request(요청)를 선택합니다. (선택 사항) 요청에 Lambda 함수의 사용 사례 설명 추가 AWS가 할당량 증가를 승인하지 않는 경우, 다음 단계를 완료하십시오. Service Quotas 콘솔을 엽니다. 탐색 창에서 Quota request history(할당량 요청 기록)를 선택합니다. 할당량 요청 목록이 표시됩니다. 동시성 한도 증가 요청을 찾습니다. 다음으로, 해당 할당량 증가 요청 옆에 있는 Status(상태) 옵션을 선택합니다. 요청의 상태 및 관련 지원 사례 링크가 표시됩니다. 참고: 요청의 처음 상태는 Pending(보류 중)입니다. 상태가 Quota requested(할당량 요청됨)로 변경되면 AWS Support 사례 번호가 표시됩니다. 사례 번호를 선택하면 요청에 대한 티켓이 열립니다. 티켓의 댓글 스레드에 Lambda 함수의 사용 사례에 대한 설명을 추가하십시오. 참고: AWS Support에서 요청을 승인하거나 거부하는 상태 업데이트\n보내드립니다. AWS는 유효한 사용 사례가 없는 높은 동시성 한도 요청을 거부합니다. 자세한 내용은 할당량 증가 요청을 참조하십시오. 팔로우공유 주제 Compute 태그 AWS Lambda 언어 한국어 관련 비디오 James의 동영상을 보고 자세히 알아보기(2:51)",
+                "output": "",
+                "currency": "원",
+                "tokenUnit": "",
+                "raw": "Lambda 함수의 동시성 한도 증가를 어떻게 요청합니까? 3분 분량 0 AWS Lambda 함수가 스로틀링되지 않도록 함수의 동시성 한도를 늘려야 합니다. 간략한 설명 Lambda 함수의 동시성 한도를 늘리려면 Service Quotas 콘솔에서 할당량 증가 사례를 개시해야 합니다. 자세한 내용은 Lambda 함수 스케일링 및 함수에 대한 예약 동시성 구성을 참조하십시오. 중요: 동시성 한도를 늘리면 추가 비용이 발생할 수 있습니다. 동시성 한도는 특정 AWS 리전에 있는 AWS 계정의 모든 함수에서 공유됩니다. 자세한 내용은 AWS Lambda 요금을 참조하십시오. 해결 방법 동시성 사용량 검토 다음 단계를 완료하십시오. Service Quotas 콘솔을 엽니다. Manage quotas(할당량 관리)에서 AWS Lambda를 선택합니다. View quotas(할당량 보기)를 선택합니다. Service quotas(서비스 할당량)에서 Concurrent executions(동시 실행)를 선택합니다. 최대 Concurrent executions(동시 실행)가 리전의 account-level concurrency quota(계정 수준 동시성 할당량)에 가까운지 확인하고, Monitorint(모니터링) 그래프의 관련 데이터 포인트도 확인합니다. 필요한 동시성 한도 계산 함수의 평균 런타임 지속 시간(초)에 함수가 초당 수신하는 호출 평균 개수를 곱합니다. 그 결과가 필요한 동시성 한도입니다. 중요: 예약되지 않은 동시성을 사용하는 경우, 해당 한도가 AWS 리전 동시성 한도보다 높지 않아야 합니다. 필요한 동시성 한도를 계산할 때 다음과 같은 사항에 유의하십시오. AWS 리전당 기본 동시성 한도는 호출 1,000개입니다(시점 무관). 하지만 새 계정에는 동시성 및 메모리 할당량이 적습니다. Lambda 함수에 대한 최대 동시성 한도는 없습니다. 단 AWS는 사용 사례에 필요한 경우에만 한도 증가를 허용합니다. 스로틀링을 피하기 위해 필요한 시기보다 최소 2주 전에 한도 증가를 요청하는 것이 좋습니다. Amazon CloudFront에서 Lambda를 CloudFront Lambda@Edge와 함께 사용하는 경우, 각 리전에 대하여 별도의 할당량 증가 사례를 개시해야 합니다. 동시성 한도 계산 예시 평균 함수 런타임 지속 시간 60초 x 초당 평균 요청 20건 = 필요한 동시성 한도 1,200 동시성 한도 증가와 관련된 모든 Lambda 함수 정보 포함 동시성 한도 증가 요청에 다음 세부 정보를 포함해야 합니다. 요청에 대한 새 동시성 한도 함수가 초당 수신할 것으로 예상되는 평균 요청 수 함수가 초당 수신할 것으로 예상되는 최고 요청 수 예상 런타임 지속 시간 함수 메모리 크기 호출 유형(이벤트 또는 요청-응답) 이벤트 소스 할당량을 늘려야 하는 이유가 설명되는 부하 테스트 결과 Service Quotas 콘솔에서 할당량 증가 사례 개시 다음 단계를 완료하십시오. Service Quotas 콘솔을 엽니다. Manage quotas(할당량 관리)에서 AWS Lambda를 선택합니다. View quotas(할당량 보기)를 선택합니다. Quota name(할당량 이름)에서 Concurrent executions(동시 실행)를 선택합니다. Request increase at account level(계정 수준에서 증가 요청)을 선택합니다. Increase quota value(할당량 값 증가)에서 할당량 증가 수량을 입력합니다. Request(요청)를 선택합니다. (선택 사항) 요청에 Lambda 함수의 사용 사례 설명 추가 AWS가 할당량 증가를 승인하지 않는 경우, 다음 단계를 완료하십시오. Service Quotas 콘솔을 엽니다. 탐색 창에서 Quota request history(할당량 요청 기록)를 선택합니다. 할당량 요청 목록이 표시됩니다. 동시성 한도 증가 요청을 찾습니다. 다음으로, 해당 할당량 증가 요청 옆에 있는 Status(상태) 옵션을 선택합니다. 요청의 상태 및 관련 지원 사례 링크가 표시됩니다. 참고: 요청의 처음 상태는 Pending(보류 중)입니다. 상태가 Quota requested(할당량 요청됨)로 변경되면 AWS Support 사례 번호가 표시됩니다. 사례 번호를 선택하면 요청에 대한 티켓이 열립니다. 티켓의 댓글 스레드에 Lambda 함수의 사용 사례에 대한 설명을 추가하십시오. 참고: AWS Support에서 요청을 승인하거나 거부하는 상태 업데이트\n보내드립니다. AWS는 유효한 사용 사례가 없는 높은 동시성 한도 요청을 거부합니다. 자세한 내용은 할당량 증가 요청을 참조하십시오. 팔로우공유 주제 Compute 태그 AWS Lambda 언어 한국어 관련 비디오 James의 동영상을 보고 자세히 알아보기(2:51) AWS 공식업데이트됨 7달 전 1 댓글 This article was reviewed and updated on 2026-03-10. 공유 전문가 AWS Official 답글을 게시함 2달 전 관련 콘텐츠 boto3로 lambda to lambda invoke를 수행하고 싶습니다 SKKU_SCG_AWS 질문됨 3년 전 API Gateway 403 Error, Empty URL Andy 질문됨 2년 전 Lambda를 통한 EC2 + AWS elastic inference 사용 비용은 어떻게 청구되나요? suesue 질문됨 4년 전 Lambda 사용 시 인스턴스 재사용 질문 수락된 답변 wwjang 질문됨 2년 전 Cloudfront Lambda Egde Funtion의 CloudWatch LogGroup은 트래픽이 발생하는 지역에서 가까운 리전에 생기는데 맞나요? 수락된 답변 bo 질문됨 일 년 전 Lambda 함수의 프로비저닝 동시성 실패 문제를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 2년 전 AWS Lambda SQS FIFO 이벤트 소스의 메시지 그룹 ID 또는 최대 동시성 값보다 높은 동시성 문제를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 2년 전 Lambda 함수의 \"Rate exceeded\" 및 \"TooManyRequestsException\" 스로틀링 오류를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 2년 전 Lambda 예약된 동시성 문제를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 4년 전 Lambda Extension이 Timeout Error의 원인인지 어떻게 트러블슈팅 할 수 있나요? 지원 엔지니어 Seongjoon Jeong 게시됨 3달 전 피드백"
+              },
+              "extractionStatus": "held-no-reliable-value",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "자세한내용은awslambda요금을참조하십시오",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-2-1",
+              "subject": "aws",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "4",
+              "unit": "",
+              "normalizedQuantity": 4,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [
+                "4"
+              ],
+              "quote": "AWS 공식업데이트됨 4년 전 Lambda Extension이 Timeout Error의 원인인지 어떻게 트러블슈팅 할 수 있나요?",
+              "quoteStart": 3109,
+              "sourceSpan": {
+                "start": 3109,
+                "end": 3182
+              },
+              "contextSpan": "AWS 공식업데이트됨 2년 전 Lambda 예약된 동시성 문제를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 4년 전 Lambda Extension이 Timeout Error의 원인인지 어떻게 트러블슈팅 할 수 있나요?",
+              "scopeText": "\nAWS 공식업데이트됨 2년 전 Lambda 예약된 동시성 문제를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 4년 전 Lambda Extension이 Timeout Error의 원인인지 어떻게 트러블슈팅 할 수 있나요?",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+              "sourceTitle": "Lambda 함수의 동시성 한도 증가 요청 | AWS re:Post",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "입력합니다. Request(요청)를 선택합니다. (선택 사항) 요청에 Lambda 함수의 사용 사례 설명 추가 AWS가 할당량 증가를 승인하지 않는 경우, 다음 단계를 완료하십시오. Service Quotas 콘솔을 엽니다. 탐색 창에서 Quota request history(할당량 요청 기록)를 선택합니다. 할당량 요청 목록이 표시됩니다. 동시성 한도 증가 요청을 찾습니다. 다음으로, 해당 할당량 증가 요청 옆에 있는 Status(상태) 옵션을 선택합니다. 요청의 상태 및 관련 지원 사례 링크가 표시됩니다. 참고: 요청의 처음 상태는 Pending(보류 중)입니다. 상태가 Quota requested(할당량 요청됨)로 변경되면 AWS Support 사례 번호가 표시됩니다. 사례 번호를 선택하면 요청에 대한 티켓이 열립니다. 티켓의 댓글 스레드에 Lambda 함수의 사용 사례에 대한 설명을 추가하십시오. 참고: AWS Support에서 요청을 승인하거나 거부하는 상태 업데이트\n보내드립니다. AWS는 유효한 사용 사례가 없는 높은 동시성 한도 요청을 거부합니다. 자세한 내용은 할당량 증가 요청을 참조하십시오. 팔로우공유 주제 Compute 태그 AWS Lambda 언어 한국어 관련 비디오 James의 동영상을 보고 자세히 알아보기(2:51)",
+                "output": "",
+                "currency": "원",
+                "tokenUnit": "",
+                "raw": "Lambda 함수의 동시성 한도 증가를 어떻게 요청합니까? 3분 분량 0 AWS Lambda 함수가 스로틀링되지 않도록 함수의 동시성 한도를 늘려야 합니다. 간략한 설명 Lambda 함수의 동시성 한도를 늘리려면 Service Quotas 콘솔에서 할당량 증가 사례를 개시해야 합니다. 자세한 내용은 Lambda 함수 스케일링 및 함수에 대한 예약 동시성 구성을 참조하십시오. 중요: 동시성 한도를 늘리면 추가 비용이 발생할 수 있습니다. 동시성 한도는 특정 AWS 리전에 있는 AWS 계정의 모든 함수에서 공유됩니다. 자세한 내용은 AWS Lambda 요금을 참조하십시오. 해결 방법 동시성 사용량 검토 다음 단계를 완료하십시오. Service Quotas 콘솔을 엽니다. Manage quotas(할당량 관리)에서 AWS Lambda를 선택합니다. View quotas(할당량 보기)를 선택합니다. Service quotas(서비스 할당량)에서 Concurrent executions(동시 실행)를 선택합니다. 최대 Concurrent executions(동시 실행)가 리전의 account-level concurrency quota(계정 수준 동시성 할당량)에 가까운지 확인하고, Monitorint(모니터링) 그래프의 관련 데이터 포인트도 확인합니다. 필요한 동시성 한도 계산 함수의 평균 런타임 지속 시간(초)에 함수가 초당 수신하는 호출 평균 개수를 곱합니다. 그 결과가 필요한 동시성 한도입니다. 중요: 예약되지 않은 동시성을 사용하는 경우, 해당 한도가 AWS 리전 동시성 한도보다 높지 않아야 합니다. 필요한 동시성 한도를 계산할 때 다음과 같은 사항에 유의하십시오. AWS 리전당 기본 동시성 한도는 호출 1,000개입니다(시점 무관). 하지만 새 계정에는 동시성 및 메모리 할당량이 적습니다. Lambda 함수에 대한 최대 동시성 한도는 없습니다. 단 AWS는 사용 사례에 필요한 경우에만 한도 증가를 허용합니다. 스로틀링을 피하기 위해 필요한 시기보다 최소 2주 전에 한도 증가를 요청하는 것이 좋습니다. Amazon CloudFront에서 Lambda를 CloudFront Lambda@Edge와 함께 사용하는 경우, 각 리전에 대하여 별도의 할당량 증가 사례를 개시해야 합니다. 동시성 한도 계산 예시 평균 함수 런타임 지속 시간 60초 x 초당 평균 요청 20건 = 필요한 동시성 한도 1,200 동시성 한도 증가와 관련된 모든 Lambda 함수 정보 포함 동시성 한도 증가 요청에 다음 세부 정보를 포함해야 합니다. 요청에 대한 새 동시성 한도 함수가 초당 수신할 것으로 예상되는 평균 요청 수 함수가 초당 수신할 것으로 예상되는 최고 요청 수 예상 런타임 지속 시간 함수 메모리 크기 호출 유형(이벤트 또는 요청-응답) 이벤트 소스 할당량을 늘려야 하는 이유가 설명되는 부하 테스트 결과 Service Quotas 콘솔에서 할당량 증가 사례 개시 다음 단계를 완료하십시오. Service Quotas 콘솔을 엽니다. Manage quotas(할당량 관리)에서 AWS Lambda를 선택합니다. View quotas(할당량 보기)를 선택합니다. Quota name(할당량 이름)에서 Concurrent executions(동시 실행)를 선택합니다. Request increase at account level(계정 수준에서 증가 요청)을 선택합니다. Increase quota value(할당량 값 증가)에서 할당량 증가 수량을 입력합니다. Request(요청)를 선택합니다. (선택 사항) 요청에 Lambda 함수의 사용 사례 설명 추가 AWS가 할당량 증가를 승인하지 않는 경우, 다음 단계를 완료하십시오. Service Quotas 콘솔을 엽니다. 탐색 창에서 Quota request history(할당량 요청 기록)를 선택합니다. 할당량 요청 목록이 표시됩니다. 동시성 한도 증가 요청을 찾습니다. 다음으로, 해당 할당량 증가 요청 옆에 있는 Status(상태) 옵션을 선택합니다. 요청의 상태 및 관련 지원 사례 링크가 표시됩니다. 참고: 요청의 처음 상태는 Pending(보류 중)입니다. 상태가 Quota requested(할당량 요청됨)로 변경되면 AWS Support 사례 번호가 표시됩니다. 사례 번호를 선택하면 요청에 대한 티켓이 열립니다. 티켓의 댓글 스레드에 Lambda 함수의 사용 사례에 대한 설명을 추가하십시오. 참고: AWS Support에서 요청을 승인하거나 거부하는 상태 업데이트\n보내드립니다. AWS는 유효한 사용 사례가 없는 높은 동시성 한도 요청을 거부합니다. 자세한 내용은 할당량 증가 요청을 참조하십시오. 팔로우공유 주제 Compute 태그 AWS Lambda 언어 한국어 관련 비디오 James의 동영상을 보고 자세히 알아보기(2:51) AWS 공식업데이트됨 7달 전 1 댓글 This article was reviewed and updated on 2026-03-10. 공유 전문가 AWS Official 답글을 게시함 2달 전 관련 콘텐츠 boto3로 lambda to lambda invoke를 수행하고 싶습니다 SKKU_SCG_AWS 질문됨 3년 전 API Gateway 403 Error, Empty URL Andy 질문됨 2년 전 Lambda를 통한 EC2 + AWS elastic inference 사용 비용은 어떻게 청구되나요? suesue 질문됨 4년 전 Lambda 사용 시 인스턴스 재사용 질문 수락된 답변 wwjang 질문됨 2년 전 Cloudfront Lambda Egde Funtion의 CloudWatch LogGroup은 트래픽이 발생하는 지역에서 가까운 리전에 생기는데 맞나요? 수락된 답변 bo 질문됨 일 년 전 Lambda 함수의 프로비저닝 동시성 실패 문제를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 2년 전 AWS Lambda SQS FIFO 이벤트 소스의 메시지 그룹 ID 또는 최대 동시성 값보다 높은 동시성 문제를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 2년 전 Lambda 함수의 \"Rate exceeded\" 및 \"TooManyRequestsException\" 스로틀링 오류를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 2년 전 Lambda 예약된 동시성 문제를 해결하려면 어떻게 해야 합니까? AWS 공식업데이트됨 4년 전 Lambda Extension이 Timeout Error의 원인인지 어떻게 트러블슈팅 할 수 있나요? 지원 엔지니어 Seongjoon Jeong 게시됨 3달 전 피드백"
+              },
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "aws공식업데이트됨4년전lambdaextension이timeouterror의원인인지어떻게트러블슈팅할수있나요",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            }
+          ],
+          "verifiedFacts": [
+            {
+              "id": "fact-1-2",
+              "subject": "요청",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "100만 건",
+              "unit": "건",
+              "normalizedQuantity": 1000000,
+              "targetDate": "",
+              "targetLocation": "요청",
+              "attributes": [
+                "100만",
+                "40만",
+                "86 ",
+                "2 "
+              ],
+              "quote": "AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+              "quoteStart": 1282,
+              "sourceSpan": {
+                "start": 1282,
+                "end": 1392
+              },
+              "contextSpan": "자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+              "scopeText": "\n자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+              "sourceTitle": "AWS Lambda 요금",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "verified",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "",
+                "output": "",
+                "currency": "원",
+                "tokenUnit": "",
+                "raw": "AWS Lambda 개요 기능 요금 시작하기 리소스 FAQ 파트너 AWS Lambda 요금 무료로 시작 요금 견적 요청하기 개요 AWS Lambda는 서버를 프로비저닝하거나 관리하지 않고도 코드를 실행할 수 있는 서버리스 컴퓨팅 서비스입니다. 워크로드 인식 클러스터 크기 조정 로직을 생성하고 이벤트 통합을 유지 관리하며 간편하게 런타임을 관리합니다. Lambda에서는 사실상 모든 유형의 애플리케이션이나 백엔드 서비스에 대한 코드를 별도의 관리 없이 실행할 수 있으며, 사용한 만큼만 비용을 지불합니다. 함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다. Lambda는 Amazon Simple Notification Service(SNS) 또는 Amazon EventBridge와 같은 이벤트 알림 트리거에 대한 응답으로 실행을 시작할 때마다 요청 수, Amazon API Gateway 또는 AWS Console에서 테스트 호출을 포함한 AWS SDK를 통한 호출 수를 계산합니다. 기간은 코드가 실행을 시작한 시간부터 반환되거나 종료될 때까지 시간으로 계산되며, 최대 1밀리초 단위로 반올림됩니다*. 요금은 함수에 할당한 메모리 양에 따라 결정됩니다. AWS Lambda 리소스 모델에서 함수에 사용할 메모리 양을 선택하면 이에 비례하여 CPU 용량과 기타 리소스가 할당됩니다. 메모리 크기가 증가하면 함수에 사용할 수 있는 CPU도 그만큼 증가하게 됩니다. 자세히 알아보려면 함수 구성 설명서를 참조하세요. x86 또는 Arm 아키텍처에 구축된 프로세서에서 Lambda 함수를 실행할 수 있습니다. Graviton2에서 실행되는 AWS Lambda 함수는 AWS가 설계한 Arm 기반 프로세서 아키텍처를 사용하여 x86 프로세서에서 실행되는 함수에 비해 최대 34% 더 나은 가격 대비 성능을 제공합니다. 이는 웹 및 모바일 백엔드, 데이터, 미디어 처리와 같은 다양한 서버리스 워크로드에 적용됩니다. * 기간 요금은 함수의 핸들러에서 실행되는 코드 및 핸들러 외부에 선언된 초기화 코드에 적용됩니다. AWS Lambda 확장을 사용하는 Lambda 함수의 경우 기간에는 종료 단계 중에 마지막으로 실행 중인 확장의 코드 실행이 완료될 때까지 소요되는 시간도 포함됩니다. SnapStart로 구성된 Lambda 함수의 경우 런타임을 로드하는 데 걸리는 시간, 런타임 후크에서 실행되는 모든 코드, 복원력을 위해 생성된 스냅샷의 복사본을 생성하는 중에 실행되는 초기화 코드도 기간에 포함됩니다. 자세한 내용은 Lambda 프로그래밍 모델 설명서를 참조하세요. AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다. 또한 프리 티어에는 요청당 첫 6MB를 초과하는 월별 100GiB의 HTTP 응답 스트리밍이 무료로 포함됩니다. Lambda는 특정 월 사용량 임계값 위의 온디맨드 기간에 대한 구간별 요금 옵션도 제공합니다. AWS Lambda는 컴퓨팅 절감형 플랜에 참여합니다. 이는 1년 또는 3년 기간의 일정 사용량 약정(시간당 USD 단위)을 조건으로, Amazon Elastic Compute Cloud(Amazon EC2), AWS Fargate 및 Lambda 사용량에 대해 저렴한 요금을 제공하는 유연한 요금 모델입니다. Compute Savings Plans를 통해 AWS Lambda에서 최대 17%를 절감할 수 있습니다. Savings는 기간 및 프로비저닝된 동시성에 적용됩니다. 자세히 알아보기 AWS Pricing Calculator AWS Lambda 및 아키텍처 비용을 단일 예상 비용으로 계산할 수 있습니다. 지금 사용자 지정 예상 요금 생성 AWS Lambda 요금 {regionSelector} 아키텍처 시간 요청 x86 요금 {stringOf!lambda/lambda!Lambda!Duration![operation]} 처음 6십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 9십억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} 다음 150억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests!*!1000000} Arm 요금 {stringOf!lambda/lambda!Lambda!Duration-ARM![operation]} 처음 75억GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 112억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier2} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} 다음 187억 5천GB-초/월 GB-초당 {priceOf!lambda/lambda!Lambda!Duration-ARM!Tier3} 요청 1백만 건당 {priceOf!lambda/lambda!Lambda!Requests-ARM!*!1000000} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> 비동기식 이벤트(S3, SNS, EventBridge, StepFunctions, Cloudwatch Logs의 이벤트 포함): 처음 256KB 동안은 각 비동기식 이벤트당 요청 1개에 대해 요금이 부과됩니다. 256KB를 초과하는 개별 이벤트 크기에는 최대 1MB까지 64KB 청크당 추가 요청 1개로 요금이 부과됩니다. 기간 비용은 함수에 할당한 메모리 양에 따라 결정됩니다. 128MB와 10,240MB 사이에서 1MB 증분 단위로 함수에 필요한 양의 메모리를 할당할 수 있습니다. 아래 표에는 첫 번째 요금 구간, 예를 들어 미국 동부(오하이오)에서 최대 6십억GB-초/월 안에 포함되는 사용량에 대해 서로 다른 메모리 크기에 연결된 1ms당 요금 예제가 나와 있습니다. x86 요금 Arm 요금 x86 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Arm 요금 {regionSelector} 메모리(MB) 1밀리초당 요금 128 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.000125!decimals=10} 512 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0005!decimals=10} 1,024 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.001!decimals=10} 1,536 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.0015!decimals=10} 2,048 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.002!decimals=10} 3,072 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.003!decimals=10} 4,096 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.004!decimals=10} 5,120 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.005!decimals=10} 6,144 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.006!decimals=10} 7,168 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.007!decimals=10} 8,192 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.008!decimals=10} 9,216 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.009!decimals=10} 10,240 {priceOf!lambda/lambda!Lambda!Duration-ARM!*!0.01!decimals=10} \" data-pricing-endpoint=\"https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps\" data-partition=\"aws\" data-locale=\"ko-KR\" data-token-component-type=\"native-react\"> Lambda 온디맨드 기간 요금 구간은 계정 내의 동일한 아키텍처(각각 x86 또는 Arm)와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. AWS Organizations에서 통합 결제를 사용하는 경우 요금 구간은 조직의 계정 내에서 동일한 아키텍처와 동일한 리전에서 실행되는 함수의 월별 총 기간에 적용됩니다. Lambda 관리형 인스턴스 Lambda 관리형 인스턴스를 사용하면 Lambda의 서버리스 개발자 경험과 EC2의 비용 효율성 및 하드웨어 유연성을 결합하여 VPC의 완전 관리형 EC2 인스턴스에서 Lambda 함수를 실행할 수 있습니다. 이 기능은 Lambda의 운영 단순성을 유지하면서 비용은 최적화하려는 안정적인 대용량 워크로드에 적합합니다. Lambda 관리형 인스턴스를 사용하면 워크로드 요구 사항에 맞게 다양한 현재 세대 EC2 인스턴스 유형 중에서 선택하고, EC2 인스턴스 절감형 플랜, 컴퓨팅 절감형 플랜, 예약 인스턴스를 비롯한 EC2 요금 옵션의 이점을 활용하고, 동일한 실행 환경 내에서 다수의 요청을 동시에 처리하여 리소스 활용도를 극대화할 수 있습니다. Lambda는 익숙한 Lambda 프로그래밍 모델을 유지하고 SQS, Kinesis 및 Kafka와 같은 이벤트 소스와의 원활한 통합을 유지하면서 인스턴스 프로비저닝, 스케일링, 패치 및 수명 주기 관리를 자동으로 관리합니다. 요금: Lambda 관리형 인스턴스 요금에는 세 가지 구성 요소가 있습니다. 1. 요청 요금: 요청 100만 건당 0.20 USD 2. 컴퓨팅 관리 수수료: Lambda에서 프로비저닝하고 관리하는 인스턴스에 대한 EC2 온디맨드 인스턴스 요금의 15% 프리미엄 부과(각 인스턴스 유형별 프리미엄은 아래 제공) 3. EC2 인스턴스 요금: 표준 EC2 인스턴스 요금은 용량 공급자가 프로비저닝한 인스턴스에 적용됩니다. 컴퓨팅 절감형 플랜, 예약 인스턴스 또는 기타 EC2 요금 옵션을 사용하여 비용을 절감할 수 있습니다. 참고로 Lambda 관리형 인스턴스 함수는 Lambda(기본값) 컴퓨팅 유형 함수와 달리 각 요청의 실행 기간에 대해 별도로 비용을 지불하지 않습니다. 이벤트 소스 매핑: Kafka 또는 SQS와 같은 이벤트 소스와 함께 프로비저닝된 이벤트 폴러 단위(EPU)를 사용하는 워크로드의 경우 표준 EPU 요금이 적용됩니다. 관리 수수료 요금 예제: 처리량이 많은 API 서비스 요청당 평균 소요 시간이 200ms인 월 1억 개의 요청을 처리하는, 트래픽이 많은 API 서비스를 실행한다고 가정해 보겠습니다. m7g.xlarge 인스턴스(vCPU 4개, 메모리 16GB, Graviton3)를 사용하도록 Lambda 관리형 인스턴스 용량 공급자를 구성하고, 비용 절감을 극대화하기 위해 3년 컴퓨팅 절감형 플랜을 사용하는 설정입니다. 월별 요금 요청 요금 월별 요청: 요청 1억 건 요청 요금: 요청 100만 건당 0.20 USD 월별 요청 요금 = 100M / 1M x 0.20 USD = 20 USD 컴퓨팅 요금 인스턴스 유형: m7g.xlarge EC2 온디맨드 요금: 시간당 0.1632 USD(미국 동부 버지니아 북부) 3년 컴퓨팅 절감형 플랜 할인(72%) 적용 시: 시간당 0.0457 USD 예상 인스턴스 시간: 월 최대 2,000시간(워크로드 패턴 및 다중 동시성 기준) 월별 EC2 인스턴스 요금: 2,000 × 0.0457 USD = 91.40 USD 관리 수수료 요금 관리 수수료: EC2 온디맨드 요금의 15% 시간당 관리 수수료: 0.1632 USD × 0.15 = 시간당 0.02448 USD 월별 관리 수수료: 2,000 × 0.02448 USD = 48.96 USD 총 월별 요금 요금 합계 = 요청 요금 + EC2 인스턴스 요금 + 관리 수수료 요금 요금 합계 = 20 USD + 91.40 USD + 48.96 USD = 160.36 USD Lambda 내구성 함수 요금 Lambda 내구성 함수는 Lambda의 기존 프로그래밍 모델 내에서 신뢰할 수 있는 다단계 애플리케이션 및 AI 워크플로를 직접 구축하는 방법을 간소화하여, 탄력적이고 비용 효율적인 장기 실행 워크로드를 구현합니다. 내구성 함수에서는 선택적 데이터가 장기간 저장되는 체크포인트인 “step(단계)”와 “wait(대기)” 같은 내구성 작업을 사용하기 때문에, 중단 후 함수 실행을 재개할 수 있게 합니다. 함수가 재개되면 시스템은 재생을 수행하여, 이벤트 핸들러를 처음부터 자동으로 다시 실행합니다. 이때 완료된 체크포인트는 건너뛰고 중단 지점부터 계속 진행합니다. 수명 주기에는 실행을 완료하기 위해 여러 하위 호출(대기 작업, 재시도 또는 인프라 장애 후 재개 시 발생하는 Lambda 함수 간접 호출)이 포함될 수도 있습니다. 재생의 하위 간접 호출 요금을 포함한 기존 Lambda 컴퓨팅 요금이 적용됩니다. 대기 작업을 사용하는 경우 함수는 실행을 일시 중단하며, 온디맨드 함수는 실행이 재개될 때까지 기간 요금이..."
+              },
+              "extractionStatus": "candidate",
+              "verificationStage": "structurally-verified",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [],
+              "normalizedQuote": "awslambda프리티어에는월100만건의무료요청과월40만gb초의컴퓨팅시간이포함되어있으며x86및graviton2프로세서로구동되는기능에모두사용할수있습니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            }
+          ],
+          "status": "verified",
+          "answerRequirements": {
+            "required": [
+              "request-price",
+              "free-tier",
+              "pricing-conditions"
+            ],
+            "satisfied": [
+              "free",
+              "location",
+              "free-capacity-a",
+              "free-capacity-b",
+              "currency-and-plan",
+              "comparison-attributes",
+              "free-tier",
+              "pricing-conditions"
+            ],
+            "missing": [
+              "request-price"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "status": "incomplete-requirements"
+          }
+        }
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "AWS Lambda",
+            "relation": "요금 부과 기준",
+            "value": "함수 요청 수와 코드를 실행하는 데 걸리는 기간",
+            "unit": null,
+            "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+            "quote": "함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다.",
+            "sourceSpan": {
+              "start": 0,
+              "end": 39
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [],
+            "uncertainties": [],
+            "status": "rejected",
+            "validationFailures": [
+              "source-span-mismatch"
+            ]
+          },
+          {
+            "subject": "AWS Lambda 프리 티어",
+            "relation": "포함 내역",
+            "value": "월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간",
+            "unit": null,
+            "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+            "quote": "AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+            "sourceSpan": {
+              "start": 0,
+              "end": 96
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [],
+            "uncertainties": [],
+            "status": "rejected",
+            "validationFailures": [
+              "source-span-mismatch"
+            ]
+          }
+        ],
+        "verified": [],
+        "responseSchemaValid": true,
+        "evidenceStatus": "evidence-insufficient",
+        "calls": 5,
+        "model": "gemini-3.5-flash-lite",
+        "verifiedFacts": []
+      },
+      "callsForCase": 1,
+      "processingMs": 3907
+    },
+    {
+      "id": "gemini-06",
+      "question": "React 최신 버전",
+      "sourceQuestion": "React 최신 버전",
+      "methodA": {
+        "storedReport": {
+          "id": "gemini-04",
+          "question": "React 최신 버전",
+          "facts": [
+            {
+              "id": "fact-1-0",
+              "status": "rejected",
+              "subject": "버전",
+              "predicate": "version",
+              "value": "",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "버전",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "Next.js 프로젝트에서 React 버전을 업데이트하는 방법은 다음과 같은 단계를 포함합니다.",
+              "contextSpan": "Next.js 프로젝트에서 React 버전을 업데이트하는 방법은 다음과 같은 단계를 포함합니다.",
+              "sourceSpan": {
+                "start": 0,
+                "end": 53
+              },
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "semantic-review: Provides general introduction text rather than specific version information answering the question."
+              ]
+            },
+            {
+              "id": "fact-1-1",
+              "status": "rejected",
+              "subject": "버전",
+              "predicate": "version",
+              "value": "",
+              "unit": "",
+              "targetDate": "2026-10-24",
+              "targetLocation": "버전",
+              "temporalResolutionConfidence": "high",
+              "attributes": [],
+              "quote": "현재 React 버전 확인 먼저 현재 프로젝트에서 사용 중인 React와 React DOM의 버전을 확인해야 합니다.",
+              "contextSpan": "1. 현재 React 버전 확인 먼저 현재 프로젝트에서 사용 중인 React와 React DOM의 버전을 확인해야 합니다.",
+              "sourceSpan": {
+                "start": 120,
+                "end": 185
+              },
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "semantic-review: Lacks specific version value and is about checking the current version rather than providing the latest version info."
+              ]
+            },
+            {
+              "id": "fact-1-2",
+              "status": "rejected",
+              "subject": "버전",
+              "predicate": "version",
+              "value": "최신",
+              "unit": "최신",
+              "targetDate": "",
+              "targetLocation": "버전",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "최신 React 버전 확인 최신 React 버전은 React 공식 홈페이지 또는 npm에서 확인할 수 있습니다.",
+              "contextSpan": "2. 최신 React 버전 확인 최신 React 버전은 React 공식 홈페이지 또는 npm에서 확인할 수 있습니다.",
+              "sourceSpan": {
+                "start": 261,
+                "end": 323
+              },
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "semantic-review-not-approved",
+                "semantic-review-rejected",
+                "semantic-review-reason: Mentions checking the latest version via official sites/npm rather than stating the specific version.",
+                "semantic-review: Mentions checking the latest version via official sites/npm rather than stating the specific version."
+              ]
+            },
+            {
+              "id": "fact-1-3",
+              "status": "rejected",
+              "subject": "react",
+              "predicate": "version",
+              "value": "3.",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [
+                "3"
+              ],
+              "quote": "npm 사용 시: npm show react version yarn 사용 시: yarn info react version 3.",
+              "contextSpan": "CLI를 사용하여 최신 버전을 확인할 수도 있습니다. npm 사용 시: npm show react version yarn 사용 시: yarn info react version 3.",
+              "sourceSpan": {
+                "start": 354,
+                "end": 424
+              },
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "requested-location-not-in-scope",
+                "semantic-review: Incomplete or ambiguous value ('3.') and refers to CLI commands rather than a concrete version number."
+              ]
+            },
+            {
+              "id": "fact-1-4",
+              "status": "rejected",
+              "subject": "버전",
+              "predicate": "version",
+              "value": "최신",
+              "unit": "최신",
+              "targetDate": "",
+              "targetLocation": "버전",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "React 및 React DOM 업데이트 npm을 사용하는 경우: 터미널에서 다음 명령어를 사용하여 React와 React DOM을 최신 버전으로 업데이트합니다.",
+              "contextSpan": "npm 사용 시: npm show react version yarn 사용 시: yarn info react version 3. React 및 React DOM 업데이트 npm을 사용하는 경우: 터미널에서 다음 명령어를 사용하여 React와 React DOM을 최신 버전으로 업데이트합니다.",
+              "sourceSpan": {
+                "start": 425,
+                "end": 515
+              },
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "semantic-review-not-approved",
+                "semantic-review-rejected",
+                "semantic-review-reason: Describes how to update via npm rather than stating the specific version number.",
+                "semantic-review: Describes how to update via npm rather than stating the specific version number."
+              ]
+            },
+            {
+              "id": "fact-1-5",
+              "status": "rejected",
+              "subject": "버전",
+              "predicate": "version",
+              "value": "",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "버전",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "npm update react react-dom 특정 버전으로 업데이트하려면 다음 명령어를 사용합니다.",
+              "contextSpan": "React 및 React DOM 업데이트 npm을 사용하는 경우: 터미널에서 다음 명령어를 사용하여 React와 React DOM을 최신 버전으로 업데이트합니다. npm update react react-dom 특정 버전으로 업데이트하려면 다음 명령어를 사용합니다.",
+              "sourceSpan": {
+                "start": 516,
+                "end": 573
+              },
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "semantic-review: Provides command syntax rather than specific version data."
+              ]
+            },
+            {
+              "id": "fact-1-6",
+              "status": "rejected",
+              "subject": "버전",
+              "predicate": "version",
+              "value": "최신",
+              "unit": "최신",
+              "targetDate": "",
+              "targetLocation": "버전",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "npm install react@latest react-dom@latest yarn을 사용하는 경우: 다음 명령어로 React와 React DOM을 최신 버전으로 업데이트합니다.",
+              "contextSpan": "npm update react react-dom 특정 버전으로 업데이트하려면 다음 명령어를 사용합니다. npm install react@latest react-dom@latest yarn을 사용하는 경우: 다음 명령어로 React와 React DOM을 최신 버전으로 업데이트합니다.",
+              "sourceSpan": {
+                "start": 574,
+                "end": 673
+              },
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "semantic-review-not-approved",
+                "semantic-review-rejected",
+                "semantic-review-reason: Refers to install commands (@latest) rather than providing the actual specific latest version number.",
+                "semantic-review: Refers to install commands (@latest) rather than providing the actual specific latest version number."
+              ]
+            },
+            {
+              "id": "fact-1-7",
+              "status": "rejected",
+              "subject": "버전",
+              "predicate": "version",
+              "value": "",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "버전",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "yarn upgrade react react-dom 특정 버전을 설치하고 싶다면 다음과 같이 명령어를 입력합니다.",
+              "contextSpan": "npm install react@latest react-dom@latest yarn을 사용하는 경우: 다음 명령어로 React와 React DOM을 최신 버전으로 업데이트합니다. yarn upgrade react react-dom 특정 버전을 설치하고 싶다면 다음과 같이 명령어를 입력합니다.",
+              "sourceSpan": {
+                "start": 674,
+                "end": 737
+              },
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "semantic-review: Provides yarn upgrade commands rather than a specific version value."
+              ]
+            },
+            {
+              "id": "fact-1-8",
+              "status": "rejected",
+              "subject": "버전",
+              "predicate": "version",
+              "value": "",
+              "unit": "",
+              "targetDate": "",
+              "targetLocation": "버전",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "React 버전 업데이트는 프로젝트에 중대한 영향을 줄 수 있으므로",
+              "contextSpan": "변경 사항 커밋 모든 테스트가 통과하고 애플리케이션이 정상적으로 작동한다면, 변경 사항을 깃(Git)에 커밋하여 버전 업데이트를 문서화합니다. React 버전 업데이트는 프로젝트에 중대한 영향을 줄 수 있으므로",
+              "sourceSpan": {
+                "start": 1069,
+                "end": 1106
+              },
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "semantic-review: Discusses git commits and warnings about updates rather than version data."
+              ]
+            },
+            {
+              "id": "fact-2-0",
+              "status": "verified",
+              "subject": "버전",
+              "predicate": "version",
+              "value": "19",
+              "unit": "",
+              "targetDate": "2013-05-29",
+              "targetLocation": "버전",
+              "temporalResolutionConfidence": "high",
+              "attributes": [
+                "19 "
+              ],
+              "quote": "React 19 정식 버전이 발표되었으며",
+              "contextSpan": "버전 목록[편집] 0.3.0: 2013년 5월 29일 0.4.0: 2013년 7월 17일 0.5.0: 2013년 10월 16일 0.8.0: 2013년 12월 20일 0.9.0: 2014년 2월 20일 0.10.0: 2014년 3월 21일 0.11.0: 2014년 7월 17일 0.12.0: 2014년 10월 28일 0.13.0: 2015년 3월 10일 0.14.0: 2015년 10월 7일 15.0.0: 2016년 4월 7일 16.0.0: 2017년 9월 26일 17.0.0: 2020년 10월 20일 18.0.0: 2022년 3월 29일 19.0.0: 2024년 12월 5일 3.1. 19.0[편집] 2024년 12월 5일, React 19 정식 버전이 발표되었으며",
+              "sourceSpan": {
+                "start": 3145,
+                "end": 3167
+              },
+              "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+              "sourceTitle": "React(라이브러리) - 나무위키",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": []
+            },
+            {
+              "id": "fact-3-0",
+              "status": "rejected",
+              "subject": "react",
+              "predicate": "version",
+              "value": "최신",
+              "unit": "최신",
+              "targetDate": "",
+              "targetLocation": "",
+              "temporalResolutionConfidence": "unresolved",
+              "attributes": [],
+              "quote": "고객님의 안정적인 서비스 운영을 위해 React 서버 컴포넌트의 최신 보안 업데이트를 권고드립니다.",
+              "contextSpan": "이 페이지에서 안녕하세요, 카페24 호스팅센터입니다. 고객님의 안정적인 서비스 운영을 위해 React 서버 컴포넌트의 최신 보안 업데이트를 권고드립니다.",
+              "sourceSpan": {
+                "start": 30,
+                "end": 85
+              },
+              "sourceUrl": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+              "sourceTitle": "React 서버 컴포넌트 보안 업데이트 권고(2025.12.09) | Cafe24 호스팅",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": [
+                "requested-location-not-in-scope",
+                "semantic-review: Refers to a security patch notice rather than the general latest version of React."
+              ]
+            }
+          ],
+          "verifiedFacts": [
+            {
+              "id": "fact-2-0",
+              "status": "verified",
+              "subject": "버전",
+              "predicate": "version",
+              "value": "19",
+              "unit": "",
+              "targetDate": "2013-05-29",
+              "targetLocation": "버전",
+              "temporalResolutionConfidence": "high",
+              "attributes": [
+                "19 "
+              ],
+              "quote": "React 19 정식 버전이 발표되었으며",
+              "contextSpan": "버전 목록[편집] 0.3.0: 2013년 5월 29일 0.4.0: 2013년 7월 17일 0.5.0: 2013년 10월 16일 0.8.0: 2013년 12월 20일 0.9.0: 2014년 2월 20일 0.10.0: 2014년 3월 21일 0.11.0: 2014년 7월 17일 0.12.0: 2014년 10월 28일 0.13.0: 2015년 3월 10일 0.14.0: 2015년 10월 7일 15.0.0: 2016년 4월 7일 16.0.0: 2017년 9월 26일 17.0.0: 2020년 10월 20일 18.0.0: 2022년 3월 29일 19.0.0: 2024년 12월 5일 3.1. 19.0[편집] 2024년 12월 5일, React 19 정식 버전이 발표되었으며",
+              "sourceSpan": {
+                "start": 3145,
+                "end": 3167
+              },
+              "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+              "sourceTitle": "React(라이브러리) - 나무위키",
+              "publicationDate": "2026-10-23T14:37:04.208Z",
+              "validationFailures": []
+            }
+          ],
+          "status": "verified",
+          "partial": true,
+          "semanticReview": {
+            "approveFactIds": [
+              "fact-2-0"
+            ],
+            "rejectFactIds": [
+              "fact-1-0",
+              "fact-1-1",
+              "fact-1-2",
+              "fact-1-3",
+              "fact-1-4",
+              "fact-1-5",
+              "fact-1-6",
+              "fact-1-7",
+              "fact-1-8",
+              "fact-3-0"
+            ],
+            "reasonById": {
+              "fact-1-0": "Provides general introduction text rather than specific version information answering the question.",
+              "fact-1-1": "Lacks specific version value and is about checking the current version rather than providing the latest version info.",
+              "fact-1-2": "Mentions checking the latest version via official sites/npm rather than stating the specific version.",
+              "fact-1-3": "Incomplete or ambiguous value ('3.') and refers to CLI commands rather than a concrete version number.",
+              "fact-1-4": "Describes how to update via npm rather than stating the specific version number.",
+              "fact-1-5": "Provides command syntax rather than specific version data.",
+              "fact-1-6": "Refers to install commands (@latest) rather than providing the actual specific latest version number.",
+              "fact-1-7": "Provides yarn upgrade commands rather than a specific version value.",
+              "fact-1-8": "Discusses git commits and warnings about updates rather than version data.",
+              "fact-3-0": "Refers to a security patch notice rather than the general latest version of React."
+            },
+            "invalid": false,
+            "requestSucceeded": true,
+            "responseSchemaValid": true,
+            "selectedFactIds": [
+              "fact-1-2",
+              "fact-1-4",
+              "fact-1-6",
+              "fact-2-0",
+              "fact-1-1",
+              "fact-1-8",
+              "fact-3-0",
+              "fact-1-0",
+              "fact-1-3",
+              "fact-1-5",
+              "fact-1-7"
+            ],
+            "omittedFactIds": [],
+            "calls": 4,
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 36677
+          },
+          "evaluation": {
+            "responseSchemaValid": true,
+            "duplicateFactIdCount": 0,
+            "unknownFactIdCount": 0,
+            "missingFactIdCount": 0,
+            "modelApprovedFactCount": 1,
+            "codeVerifiedModelApprovalCount": 1,
+            "codeRejectedModelApprovalCount": 0,
+            "clearlyWrongAcceptedFactCount": null,
+            "codeDateIssueCount": 0,
+            "codeLocationIssueCount": 0,
+            "codeSubjectValueMixCount": 0,
+            "unrelatedBodyAcceptedCount": 0,
+            "selectedFactCount": 11,
+            "omittedFactCount": 0
+          },
+          "model": "gemini-3.5-flash-lite",
+          "callsForCase": 1,
+          "callsAfterCase": 4,
+          "processingMs": 8728
+        },
+        "replay": {
+          "facts": [
+            {
+              "id": "fact-1-0",
+              "subject": "버전",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "버전",
+              "attributes": [],
+              "quote": "Next.js 프로젝트에서 React 버전을 업데이트하는 방법은 다음과 같은 단계를 포함합니다.",
+              "quoteStart": 0,
+              "sourceSpan": {
+                "start": 0,
+                "end": 53
+              },
+              "contextSpan": "Next.js 프로젝트에서 React 버전을 업데이트하는 방법은 다음과 같은 단계를 포함합니다.",
+              "scopeText": "\nNext.js 프로젝트에서 React 버전을 업데이트하는 방법은 다음과 같은 단계를 포함합니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "held-no-reliable-value",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "latest-version-official-source-required",
+                "freshness-not-established"
+              ],
+              "normalizedQuote": "nextjs프로젝트에서react버전을업데이트하는방법은다음과같은단계를포함합니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-1",
+              "subject": "버전",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "버전",
+              "attributes": [],
+              "quote": "현재 React 버전 확인 먼저 현재 프로젝트에서 사용 중인 React와 React DOM의 버전을 확인해야 합니다.",
+              "quoteStart": 120,
+              "sourceSpan": {
+                "start": 120,
+                "end": 185
+              },
+              "contextSpan": "1. 현재 React 버전 확인 먼저 현재 프로젝트에서 사용 중인 React와 React DOM의 버전을 확인해야 합니다.",
+              "scopeText": "\n1. 현재 React 버전 확인 먼저 현재 프로젝트에서 사용 중인 React와 React DOM의 버전을 확인해야 합니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "held-no-reliable-value",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "latest-version-official-source-required",
+                "freshness-not-established"
+              ],
+              "normalizedQuote": "현재react버전확인먼저현재프로젝트에서사용중인react와reactdom의버전을확인해야합니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-2",
+              "subject": "버전",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "최신",
+              "unit": "최신",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "버전",
+              "attributes": [],
+              "quote": "최신 React 버전 확인 최신 React 버전은 React 공식 홈페이지 또는 npm에서 확인할 수 있습니다.",
+              "quoteStart": 261,
+              "sourceSpan": {
+                "start": 261,
+                "end": 323
+              },
+              "contextSpan": "2. 최신 React 버전 확인 최신 React 버전은 React 공식 홈페이지 또는 npm에서 확인할 수 있습니다.",
+              "scopeText": "\n2. 최신 React 버전 확인 최신 React 버전은 React 공식 홈페이지 또는 npm에서 확인할 수 있습니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "latest-version-official-source-required",
+                "freshness-not-established"
+              ],
+              "normalizedQuote": "최신react버전확인최신react버전은react공식홈페이지또는npm에서확인할수있습니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-3",
+              "subject": "react",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "3.",
+              "unit": "",
+              "normalizedQuantity": 3,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [
+                "3"
+              ],
+              "quote": "npm 사용 시: npm show react version yarn 사용 시: yarn info react version 3.",
+              "quoteStart": 354,
+              "sourceSpan": {
+                "start": 354,
+                "end": 424
+              },
+              "contextSpan": "CLI를 사용하여 최신 버전을 확인할 수도 있습니다. npm 사용 시: npm show react version yarn 사용 시: yarn info react version 3.",
+              "scopeText": "\nCLI를 사용하여 최신 버전을 확인할 수도 있습니다. npm 사용 시: npm show react version yarn 사용 시: yarn info react version 3.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "latest-version-official-source-required",
+                "freshness-not-established",
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "npm사용시npmshowreactversionyarn사용시yarninforeactversion3",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-4",
+              "subject": "버전",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "최신",
+              "unit": "최신",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "버전",
+              "attributes": [],
+              "quote": "React 및 React DOM 업데이트 npm을 사용하는 경우: 터미널에서 다음 명령어를 사용하여 React와 React DOM을 최신 버전으로 업데이트합니다.",
+              "quoteStart": 425,
+              "sourceSpan": {
+                "start": 425,
+                "end": 515
+              },
+              "contextSpan": "npm 사용 시: npm show react version yarn 사용 시: yarn info react version 3. React 및 React DOM 업데이트 npm을 사용하는 경우: 터미널에서 다음 명령어를 사용하여 React와 React DOM을 최신 버전으로 업데이트합니다.",
+              "scopeText": "\nnpm 사용 시: npm show react version yarn 사용 시: yarn info react version 3. React 및 React DOM 업데이트 npm을 사용하는 경우: 터미널에서 다음 명령어를 사용하여 React와 React DOM을 최신 버전으로 업데이트합니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "latest-version-official-source-required",
+                "freshness-not-established"
+              ],
+              "normalizedQuote": "react및reactdom업데이트npm을사용하는경우터미널에서다음명령어를사용하여react와reactdom을최신버전으로업데이트합니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-5",
+              "subject": "버전",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "버전",
+              "attributes": [],
+              "quote": "npm update react react-dom 특정 버전으로 업데이트하려면 다음 명령어를 사용합니다.",
+              "quoteStart": 516,
+              "sourceSpan": {
+                "start": 516,
+                "end": 573
+              },
+              "contextSpan": "React 및 React DOM 업데이트 npm을 사용하는 경우: 터미널에서 다음 명령어를 사용하여 React와 React DOM을 최신 버전으로 업데이트합니다. npm update react react-dom 특정 버전으로 업데이트하려면 다음 명령어를 사용합니다.",
+              "scopeText": "\nReact 및 React DOM 업데이트 npm을 사용하는 경우: 터미널에서 다음 명령어를 사용하여 React와 React DOM을 최신 버전으로 업데이트합니다. npm update react react-dom 특정 버전으로 업데이트하려면 다음 명령어를 사용합니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "held-no-reliable-value",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "latest-version-official-source-required",
+                "freshness-not-established"
+              ],
+              "normalizedQuote": "npmupdatereactreactdom특정버전으로업데이트하려면다음명령어를사용합니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-6",
+              "subject": "버전",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "최신",
+              "unit": "최신",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "버전",
+              "attributes": [],
+              "quote": "npm install react@latest react-dom@latest yarn을 사용하는 경우: 다음 명령어로 React와 React DOM을 최신 버전으로 업데이트합니다.",
+              "quoteStart": 574,
+              "sourceSpan": {
+                "start": 574,
+                "end": 673
+              },
+              "contextSpan": "npm update react react-dom 특정 버전으로 업데이트하려면 다음 명령어를 사용합니다. npm install react@latest react-dom@latest yarn을 사용하는 경우: 다음 명령어로 React와 React DOM을 최신 버전으로 업데이트합니다.",
+              "scopeText": "\nnpm update react react-dom 특정 버전으로 업데이트하려면 다음 명령어를 사용합니다. npm install react@latest react-dom@latest yarn을 사용하는 경우: 다음 명령어로 React와 React DOM을 최신 버전으로 업데이트합니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "latest-version-official-source-required",
+                "freshness-not-established"
+              ],
+              "normalizedQuote": "npminstallreactlatestreactdomlatestyarn을사용하는경우다음명령어로react와reactdom을최신버전으로업데이트합니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-7",
+              "subject": "버전",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "버전",
+              "attributes": [],
+              "quote": "yarn upgrade react react-dom 특정 버전을 설치하고 싶다면 다음과 같이 명령어를 입력합니다.",
+              "quoteStart": 674,
+              "sourceSpan": {
+                "start": 674,
+                "end": 737
+              },
+              "contextSpan": "npm install react@latest react-dom@latest yarn을 사용하는 경우: 다음 명령어로 React와 React DOM을 최신 버전으로 업데이트합니다. yarn upgrade react react-dom 특정 버전을 설치하고 싶다면 다음과 같이 명령어를 입력합니다.",
+              "scopeText": "\nnpm install react@latest react-dom@latest yarn을 사용하는 경우: 다음 명령어로 React와 React DOM을 최신 버전으로 업데이트합니다. yarn upgrade react react-dom 특정 버전을 설치하고 싶다면 다음과 같이 명령어를 입력합니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "held-no-reliable-value",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "latest-version-official-source-required",
+                "freshness-not-established"
+              ],
+              "normalizedQuote": "yarnupgradereactreactdom특정버전을설치하고싶다면다음과같이명령어를입력합니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-1-8",
+              "subject": "버전",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "버전",
+              "attributes": [],
+              "quote": "React 버전 업데이트는 프로젝트에 중대한 영향을 줄 수 있으므로",
+              "quoteStart": 1069,
+              "sourceSpan": {
+                "start": 1069,
+                "end": 1106
+              },
+              "contextSpan": "변경 사항 커밋 모든 테스트가 통과하고 애플리케이션이 정상적으로 작동한다면, 변경 사항을 깃(Git)에 커밋하여 버전 업데이트를 문서화합니다. React 버전 업데이트는 프로젝트에 중대한 영향을 줄 수 있으므로",
+              "scopeText": "\n변경 사항 커밋 모든 테스트가 통과하고 애플리케이션이 정상적으로 작동한다면, 변경 사항을 깃(Git)에 커밋하여 버전 업데이트를 문서화합니다. React 버전 업데이트는 프로젝트에 중대한 영향을 줄 수 있으므로",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+              "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "held-no-reliable-value",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "latest-version-official-source-required",
+                "freshness-not-established"
+              ],
+              "normalizedQuote": "react버전업데이트는프로젝트에중대한영향을줄수있으므로",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-2-0",
+              "subject": "버전",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "19",
+              "unit": "",
+              "normalizedQuantity": 19,
+              "targetDate": "",
+              "targetLocation": "버전",
+              "attributes": [
+                "19 "
+              ],
+              "quote": "React 19 정식 버전이 발표되었으며",
+              "quoteStart": 3145,
+              "sourceSpan": {
+                "start": 3145,
+                "end": 3167
+              },
+              "contextSpan": "버전 목록[편집] 0.3.0: 2013년 5월 29일 0.4.0: 2013년 7월 17일 0.5.0: 2013년 10월 16일 0.8.0: 2013년 12월 20일 0.9.0: 2014년 2월 20일 0.10.0: 2014년 3월 21일 0.11.0: 2014년 7월 17일 0.12.0: 2014년 10월 28일 0.13.0: 2015년 3월 10일 0.14.0: 2015년 10월 7일 15.0.0: 2016년 4월 7일 16.0.0: 2017년 9월 26일 17.0.0: 2020년 10월 20일 18.0.0: 2022년 3월 29일 19.0.0: 2024년 12월 5일 3.1. 19.0[편집] 2024년 12월 5일, React 19 정식 버전이 발표되었으며",
+              "scopeText": "\n버전 목록[편집] 0.3.0: 2013년 5월 29일 0.4.0: 2013년 7월 17일 0.5.0: 2013년 10월 16일 0.8.0: 2013년 12월 20일 0.9.0: 2014년 2월 20일 0.10.0: 2014년 3월 21일 0.11.0: 2014년 7월 17일 0.12.0: 2014년 10월 28일 0.13.0: 2015년 3월 10일 0.14.0: 2015년 10월 7일 15.0.0: 2016년 4월 7일 16.0.0: 2017년 9월 26일 17.0.0: 2020년 10월 20일 18.0.0: 2022년 3월 29일 19.0.0: 2024년 12월 5일 3.1. 19.0[편집] 2024년 12월 5일, React 19 정식 버전이 발표되었으며",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+              "sourceTitle": "React(라이브러리) - 나무위키",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "latest-version-official-source-required",
+                "freshness-not-established"
+              ],
+              "normalizedQuote": "react19정식버전이발표되었으며",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            },
+            {
+              "id": "fact-3-0",
+              "subject": "react",
+              "predicate": "version",
+              "relation": "version",
+              "claimType": "version",
+              "value": "최신",
+              "unit": "최신",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [],
+              "quote": "고객님의 안정적인 서비스 운영을 위해 React 서버 컴포넌트의 최신 보안 업데이트를 권고드립니다.",
+              "quoteStart": 30,
+              "sourceSpan": {
+                "start": 30,
+                "end": 85
+              },
+              "contextSpan": "이 페이지에서 안녕하세요, 카페24 호스팅센터입니다. 고객님의 안정적인 서비스 운영을 위해 React 서버 컴포넌트의 최신 보안 업데이트를 권고드립니다.",
+              "scopeText": "\n이 페이지에서 안녕하세요, 카페24 호스팅센터입니다. 고객님의 안정적인 서비스 운영을 위해 React 서버 컴포넌트의 최신 보안 업데이트를 권고드립니다.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+              "sourceTitle": "React 서버 컴포넌트 보안 업데이트 권고(2025.12.09) | Cafe24 호스팅",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": "2026-10-23T14:37:04.208Z",
+              "preparedAt": "2026-10-24T01:36:48.221Z",
+              "referenceTime": "2026-10-24T00:19:00+09:00",
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": null,
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "latest-version-official-source-required",
+                "freshness-not-established",
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "고객님의안정적인서비스운영을위해react서버컴포넌트의최신보안업데이트를권고드립니다",
+              "verifiedAt": "2026-10-23T15:19:00.000Z"
+            }
+          ],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "answerRequirements": {
+            "required": [
+              "version",
+              "release-status",
+              "freshness"
+            ],
+            "satisfied": [],
+            "missing": [
+              "version",
+              "release-status",
+              "freshness"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "status": "incomplete-requirements"
+          }
+        }
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "React",
+            "relation": "버전",
+            "value": "19.3.0",
+            "unit": "",
+            "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%BC%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+            "quote": "버전 19.3.0 (2026.",
+            "sourceSpan": {
+              "start": 32,
+              "end": 50
+            },
+            "appliesAt": "2026-09",
+            "requiredAnswerItems": [],
+            "uncertainties": [],
+            "status": "rejected",
+            "validationFailures": [
+              "source-url-not-supplied",
+              "quote-not-in-source",
+              "source-span-mismatch",
+              "invalid-applies-at"
+            ]
+          }
+        ],
+        "verified": [],
+        "responseSchemaValid": true,
+        "evidenceStatus": "evidence-insufficient",
+        "calls": 6,
+        "model": "gemini-3.5-flash-lite",
+        "verifiedFacts": []
+      },
+      "callsForCase": 1,
+      "processingMs": 2974
+    }
+  ],
+  "evaluation": {
+    "independentAnswerLabels": false,
+    "note": "모델 승인 자체는 정답이 아니다. 독립 검토 전 판정은 unreviewed.",
+    "totals": {
+      "directFactCount": 9,
+      "codeVerifiedFactCount": 0,
+      "sourceMismatchCount": 9,
+      "unrelatedAcceptedCount": null,
+      "normalFactOmissionCount": null,
+      "overRejectionCount": null,
+      "answerRequirementSatisfaction": null,
+      "complete": null,
+      "partial": null,
+      "hold": null,
+      "inputTokens": null,
+      "outputTokens": null,
+      "cost": null
+    }
+  }
+}

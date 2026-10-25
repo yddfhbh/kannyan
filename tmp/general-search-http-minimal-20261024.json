@@ -1,0 +1,96 @@
+{
+  "type": "minimal-general-search-http-comparison",
+  "generatedAt": "2026-10-24T07:50:10.104Z",
+  "query": "GitHub Actions pricing billing official",
+  "environment": {
+    "nodeVersion": "v22.23.1",
+    "nodeExecutable": "/usr/bin/node",
+    "cwd": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738",
+    "user": "ubuntu",
+    "uid": 1001,
+    "agentHebiSandbox": false,
+    "sandboxVariableNames": [],
+    "proxyVariableNames": [],
+    "httpClient": "searchWeb -> performNaverSearch -> injected fetchImpl -> Node global fetch (undici)",
+    "fetchImplementation": "function fetch(input, init = undefined) { // eslint-disable-line func-name-matching\n    if (!fetchImpl) { // Implement lazy loading of undici module for fetch f",
+    "timeoutMs": 8000,
+    "abortController": "searchWeb creates one AbortController per call and aborts at timeoutMs (or chat budget minus 14000 ms)",
+    "redirectPolicy": "manual; HTTP 3xx is returned without following Location"
+  },
+  "maxActualFetchInvocations": 2,
+  "fallback": false,
+  "retries": false,
+  "redirectsFollowed": false,
+  "geminiCalls": 0,
+  "holdoutAccessed": false,
+  "paths": [
+    {
+      "path": "A-general-search-source-research",
+      "httpCallFunction": "searchWeb -> performNaverSearch -> Node global fetch",
+      "query": "GitHub Actions pricing billing official",
+      "engine": "naver",
+      "options": {
+        "maxResults": 12,
+        "timeoutMs": 8000,
+        "queryVariants": [
+          "GitHub Actions pricing billing official"
+        ],
+        "providerOrder": [
+          "naver"
+        ]
+      },
+      "fetchInvoked": true,
+      "responseReceived": true,
+      "httpStatus": 200,
+      "rawCandidateCount": 55,
+      "eligibleCandidateCount": 55,
+      "errorName": null,
+      "errorMessage": null,
+      "errorCauseCode": null,
+      "failureStage": null,
+      "abort": false,
+      "timeout": false,
+      "durationMs": 1223,
+      "redirectReceived": false,
+      "fetchInvocationCount": 1,
+      "budgetReservations": 1,
+      "searchStatus": "success",
+      "attemptCount": 1
+    },
+    {
+      "path": "B-focused-source-research",
+      "httpCallFunction": "searchWeb -> performNaverSearch -> Node global fetch",
+      "query": "GitHub Actions pricing billing official",
+      "engine": "naver",
+      "options": {
+        "maxResults": 12,
+        "timeoutMs": 8000,
+        "queryVariants": [
+          "GitHub Actions pricing billing official"
+        ],
+        "providerOrder": [
+          "naver"
+        ]
+      },
+      "fetchInvoked": true,
+      "responseReceived": true,
+      "httpStatus": 200,
+      "rawCandidateCount": 55,
+      "eligibleCandidateCount": 55,
+      "errorName": null,
+      "errorMessage": null,
+      "errorCauseCode": null,
+      "failureStage": null,
+      "abort": false,
+      "timeout": false,
+      "durationMs": 643,
+      "redirectReceived": false,
+      "fetchInvocationCount": 1,
+      "budgetReservations": 1,
+      "searchStatus": "success",
+      "attemptCount": 1
+    }
+  ],
+  "totalFetchInvocations": 2,
+  "wireTransmission": "unknown"
+}

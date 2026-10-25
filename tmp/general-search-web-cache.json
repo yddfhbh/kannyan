@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "capturedAt": "2026-10-23T02:21:20.328Z",
+  "now": "2026-10-23T02:21:20.285Z",
+  "cases": {
+    "오늘 서울 날씨": {
+      "sources": [],
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2
+      },
+      "capturedAt": "2026-10-23T09:08:54.640Z"
+    },
+    "내일 제주 날씨": {
+      "sources": [],
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2
+      },
+      "capturedAt": "2026-10-23T09:08:54.652Z"
+    },
+    "오늘 대전 미세먼지": {
+      "sources": [],
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2
+      },
+      "capturedAt": "2026-10-23T09:08:54.656Z"
+    },
+    "내일 뉴욕 날씨": {
+      "sources": [],
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2
+      },
+      "capturedAt": "2026-10-23T09:08:54.660Z"
+    },
+    "Python 최신 안정 버전": {
+      "sources": [],
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 4
+      },
+      "capturedAt": "2026-10-23T09:08:54.671Z"
+    },
+    "React 최신 버전": {
+      "sources": [],
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2
+      },
+      "capturedAt": "2026-10-23T09:08:54.674Z"
+    },
+    "PostgreSQL 최신 버전": {
+      "sources": [],
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2
+      },
+      "capturedAt": "2026-10-23T09:08:54.676Z"
+    },
+    "Docker Engine 최신 버전": {
+      "sources": [],
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2
+      },
+      "capturedAt": "2026-10-23T09:08:54.678Z"
+    }
+  }
+}

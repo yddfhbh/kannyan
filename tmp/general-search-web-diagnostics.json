@@ -1,0 +1,1807 @@
+{
+  "version": 1,
+  "capturedAt": "2026-10-23T14:34:39.894Z",
+  "now": "2026-10-23T14:34:39.755Z",
+  "cases": [
+    {
+      "id": "live-1",
+      "question": "오늘 서울 날씨",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "오늘 서울 날씨",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 36,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "오늘 서울 날씨",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 3,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "오늘 서울 날씨",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 36,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "오늘 서울 날씨",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 3,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 64,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-2",
+      "question": "내일 제주 날씨",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "내일 제주 날씨",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 2,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "내일 제주 날씨",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 5,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "내일 제주 날씨",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "내일 제주 날씨",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 5,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 8,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-3",
+      "question": "오늘 대전 미세먼지",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "오늘 대전 미세먼지",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 3,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "오늘 대전 미세먼지",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "오늘 대전 미세먼지",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 3,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "오늘 대전 미세먼지",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 5,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-4",
+      "question": "내일 뉴욕 날씨",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "내일 뉴욕 날씨",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 2,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "내일 뉴욕 날씨",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "내일 뉴욕 날씨",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "내일 뉴욕 날씨",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 4,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-5",
+      "question": "Python 최신 안정 버전",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 4,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "Python 최신 안정 버전",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 7,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "Python 최신 안정 버전",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 2,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "duckduckgo",
+            "query": "Python 최신 안정 버전 site:python.org",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "Python 최신 안정 버전 site:python.org",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "Python 최신 안정 버전",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 7,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "Python 최신 안정 버전",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "duckduckgo",
+              "query": "Python 최신 안정 버전 site:python.org",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "Python 최신 안정 버전 site:python.org",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 12,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-6",
+      "question": "React 최신 버전",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "React 최신 버전",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "React 최신 버전",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "React 최신 버전",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "React 최신 버전",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-7",
+      "question": "PostgreSQL 최신 버전",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "PostgreSQL 최신 버전",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "PostgreSQL 최신 버전",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "PostgreSQL 최신 버전",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "PostgreSQL 최신 버전",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-8",
+      "question": "Docker Engine 최신 버전",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "Docker Engine 최신 버전",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "Docker Engine 최신 버전",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "Docker Engine 최신 버전",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "Docker Engine 최신 버전",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 3,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-9",
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 3,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-10",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "Kubernetes 공식 문서의 liveness probe 설명",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "Kubernetes 공식 문서의 liveness probe 설명",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "Kubernetes 공식 문서의 liveness probe 설명",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "Kubernetes 공식 문서의 liveness probe 설명",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-11",
+      "question": "최근 일주일 반도체 뉴스",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "최근 일주일 반도체 뉴스",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "최근 일주일 반도체 뉴스",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "최근 일주일 반도체 뉴스",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "최근 일주일 반도체 뉴스",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 3,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-12",
+      "question": "최근 일주일 생성형 AI 뉴스",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "최근 일주일 생성형 AI 뉴스",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "최근 일주일 생성형 AI 뉴스",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "최근 일주일 생성형 AI 뉴스",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "최근 일주일 생성형 AI 뉴스",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-13",
+      "question": "최근 일주일 한국 과학기술 뉴스",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "최근 일주일 한국 과학기술 뉴스",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "최근 일주일 한국 과학기술 뉴스",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "최근 일주일 한국 과학기술 뉴스",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "최근 일주일 한국 과학기술 뉴스",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-14",
+      "question": "OpenAI API 최신 가격",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "OpenAI API 최신 가격",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "OpenAI API 최신 가격",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "OpenAI API 최신 가격",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "OpenAI API 최신 가격",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-15",
+      "question": "GitHub Actions 요금제",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "GitHub Actions 요금제",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "GitHub Actions 요금제",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "GitHub Actions 요금제",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "GitHub Actions 요금제",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-16",
+      "question": "AWS Lambda 요청 요금",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "AWS Lambda 요청 요금",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "AWS Lambda 요청 요금",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "AWS Lambda 요청 요금",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "AWS Lambda 요청 요금",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-17",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "서울 이번 달 무료 개발자 행사 일정",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "서울 이번 달 무료 개발자 행사 일정",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 0,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "서울 이번 달 무료 개발자 행사 일정",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "서울 이번 달 무료 개발자 행사 일정",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 0,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-18",
+      "question": "부산 불꽃축제 올해 일정",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "부산 불꽃축제 올해 일정",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "부산 불꽃축제 올해 일정",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "부산 불꽃축제 올해 일정",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "부산 불꽃축제 올해 일정",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-19",
+      "question": "대한민국 과학기술정보통신부 장관은 누구인가",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "대한민국 과학기술정보통신부 장관은 누구인가",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "대한민국 과학기술정보통신부 장관은 누구인가",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "대한민국 과학기술정보통신부 장관은 누구인가",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "대한민국 과학기술정보통신부 장관은 누구인가",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-20",
+      "question": "WHO 본부가 있는 도시와 기관 역할",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "WHO 본부가 있는 도시와 기관 역할",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "WHO 본부가 있는 도시와 기관 역할",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "WHO 본부가 있는 도시와 기관 역할",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "WHO 본부가 있는 도시와 기관 역할",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-21",
+      "question": "MacBook Air와 Dell XPS 13의 공식 사양 비교",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "MacBook Air와 Dell XPS 13의 공식 사양 비교",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "MacBook Air와 Dell XPS 13의 공식 사양 비교",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "MacBook Air와 Dell XPS 13의 공식 사양 비교",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "MacBook Air와 Dell XPS 13의 공식 사양 비교",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-22",
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-23",
+      "question": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 4,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "duckduckgo",
+            "query": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인 site:nodejs.org",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인 site:nodejs.org",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "duckduckgo",
+              "query": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인 site:nodejs.org",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인 site:nodejs.org",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 4,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    },
+    {
+      "id": "live-24",
+      "question": "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교",
+      "retrieval": {
+        "searches": 1,
+        "reads": 0,
+        "httpRequests": 2,
+        "cached": false,
+        "searchStatus": "failed",
+        "searchAttempts": [
+          {
+            "provider": "duckduckgo",
+            "query": "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          },
+          {
+            "provider": "naver",
+            "query": "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교",
+            "httpStatus": null,
+            "status": "failed",
+            "count": 0,
+            "durationMs": 1,
+            "errorCode": "TypeError"
+          }
+        ],
+        "failures": []
+      },
+      "pipeline": {
+        "search": {
+          "status": "failed",
+          "resultCounts": {
+            "discovered": 0,
+            "unique": 0,
+            "returned": 0,
+            "retained": 0
+          },
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            },
+            {
+              "provider": "naver",
+              "query": "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교",
+              "httpStatus": null,
+              "status": "failed",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        "candidates": [],
+        "reads": [],
+        "totals": {
+          "elapsedMs": 2,
+          "candidates": 0,
+          "selected": 0,
+          "pagesRead": 0,
+          "extractedBody": 0
+        }
+      }
+    }
+  ]
+}

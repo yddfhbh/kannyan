@@ -1,0 +1,656 @@
+{
+  "version": 1,
+  "type": "focused-general-search-source-research",
+  "generatedAt": "2026-10-24T07:11:56.544Z",
+  "referenceTime": "2026-10-24T00:00:00+09:00",
+  "experimentDate": "2026-10-24T00:00:00+09:00",
+  "noGeminiCalls": true,
+  "holdoutAccessed": false,
+  "semanticVerifierChanged": false,
+  "productionPathChanged": false,
+  "budgets": {
+    "maxSearches": 12,
+    "maxReads": 24,
+    "searchAttempts": 12,
+    "bodyReadHttpAttempts": 0,
+    "reusedBodiesNotCountedAsHttpReads": true
+  },
+  "questions": [
+    {
+      "id": "focus-01",
+      "question": "PostgreSQL 최신 안정 버전",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "experimentDate": "2026-10-24T00:00:00+09:00",
+      "queries": [
+        "PostgreSQL latest stable release official download",
+        "site:postgresql.org PostgreSQL current version release"
+      ],
+      "searches": [
+        {
+          "query": "PostgreSQL latest stable release official download",
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "PostgreSQL latest stable release official download",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 39,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "query": "site:postgresql.org PostgreSQL current version release",
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "site:postgresql.org PostgreSQL current version release",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 3,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        }
+      ],
+      "candidates": [],
+      "selectedUrls": [],
+      "reads": [],
+      "snapshots": [],
+      "status": "hold-no-body",
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      },
+      "after": {
+        "discoveredUrlCount": 0,
+        "readSuccessCount": 0,
+        "snapshotCount": 0,
+        "selectedOfficialUrlCount": 0,
+        "bodyLengths": []
+      }
+    },
+    {
+      "id": "focus-02",
+      "question": "GitHub Actions 요금제",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "experimentDate": "2026-10-24T00:00:00+09:00",
+      "queries": [
+        "GitHub Actions pricing billing official",
+        "site:docs.github.com GitHub Actions 비용 청구"
+      ],
+      "searches": [
+        {
+          "query": "GitHub Actions pricing billing official",
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "GitHub Actions pricing billing official",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "query": "site:docs.github.com GitHub Actions 비용 청구",
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "site:docs.github.com GitHub Actions 비용 청구",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        }
+      ],
+      "candidates": [
+        {
+          "url": "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+          "title": "GitHub Actions 비용 청구 - GitHub 문서",
+          "text": "이 기사에서 GitHub Actions 비용 청구 사용량을 GitHub Actions 무료 수당에 대해 측정하는 방법과 추가 사용 요금을 지불하는 방법을 알아봅니다. 마크다운 복사 이 기사에서 GitHub Actions 사용량 측정 방법 GitHub Actions표준 **** 호스팅 러너를 사용하는 자체 호스팅 러너 와 퍼블릭 리포지토리 는 GitHub 이용할 수 있습니다. 작업에 적합한 러너 선택을(를) 참조하세요. 프라이빗 리포지토리의 경우, 각 GitHub 계정은 계정 플랜에 따라 호스트된 실행기와 함께 사용할 수 있는 무료 사용 시간, 아티팩트 스토리지, 캐시 스토리지의 할당량을 받습니다. 할당된 금액을 초과하는 모든 사용량은 사용자의 계정에 청구됩니다. 분: 무료 분은 각 청구 주기가 시작될 때 전체 금액으로 다시 설정됩니다. 분 사용량은 워크플로 실행을 트리거한 사람이 아니라 리포지토리 소유자에게 청구됩니다. 보관소: 스토리지 요금은 매시간 사용량에 따라 한 달 내내 누적됩니다. 각 청구 주기가 시작될 때 누적된 스토리지 요금이 0으로 다시 설정됩니다. 팁 리포지토리에 대한 쓰기 권한이 있는 사용자는 누구나 작업을 실행할 수 있습니다. 작업 실행 비용은 리포지토리 소유자에게 청구됩니다. Copilot code review 및 GitHub Actions분 각 Copilot code review은 GitHub Actions 외에 AI credits분을 추가로 사용합니다. 비공개 리포지토리: 분은 계정이나 조직의 현재 요금제에 포함된 할당량에서 차감됩니다. 포함된 시간(분)을 초과하는 모든 사용량은 표준 GitHub Actions 요금으로 청구됩니다. 공개 리포지토리: 분은 계속 무료입니다. Copilot code review 는 기본적으로 표준 GitHub호스팅 Ubuntu Linux 실행기에서 실행됩니다. GitHub에서 호스팅하는 대형 러너 또는 자체 호스팅 실행기는 Actions Runner Controller(ARC)를 통해서도 구성할 수 있으며, 여기에는 별도의 요율이 적용됩니다. 스토리지 청구의 작동 방식 GitHub Actions 스토리지 청구는 시간당 누적 모델에서 작동합니다. 연속 청구: 스토리지 요금은 매월 실제 사용량에 따라 매시간 발생합니다. 월별 합계: 청구서는 GB-Hours 측정된 한 달 동안 사용된 총 스토리지를 반영합니다. 포함된 금액: 요금제에 대한 무료 스토리지 허용량(예: 엔터프라이즈 플랜의 경우 50GB)은 청구 계산에 대한 시간당 요금으로 변환됩니다. 공유 스토리지: 작업 아티팩트와 GitHub Packages 스토리지는 동일한 풀된 허용량을 공유합니다. GitHub 패키지 청구을(를) 참조하세요. 캐시 스토리지: 작업 캐시 스토리지는 리포지토리당 10GB의 별도 허용 한도입니다. 캐시 스토리지는 아티팩트 또는 GitHub Packages.와 공유되지 않습니다. 사용자 지정 이미지 스토리지: 함께 GitHub에서 호스팅하는 대형 러너 사용되는 사용자 지정 이미지에 대한 스토리지에는 플랜에 따라 자체 포함된 허용 한도가 있습니다. 현재 및 누적 스토리지 이해 GitHub에 나타나는 것과 청구서에 표시되는 항목의 차이를 이해하는 것이 중요합니다. 현재 스토리지: 현재 가지고 있는 스토리지 양 누적 스토리지: 청구 주기 전체에서 사용되는 스토리지의 누적 합계(청구서 결정) 아티팩트 삭제 시: 현재 스토리지가 즉시 감소합니다. 향후 시간당 요금 누적 중지 현재 청구 주기 동안 이미 누적된 스토리지는 합계에 남아 있으며 청구서에 표시됩니다. 예제(30일 청구 주기): 10일 동안 10GB의 아티팩트가 저장되면 11일에 모든 항목을 삭제합니다. 1-10일: 하루 240GB-Hours 누적(10GB × 24시간) 11일: 현재 스토리지가 0GB로 → 아티팩트 삭제 11-30일: 0GB-시간 적립(스토리지 없음) 청구서: 총 2,400 GB-시간 표시 (10일 × 240 GB-시간/일) 아티팩트 삭제는 현재 스토리지를 줄이고 향후 요금을 방지하지만 스토리지가 있는 시간 동안 이미 기록된 요금은 제거하지 않습니다. 스토리지 측정 단위 GitHub Actions 는 진 기가바이트(GB) 로 스토리지를 측정하는데, 여기에서: 1GB = 2^30바이트 = 1,073,741,824바이트 Gibibyte(GiB)라고도 합니다. 1GB = 1,024MB(MB) 청구 계산에는 GB-Hours가 사용됩니다. 1GB-Hour = 1시간 동안 1GB 스토리지 예: 10일 동안 3GB 저장 = 720 GB-Hours(3GB × 10일 × 24시간) 월별 청구서는 GB-Hours를 GB-Months로 변환할 때, 월의 시간 수로 나눕니다 (일반적으로 30일인 월의 경우 720시간). 사용자 지정 이미지 스토리지 GitHub에서 호스팅하는 대형 러너의 경우, 사용자 지정 이미지 저장 공간은 GitHub Actions 스토리지 요금으로 청구됩니다. 사용자 지정 이미지 스토리지는 다른 GitHub Actions 스토리지와 동일한 시간당 누적 모델을 사용합니다. 청구서는 시간에 따라 저장되는 이미지 데이터의 양을 기준으로 하며 GB-시간 단위로 측정됩니다. 사용자 지정 이미지에 대한 스토리지 사용량은 다음에 따라 달라집니다. 각 이미지 버전의 크기 보존하는 이미지 버전 수 각 버전이 저장되는 기간 키워드를 포함하는 snapshot 각 성공적인 워크플로 작업은 새 사용자 지정 이미지 버전을 만듭니다. 보존된 각 버전은 보존 정책에 의해 버전이 삭제되거나 제거될 때까지 스토리지 사용량에 영향을 줍니다. 자세한 내용은 사용자 지정 이미지 사용 및 엔터프라이즈에서 GitHub Actions 대한 정책 적용을(를) 참조하세요. 사용자 지정 이미지 스토리지는 실행기에서 기존 이미지를 사용하거나 끌어오는 횟수가 아니라 시간이 지남에 따라 보존된 이미지 데이터를 기반으로 합니다. 다음은 그 예입니다. 24시간 동안 150GB 사용자 지정 이미지 버전을 저장하면 3,600GB 시간이 사용됩니다. 24시간 동안 동일한 이미지의 150GB 버전 4개를 저장하면 14,400GB 시간이 사용됩니다. 사용량 측정 방법의 예 Linux 실행기에서 워크플로를 실행하고 완료하는 데 10분이 걸리는 경우 리포지토리 소유자 허용량의 10분을 사용합니다. 워크플로에서 10MB 아티팩트를 생성하는 경우 리포지토리 소유자의 아티팩트 스토리지 허용량 중 10MB를 사용합니다. 일반적으로 10분이 소요되는 워크플로를 실행했는데 필요한 의존성을 사용할 수 없어 5분 만에 실패한 경우, 리포지토리 소유자의 할당량에서 5분이 차감됩니다. 문제를 수정하고 워크플로를 다시 성공적으로 실행한 경우 리포지토리 소유자의 할당량에서 총 15분이 사용됩니다. 많은 로그 파일과 긴 작업 요약을 생성하는 워크플로를 실행하는 경우 이러한 파일은 리포지토리 소유자의 아티팩트 스토리지 허용량에 포함되지 않습니다. 캐시 스토리지 사용량은 각 시간의 최대 사용량으로 측정됩니다. 포함된 허용량은 리포지토리당 10GB입니다. 지정된 시간 동안 리포지토리에 최대 캐시 사용량이 15GB인 경우 리포지토리 소유자는 해당 리포지토리에 포함된 10GB를 초과하는 5GB의 사용량에 대해 요금이 청구됩니다. 리포지토리 소유자는 리포지토리 캐시 스토리지 제한이 포함된 사용량보다 높게 구성된 경우에만 요금이 청구됩니다. GitHub Actions의 무료 사용 다음 시간에는 표준 실행기, 아티팩트 스토리지, 캐시 스토리지에 대한 항목이 GitHub 플랜에 포함됩니다. 매월 초, 계정에서 사용하는 시간(분)은 0으로 초기화됩니다. Plan 아티팩트 스토리지 분(월별) 캐시 스토리지(리포지토리당) 사용자 지정 이미지 스토리지 GitHub Free 500MB 2,000 10GB 적용할 수 없음 GitHub Pro 1GB 3,000 10GB 적용할 수 없음 GitHub Free 조직용 500MB 2,000 10GB 적용할 수 없음 GitHub Team 2GB 3,000 10GB 75GB GitHub Enterprise Cloud 50GB 50,000 10GB 150GB 표준 GitHub 호스팅 실행기를 무료로 이용하실 수 있습니다. 공용 리포지토리에서 대상 GitHub Pages 대상 Dependabot 참고 대형 실행기는 공개 리포지토리에서 사용하거나 플랜에 포함된 할당량이 남아 있는 경우에도 항상 요금이 부과됩니다. 표시된 아티팩트 스토리지 용량은 **** 와 GitHub Packages됩니다. 즉, Actions 아티팩트 및 GitHub Packages 스토리지의 총 스토리지는 계획에 포함된 용량을 초과할 수 없습니다. 캐시 스토리지 및 사용자 지정 이미지 스토리지는 별도의 허용 한도입니다. Copilot code review는 프라이빗 리포지토리에서 GitHub Actions분을 소모합니다. 공개 리포지토리의 경우 GitHub Actions분은 계속 무료입니다. 포함된 할당량을 초과하여 사용 계정에 유효한 결제 방법이 등록되어 있지 않은 경우, 할당량을 모두 사용하면 사용이 차단됩니다. 결제 수단을 설정하기 전까지는 대형 실행기의 사용이 항상 차단됩니다. 추가 GitHub Actions 사용료 지불 계정에 대해 설정된 결제 방법을 사용하여 할당량을 초과하는 추가 사용에 대해 비용을 지불합니다 GitHub . 결제 및 청구 정보 관리을(를) 참조하세요. 호스팅된 GitHub 실행기의 경우, 스토리지는 매월 아티팩트 및 캐시의 시간당 사용량을 기준으로 청구됩니다. 분은 한 달 동안 각 실행기 유형이 사용한 총 처리 시간을 기준으로 계산됩니다. 유료 사용량에 대한 비용을 예측하려면 GitHub 사용합니다. 현재 비용을 보려면 요금제 제품 및 라이선스 사용량 확인하기을 참조하세요. 참고 청구 대시보드는 작업 사용량을 순수 사용 시간(분)이 아닌 달러 금액(“지출”)으로 표시할 수 있습니다. 이 금액에는 이미 적용 가능한 분 사용 요금이 반영되어 있습니다. 기준 분당 비용 GitHub에서 호스팅하는 각 실행기 유형은 운영 체제와 처리 능력에 따라 결정되는 분당 비용이 있습니다. 예를 들어 Windows 및 macOS 실행기에서 실행되는 GitHub 작업은 Linux 실행기에서 작업보다 실행하는 데 더 많은 비용이 듭니다. 운영 체제 청구용 SKU 분당 요금(USD) Linux 1코어(x64) actions_linux_slim $0.002 Linux 2코어(x64) actions_linux $0.006 Linux 2코어(arm64) actions_linux_arm $0.005 Windows 2 코어(x64) actions_windows $0.010 Windows 2 코어(arm64) actions_windows_arm $0.010 macOS 3코어 또는 4코어(M1 또는 Intel) actions_macos $0.062 다양한 유형의 실행 프로그램의 분당 비용에 대한 자세한 내용은 작업 실행기 요금을 참조하세요. 스토리지 가격 책정 포함된 수당을 초과하는 사용량은 다음 요금으로 청구됩니다. 스토리지 유형 GB/월당 가격 공유 스토리지(아티팩트 및 GitHub Packages) $0.25 USD 작업 캐시 $0.07 USD 사용자 지정 이미지 스토리지 $0.07 USD GitHub에서 호스팅되는 러너에 대한 분당 비용 계산 예시 예를 들어, 조직이 GitHub Team을 사용하는 경우, GitHub 호스팅 실행기에 포함된 기본 할당량을 초과하여 Linux 및 Windows 실행기를 5,000분 사용하면 총 작업 시간 비용으로 미화 38달러가 청구됩니다. 5,000분 (Linux 3,000분 및 Windows 2,000분) = $38 USD ($18 USD + $20 USD). 3,000 Linux 분 x 분당 $0.006 USD = $18 USD 2,000 Windows 분 x 분당 $0.010 USD = $20 USD 아티팩트 스토리지 비용 계산 예제 3월 10일 동안 3GB의 아티팩트 스토리지를 사용하고 3월 21일 동안 12GB를 사용하는 경우 아티팩트 스토리지 사용량은 다음과 같습니다. 3GB x 10일 x (하루 24시간) = 720GB/시간 12GB x 21일 x (하루 24시간) = 6,048GB/시간 720GB/시간 + 6,048GB/시간 = 6,768GB/시간 6,768GB/시간 / (월별 744시간) = 9.0967GB/월 이달 말이 되면 GitHub 가 아티팩트 저장 용량을 가장 가까운 MB 단위로 반올림합니다. 따라서 3월의 아티팩트 스토리지 사용량은 9.097GB입니다. 참고 GitHub 는 6~12시간 내에 아티팩트 스토리지 사용량을 업데이트합니다. 아티팩트 삭제는 현재 스토리지의 공간을 확보하지만 현재 청구 주기에 대한 스토리지 청구를 계산하는 데 사용되는 누적된 스토리지 사용량을 줄이지는 않습니다. 캐시 스토리지 비용 계산 예제 3월 10일 동안 3GB의 캐시 스토리지를 사용하고 3월 21일 동안 12GB를 사용하는 경우 캐시 스토리지 사용량은 다음과 같습니다. 사용량(GB) 청구 가능(GB-시간) 청구 불가(GB-Hours) 처음 10일 동안 3GB 0GB 시간 720 GB-시간 다음 21일 동안 12GB 2*21일*24시간 = 1008GB-시간 10*21일*24시간=5040 GB-시간 캐시된 스토리지의 경우 청구 차트 및 보고서에 포함된 10GB를 초과하는 사용 비용만 표시됩니다. 월말에 Actions Cache Storage SKU는 1008GB 시간 사용을 표시합니다. GitHub Actions에 대한 예산 관리하기 유효한 결제 방법이 등록되어 있지 않은 경우, 할당량을 모두 사용하면 추가 사용이 차단됩니다. 파일에 유효한 결제 방법이 있는 경우 지출이 하나 이상의 예산으로 제한될 수 있습니다. 계정에 설정된 예산을 확인하여 사용량 요구 사항에 적합한지 확인합니다. 예산을 설정하여 요금제 제품에 대한 지출을 제어합니다.을(를) 참조하세요. 또한 청구 기간 동안 포함된 GitHub Actions 사용량이 90개% 100개% 도달하면 이메일 알림을 받을 수 있습니다. 자세한 내용은 예산 및 경고을(를) 참조하세요. 추가 참고 자료 GitHub Actions에 대한 이해 GitHub Actions에 대한 빠른 시작 가이드",
+          "reused": true
+        },
+        {
+          "url": "https://docs.github.com/ko",
+          "title": "GitHub Docs",
+          "text": "GitHub 문서 GitHub 여정의 모든 위치에 대한 도움말입니다. 무엇이든 검색.../ 모든 문서 시작하기 시작하기 마이그레이션 계정 및 프로필 구독 및 알림 인증 청구 및 결제 사이트 정책 공동 코딩 Codespaces 리포지토리 끌어오기 요청 GitHub Discussions 통합 GitHub Copilot GitHub Copilot 요금제 Copilot cloud agent 자습서 GitHub Copilot 활용 안내서 사용자 지정 라이브러리 Copilot CLI CI/CD 및 DevOps GitHub Actions GitHub Packages GitHub Pages 보안 및 코드 품질 보안 및 코드 품질 비밀 보호 코드 취약성 찾기 및 수정 공급망 보안 품질 코드 유지 관리 확장 가능한 보안 클라이언트 앱 GitHub CLI GitHub 모바일 GitHub Desktop 프로젝트 관리 GitHub Issues Projects GitHub 검색 엔터프라이즈 및 팀 조직 확장 가능한 보안 엔터프라이즈 온보딩 엔터프라이즈 관리자 개발자 앱 REST API GraphQL API 웹후크 커뮤니티 커뮤니티 빌드 GitHub Sponsors GitHub Education 비영리 단체를 위한 GitHub GitHub 지원 GitHub Docs에 기여 추가 문서 CodeQL query writing Electron npm GitHub Well-Architected",
+          "reused": true
+        },
+        {
+          "url": "https://itwiki.kr/w/GitHub_Actions",
+          "title": "GitHub Actions - IT 위키",
+          "text": "GitHub Actions는 GitHub 저장소 내에서 워크플로우(workflows)를 자동화할 수 있게 해 주는 CI/CD 및 이벤트 기반 자동화 플랫폼이다. 개념 및 구성 요소 편집 원본 편집 GitHub Actions는 저장소에 `.github/workflows/` 디렉터리에 YAML 형식의 워크플로우 정의 파일을 두고, 특정 이벤트(push, pull_request 등)가 발생할 때 자동으로 일련의 작업(job)을 실행시키는 구조다. 주요 구성 요소는 다음과 같다: 이벤트(Events): 워크플로우를 트리거하는 GitHub 내의 동작 (예: 코드 푸시, 풀 리퀘스트 생성 등) 워크플로우(Workflow): 이벤트 발생 시 실행할 작업의 정의 잡(Job): 워크플로우 내에서 병렬 또는 순차 실행되는 단위 작업 스텝(Step): 잡 안에서 실행되는 개별 명령 또는 액션 액션(Action): 재사용 가능한 코드 단위 또는 컨테이너로, 스텝에서 호출됨 러너(Runner): 워크플로우를 실제 실행하는 실행 환경. GitHub 호스팅 러너 또는 자체 호스팅 러너를 사용할 수 있음 시크릿(Secrets): 민감한 정보를 저장하고 워크플로우 내에서 안전하게 참조 매트릭스(Matrix): 여러 환경 조합에서 작업을 병렬 실행하는 기능 특징 및 장점 편집 원본 편집 GitHub 내에서 자동화를 구현할 수 있어 별도의 외부 CI 도구 없이도 설정 가능 다양한 운영체제 및 런타임 환경에서 실행 가능 매트릭스 전략, 조건문, 잡 간 의존성 등 고급 제어 기능 제공 실행 결과 시각화 및 로그 확인이 쉬움 사용자 정의 액션과 마켓플레이스를 통해 기능 확장 가능 활용 예시 편집 원본 편집 코드가 main 브랜치에 푸시될 때 자동으로 빌드, 테스트, 배포를 수행하는 워크플로우를 구성할 수 있다. 또한 문서 파일이 변경될 때 GitHub Pages 또는 외부 서버와 동기화하는 작업을 자동화할 수도 있다. 워크플로 문법과 구조 편집 원본 편집 GitHub Actions의 워크플로 파일은 `.github/workflows/` 디렉터리에 위치하며, YAML 문법으로 작성된다. 워크플로는 크게 다음과 같은 구조로 이루어진다: name: 워크플로의 이름 on: 워크플로를 트리거하는 이벤트 (예: push, pull_request, schedule 등) jobs: 실행할 작업(Job)들의 집합 예시: name: Example Workflow on: push: branches: [ \"main\" ] jobs: build: runs-on: ubuntu-latest steps: - uses: actions/checkout@v4 - name: Run test run: echo \"Hello, world\" 트리거(on:) 편집 원본 편집 워크플로를 어떤 이벤트에서 실행할지 정의한다. 주요 이벤트는 다음과 같다: push: 특정 브랜치로 푸시될 때 실행 pull_request: PR 생성 또는 변경 시 실행 schedule: cron 표현식 기반의 정기 실행 workflow_dispatch: 수동 실행을 허용 (UI에서 버튼 클릭) repository_dispatch: 외부 시스템에서 API 호출로 실행 복수 이벤트를 조합할 수도 있다. 잡(Jobs) 편집 원본 편집 jobs 아래에는 하나 이상의 작업 단위(Job)가 정의되며, 각 job은 독립적인 실행 환경에서 병렬 실행된다. Job 내부에는 다음을 포함할 수 있다: runs-on: 해당 작업을 실행할 러너 환경 (예: ubuntu-latest) needs: 다른 job이 완료된 후 실행되도록 설정 steps: 각 job에서 실행될 구체적인 명령 또는 액션 매트릭스 전략 편집 원본 편집 matrix 키워드를 사용하면 하나의 job을 다양한 변수 조합으로 반복 실행할 수 있다. 주로 Python, Node.js 등 다양한 런타임 버전에서 테스트를 수행할 때 활용된다. strategy: matrix: python-version: [3.9, 3.10, 3.11] 러너(Runners) 편집 원본 편집 러너는 워크플로를 실제로 실행하는 머신이다. GitHub에서는 다음을 지원한다: GitHub 호스팅 러너: GitHub에서 제공하는 가상 머신 자체 호스팅 러너: 사용자가 직접 구성한 서버 또는 환경 러너는 매 실행마다 클린 환경으로 시작되며, 각 job은 독립적으로 수행된다. 스텝(Steps) 편집 원본 편집 각 job은 여러 개의 step으로 구성되며, step은 순차적으로 실행된다. step은 다음 중 하나를 실행할 수 있다: run: 셸 명령 실행 uses: 기존에 등록된 액션을 불러와 실행 with / env: 액션 또는 명령 실행 시 사용할 인자 또는 환경 변수 설정 예: - name: Run tests run: pytest env: DATABASE_URL: postgresql://localhost/test 액션(Actions) 편집 원본 편집 GitHub Actions에서는 steps에서 `uses` 키워드를 사용해 재사용 가능한 액션을 호출할 수 있다. actions/checkout: 저장소 코드를 체크아웃 actions/setup-python: 파이썬 런타임 설정 codecov/codecov-action: 테스트 커버리지 업로드 마켓플레이스에서 수천 개의 액션을 제공하며, 사용자가 직접 정의한 커스텀 액션도 사용할 수 있다. 환경 변수와 시크릿 편집 원본 편집 워크플로에서 민감한 정보를 다뤄야 할 경우, GitHub의 Secrets 기능을 활용한다. `env:`를 통해 환경 변수를 직접 설정하거나 `secrets.MY_SECRET` 형식으로 GitHub 저장소 설정에 등록된 시크릿 값을 참조할 수 있다 예: env: API_KEY: ${{ secrets.API_KEY }} 조건 실행 (조건문) 편집 원본 편집 워크플로, job, step 단위에서 조건을 설정할 수 있다. 예: if: github.event_name == 'push' 또는 테스트가 실패해도 다음 단계를 실행하게 하고 싶을 때: continue-on-error: true 재사용 가능한 워크플로 편집 원본 편집 workflow_call 이벤트를 사용하면 다른 워크플로를 호출할 수 있다. 예를 들어 공통 빌드, 배포, 테스트 단계를 재사용 워크플로로 만들어 둘 수 있다. on: workflow_call: inputs: app_name: required: true type: string 워크플로 디버깅 편집 원본 편집 실행 로그는 GitHub Actions UI에서 확인할 수 있으며, 각 step의 실행 결과 및 출력이 기록된다. `run: echo` 등을 활용해 중간 변수나 상태를 출력하며 디버깅할 수 있다. 제한과 고려사항 편집 원본 편집 워크플로우가 복잡해질수록 유지보수가 어려울 수 있음 실행 시간, 리소스, 요금제에 따른 제한 존재 시크릿 관리 실수로 인한 보안 위험 발생 가능 예기치 않은 실행 오류가 발생할 수 있어 감시 및 대응 체계 필요 같이 보기 편집 원본 편집 CI/CD Git (버전 관리 시스템) GitLab CI/CD 자동화 도구 비교 각주 편집 원본 편집 원본 주소 \"https://itwiki.kr/index.php?title=GitHub_Actions&oldid=41459\" 목차",
+          "reused": true
+        },
+        {
+          "url": "https://namu.wiki/w/GitHub",
+          "title": "GitHub - 나무위키",
+          "text": "최근 변경최근 토론 특수 기능 GitHub 최근 수정 시각: 2026-10-13 12:16:07 73 편집 편집 IP 우회 수단(프록시 서버, VPN, Tor 등)이나 IDC 대역 IP로 접속하셨습니다. (#23576427) (VPN이나 iCloud의 비공개 릴레이를 사용 중인 경우 나타날 수 있습니다.) 잘못된 IDC 대역 차단이라고 생각하시는 경우 게시판에 문의하시길 바랍니다. 닫기 토론역사 분류 GitHub Git/호스팅 서비스 미국의 IT 관련 기업 샌프란시스코의 기업 2008년 설립 Microsoft 2026년 계정 정보 및 액세스 토큰 유출 사건에 대한 내용은 GitHub/사건 사고 문서의 8번 문단을 참고하십시오. [ 펼치기 · 접기 ] 관련 인물 톰 프레스턴 워너 · 필립 제퍼리 하이엣 서비스 저장소 · GitHub Pages · GitHub Action · GitHub Packages · Codespace(github.dev) · GitHub Wiki · GitHub Gist · Dependabot · GitHub Advisory Database · GitHub Copilot 클라이언트 GitHub CLI · GitHub Desktop · GitHub Mobile 오픈 소스 Electron(Atom) · Linguist · Semantic · Tree-sitter 관련 문서 사건 사고 · Octocat · GitHub Universe · One Dark · npm Microsoft 마이크로소프트 [ 펼치기ㆍ접기 ] 제품군 하드​웨어 Surface · XBOX · HoloLens · PixelSense · Zune · Pluton · IVAS · Azure Cobalt · Azure MAIA 소프트​웨어 Windows(주요 내장 프로그램) · Office · Edge · Media Player · Hyper-V · Defender · Visual Studio Code · Visual Studio · Windows Terminal · Microsoft Store · Xbox App · PowerToys · Internet Explorer · MS-DOS · Windows Movie Maker · Autoruns · Clipchamp · Family Safety 서비스 Microsoft Azure · OneDrive · Microsoft Copilot · Bing · LinkedIn · Microsoft Docs · Skype · MSN · 정품인증 · Xbox Game Pass · Xbox Cloud Gaming · Xbox network · SwiftKey 관련 기술 ASF · ASP · Blazor · COM · DCOM · Debug Adapter Protocol · DirectX · 파일 시스템(FAT · NTFS · ReFS) · 언어 서버 프로토콜 · MFC · .NET(.NET Core · .NET Standard · C# · F# · Visual Basic .NET · Q#) · 라이브러리(Windows Forms · WPF · UWP · Xamarin · .NET MAUI · ASP.NET · ML.NET · XNA) · OLE · Silverlight · Visual Basic · Visual Basic for Applications · WASAPI · Windows 커널 · Windows 디자인 · Windows API · Windows Runtime(UWP · WinUI) · WMA · WMV · 하복 엔진 · SAMI · PowerShell · Windows Modern Standby · Nearby Sharing 산하 계열사 및 사업부 GitHub · .NET Foundation · Xbox · LinkedIn 관련 인물 빌 게이츠(은퇴) · 폴 앨런(은퇴) · 스티브 발머(퇴사) · 게이브 뉴웰(퇴사) · 마이크 이바라(퇴사) · 사티아 나델라 · 필 스펜서(은퇴)[1] · 아샤 사르마[2] · 로드 퍼거슨(퇴사) 기타 제니맥스 미디어 인수 · 액티비전 블리자드 인수 · 시작 메뉴 · 빌 게이츠의 굴욕 관련 틀 365 제품군 · 하드웨어 제품군 · Surface 제품군 · Windows 제품군 [각주 펼치기ㆍ접기] [1] Microsoft Gaming의 초대 CEO [2] XBOX 게이밍 부서의 2대 CEO GitHub 깃허브 출시 2008년 2월 8일 (18주년) 국가 미국 산업 IT 서비스 Git 호스팅, 버전 관리, 이슈 트래커, 데브옵스, 보안, 프로젝트 관리 언어 영어[1][m] 회원 가입 선택[3] 창업자 톰 프레스턴 워너 크리스 원스트래스 필립 제퍼리 하이엣 스콧 차콘 경영진 CEO 토마스 돔케 (2021년 11월~ ) 모기업 Microsoft (2018년~ ) 상장 거래소 비상장 기업 매출 10억 달러[4] (2022년) MAU 9,000만 명 (2022년 3분기) 본사 미국 캘리포니아 샌프란시스코 앱 GitHub Mobile 링크 | | | | | | | [ 펼치기 · 접기 ] | | | | | | | | | | | 1. 개요2. 역사 2.1. 마이크로소프트의 인수 이후 3. 서비스 3.1. 저장소 4. 특징5. 요금제 5.1. Github Enterprise5.2. GitHub Student Developer Pack 6. 깃허브 자격증7. 행사8. 사건 사고9. 유사 서비스10. 기타11. 관련 문서 1. 개요[편집] Where the world builds software 온 세상이 소프트웨어를 만드는 곳 마이크로소프트 산하의 Git 저장소 호스팅 서비스 및 공동 협업 플랫폼. 각종 개발자 친화적인 정책으로 인해 1억 5천만명[5]이 넘는 개발자들이 자신이 개발한 오픈 소스 소프트웨어를 공유하고 개발하는 용도로 사용하면서 현재는 오픈 소스의 중심지 중 하나로 취급받고 있다. 2. 역사[편집] 창업자 톰 프레스턴 워너와 크리스 원스트래스는 Ruby on Rails 모임을 통해 친구가 된다. 둘 다 직장인이었기 때문에 매주 주말에만 만나며 사이드 프로젝트로 서비스를 시작했으나 규모가 커지기 시작하여 또 다른 공동 창업자 필립 제퍼리 하이엣을 불러들여 전업으로 사업을 시작한다. 창업자 셋 다 개발자 출신이다. 2008년 퍼블릭 베타 버전을 출시한 이래로 기업들을 위한 비공개 저장소 기능을 공개하며 사용자가 급증하여 스타트업 인덱스라고도 불리는 Y Combinator의 투자를 받는다. 창업 2년 차까지는 비용 절감을 위해 사무실 없이 원격으로 근무했으며 호스팅 비용을 아끼기 위해 '엔진야드'라는 업체에게 무료 광고를 게재해 주는 대가로 무료 호스팅을 지원받았다고 한다. 2011년 호스팅 프로젝트 200만 개를 넘겼으며 애드웨어, 해킹, 바이러스 등의 문제로 많은 개발자들의 신뢰를 잃은 SourceForge, 구글 코드 등을 제치며 대부분의 프로젝트가 GitHub 쪽으로 이주하게 됐다. 2012년 7월 시리즈 A 라운드에서 앤드리슨 호로위츠로부터 기업 가치 7억 5,000만 달러를 평가받으며 1억 달러를 투자받았다. 본래 중간 관리자 없이 직원들이 알아서 하고 싶은 프로젝트를 진행하는 시스템이었으나, 2014년에 퇴사한 한 여성 직원이 사내 성차별이 만연했으며 창업자 톰 프레스턴워너와 그의 부인의 개입이 지나치다며 폭로한 사건이 대서특필되면서 프레스턴워너는 사임했고 중간 관리자 직책도 추가시키며 시스템을 개편했다. 2015년 7월 세콰이어캐피탈이 리드하는 시리즈 B 라운드에서 기업 가치 20억 달러를 평가받으며 2억 5,000만 달러 투자를 유치했다. 이후 미국 외 해외 진출을 위한 첫 오피스로 일본을 선택했다. GitHub의 근간이 된 Ruby가 나온 나라가 일본임을 감안하면 묘한 인연인 셈. 2.1. 마이크로소프트의 인수 이후[편집] 블룸버그에 따르면 2018년 6월 4일, 마이크로소프트가 GitHub를 인수하기로 결정했다고 한다. # GitHub는 2016년에만 무려 6,600만 달러의 엄청난 적자#를 기록했고, 이 때문에 자체 상장보다는 인수되는 것을 희망해 왔다고 한다. 또한 오픈 소스에 친화적인 태도를 보이는 마이크로소프트의 CEO인 사티아 나델라에게 감명받았다고 한다. 현지 시각으로 2018년 6월 4일 오전 6시에 MS 트위터를 통해서 GitHub 인수 소식이 정식 발표 되었다. # 인수 금액은 75억 달러이다. 인수가 완료되면 Xamarin의 CEO였던 냇 프리드먼이 GitHub의 CEO로 부임할 예정이다. 그리고 2018년 10월 26일, 인수 절차가 완료되었다. # 이에 대해서 걱정 또는 비판하는 목소리가 많았다. GitHub는 오픈 소스의 성지 역할을 하고 있는 사이트였고, 이는 GitHub가 특정 기업에 종속되지 않은 중립적인 행보를 보였기에 가능한 일이었다. 오픈 소스를 배척한다는 이미지가 강해 자유 소프트웨어 쪽에서는 거의 악마로 묘사되는 MS가 GitHub를 인수하게 되면 오픈 소스를 탄압 또는 고사시킬 것이라는 우려이다. 물론 이는 빌 게이츠 시절 이야기고 사티아 나델라 CEO 이후엔 친오픈 소스, 탈윈도우 플랫폼 행보를 보이고 있다. 그 전에 인수한 LinkedIn도 MS의 색채를 거의 없앤 채로 운영 중이지만 한번 쌓인 이미지가 그리 쉽게 사라지지 않는다는 게 문제다. 또한 경쟁사 서버에 자신들의 소스 코드가 올라가게 되었다는 점에서 MS와 경쟁 관계에 있는 수많은 기업들(애플, 구글 등) 또한 찝찝할 수밖에 없다. GitLab 측에서는 MS의 GitHub 인수를 축하하는 글을 블로그에 올렸다. MS의 인수 소식 때문인지, 애플은 Xcode 10부터 GitLab 기능을 통합시킬 것이라고 밝혔다. # GitHub의 텍스트 에디터인 Atom이 같은 Electron 프레임워크 기반의 Visual Studio Code와 유사한 위상이어서, MS에서 Atom을 정리하려는 것은 아닌가 우려하는 사용자들이 있었으나, 일단 GitHub의 새로운 CEO는 Atom을 계속 지원할 것을 약속했다. # 그러나 VS Code에 비하면 Atom은 적극적인 업데이트가 이루어지지 않고 있으며, 결국에는 버려질 것이라는 예상이 많다. 결국 Atom은 2022년 12월 15일부로 개발 중단 공지를 올렸다. # 자세한 내용은 Atom(에디터) 참고. 한편으로는 오라클이 아니라 MS가 인수해서 다행이라는 반응도 있다. 이전부터 오픈 소스 진영에서는 오라클이 주적(主敵)으로 취급되곤 했는데, 그 주적한테 인수되는 것 자체가 자칫 큰 반발을 살 수 있기 때문.[6] 다행히 인수 의사를 밝힌 MS는 친오픈 소스 행보를 보이고 있기 때문에, 앞서 언급했듯 GitLab 등에서도 환영 의사를 나타낼 수 있었다. 오라클이 인수했다면 썬 마이크로시스템즈나 오픈오피스, 아니면 MySQL 꼴 날 수도 있었을 일. 물론 오픈 소스의 적이 GitHub를 인수할 일은 애초에 없었을 것이긴 하다. 원래는 공개 프로젝트만 무료였고 비공개 프로젝트는 결제를 해야 했으나, MS에 인수된 이후 2019년 1월 초부터 비공개 저장소를 무료로 제공하기 시작했다.# 2020년 3월 16일 Node.js 패키징업체인 npm을 인수했다. 2020년 2월부터 디스커션 보드가 추가되었다. 이전까지는 이슈 트래커에서 버그 리포팅과 특정 주제에 대한 토론을 함께 진행했는데, 이제 토론은 별도의 게시판에서 진행할 수 있다. 2020년 4월 중순부터 비공개 저장소 공동 작업자 수 제한도 풀렸다.# 2021년 6월에는 GitHub Copilot을 출시하여 본격적인 생성형 AI 서비스 시장에 뛰어들었다. 모기업 마이크로소프트에서 2023년 출시된 Microsoft Copilot과 이름이 유사하기도 하다. 2023년 10월에 깃허브 자격증 프로그램을 런칭하였다. 3. 서비스[편집] GitHub Repository: 프로그램 소스 코드를 저장하게 하고 개발자가 사용하는 깃허브 대표적 서비스. GitHub Action: 지속적 통합(continuous integration, CI) 그리고 지속적 배포(continuous delivery, CD)를 사용해서 빌드, 테스트, 배포를 가능하게 하는 데브옵스(DevOps) 파이프라인 자동화 툴. GitHub Packages: 도커 컨테이너 혹은 프로그램 패키지(NPM, NuGet, Gem, Maven/Gradle)를 저장할 수 있는 이미지 레지스트리 개념의 서비스. GitHub Advanced Security (GHAS): 코드 패키지에 있는 취약점을 찾고 패치를 도와주는 Dependabot, 그리고 소스 코드에 있는 문제점들을 찾는 것 등등 다양한 보안 기능을 제공하는 서비스. 공개 데이터베이스인 GitHub Advisory Database 또한 운영하고 있다. GitHub Projects: Atlassian JIRA같이 프로젝트를 관리하게 도와줄 수 있는 서비스. GitHub Discussions: Stack Overflow나 Quora같이 질문을 물어보고 대답하는 형식을 제공하는 서비스. 기본 이슈 트래커에서는 코드 버그와 관련된 내용에 집중하고, discussions에서는 초보자 질문, 프로젝트 공유 등이 중점으로 이루어진다. GitHub Pages: 깃허브 리포지터리에 간단한 마크다운(Markdown) 형식 파일을 저장하고 설정하면 간단한 웹사이트를 만들어 주는 서비스. GitHub Gist: 단일 소스 파일과 간단한 메모를 저장 또는 공유하는 용도로 사용할 수 있다. public/private 여부를 선택할 수 있으며, Google Colab 등 여러 툴에서 코드 단위 리포지터리 용도로 기본적으로 제공하는 추세이다. 원래는 익명으로도 올리는 것이 가능했으나 이를 악용한 스팸이나 악성 코드 업로드 등 지속적으로 문제가 되자 로그인해야만 사용 가능하도록 변경되었다. GitHub Copilot: 머신러닝을 사용해서 자동으로 개발자가 코드를 적는 내용을 파악하고 자동으로 나머지를 대신해서 적어주는 생성형 인공지능 서비스. Codespace: 깃허브 리포지터리 안에서 별도의 다운로드나 설치 없이 웹 브라우저에서 런칭하여 코드를 개발할 수 있게 해주는 인터넷 내장 코드 에디터 IDE. GitHub Wiki: 저장소별 위키를 만들 수 있는 서비스. GitHub CLI: 터미널에서도 풀 리퀘스트 등 GitHub 웹사이트와 동일한 작업을 할 수 있는 CLI 클라이언트. GitHub Desktop: 로컬 Git 작업 및 GitHub 일부 기능용 데스크탑 GUI 클라이언트. GitHub Mobile: 모바일 GitHub 클라이언트. 3.1. 저장소[편집] 자세한 내용은 GitHub/저장소 문서를 참고하십시오. 4. 특징[편집] 각 소스 코드 저장소마다 GitHub Wiki를 사용해 Gollum이란 마크다운 기반 위키를 만들 수 있다. 위키를 클론하고 싶을 경우 https://github.com/(사용자 이름)/(저장소).wiki.git을 클론하면 된다. GitHub는 SSH 와 https 프로토콜을 지원하며, 각각 다른 방식의 Remote git의 URL로 저장된다. Public/Private repository를 지원하며, 접근 권한이 필요한 private repository인 경우 기본적으로 GitHub 계정과 Password 를 입력을 해야 git pull/push가 가능하지만, 한 번만 설정도 가능하다. GitHub에서 public key는 1개의 계정 또는 Project에만 등록 가능하다. 하나의 계정에서 Project별 Public Key를 별도로 등록해야 한다. GitHub Pages라는 이름으로 웹 호스팅 서비스도 제공하고 있다. Jekyll(지킬)이라는 Ruby 기반 정적 CMS 툴을 내장하고 있다.[7] Jekyll을 사용하지 않을 경우에도 평범한 HTML/CSS/JS를 툭 던져놓으면 홈페이지로 쓸 수 있다. (사용자 이름).github.io라는 이름으로 저장소를 만들면 된다. 개인 도메인을 사용하고 싶은 경우 저장소 루트 경로에 CNAME 파일을 만들고 도메인을 입력한 뒤 DNS에 GitHub 서버 주소를 입력하면 된다.[8] 각 소스 코드 저장소마다 홈페이지를 한 개씩 만들 수 있다. GitHub Pages의 하위 디렉터리로 들어가게 된다.[9] 각 리포지터리마다 별도의 이슈 트래커를 무료로 지원한다. 마이크로소프트도 GitHub의 이슈 트래커를 상당히 애용하고 있다. 2명 이상의 협력자(C...",
+          "reused": true
+        }
+      ],
+      "selectedUrls": [
+        "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+        "https://docs.github.com/ko",
+        "https://itwiki.kr/w/GitHub_Actions",
+        "https://namu.wiki/w/GitHub"
+      ],
+      "reads": [
+        {
+          "url": "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+          "title": "GitHub Actions 비용 청구 - GitHub 문서",
+          "status": "reused",
+          "body": "이 기사에서 GitHub Actions 비용 청구 사용량을 GitHub Actions 무료 수당에 대해 측정하는 방법과 추가 사용 요금을 지불하는 방법을 알아봅니다. 마크다운 복사 이 기사에서 GitHub Actions 사용량 측정 방법 GitHub Actions표준 **** 호스팅 러너를 사용하는 자체 호스팅 러너 와 퍼블릭 리포지토리 는 GitHub 이용할 수 있습니다. 작업에 적합한 러너 선택을(를) 참조하세요. 프라이빗 리포지토리의 경우, 각 GitHub 계정은 계정 플랜에 따라 호스트된 실행기와 함께 사용할 수 있는 무료 사용 시간, 아티팩트 스토리지, 캐시 스토리지의 할당량을 받습니다. 할당된 금액을 초과하는 모든 사용량은 사용자의 계정에 청구됩니다. 분: 무료 분은 각 청구 주기가 시작될 때 전체 금액으로 다시 설정됩니다. 분 사용량은 워크플로 실행을 트리거한 사람이 아니라 리포지토리 소유자에게 청구됩니다. 보관소: 스토리지 요금은 매시간 사용량에 따라 한 달 내내 누적됩니다. 각 청구 주기가 시작될 때 누적된 스토리지 요금이 0으로 다시 설정됩니다. 팁 리포지토리에 대한 쓰기 권한이 있는 사용자는 누구나 작업을 실행할 수 있습니다. 작업 실행 비용은 리포지토리 소유자에게 청구됩니다. Copilot code review 및 GitHub Actions분 각 Copilot code review은 GitHub Actions 외에 AI credits분을 추가로 사용합니다. 비공개 리포지토리: 분은 계정이나 조직의 현재 요금제에 포함된 할당량에서 차감됩니다. 포함된 시간(분)을 초과하는 모든 사용량은 표준 GitHub Actions 요금으로 청구됩니다. 공개 리포지토리: 분은 계속 무료입니다. Copilot code review 는 기본적으로 표준 GitHub호스팅 Ubuntu Linux 실행기에서 실행됩니다. GitHub에서 호스팅하는 대형 러너 또는 자체 호스팅 실행기는 Actions Runner Controller(ARC)를 통해서도 구성할 수 있으며, 여기에는 별도의 요율이 적용됩니다. 스토리지 청구의 작동 방식 GitHub Actions 스토리지 청구는 시간당 누적 모델에서 작동합니다. 연속 청구: 스토리지 요금은 매월 실제 사용량에 따라 매시간 발생합니다. 월별 합계: 청구서는 GB-Hours 측정된 한 달 동안 사용된 총 스토리지를 반영합니다. 포함된 금액: 요금제에 대한 무료 스토리지 허용량(예: 엔터프라이즈 플랜의 경우 50GB)은 청구 계산에 대한 시간당 요금으로 변환됩니다. 공유 스토리지: 작업 아티팩트와 GitHub Packages 스토리지는 동일한 풀된 허용량을 공유합니다. GitHub 패키지 청구을(를) 참조하세요. 캐시 스토리지: 작업 캐시 스토리지는 리포지토리당 10GB의 별도 허용 한도입니다. 캐시 스토리지는 아티팩트 또는 GitHub Packages.와 공유되지 않습니다. 사용자 지정 이미지 스토리지: 함께 GitHub에서 호스팅하는 대형 러너 사용되는 사용자 지정 이미지에 대한 스토리지에는 플랜에 따라 자체 포함된 허용 한도가 있습니다. 현재 및 누적 스토리지 이해 GitHub에 나타나는 것과 청구서에 표시되는 항목의 차이를 이해하는 것이 중요합니다. 현재 스토리지: 현재 가지고 있는 스토리지 양 누적 스토리지: 청구 주기 전체에서 사용되는 스토리지의 누적 합계(청구서 결정) 아티팩트 삭제 시: 현재 스토리지가 즉시 감소합니다. 향후 시간당 요금 누적 중지 현재 청구 주기 동안 이미 누적된 스토리지는 합계에 남아 있으며 청구서에 표시됩니다. 예제(30일 청구 주기): 10일 동안 10GB의 아티팩트가 저장되면 11일에 모든 항목을 삭제합니다. 1-10일: 하루 240GB-Hours 누적(10GB × 24시간) 11일: 현재 스토리지가 0GB로 → 아티팩트 삭제 11-30일: 0GB-시간 적립(스토리지 없음) 청구서: 총 2,400 GB-시간 표시 (10일 × 240 GB-시간/일) 아티팩트 삭제는 현재 스토리지를 줄이고 향후 요금을 방지하지만 스토리지가 있는 시간 동안 이미 기록된 요금은 제거하지 않습니다. 스토리지 측정 단위 GitHub Actions 는 진 기가바이트(GB) 로 스토리지를 측정하는데, 여기에서: 1GB = 2^30바이트 = 1,073,741,824바이트 Gibibyte(GiB)라고도 합니다. 1GB = 1,024MB(MB) 청구 계산에는 GB-Hours가 사용됩니다. 1GB-Hour = 1시간 동안 1GB 스토리지 예: 10일 동안 3GB 저장 = 720 GB-Hours(3GB × 10일 × 24시간) 월별 청구서는 GB-Hours를 GB-Months로 변환할 때, 월의 시간 수로 나눕니다 (일반적으로 30일인 월의 경우 720시간). 사용자 지정 이미지 스토리지 GitHub에서 호스팅하는 대형 러너의 경우, 사용자 지정 이미지 저장 공간은 GitHub Actions 스토리지 요금으로 청구됩니다. 사용자 지정 이미지 스토리지는 다른 GitHub Actions 스토리지와 동일한 시간당 누적 모델을 사용합니다. 청구서는 시간에 따라 저장되는 이미지 데이터의 양을 기준으로 하며 GB-시간 단위로 측정됩니다. 사용자 지정 이미지에 대한 스토리지 사용량은 다음에 따라 달라집니다. 각 이미지 버전의 크기 보존하는 이미지 버전 수 각 버전이 저장되는 기간 키워드를 포함하는 snapshot 각 성공적인 워크플로 작업은 새 사용자 지정 이미지 버전을 만듭니다. 보존된 각 버전은 보존 정책에 의해 버전이 삭제되거나 제거될 때까지 스토리지 사용량에 영향을 줍니다. 자세한 내용은 사용자 지정 이미지 사용 및 엔터프라이즈에서 GitHub Actions 대한 정책 적용을(를) 참조하세요. 사용자 지정 이미지 스토리지는 실행기에서 기존 이미지를 사용하거나 끌어오는 횟수가 아니라 시간이 지남에 따라 보존된 이미지 데이터를 기반으로 합니다. 다음은 그 예입니다. 24시간 동안 150GB 사용자 지정 이미지 버전을 저장하면 3,600GB 시간이 사용됩니다. 24시간 동안 동일한 이미지의 150GB 버전 4개를 저장하면 14,400GB 시간이 사용됩니다. 사용량 측정 방법의 예 Linux 실행기에서 워크플로를 실행하고 완료하는 데 10분이 걸리는 경우 리포지토리 소유자 허용량의 10분을 사용합니다. 워크플로에서 10MB 아티팩트를 생성하는 경우 리포지토리 소유자의 아티팩트 스토리지 허용량 중 10MB를 사용합니다. 일반적으로 10분이 소요되는 워크플로를 실행했는데 필요한 의존성을 사용할 수 없어 5분 만에 실패한 경우, 리포지토리 소유자의 할당량에서 5분이 차감됩니다. 문제를 수정하고 워크플로를 다시 성공적으로 실행한 경우 리포지토리 소유자의 할당량에서 총 15분이 사용됩니다. 많은 로그 파일과 긴 작업 요약을 생성하는 워크플로를 실행하는 경우 이러한 파일은 리포지토리 소유자의 아티팩트 스토리지 허용량에 포함되지 않습니다. 캐시 스토리지 사용량은 각 시간의 최대 사용량으로 측정됩니다. 포함된 허용량은 리포지토리당 10GB입니다. 지정된 시간 동안 리포지토리에 최대 캐시 사용량이 15GB인 경우 리포지토리 소유자는 해당 리포지토리에 포함된 10GB를 초과하는 5GB의 사용량에 대해 요금이 청구됩니다. 리포지토리 소유자는 리포지토리 캐시 스토리지 제한이 포함된 사용량보다 높게 구성된 경우에만 요금이 청구됩니다. GitHub Actions의 무료 사용 다음 시간에는 표준 실행기, 아티팩트 스토리지, 캐시 스토리지에 대한 항목이 GitHub 플랜에 포함됩니다. 매월 초, 계정에서 사용하는 시간(분)은 0으로 초기화됩니다. Plan 아티팩트 스토리지 분(월별) 캐시 스토리지(리포지토리당) 사용자 지정 이미지 스토리지 GitHub Free 500MB 2,000 10GB 적용할 수 없음 GitHub Pro 1GB 3,000 10GB 적용할 수 없음 GitHub Free 조직용 500MB 2,000 10GB 적용할 수 없음 GitHub Team 2GB 3,000 10GB 75GB GitHub Enterprise Cloud 50GB 50,000 10GB 150GB 표준 GitHub 호스팅 실행기를 무료로 이용하실 수 있습니다. 공용 리포지토리에서 대상 GitHub Pages 대상 Dependabot 참고 대형 실행기는 공개 리포지토리에서 사용하거나 플랜에 포함된 할당량이 남아 있는 경우에도 항상 요금이 부과됩니다. 표시된 아티팩트 스토리지 용량은 **** 와 GitHub Packages됩니다. 즉, Actions 아티팩트 및 GitHub Packages 스토리지의 총 스토리지는 계획에 포함된 용량을 초과할 수 없습니다. 캐시 스토리지 및 사용자 지정 이미지 스토리지는 별도의 허용 한도입니다. Copilot code review는 프라이빗 리포지토리에서 GitHub Actions분을 소모합니다. 공개 리포지토리의 경우 GitHub Actions분은 계속 무료입니다. 포함된 할당량을 초과하여 사용 계정에 유효한 결제 방법이 등록되어 있지 않은 경우, 할당량을 모두 사용하면 사용이 차단됩니다. 결제 수단을 설정하기 전까지는 대형 실행기의 사용이 항상 차단됩니다. 추가 GitHub Actions 사용료 지불 계정에 대해 설정된 결제 방법을 사용하여 할당량을 초과하는 추가 사용에 대해 비용을 지불합니다 GitHub . 결제 및 청구 정보 관리을(를) 참조하세요. 호스팅된 GitHub 실행기의 경우, 스토리지는 매월 아티팩트 및 캐시의 시간당 사용량을 기준으로 청구됩니다. 분은 한 달 동안 각 실행기 유형이 사용한 총 처리 시간을 기준으로 계산됩니다. 유료 사용량에 대한 비용을 예측하려면 GitHub 사용합니다. 현재 비용을 보려면 요금제 제품 및 라이선스 사용량 확인하기을 참조하세요. 참고 청구 대시보드는 작업 사용량을 순수 사용 시간(분)이 아닌 달러 금액(“지출”)으로 표시할 수 있습니다. 이 금액에는 이미 적용 가능한 분 사용 요금이 반영되어 있습니다. 기준 분당 비용 GitHub에서 호스팅하는 각 실행기 유형은 운영 체제와 처리 능력에 따라 결정되는 분당 비용이 있습니다. 예를 들어 Windows 및 macOS 실행기에서 실행되는 GitHub 작업은 Linux 실행기에서 작업보다 실행하는 데 더 많은 비용이 듭니다. 운영 체제 청구용 SKU 분당 요금(USD) Linux 1코어(x64) actions_linux_slim $0.002 Linux 2코어(x64) actions_linux $0.006 Linux 2코어(arm64) actions_linux_arm $0.005 Windows 2 코어(x64) actions_windows $0.010 Windows 2 코어(arm64) actions_windows_arm $0.010 macOS 3코어 또는 4코어(M1 또는 Intel) actions_macos $0.062 다양한 유형의 실행 프로그램의 분당 비용에 대한 자세한 내용은 작업 실행기 요금을 참조하세요. 스토리지 가격 책정 포함된 수당을 초과하는 사용량은 다음 요금으로 청구됩니다. 스토리지 유형 GB/월당 가격 공유 스토리지(아티팩트 및 GitHub Packages) $0.25 USD 작업 캐시 $0.07 USD 사용자 지정 이미지 스토리지 $0.07 USD GitHub에서 호스팅되는 러너에 대한 분당 비용 계산 예시 예를 들어, 조직이 GitHub Team을 사용하는 경우, GitHub 호스팅 실행기에 포함된 기본 할당량을 초과하여 Linux 및 Windows 실행기를 5,000분 사용하면 총 작업 시간 비용으로 미화 38달러가 청구됩니다. 5,000분 (Linux 3,000분 및 Windows 2,000분) = $38 USD ($18 USD + $20 USD). 3,000 Linux 분 x 분당 $0.006 USD = $18 USD 2,000 Windows 분 x 분당 $0.010 USD = $20 USD 아티팩트 스토리지 비용 계산 예제 3월 10일 동안 3GB의 아티팩트 스토리지를 사용하고 3월 21일 동안 12GB를 사용하는 경우 아티팩트 스토리지 사용량은 다음과 같습니다. 3GB x 10일 x (하루 24시간) = 720GB/시간 12GB x 21일 x (하루 24시간) = 6,048GB/시간 720GB/시간 + 6,048GB/시간 = 6,768GB/시간 6,768GB/시간 / (월별 744시간) = 9.0967GB/월 이달 말이 되면 GitHub 가 아티팩트 저장 용량을 가장 가까운 MB 단위로 반올림합니다. 따라서 3월의 아티팩트 스토리지 사용량은 9.097GB입니다. 참고 GitHub 는 6~12시간 내에 아티팩트 스토리지 사용량을 업데이트합니다. 아티팩트 삭제는 현재 스토리지의 공간을 확보하지만 현재 청구 주기에 대한 스토리지 청구를 계산하는 데 사용되는 누적된 스토리지 사용량을 줄이지는 않습니다. 캐시 스토리지 비용 계산 예제 3월 10일 동안 3GB의 캐시 스토리지를 사용하고 3월 21일 동안 12GB를 사용하는 경우 캐시 스토리지 사용량은 다음과 같습니다. 사용량(GB) 청구 가능(GB-시간) 청구 불가(GB-Hours) 처음 10일 동안 3GB 0GB 시간 720 GB-시간 다음 21일 동안 12GB 2*21일*24시간 = 1008GB-시간 10*21일*24시간=5040 GB-시간 캐시된 스토리지의 경우 청구 차트 및 보고서에 포함된 10GB를 초과하는 사용 비용만 표시됩니다. 월말에 Actions Cache Storage SKU는 1008GB 시간 사용을 표시합니다. GitHub Actions에 대한 예산 관리하기 유효한 결제 방법이 등록되어 있지 않은 경우, 할당량을 모두 사용하면 추가 사용이 차단됩니다. 파일에 유효한 결제 방법이 있는 경우 지출이 하나 이상의 예산으로 제한될 수 있습니다. 계정에 설정된 예산을 확인하여 사용량 요구 사항에 적합한지 확인합니다. 예산을 설정하여 요금제 제품에 대한 지출을 제어합니다.을(를) 참조하세요. 또한 청구 기간 동안 포함된 GitHub Actions 사용량이 90개% 100개% 도달하면 이메일 알림을 받을 수 있습니다. 자세한 내용은 예산 및 경고을(를) 참조하세요. 추가 참고 자료 GitHub Actions에 대한 이해 GitHub Actions에 대한 빠른 시작 가이드",
+          "bodyLength": 6978,
+          "reused": true
+        },
+        {
+          "url": "https://docs.github.com/ko",
+          "title": "GitHub Docs",
+          "status": "reused",
+          "body": "GitHub 문서 GitHub 여정의 모든 위치에 대한 도움말입니다. 무엇이든 검색.../ 모든 문서 시작하기 시작하기 마이그레이션 계정 및 프로필 구독 및 알림 인증 청구 및 결제 사이트 정책 공동 코딩 Codespaces 리포지토리 끌어오기 요청 GitHub Discussions 통합 GitHub Copilot GitHub Copilot 요금제 Copilot cloud agent 자습서 GitHub Copilot 활용 안내서 사용자 지정 라이브러리 Copilot CLI CI/CD 및 DevOps GitHub Actions GitHub Packages GitHub Pages 보안 및 코드 품질 보안 및 코드 품질 비밀 보호 코드 취약성 찾기 및 수정 공급망 보안 품질 코드 유지 관리 확장 가능한 보안 클라이언트 앱 GitHub CLI GitHub 모바일 GitHub Desktop 프로젝트 관리 GitHub Issues Projects GitHub 검색 엔터프라이즈 및 팀 조직 확장 가능한 보안 엔터프라이즈 온보딩 엔터프라이즈 관리자 개발자 앱 REST API GraphQL API 웹후크 커뮤니티 커뮤니티 빌드 GitHub Sponsors GitHub Education 비영리 단체를 위한 GitHub GitHub 지원 GitHub Docs에 기여 추가 문서 CodeQL query writing Electron npm GitHub Well-Architected",
+          "bodyLength": 714,
+          "reused": true
+        },
+        {
+          "url": "https://itwiki.kr/w/GitHub_Actions",
+          "title": "GitHub Actions - IT 위키",
+          "status": "reused",
+          "body": "GitHub Actions는 GitHub 저장소 내에서 워크플로우(workflows)를 자동화할 수 있게 해 주는 CI/CD 및 이벤트 기반 자동화 플랫폼이다. 개념 및 구성 요소 편집 원본 편집 GitHub Actions는 저장소에 `.github/workflows/` 디렉터리에 YAML 형식의 워크플로우 정의 파일을 두고, 특정 이벤트(push, pull_request 등)가 발생할 때 자동으로 일련의 작업(job)을 실행시키는 구조다. 주요 구성 요소는 다음과 같다: 이벤트(Events): 워크플로우를 트리거하는 GitHub 내의 동작 (예: 코드 푸시, 풀 리퀘스트 생성 등) 워크플로우(Workflow): 이벤트 발생 시 실행할 작업의 정의 잡(Job): 워크플로우 내에서 병렬 또는 순차 실행되는 단위 작업 스텝(Step): 잡 안에서 실행되는 개별 명령 또는 액션 액션(Action): 재사용 가능한 코드 단위 또는 컨테이너로, 스텝에서 호출됨 러너(Runner): 워크플로우를 실제 실행하는 실행 환경. GitHub 호스팅 러너 또는 자체 호스팅 러너를 사용할 수 있음 시크릿(Secrets): 민감한 정보를 저장하고 워크플로우 내에서 안전하게 참조 매트릭스(Matrix): 여러 환경 조합에서 작업을 병렬 실행하는 기능 특징 및 장점 편집 원본 편집 GitHub 내에서 자동화를 구현할 수 있어 별도의 외부 CI 도구 없이도 설정 가능 다양한 운영체제 및 런타임 환경에서 실행 가능 매트릭스 전략, 조건문, 잡 간 의존성 등 고급 제어 기능 제공 실행 결과 시각화 및 로그 확인이 쉬움 사용자 정의 액션과 마켓플레이스를 통해 기능 확장 가능 활용 예시 편집 원본 편집 코드가 main 브랜치에 푸시될 때 자동으로 빌드, 테스트, 배포를 수행하는 워크플로우를 구성할 수 있다. 또한 문서 파일이 변경될 때 GitHub Pages 또는 외부 서버와 동기화하는 작업을 자동화할 수도 있다. 워크플로 문법과 구조 편집 원본 편집 GitHub Actions의 워크플로 파일은 `.github/workflows/` 디렉터리에 위치하며, YAML 문법으로 작성된다. 워크플로는 크게 다음과 같은 구조로 이루어진다: name: 워크플로의 이름 on: 워크플로를 트리거하는 이벤트 (예: push, pull_request, schedule 등) jobs: 실행할 작업(Job)들의 집합 예시: name: Example Workflow on: push: branches: [ \"main\" ] jobs: build: runs-on: ubuntu-latest steps: - uses: actions/checkout@v4 - name: Run test run: echo \"Hello, world\" 트리거(on:) 편집 원본 편집 워크플로를 어떤 이벤트에서 실행할지 정의한다. 주요 이벤트는 다음과 같다: push: 특정 브랜치로 푸시될 때 실행 pull_request: PR 생성 또는 변경 시 실행 schedule: cron 표현식 기반의 정기 실행 workflow_dispatch: 수동 실행을 허용 (UI에서 버튼 클릭) repository_dispatch: 외부 시스템에서 API 호출로 실행 복수 이벤트를 조합할 수도 있다. 잡(Jobs) 편집 원본 편집 jobs 아래에는 하나 이상의 작업 단위(Job)가 정의되며, 각 job은 독립적인 실행 환경에서 병렬 실행된다. Job 내부에는 다음을 포함할 수 있다: runs-on: 해당 작업을 실행할 러너 환경 (예: ubuntu-latest) needs: 다른 job이 완료된 후 실행되도록 설정 steps: 각 job에서 실행될 구체적인 명령 또는 액션 매트릭스 전략 편집 원본 편집 matrix 키워드를 사용하면 하나의 job을 다양한 변수 조합으로 반복 실행할 수 있다. 주로 Python, Node.js 등 다양한 런타임 버전에서 테스트를 수행할 때 활용된다. strategy: matrix: python-version: [3.9, 3.10, 3.11] 러너(Runners) 편집 원본 편집 러너는 워크플로를 실제로 실행하는 머신이다. GitHub에서는 다음을 지원한다: GitHub 호스팅 러너: GitHub에서 제공하는 가상 머신 자체 호스팅 러너: 사용자가 직접 구성한 서버 또는 환경 러너는 매 실행마다 클린 환경으로 시작되며, 각 job은 독립적으로 수행된다. 스텝(Steps) 편집 원본 편집 각 job은 여러 개의 step으로 구성되며, step은 순차적으로 실행된다. step은 다음 중 하나를 실행할 수 있다: run: 셸 명령 실행 uses: 기존에 등록된 액션을 불러와 실행 with / env: 액션 또는 명령 실행 시 사용할 인자 또는 환경 변수 설정 예: - name: Run tests run: pytest env: DATABASE_URL: postgresql://localhost/test 액션(Actions) 편집 원본 편집 GitHub Actions에서는 steps에서 `uses` 키워드를 사용해 재사용 가능한 액션을 호출할 수 있다. actions/checkout: 저장소 코드를 체크아웃 actions/setup-python: 파이썬 런타임 설정 codecov/codecov-action: 테스트 커버리지 업로드 마켓플레이스에서 수천 개의 액션을 제공하며, 사용자가 직접 정의한 커스텀 액션도 사용할 수 있다. 환경 변수와 시크릿 편집 원본 편집 워크플로에서 민감한 정보를 다뤄야 할 경우, GitHub의 Secrets 기능을 활용한다. `env:`를 통해 환경 변수를 직접 설정하거나 `secrets.MY_SECRET` 형식으로 GitHub 저장소 설정에 등록된 시크릿 값을 참조할 수 있다 예: env: API_KEY: ${{ secrets.API_KEY }} 조건 실행 (조건문) 편집 원본 편집 워크플로, job, step 단위에서 조건을 설정할 수 있다. 예: if: github.event_name == 'push' 또는 테스트가 실패해도 다음 단계를 실행하게 하고 싶을 때: continue-on-error: true 재사용 가능한 워크플로 편집 원본 편집 workflow_call 이벤트를 사용하면 다른 워크플로를 호출할 수 있다. 예를 들어 공통 빌드, 배포, 테스트 단계를 재사용 워크플로로 만들어 둘 수 있다. on: workflow_call: inputs: app_name: required: true type: string 워크플로 디버깅 편집 원본 편집 실행 로그는 GitHub Actions UI에서 확인할 수 있으며, 각 step의 실행 결과 및 출력이 기록된다. `run: echo` 등을 활용해 중간 변수나 상태를 출력하며 디버깅할 수 있다. 제한과 고려사항 편집 원본 편집 워크플로우가 복잡해질수록 유지보수가 어려울 수 있음 실행 시간, 리소스, 요금제에 따른 제한 존재 시크릿 관리 실수로 인한 보안 위험 발생 가능 예기치 않은 실행 오류가 발생할 수 있어 감시 및 대응 체계 필요 같이 보기 편집 원본 편집 CI/CD Git (버전 관리 시스템) GitLab CI/CD 자동화 도구 비교 각주 편집 원본 편집 원본 주소 \"https://itwiki.kr/index.php?title=GitHub_Actions&oldid=41459\" 목차",
+          "bodyLength": 3570,
+          "reused": true
+        },
+        {
+          "url": "https://namu.wiki/w/GitHub",
+          "title": "GitHub - 나무위키",
+          "status": "reused",
+          "body": "최근 변경최근 토론 특수 기능 GitHub 최근 수정 시각: 2026-10-13 12:16:07 73 편집 편집 IP 우회 수단(프록시 서버, VPN, Tor 등)이나 IDC 대역 IP로 접속하셨습니다. (#23576427) (VPN이나 iCloud의 비공개 릴레이를 사용 중인 경우 나타날 수 있습니다.) 잘못된 IDC 대역 차단이라고 생각하시는 경우 게시판에 문의하시길 바랍니다. 닫기 토론역사 분류 GitHub Git/호스팅 서비스 미국의 IT 관련 기업 샌프란시스코의 기업 2008년 설립 Microsoft 2026년 계정 정보 및 액세스 토큰 유출 사건에 대한 내용은 GitHub/사건 사고 문서의 8번 문단을 참고하십시오. [ 펼치기 · 접기 ] 관련 인물 톰 프레스턴 워너 · 필립 제퍼리 하이엣 서비스 저장소 · GitHub Pages · GitHub Action · GitHub Packages · Codespace(github.dev) · GitHub Wiki · GitHub Gist · Dependabot · GitHub Advisory Database · GitHub Copilot 클라이언트 GitHub CLI · GitHub Desktop · GitHub Mobile 오픈 소스 Electron(Atom) · Linguist · Semantic · Tree-sitter 관련 문서 사건 사고 · Octocat · GitHub Universe · One Dark · npm Microsoft 마이크로소프트 [ 펼치기ㆍ접기 ] 제품군 하드​웨어 Surface · XBOX · HoloLens · PixelSense · Zune · Pluton · IVAS · Azure Cobalt · Azure MAIA 소프트​웨어 Windows(주요 내장 프로그램) · Office · Edge · Media Player · Hyper-V · Defender · Visual Studio Code · Visual Studio · Windows Terminal · Microsoft Store · Xbox App · PowerToys · Internet Explorer · MS-DOS · Windows Movie Maker · Autoruns · Clipchamp · Family Safety 서비스 Microsoft Azure · OneDrive · Microsoft Copilot · Bing · LinkedIn · Microsoft Docs · Skype · MSN · 정품인증 · Xbox Game Pass · Xbox Cloud Gaming · Xbox network · SwiftKey 관련 기술 ASF · ASP · Blazor · COM · DCOM · Debug Adapter Protocol · DirectX · 파일 시스템(FAT · NTFS · ReFS) · 언어 서버 프로토콜 · MFC · .NET(.NET Core · .NET Standard · C# · F# · Visual Basic .NET · Q#) · 라이브러리(Windows Forms · WPF · UWP · Xamarin · .NET MAUI · ASP.NET · ML.NET · XNA) · OLE · Silverlight · Visual Basic · Visual Basic for Applications · WASAPI · Windows 커널 · Windows 디자인 · Windows API · Windows Runtime(UWP · WinUI) · WMA · WMV · 하복 엔진 · SAMI · PowerShell · Windows Modern Standby · Nearby Sharing 산하 계열사 및 사업부 GitHub · .NET Foundation · Xbox · LinkedIn 관련 인물 빌 게이츠(은퇴) · 폴 앨런(은퇴) · 스티브 발머(퇴사) · 게이브 뉴웰(퇴사) · 마이크 이바라(퇴사) · 사티아 나델라 · 필 스펜서(은퇴)[1] · 아샤 사르마[2] · 로드 퍼거슨(퇴사) 기타 제니맥스 미디어 인수 · 액티비전 블리자드 인수 · 시작 메뉴 · 빌 게이츠의 굴욕 관련 틀 365 제품군 · 하드웨어 제품군 · Surface 제품군 · Windows 제품군 [각주 펼치기ㆍ접기] [1] Microsoft Gaming의 초대 CEO [2] XBOX 게이밍 부서의 2대 CEO GitHub 깃허브 출시 2008년 2월 8일 (18주년) 국가 미국 산업 IT 서비스 Git 호스팅, 버전 관리, 이슈 트래커, 데브옵스, 보안, 프로젝트 관리 언어 영어[1][m] 회원 가입 선택[3] 창업자 톰 프레스턴 워너 크리스 원스트래스 필립 제퍼리 하이엣 스콧 차콘 경영진 CEO 토마스 돔케 (2021년 11월~ ) 모기업 Microsoft (2018년~ ) 상장 거래소 비상장 기업 매출 10억 달러[4] (2022년) MAU 9,000만 명 (2022년 3분기) 본사 미국 캘리포니아 샌프란시스코 앱 GitHub Mobile 링크 | | | | | | | [ 펼치기 · 접기 ] | | | | | | | | | | | 1. 개요2. 역사 2.1. 마이크로소프트의 인수 이후 3. 서비스 3.1. 저장소 4. 특징5. 요금제 5.1. Github Enterprise5.2. GitHub Student Developer Pack 6. 깃허브 자격증7. 행사8. 사건 사고9. 유사 서비스10. 기타11. 관련 문서 1. 개요[편집] Where the world builds software 온 세상이 소프트웨어를 만드는 곳 마이크로소프트 산하의 Git 저장소 호스팅 서비스 및 공동 협업 플랫폼. 각종 개발자 친화적인 정책으로 인해 1억 5천만명[5]이 넘는 개발자들이 자신이 개발한 오픈 소스 소프트웨어를 공유하고 개발하는 용도로 사용하면서 현재는 오픈 소스의 중심지 중 하나로 취급받고 있다. 2. 역사[편집] 창업자 톰 프레스턴 워너와 크리스 원스트래스는 Ruby on Rails 모임을 통해 친구가 된다. 둘 다 직장인이었기 때문에 매주 주말에만 만나며 사이드 프로젝트로 서비스를 시작했으나 규모가 커지기 시작하여 또 다른 공동 창업자 필립 제퍼리 하이엣을 불러들여 전업으로 사업을 시작한다. 창업자 셋 다 개발자 출신이다. 2008년 퍼블릭 베타 버전을 출시한 이래로 기업들을 위한 비공개 저장소 기능을 공개하며 사용자가 급증하여 스타트업 인덱스라고도 불리는 Y Combinator의 투자를 받는다. 창업 2년 차까지는 비용 절감을 위해 사무실 없이 원격으로 근무했으며 호스팅 비용을 아끼기 위해 '엔진야드'라는 업체에게 무료 광고를 게재해 주는 대가로 무료 호스팅을 지원받았다고 한다. 2011년 호스팅 프로젝트 200만 개를 넘겼으며 애드웨어, 해킹, 바이러스 등의 문제로 많은 개발자들의 신뢰를 잃은 SourceForge, 구글 코드 등을 제치며 대부분의 프로젝트가 GitHub 쪽으로 이주하게 됐다. 2012년 7월 시리즈 A 라운드에서 앤드리슨 호로위츠로부터 기업 가치 7억 5,000만 달러를 평가받으며 1억 달러를 투자받았다. 본래 중간 관리자 없이 직원들이 알아서 하고 싶은 프로젝트를 진행하는 시스템이었으나, 2014년에 퇴사한 한 여성 직원이 사내 성차별이 만연했으며 창업자 톰 프레스턴워너와 그의 부인의 개입이 지나치다며 폭로한 사건이 대서특필되면서 프레스턴워너는 사임했고 중간 관리자 직책도 추가시키며 시스템을 개편했다. 2015년 7월 세콰이어캐피탈이 리드하는 시리즈 B 라운드에서 기업 가치 20억 달러를 평가받으며 2억 5,000만 달러 투자를 유치했다. 이후 미국 외 해외 진출을 위한 첫 오피스로 일본을 선택했다. GitHub의 근간이 된 Ruby가 나온 나라가 일본임을 감안하면 묘한 인연인 셈. 2.1. 마이크로소프트의 인수 이후[편집] 블룸버그에 따르면 2018년 6월 4일, 마이크로소프트가 GitHub를 인수하기로 결정했다고 한다. # GitHub는 2016년에만 무려 6,600만 달러의 엄청난 적자#를 기록했고, 이 때문에 자체 상장보다는 인수되는 것을 희망해 왔다고 한다. 또한 오픈 소스에 친화적인 태도를 보이는 마이크로소프트의 CEO인 사티아 나델라에게 감명받았다고 한다. 현지 시각으로 2018년 6월 4일 오전 6시에 MS 트위터를 통해서 GitHub 인수 소식이 정식 발표 되었다. # 인수 금액은 75억 달러이다. 인수가 완료되면 Xamarin의 CEO였던 냇 프리드먼이 GitHub의 CEO로 부임할 예정이다. 그리고 2018년 10월 26일, 인수 절차가 완료되었다. # 이에 대해서 걱정 또는 비판하는 목소리가 많았다. GitHub는 오픈 소스의 성지 역할을 하고 있는 사이트였고, 이는 GitHub가 특정 기업에 종속되지 않은 중립적인 행보를 보였기에 가능한 일이었다. 오픈 소스를 배척한다는 이미지가 강해 자유 소프트웨어 쪽에서는 거의 악마로 묘사되는 MS가 GitHub를 인수하게 되면 오픈 소스를 탄압 또는 고사시킬 것이라는 우려이다. 물론 이는 빌 게이츠 시절 이야기고 사티아 나델라 CEO 이후엔 친오픈 소스, 탈윈도우 플랫폼 행보를 보이고 있다. 그 전에 인수한 LinkedIn도 MS의 색채를 거의 없앤 채로 운영 중이지만 한번 쌓인 이미지가 그리 쉽게 사라지지 않는다는 게 문제다. 또한 경쟁사 서버에 자신들의 소스 코드가 올라가게 되었다는 점에서 MS와 경쟁 관계에 있는 수많은 기업들(애플, 구글 등) 또한 찝찝할 수밖에 없다. GitLab 측에서는 MS의 GitHub 인수를 축하하는 글을 블로그에 올렸다. MS의 인수 소식 때문인지, 애플은 Xcode 10부터 GitLab 기능을 통합시킬 것이라고 밝혔다. # GitHub의 텍스트 에디터인 Atom이 같은 Electron 프레임워크 기반의 Visual Studio Code와 유사한 위상이어서, MS에서 Atom을 정리하려는 것은 아닌가 우려하는 사용자들이 있었으나, 일단 GitHub의 새로운 CEO는 Atom을 계속 지원할 것을 약속했다. # 그러나 VS Code에 비하면 Atom은 적극적인 업데이트가 이루어지지 않고 있으며, 결국에는 버려질 것이라는 예상이 많다. 결국 Atom은 2022년 12월 15일부로 개발 중단 공지를 올렸다. # 자세한 내용은 Atom(에디터) 참고. 한편으로는 오라클이 아니라 MS가 인수해서 다행이라는 반응도 있다. 이전부터 오픈 소스 진영에서는 오라클이 주적(主敵)으로 취급되곤 했는데, 그 주적한테 인수되는 것 자체가 자칫 큰 반발을 살 수 있기 때문.[6] 다행히 인수 의사를 밝힌 MS는 친오픈 소스 행보를 보이고 있기 때문에, 앞서 언급했듯 GitLab 등에서도 환영 의사를 나타낼 수 있었다. 오라클이 인수했다면 썬 마이크로시스템즈나 오픈오피스, 아니면 MySQL 꼴 날 수도 있었을 일. 물론 오픈 소스의 적이 GitHub를 인수할 일은 애초에 없었을 것이긴 하다. 원래는 공개 프로젝트만 무료였고 비공개 프로젝트는 결제를 해야 했으나, MS에 인수된 이후 2019년 1월 초부터 비공개 저장소를 무료로 제공하기 시작했다.# 2020년 3월 16일 Node.js 패키징업체인 npm을 인수했다. 2020년 2월부터 디스커션 보드가 추가되었다. 이전까지는 이슈 트래커에서 버그 리포팅과 특정 주제에 대한 토론을 함께 진행했는데, 이제 토론은 별도의 게시판에서 진행할 수 있다. 2020년 4월 중순부터 비공개 저장소 공동 작업자 수 제한도 풀렸다.# 2021년 6월에는 GitHub Copilot을 출시하여 본격적인 생성형 AI 서비스 시장에 뛰어들었다. 모기업 마이크로소프트에서 2023년 출시된 Microsoft Copilot과 이름이 유사하기도 하다. 2023년 10월에 깃허브 자격증 프로그램을 런칭하였다. 3. 서비스[편집] GitHub Repository: 프로그램 소스 코드를 저장하게 하고 개발자가 사용하는 깃허브 대표적 서비스. GitHub Action: 지속적 통합(continuous integration, CI) 그리고 지속적 배포(continuous delivery, CD)를 사용해서 빌드, 테스트, 배포를 가능하게 하는 데브옵스(DevOps) 파이프라인 자동화 툴. GitHub Packages: 도커 컨테이너 혹은 프로그램 패키지(NPM, NuGet, Gem, Maven/Gradle)를 저장할 수 있는 이미지 레지스트리 개념의 서비스. GitHub Advanced Security (GHAS): 코드 패키지에 있는 취약점을 찾고 패치를 도와주는 Dependabot, 그리고 소스 코드에 있는 문제점들을 찾는 것 등등 다양한 보안 기능을 제공하는 서비스. 공개 데이터베이스인 GitHub Advisory Database 또한 운영하고 있다. GitHub Projects: Atlassian JIRA같이 프로젝트를 관리하게 도와줄 수 있는 서비스. GitHub Discussions: Stack Overflow나 Quora같이 질문을 물어보고 대답하는 형식을 제공하는 서비스. 기본 이슈 트래커에서는 코드 버그와 관련된 내용에 집중하고, discussions에서는 초보자 질문, 프로젝트 공유 등이 중점으로 이루어진다. GitHub Pages: 깃허브 리포지터리에 간단한 마크다운(Markdown) 형식 파일을 저장하고 설정하면 간단한 웹사이트를 만들어 주는 서비스. GitHub Gist: 단일 소스 파일과 간단한 메모를 저장 또는 공유하는 용도로 사용할 수 있다. public/private 여부를 선택할 수 있으며, Google Colab 등 여러 툴에서 코드 단위 리포지터리 용도로 기본적으로 제공하는 추세이다. 원래는 익명으로도 올리는 것이 가능했으나 이를 악용한 스팸이나 악성 코드 업로드 등 지속적으로 문제가 되자 로그인해야만 사용 가능하도록 변경되었다. GitHub Copilot: 머신러닝을 사용해서 자동으로 개발자가 코드를 적는 내용을 파악하고 자동으로 나머지를 대신해서 적어주는 생성형 인공지능 서비스. Codespace: 깃허브 리포지터리 안에서 별도의 다운로드나 설치 없이 웹 브라우저에서 런칭하여 코드를 개발할 수 있게 해주는 인터넷 내장 코드 에디터 IDE. GitHub Wiki: 저장소별 위키를 만들 수 있는 서비스. GitHub CLI: 터미널에서도 풀 리퀘스트 등 GitHub 웹사이트와 동일한 작업을 할 수 있는 CLI 클라이언트. GitHub Desktop: 로컬 Git 작업 및 GitHub 일부 기능용 데스크탑 GUI 클라이언트. GitHub Mobile: 모바일 GitHub 클라이언트. 3.1. 저장소[편집] 자세한 내용은 GitHub/저장소 문서를 참고하십시오. 4. 특징[편집] 각 소스 코드 저장소마다 GitHub Wiki를 사용해 Gollum이란 마크다운 기반 위키를 만들 수 있다. 위키를 클론하고 싶을 경우 https://github.com/(사용자 이름)/(저장소).wiki.git을 클론하면 된다. GitHub는 SSH 와 https 프로토콜을 지원하며, 각각 다른 방식의 Remote git의 URL로 저장된다. Public/Private repository를 지원하며, 접근 권한이 필요한 private repository인 경우 기본적으로 GitHub 계정과 Password 를 입력을 해야 git pull/push가 가능하지만, 한 번만 설정도 가능하다. GitHub에서 public key는 1개의 계정 또는 Project에만 등록 가능하다. 하나의 계정에서 Project별 Public Key를 별도로 등록해야 한다. GitHub Pages라는 이름으로 웹 호스팅 서비스도 제공하고 있다. Jekyll(지킬)이라는 Ruby 기반 정적 CMS 툴을 내장하고 있다.[7] Jekyll을 사용하지 않을 경우에도 평범한 HTML/CSS/JS를 툭 던져놓으면 홈페이지로 쓸 수 있다. (사용자 이름).github.io라는 이름으로 저장소를 만들면 된다. 개인 도메인을 사용하고 싶은 경우 저장소 루트 경로에 CNAME 파일을 만들고 도메인을 입력한 뒤 DNS에 GitHub 서버 주소를 입력하면 된다.[8] 각 소스 코드 저장소마다 홈페이지를 한 개씩 만들 수 있다. GitHub Pages의 하위 디렉터리로 들어가게 된다.[9] 각 리포지터리마다 별도의 이슈 트래커를 무료로 지원한다. 마이크로소프트도 GitHub의 이슈 트래커를 상당히 애용하고 있다. 2명 이상의 협력자(C...",
+          "bodyLength": 8000,
+          "reused": true
+        }
+      ],
+      "snapshots": [
+        {
+          "version": 2,
+          "snapshotId": "docs.github.com:6970:이 기사에서 GitHub Actions 비용 청구 사용량을",
+          "status": "captured",
+          "question": "GitHub Actions 요금제",
+          "search": {
+            "engine": "bounded-focused-research",
+            "query": "GitHub Actions pricing billing official | site:docs.github.com GitHub Actions 비용 청구",
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+            "finalUrl": "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+            "hostname": "docs.github.com",
+            "official": true,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "GitHub Actions 비용 청구 - GitHub 문서",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "이 기사에서 GitHub Actions 비용 청구 사용량을 GitHub Actions 무료 수당에 대해 측정하는 방법과 추가 사용 요금을 지불하는 방법을 알아봅니다. 마크다운 복사 이 기사에서 GitHub Actions 사용량 측정 방법 GitHub Actions표준 **** 호스팅 러너를 사용하는 자체 호스팅 러너 와 퍼블릭 리포지토리 는 GitHub 이용할 수 있습니다. 작업에 적합한 러너 선택을(를) 참조하세요. 프라이빗 리포지토리의 경우, 각 GitHub 계정은 계정 플랜에 따라 호스트된 실행기와 함께 사용할 수 있는 무료 사용 시간, 아티팩트 스토리지, 캐시 스토리지의 할당량을 받습니다. 할당된 금액을 초과하는 모든 사용량은 사용자의 계정에 청구됩니다. 분: 무료 분은 각 청구 주기가 시작될 때 전체 금액으로 다시 설정됩니다. 분 사용량은 워크플로 실행을 트리거한 사람이 아니라 리포지토리 소유자에게 청구됩니다. 보관소: 스토리지 요금은 매시간 사용량에 따라 한 달 내내 누적됩니다. 각 청구 주기가 시작될 때 누적된 스토리지 요금이 0으로 다시 설정됩니다. 팁 리포지토리에 대한 쓰기 권한이 있는 사용자는 누구나 작업을 실행할 수 있습니다. 작업 실행 비용은 리포지토리 소유자에게 청구됩니다. Copilot code review 및 GitHub Actions분 각 Copilot code review은 GitHub Actions 외에 AI credits분을 추가로 사용합니다. 비공개 리포지토리: 분은 계정이나 조직의 현재 요금제에 포함된 할당량에서 차감됩니다. 포함된 시간(분)을 초과하는 모든 사용량은 표준 GitHub Actions 요금으로 청구됩니다. 공개 리포지토리: 분은 계속 무료입니다. Copilot code review 는 기본적으로 표준 GitHub호스팅 Ubuntu Linux 실행기에서 실행됩니다. GitHub에서 호스팅하는 대형 러너 또는 자체 호스팅 실행기는 Actions Runner Controller(ARC)를 통해서도 구성할 수 있으며, 여기에는 별도의 요율이 적용됩니다. 스토리지 청구의 작동 방식 GitHub Actions 스토리지 청구는 시간당 누적 모델에서 작동합니다. 연속 청구: 스토리지 요금은 매월 실제 사용량에 따라 매시간 발생합니다. 월별 합계: 청구서는 GB-Hours 측정된 한 달 동안 사용된 총 스토리지를 반영합니다. 포함된 금액: 요금제에 대한 무료 스토리지 허용량(예: 엔터프라이즈 플랜의 경우 50GB)은 청구 계산에 대한 시간당 요금으로 변환됩니다. 공유 스토리지: 작업 아티팩트와 GitHub Packages 스토리지는 동일한 풀된 허용량을 공유합니다. GitHub 패키지 청구을(를) 참조하세요. 캐시 스토리지: 작업 캐시 스토리지는 리포지토리당 10GB의 별도 허용 한도입니다. 캐시 스토리지는 아티팩트 또는 GitHub Packages.와 공유되지 않습니다. 사용자 지정 이미지 스토리지: 함께 GitHub에서 호스팅하는 대형 러너 사용되는 사용자 지정 이미지에 대한 스토리지에는 플랜에 따라 자체 포함된 허용 한도가 있습니다. 현재 및 누적 스토리지 이해 GitHub에 나타나는 것과 청구서에 표시되는 항목의 차이를 이해하는 것이 중요합니다. 현재 스토리지: 현재 가지고 있는 스토리지 양 누적 스토리지: 청구 주기 전체에서 사용되는 스토리지의 누적 합계(청구서 결정) 아티팩트 삭제 시: 현재 스토리지가 즉시 감소합니다. 향후 시간당 요금 누적 중지 현재 청구 주기 동안 이미 누적된 스토리지는 합계에 남아 있으며 청구서에 표시됩니다. 예제(30일 청구 주기): 10일 동안 10GB의 아티팩트가 저장되면 11일에 모든 항목을 삭제합니다. 1-10일: 하루 240GB-Hours 누적(10GB × 24시간) 11일: 현재 스토리지가 0GB로 → 아티팩트 삭제 11-30일: 0GB-시간 적립(스토리지 없음) 청구서: 총 2,400 GB-시간 표시 (10일 × 240 GB-시간/일) 아티팩트 삭제는 현재 스토리지를 줄이고 향후 요금을 방지하지만 스토리지가 있는 시간 동안 이미 기록된 요금은 제거하지 않습니다. 스토리지 측정 단위 GitHub Actions 는 진 기가바이트(GB) 로 스토리지를 측정하는데, 여기에서: 1GB = 2^30바이트 = 1,073,741,824바이트 Gibibyte(GiB)라고도 합니다. 1GB = 1,024MB(MB) 청구 계산에는 GB-Hours가 사용됩니다. 1GB-Hour = 1시간 동안 1GB 스토리지 예: 10일 동안 3GB 저장 = 720 GB-Hours(3GB × 10일 × 24시간) 월별 청구서는 GB-Hours를 GB-Months로 변환할 때, 월의 시간 수로 나눕니다 (일반적으로 30일인 월의 경우 720시간). 사용자 지정 이미지 스토리지 GitHub에서 호스팅하는 대형 러너의 경우, 사용자 지정 이미지 저장 공간은 GitHub Actions 스토리지 요금으로 청구됩니다. 사용자 지정 이미지 스토리지는 다른 GitHub Actions 스토리지와 동일한 시간당 누적 모델을 사용합니다. 청구서는 시간에 따라 저장되는 이미지 데이터의 양을 기준으로 하며 GB-시간 단위로 측정됩니다. 사용자 지정 이미지에 대한 스토리지 사용량은 다음에 따라 달라집니다. 각 이미지 버전의 크기 보존하는 이미지 버전 수 각 버전이 저장되는 기간 키워드를 포함하는 snapshot 각 성공적인 워크플로 작업은 새 사용자 지정 이미지 버전을 만듭니다. 보존된 각 버전은 보존 정책에 의해 버전이 삭제되거나 제거될 때까지 스토리지 사용량에 영향을 줍니다. 자세한 내용은 사용자 지정 이미지 사용 및 엔터프라이즈에서 GitHub Actions 대한 정책 적용을(를) 참조하세요. 사용자 지정 이미지 스토리지는 실행기에서 기존 이미지를 사용하거나 끌어오는 횟수가 아니라 시간이 지남에 따라 보존된 이미지 데이터를 기반으로 합니다. 다음은 그 예입니다. 24시간 동안 150GB 사용자 지정 이미지 버전을 저장하면 3,600GB 시간이 사용됩니다. 24시간 동안 동일한 이미지의 150GB 버전 4개를 저장하면 14,400GB 시간이 사용됩니다. 사용량 측정 방법의 예 Linux 실행기에서 워크플로를 실행하고 완료하는 데 10분이 걸리는 경우 리포지토리 소유자 허용량의 10분을 사용합니다. 워크플로에서 10MB 아티팩트를 생성하는 경우 리포지토리 소유자의 아티팩트 스토리지 허용량 중 10MB를 사용합니다. 일반적으로 10분이 소요되는 워크플로를 실행했는데 필요한 의존성을 사용할 수 없어 5분 만에 실패한 경우, 리포지토리 소유자의 할당량에서 5분이 차감됩니다. 문제를 수정하고 워크플로를 다시 성공적으로 실행한 경우 리포지토리 소유자의 할당량에서 총 15분이 사용됩니다. 많은 로그 파일과 긴 작업 요약을 생성하는 워크플로를 실행하는 경우 이러한 파일은 리포지토리 소유자의 아티팩트 스토리지 허용량에 포함되지 않습니다. 캐시 스토리지 사용량은 각 시간의 최대 사용량으로 측정됩니다. 포함된 허용량은 리포지토리당 10GB입니다. 지정된 시간 동안 리포지토리에 최대 캐시 사용량이 15GB인 경우 리포지토리 소유자는 해당 리포지토리에 포함된 10GB를 초과하는 5GB의 사용량에 대해 요금이 청구됩니다. 리포지토리 소유자는 리포지토리 캐시 스토리지 제한이 포함된 사용량보다 높게 구성된 경우에만 요금이 청구됩니다. GitHub Actions의 무료 사용 다음 시간에는 표준 실행기, 아티팩트 스토리지, 캐시 스토리지에 대한 항목이 GitHub 플랜에 포함됩니다. 매월 초, 계정에서 사용하는 시간(분)은 0으로 초기화됩니다. Plan 아티팩트 스토리지 분(월별) 캐시 스토리지(리포지토리당) 사용자 지정 이미지 스토리지 GitHub Free 500MB 2,000 10GB 적용할 수 없음 GitHub Pro 1GB 3,000 10GB 적용할 수 없음 GitHub Free 조직용 500MB 2,000 10GB 적용할 수 없음 GitHub Team 2GB 3,000 10GB 75GB GitHub Enterprise Cloud 50GB 50,000 10GB 150GB 표준 GitHub 호스팅 실행기를 무료로 이용하실 수 있습니다. 공용 리포지토리에서 대상 GitHub Pages 대상 Dependabot 참고 대형 실행기는 공개 리포지토리에서 사용하거나 플랜에 포함된 할당량이 남아 있는 경우에도 항상 요금이 부과됩니다. 표시된 아티팩트 스토리지 용량은 **** 와 GitHub Packages됩니다. 즉, Actions 아티팩트 및 GitHub Packages 스토리지의 총 스토리지는 계획에 포함된 용량을 초과할 수 없습니다. 캐시 스토리지 및 사용자 지정 이미지 스토리지는 별도의 허용 한도입니다. Copilot code review는 프라이빗 리포지토리에서 GitHub Actions분을 소모합니다. 공개 리포지토리의 경우 GitHub Actions분은 계속 무료입니다. 포함된 할당량을 초과하여 사용 계정에 유효한 결제 방법이 등록되어 있지 않은 경우, 할당량을 모두 사용하면 사용이 차단됩니다. 결제 수단을 설정하기 전까지는 대형 실행기의 사용이 항상 차단됩니다. 추가 GitHub Actions 사용료 지불 계정에 대해 설정된 결제 방법을 사용하여 할당량을 초과하는 추가 사용에 대해 비용을 지불합니다 GitHub . 결제 및 청구 정보 관리을(를) 참조하세요. 호스팅된 GitHub 실행기의 경우, 스토리지는 매월 아티팩트 및 캐시의 시간당 사용량을 기준으로 청구됩니다. 분은 한 달 동안 각 실행기 유형이 사용한 총 처리 시간을 기준으로 계산됩니다. 유료 사용량에 대한 비용을 예측하려면 GitHub 사용합니다. 현재 비용을 보려면 요금제 제품 및 라이선스 사용량 확인하기을 참조하세요. 참고 청구 대시보드는 작업 사용량을 순수 사용 시간(분)이 아닌 달러 금액(“지출”)으로 표시할 수 있습니다. 이 금액에는 이미 적용 가능한 분 사용 요금이 반영되어 있습니다. 기준 분당 비용 GitHub에서 호스팅하는 각 실행기 유형은 운영 체제와 처리 능력에 따라 결정되는 분당 비용이 있습니다. 예를 들어 Windows 및 macOS 실행기에서 실행되는 GitHub 작업은 Linux 실행기에서 작업보다 실행하는 데 더 많은 비용이 듭니다. 운영 체제 청구용 SKU 분당 요금(USD) Linux 1코어(x64) actions_linux_slim $0.002 Linux 2코어(x64) actions_linux $0.006 Linux 2코어(arm64) actions_linux_arm $0.005 Windows 2 코어(x64) actions_windows $0.010 Windows 2 코어(arm64) actions_windows_arm $0.010 macOS 3코어 또는 4코어(M1 또는 Intel) actions_macos $0.062 다양한 유형의 실행 프로그램의 분당 비용에 대한 자세한 내용은 작업 실행기 요금을 참조하세요. 스토리지 가격 책정 포함된 수당을 초과하는 사용량은 다음 요금으로 청구됩니다. 스토리지 유형 GB/월당 가격 공유 스토리지(아티팩트 및 GitHub Packages) $0.25 USD 작업 캐시 $0.07 USD 사용자 지정 이미지 스토리지 $0.07 USD GitHub에서 호스팅되는 러너에 대한 분당 비용 계산 예시 예를 들어, 조직이 GitHub Team을 사용하는 경우, GitHub 호스팅 실행기에 포함된 기본 할당량을 초과하여 Linux 및 Windows 실행기를 5,000분 사용하면 총 작업 시간 비용으로 미화 38달러가 청구됩니다. 5,000분 (Linux 3,000분 및 Windows 2,000분) = $38 USD ($18 USD + $20 USD). 3,000 Linux 분 x 분당 $0.006 USD = $18 USD 2,000 Windows 분 x 분당 $0.010 USD = $20 USD 아티팩트 스토리지 비용 계산 예제 3월 10일 동안 3GB의 아티팩트 스토리지를 사용하고 3월 21일 동안 12GB를 사용하는 경우 아티팩트 스토리지 사용량은 다음과 같습니다. 3GB x 10일 x (하루 24시간) = 720GB/시간 12GB x 21일 x (하루 24시간) = 6,048GB/시간 720GB/시간 + 6,048GB/시간 = 6,768GB/시간 6,768GB/시간 / (월별 744시간) = 9.0967GB/월 이달 말이 되면 GitHub 가 아티팩트 저장 용량을 가장 가까운 MB 단위로 반올림합니다. 따라서 3월의 아티팩트 스토리지 사용량은 9.097GB입니다. 참고 GitHub 는 6~12시간 내에 아티팩트 스토리지 사용량을 업데이트합니다. 아티팩트 삭제는 현재 스토리지의 공간을 확보하지만 현재 청구 주기에 대한 스토리지 청구를 계산하는 데 사용되는 누적된 스토리지 사용량을 줄이지는 않습니다. 캐시 스토리지 비용 계산 예제 3월 10일 동안 3GB의 캐시 스토리지를 사용하고 3월 21일 동안 12GB를 사용하는 경우 캐시 스토리지 사용량은 다음과 같습니다. 사용량(GB) 청구 가능(GB-시간) 청구 불가(GB-Hours) 처음 10일 동안 3GB 0GB 시간 720 GB-시간 다음 21일 동안 12GB 2*21일*24시간 = 1008GB-시간 10*21일*24시간=5040 GB-시간 캐시된 스토리지의 경우 청구 차트 및 보고서에 포함된 10GB를 초과하는 사용 비용만 표시됩니다. 월말에 Actions Cache Storage SKU는 1008GB 시간 사용을 표시합니다. GitHub Actions에 대한 예산 관리하기 유효한 결제 방법이 등록되어 있지 않은 경우, 할당량을 모두 사용하면 추가 사용이 차단됩니다. 파일에 유효한 결제 방법이 있는 경우 지출이 하나 이상의 예산으로 제한될 수 있습니다. 계정에 설정된 예산을 확인하여 사용량 요구 사항에 적합한지 확인합니다. 예산을 설정하여 요금제 제품에 대한 지출을 제어합니다.을(를) 참조하세요. 또한 청구 기간 동안 포함된 GitHub Actions 사용량이 90개% 100개% 도달하면\n받을 수 있습니다. 자세한 내용은 예산 및 경고을(를) 참조하세요. 추가 참고 자료 GitHub Actions에 대한 이해 GitHub Actions에 대한 빠른 시작 가이드",
+            "length": 6970,
+            "storedLength": 6970,
+            "fullLength": 6970,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "docs.github.com:714:GitHub 문서 GitHub 여정의 모든 위치에 대한 도",
+          "status": "captured",
+          "question": "GitHub Actions 요금제",
+          "search": {
+            "engine": "bounded-focused-research",
+            "query": "GitHub Actions pricing billing official | site:docs.github.com GitHub Actions 비용 청구",
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://docs.github.com/ko",
+            "finalUrl": "https://docs.github.com/ko",
+            "hostname": "docs.github.com",
+            "official": true,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "GitHub Docs",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "GitHub 문서 GitHub 여정의 모든 위치에 대한 도움말입니다. 무엇이든 검색.../ 모든 문서 시작하기 시작하기 마이그레이션 계정 및 프로필 구독 및 알림 인증 청구 및 결제 사이트 정책 공동 코딩 Codespaces 리포지토리 끌어오기 요청 GitHub Discussions 통합 GitHub Copilot GitHub Copilot 요금제 Copilot cloud agent 자습서 GitHub Copilot 활용 안내서 사용자 지정 라이브러리 Copilot CLI CI/CD 및 DevOps GitHub Actions GitHub Packages GitHub Pages 보안 및 코드 품질 보안 및 코드 품질 비밀 보호 코드 취약성 찾기 및 수정 공급망 보안 품질 코드 유지 관리 확장 가능한 보안 클라이언트 앱 GitHub CLI GitHub 모바일 GitHub Desktop 프로젝트 관리 GitHub Issues Projects GitHub 검색 엔터프라이즈 및 팀 조직 확장 가능한 보안 엔터프라이즈 온보딩 엔터프라이즈 관리자 개발자 앱 REST API GraphQL API 웹후크 커뮤니티 커뮤니티 빌드 GitHub Sponsors GitHub Education 비영리 단체를 위한 GitHub GitHub 지원 GitHub Docs에 기여 추가 문서 CodeQL query writing Electron npm GitHub Well-Architected",
+            "length": 714,
+            "storedLength": 714,
+            "fullLength": 714,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "itwiki.kr:3570:GitHub Actions는 GitHub 저장소 내에서 워",
+          "status": "sensitive-content-blocked",
+          "question": "GitHub Actions 요금제",
+          "search": {
+            "engine": "bounded-focused-research",
+            "query": "GitHub Actions pricing billing official | site:docs.github.com GitHub Actions 비용 청구",
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://itwiki.kr/w/GitHub_Actions",
+            "finalUrl": "https://itwiki.kr/w/GitHub_Actions",
+            "hostname": "itwiki.kr",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "GitHub Actions - IT 위키",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": null,
+            "length": 3570,
+            "storedLength": 3570,
+            "fullLength": null,
+            "truncated": false,
+            "truncationAssessment": "not-observed",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": true,
+            "bodyStored": false
+          }
+        },
+        {
+          "version": 2,
+          "snapshotId": "namu.wiki:7992:최근 변경최근 토론 특수 기능 GitHub 최근 수정 시각",
+          "status": "captured",
+          "question": "GitHub Actions 요금제",
+          "search": {
+            "engine": "bounded-focused-research",
+            "query": "GitHub Actions pricing billing official | site:docs.github.com GitHub Actions 비용 청구",
+            "selectionReason": null
+          },
+          "source": {
+            "originalUrl": "https://namu.wiki/w/GitHub",
+            "finalUrl": "https://namu.wiki/w/GitHub",
+            "hostname": "namu.wiki",
+            "official": false,
+            "httpStatus": null,
+            "redirectChain": [],
+            "title": "GitHub - 나무위키",
+            "publishedAt": null,
+            "modifiedAt": null,
+            "canonicalUrl": ""
+          },
+          "body": {
+            "text": "최근 변경최근 토론 특수 기능 GitHub 최근 수정 시각: 2026-10-13 12:16:07 73 편집 편집 IP 우회 수단(프록시 서버, VPN, Tor 등)이나 IDC 대역 IP로 접속하셨습니다. (#23576427) (VPN이나 iCloud의 비공개 릴레이를 사용 중인 경우 나타날 수 있습니다.) 잘못된 IDC 대역 차단이라고 생각하시는 경우 게시판에 문의하시길 바랍니다. 닫기 토론역사 분류 GitHub Git/호스팅 서비스 미국의 IT 관련 기업 샌프란시스코의 기업 2008년 설립 Microsoft 2026년 계정 정보 및 액세스 토큰 유출 사건에 대한 내용은 GitHub/사건 사고 문서의 8번 문단을 참고하십시오. [ 펼치기 · 접기 ] 관련 인물 톰 프레스턴 워너 · 필립 제퍼리 하이엣 서비스 저장소 · GitHub Pages · GitHub Action · GitHub Packages · Codespace(github.dev) · GitHub Wiki · GitHub Gist · Dependabot · GitHub Advisory Database · GitHub Copilot 클라이언트 GitHub CLI · GitHub Desktop · GitHub Mobile 오픈 소스 Electron(Atom) · Linguist · Semantic · Tree-sitter 관련 문서 사건 사고 · Octocat · GitHub Universe · One Dark · npm Microsoft 마이크로소프트 [ 펼치기ㆍ접기 ] 제품군 하드​웨어 Surface · XBOX · HoloLens · PixelSense · Zune · Pluton · IVAS · Azure Cobalt · Azure MAIA 소프트​웨어 Windows(주요 내장 프로그램) · Office · Edge · Media Player · Hyper-V · Defender · Visual Studio Code · Visual Studio · Windows Terminal · Microsoft Store · Xbox App · PowerToys · Internet Explorer · MS-DOS · Windows Movie Maker · Autoruns · Clipchamp · Family Safety 서비스 Microsoft Azure · OneDrive · Microsoft Copilot · Bing · LinkedIn · Microsoft Docs · Skype · MSN · 정품인증 · Xbox Game Pass · Xbox Cloud Gaming · Xbox network · SwiftKey 관련 기술 ASF · ASP · Blazor · COM · DCOM · Debug Adapter Protocol · DirectX · 파일 시스템(FAT · NTFS · ReFS) · 언어 서버 프로토콜 · MFC · .NET(.NET Core · .NET Standard · C# · F# · Visual Basic .NET · Q#) · 라이브러리(Windows Forms · WPF · UWP · Xamarin · .NET MAUI · ASP.NET · ML.NET · XNA) · OLE · Silverlight · Visual Basic · Visual Basic for Applications · WASAPI · Windows 커널 · Windows 디자인 · Windows API · Windows Runtime(UWP · WinUI) · WMA · WMV · 하복 엔진 · SAMI · PowerShell · Windows Modern Standby · Nearby Sharing 산하 계열사 및 사업부 GitHub · .NET Foundation · Xbox · LinkedIn 관련 인물 빌 게이츠(은퇴) · 폴 앨런(은퇴) · 스티브 발머(퇴사) · 게이브 뉴웰(퇴사) · 마이크 이바라(퇴사) · 사티아 나델라 · 필 스펜서(은퇴)[1] · 아샤 사르마[2] · 로드 퍼거슨(퇴사) 기타 제니맥스 미디어 인수 · 액티비전 블리자드 인수 · 시작\n· 빌 게이츠의 굴욕 관련 틀 365 제품군 · 하드웨어 제품군 · Surface 제품군 · Windows 제품군 [각주 펼치기ㆍ접기] [1] Microsoft Gaming의 초대 CEO [2] XBOX 게이밍 부서의 2대 CEO GitHub 깃허브 출시 2008년 2월 8일 (18주년) 국가 미국 산업 IT 서비스 Git 호스팅, 버전 관리, 이슈 트래커, 데브옵스, 보안, 프로젝트 관리 언어 영어[1][m] 회원 가입 선택[3] 창업자 톰 프레스턴 워너 크리스 원스트래스 필립 제퍼리 하이엣 스콧 차콘 경영진 CEO 토마스 돔케 (2021년 11월~ ) 모기업 Microsoft (2018년~ ) 상장 거래소 비상장 기업 매출 10억 달러[4] (2022년) MAU 9,000만 명 (2022년 3분기) 본사 미국 캘리포니아 샌프란시스코 앱 GitHub Mobile 링크 | | | | | | | [ 펼치기 · 접기 ] | | | | | | | | | | | 1. 개요2. 역사 2.1. 마이크로소프트의 인수 이후 3. 서비스 3.1. 저장소 4. 특징5. 요금제 5.1. Github Enterprise5.2. GitHub Student Developer Pack 6. 깃허브 자격증7. 행사8. 사건 사고9. 유사 서비스10. 기타11. 관련 문서 1. 개요[편집] Where the world builds software 온 세상이 소프트웨어를 만드는 곳 마이크로소프트 산하의 Git 저장소 호스팅 서비스 및 공동 협업 플랫폼. 각종 개발자 친화적인 정책으로 인해 1억 5천만명[5]이 넘는 개발자들이 자신이 개발한 오픈 소스 소프트웨어를 공유하고 개발하는 용도로 사용하면서 현재는 오픈 소스의 중심지 중 하나로 취급받고 있다. 2. 역사[편집] 창업자 톰 프레스턴 워너와 크리스 원스트래스는 Ruby on Rails 모임을 통해 친구가 된다. 둘 다 직장인이었기 때문에 매주 주말에만 만나며 사이드 프로젝트로 서비스를 시작했으나 규모가 커지기 시작하여 또 다른 공동 창업자 필립 제퍼리 하이엣을 불러들여 전업으로 사업을 시작한다. 창업자 셋 다 개발자 출신이다. 2008년 퍼블릭 베타 버전을 출시한 이래로 기업들을 위한 비공개 저장소 기능을 공개하며 사용자가 급증하여 스타트업 인덱스라고도 불리는 Y Combinator의 투자를 받는다. 창업 2년 차까지는 비용 절감을 위해 사무실 없이 원격으로 근무했으며 호스팅 비용을 아끼기 위해 '엔진야드'라는 업체에게 무료\n를 게재해 주는 대가로 무료 호스팅을 지원받았다고 한다. 2011년 호스팅 프로젝트 200만 개를 넘겼으며 애드웨어, 해킹, 바이러스 등의 문제로 많은 개발자들의 신뢰를 잃은 SourceForge, 구글 코드 등을 제치며 대부분의 프로젝트가 GitHub 쪽으로 이주하게 됐다. 2012년 7월 시리즈 A 라운드에서 앤드리슨 호로위츠로부터 기업 가치 7억 5,000만 달러를 평가받으며 1억 달러를 투자받았다. 본래 중간 관리자 없이 직원들이 알아서 하고 싶은 프로젝트를 진행하는 시스템이었으나, 2014년에 퇴사한 한 여성 직원이 사내 성차별이 만연했으며 창업자 톰 프레스턴워너와 그의 부인의 개입이 지나치다며 폭로한 사건이 대서특필되면서 프레스턴워너는 사임했고 중간 관리자 직책도 추가시키며 시스템을 개편했다. 2015년 7월 세콰이어캐피탈이 리드하는 시리즈 B 라운드에서 기업 가치 20억 달러를 평가받으며 2억 5,000만 달러 투자를 유치했다. 이후 미국 외 해외 진출을 위한 첫 오피스로 일본을 선택했다. GitHub의 근간이 된 Ruby가 나온 나라가 일본임을 감안하면 묘한 인연인 셈. 2.1. 마이크로소프트의 인수 이후[편집] 블룸버그에 따르면 2018년 6월 4일, 마이크로소프트가 GitHub를 인수하기로 결정했다고 한다. # GitHub는 2016년에만 무려 6,600만 달러의 엄청난 적자#를 기록했고, 이 때문에 자체 상장보다는 인수되는 것을 희망해 왔다고 한다. 또한 오픈 소스에 친화적인 태도를 보이는 마이크로소프트의 CEO인 사티아 나델라에게 감명받았다고 한다. 현지 시각으로 2018년 6월 4일 오전 6시에 MS 트위터를 통해서 GitHub 인수 소식이 정식 발표 되었다. # 인수 금액은 75억 달러이다. 인수가 완료되면 Xamarin의 CEO였던 냇 프리드먼이 GitHub의 CEO로 부임할 예정이다. 그리고 2018년 10월 26일, 인수 절차가 완료되었다. # 이에 대해서 걱정 또는 비판하는 목소리가 많았다. GitHub는 오픈 소스의 성지 역할을 하고 있는 사이트였고, 이는 GitHub가 특정 기업에 종속되지 않은 중립적인 행보를 보였기에 가능한 일이었다. 오픈 소스를 배척한다는 이미지가 강해 자유 소프트웨어 쪽에서는 거의 악마로 묘사되는 MS가 GitHub를 인수하게 되면 오픈 소스를 탄압 또는 고사시킬 것이라는 우려이다. 물론 이는 빌 게이츠 시절 이야기고 사티아 나델라 CEO 이후엔 친오픈 소스, 탈윈도우 플랫폼 행보를 보이고 있다. 그 전에 인수한 LinkedIn도 MS의 색채를 거의 없앤 채로 운영 중이지만 한번 쌓인 이미지가 그리 쉽게 사라지지 않는다는 게 문제다. 또한 경쟁사 서버에 자신들의 소스 코드가 올라가게 되었다는 점에서 MS와 경쟁 관계에 있는 수많은 기업들(애플, 구글 등) 또한 찝찝할 수밖에 없다. GitLab 측에서는 MS의 GitHub 인수를 축하하는 글을 블로그에 올렸다. MS의 인수 소식 때문인지, 애플은 Xcode 10부터 GitLab 기능을 통합시킬 것이라고 밝혔다. # GitHub의 텍스트 에디터인 Atom이 같은 Electron 프레임워크 기반의 Visual Studio Code와 유사한 위상이어서, MS에서 Atom을 정리하려는 것은 아닌가 우려하는 사용자들이 있었으나, 일단 GitHub의 새로운 CEO는 Atom을 계속 지원할 것을 약속했다. # 그러나 VS Code에 비하면 Atom은 적극적인 업데이트가 이루어지지 않고 있으며, 결국에는 버려질 것이라는 예상이 많다. 결국 Atom은 2022년 12월 15일부로 개발 중단 공지를 올렸다. # 자세한 내용은 Atom(에디터) 참고. 한편으로는 오라클이 아니라 MS가 인수해서 다행이라는 반응도 있다. 이전부터 오픈 소스 진영에서는 오라클이 주적(主敵)으로 취급되곤 했는데, 그 주적한테 인수되는 것 자체가 자칫 큰 반발을 살 수 있기 때문.[6] 다행히 인수 의사를 밝힌 MS는 친오픈 소스 행보를 보이고 있기 때문에, 앞서 언급했듯 GitLab 등에서도 환영 의사를 나타낼 수 있었다. 오라클이 인수했다면 썬 마이크로시스템즈나 오픈오피스, 아니면 MySQL 꼴 날 수도 있었을 일. 물론 오픈 소스의 적이 GitHub를 인수할 일은 애초에 없었을 것이긴 하다. 원래는 공개 프로젝트만 무료였고 비공개 프로젝트는 결제를 해야 했으나, MS에 인수된 이후 2019년 1월 초부터 비공개 저장소를 무료로 제공하기 시작했다.# 2020년 3월 16일 Node.js 패키징업체인 npm을 인수했다. 2020년 2월부터 디스커션 보드가 추가되었다. 이전까지는 이슈 트래커에서 버그 리포팅과 특정 주제에 대한 토론을 함께 진행했는데, 이제 토론은 별도의 게시판에서 진행할 수 있다. 2020년 4월 중순부터 비공개 저장소 공동 작업자 수 제한도 풀렸다.# 2021년 6월에는 GitHub Copilot을 출시하여 본격적인 생성형 AI 서비스 시장에 뛰어들었다. 모기업 마이크로소프트에서 2023년 출시된 Microsoft Copilot과 이름이 유사하기도 하다. 2023년 10월에 깃허브 자격증 프로그램을 런칭하였다. 3. 서비스[편집] GitHub Repository: 프로그램 소스 코드를 저장하게 하고 개발자가 사용하는 깃허브 대표적 서비스. GitHub Action: 지속적 통합(continuous integration, CI) 그리고 지속적 배포(continuous delivery, CD)를 사용해서 빌드, 테스트, 배포를 가능하게 하는 데브옵스(DevOps) 파이프라인 자동화 툴. GitHub Packages: 도커 컨테이너 혹은 프로그램 패키지(NPM, NuGet, Gem, Maven/Gradle)를 저장할 수 있는 이미지 레지스트리 개념의 서비스. GitHub Advanced Security (GHAS): 코드 패키지에 있는 취약점을 찾고 패치를 도와주는 Dependabot, 그리고 소스 코드에 있는 문제점들을 찾는 것 등등 다양한 보안 기능을 제공하는 서비스. 공개 데이터베이스인 GitHub Advisory Database 또한 운영하고 있다. GitHub Projects: Atlassian JIRA같이 프로젝트를 관리하게 도와줄 수 있는 서비스. GitHub Discussions: Stack Overflow나 Quora같이 질문을 물어보고 대답하는 형식을 제공하는 서비스. 기본 이슈 트래커에서는 코드 버그와 관련된 내용에 집중하고, discussions에서는 초보자 질문, 프로젝트 공유 등이 중점으로 이루어진다. GitHub Pages: 깃허브 리포지터리에 간단한 마크다운(Markdown) 형식 파일을 저장하고 설정하면 간단한 웹사이트를 만들어 주는 서비스. GitHub Gist: 단일 소스 파일과 간단한 메모를 저장 또는 공유하는 용도로 사용할 수 있다. public/private 여부를 선택할 수 있으며, Google Colab 등 여러 툴에서 코드 단위 리포지터리 용도로 기본적으로 제공하는 추세이다. 원래는 익명으로도 올리는 것이 가능했으나 이를 악용한 스팸이나 악성 코드 업로드 등 지속적으로 문제가 되자\n해야만 사용 가능하도록 변경되었다. GitHub Copilot: 머신러닝을 사용해서 자동으로 개발자가 코드를 적는 내용을 파악하고 자동으로 나머지를 대신해서 적어주는 생성형 인공지능 서비스. Codespace: 깃허브 리포지터리 안에서 별도의 다운로드나 설치 없이 웹 브라우저에서 런칭하여 코드를 개발할 수 있게 해주는 인터넷 내장 코드 에디터 IDE. GitHub Wiki: 저장소별 위키를 만들 수 있는 서비스. GitHub CLI: 터미널에서도 풀 리퀘스트 등 GitHub 웹사이트와 동일한 작업을 할 수 있는 CLI 클라이언트. GitHub Desktop: 로컬 Git 작업 및 GitHub 일부 기능용 데스크탑 GUI 클라이언트. GitHub Mobile: 모바일 GitHub 클라이언트. 3.1. 저장소[편집] 자세한 내용은 GitHub/저장소 문서를 참고하십시오. 4. 특징[편집] 각 소스 코드 저장소마다 GitHub Wiki를 사용해 Gollum이란 마크다운 기반 위키를 만들 수 있다. 위키를 클론하고 싶을 경우 https://github.com/(사용자 이름)/(저장소).wiki.git을 클론하면 된다. GitHub는 SSH 와 https 프로토콜을 지원하며, 각각 다른 방식의 Remote git의 URL로 저장된다. Public/Private repository를 지원하며, 접근 권한이 필요한 private repository인 경우 기본적으로 GitHub 계정과 Password 를 입력을 해야 git pull/push가 가능하지만, 한 번만 설정도 가능하다. GitHub에서 public key는 1개의 계정 또는 Project에만 등록 가능하다. 하나의 계정에서 Project별 Public Key를 별도로 등록해야 한다. GitHub Pages라는 이름으로 웹 호스팅 서비스도 제공하고 있다. Jekyll(지킬)이라는 Ruby 기반 정적 CMS 툴을 내장하고 있다.[7] Jekyll을 사용하지 않을 경우에도 평범한 HTML/CSS/JS를 툭 던져놓으면 홈페이지로 쓸 수 있다. (사용자 이름).github.io라는 이름으로 저장소를 만들면 된다. 개인 도메인을 사용하고 싶은 경우 저장소 루트 경로에 CNAME 파일을 만들고 도메인을 입력한 뒤 DNS에 GitHub 서버 주소를 입력하면 된다.[8] 각 소스 코드 저장소마다 홈페이지를 한 개씩 만들 수 있다. GitHub Pages의 하위 디렉터리로 들어가게 된다.[9] 각 리포지터리마다 별도의 이슈 트래커를 무료로 지원한다. 마이크로소프트도 GitHub의 이슈 트래커를 상당히 애용하고 있다. 2명 이상의 협력자(C...",
+            "length": 7992,
+            "storedLength": 7992,
+            "fullLength": 7992,
+            "truncated": false,
+            "truncationAssessment": "unknown-near-8000-limit",
+            "normalization": "extractPageEvidence-v1"
+          },
+          "relevantSegments": [],
+          "requiredAnswerItems": [],
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body",
+          "safety": {
+            "sensitiveContentDetected": false,
+            "bodyStored": true
+          }
+        }
+      ],
+      "status": "body-obtained",
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      },
+      "after": {
+        "discoveredUrlCount": 0,
+        "readSuccessCount": 4,
+        "snapshotCount": 3,
+        "selectedOfficialUrlCount": 2,
+        "bodyLengths": [
+          {
+            "url": "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+            "length": 6978,
+            "status": "reused"
+          },
+          {
+            "url": "https://docs.github.com/ko",
+            "length": 714,
+            "status": "reused"
+          },
+          {
+            "url": "https://itwiki.kr/w/GitHub_Actions",
+            "length": 3570,
+            "status": "reused"
+          },
+          {
+            "url": "https://namu.wiki/w/GitHub",
+            "length": 8000,
+            "status": "reused"
+          }
+        ]
+      }
+    },
+    {
+      "id": "focus-03",
+      "question": "2026-10-24 서울 날씨",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "experimentDate": "2026-10-24T00:00:00+09:00",
+      "queries": [
+        "2026-10-24 서울 날씨 기상청",
+        "site:weather.go.kr 2026-10-24 서울 날씨"
+      ],
+      "searches": [
+        {
+          "query": "2026-10-24 서울 날씨 기상청",
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "2026-10-24 서울 날씨 기상청",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "query": "site:weather.go.kr 2026-10-24 서울 날씨",
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "site:weather.go.kr 2026-10-24 서울 날씨",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        }
+      ],
+      "candidates": [],
+      "selectedUrls": [],
+      "reads": [],
+      "snapshots": [],
+      "status": "hold-no-body",
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      },
+      "after": {
+        "discoveredUrlCount": 0,
+        "readSuccessCount": 0,
+        "snapshotCount": 0,
+        "selectedOfficialUrlCount": 0,
+        "bodyLengths": []
+      }
+    },
+    {
+      "id": "focus-04",
+      "question": "2026-10-18~24 반도체 뉴스",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "experimentDate": "2026-10-24T00:00:00+09:00",
+      "queries": [
+        "2026-10-18 2026-10-24 반도체 뉴스",
+        "2026 semiconductor news October 18 24"
+      ],
+      "searches": [
+        {
+          "query": "2026-10-18 2026-10-24 반도체 뉴스",
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "2026-10-18 2026-10-24 반도체 뉴스",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "query": "2026 semiconductor news October 18 24",
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "2026 semiconductor news October 18 24",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        }
+      ],
+      "candidates": [],
+      "selectedUrls": [],
+      "reads": [],
+      "snapshots": [],
+      "status": "hold-no-body",
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      },
+      "after": {
+        "discoveredUrlCount": 0,
+        "readSuccessCount": 0,
+        "snapshotCount": 0,
+        "selectedOfficialUrlCount": 0,
+        "bodyLengths": []
+      }
+    },
+    {
+      "id": "focus-05",
+      "question": "2026-10-24 기준 과학기술정보통신부 장관",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "experimentDate": "2026-10-24T00:00:00+09:00",
+      "queries": [
+        "2026-10-24 과학기술정보통신부 장관 site:msit.go.kr",
+        "2026-10-24 과학기술정보통신부 장관 site:korea.kr"
+      ],
+      "searches": [
+        {
+          "query": "2026-10-24 과학기술정보통신부 장관 site:msit.go.kr",
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "2026-10-24 과학기술정보통신부 장관 site:msit.go.kr",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 6,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "query": "2026-10-24 과학기술정보통신부 장관 site:korea.kr",
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "2026-10-24 과학기술정보통신부 장관 site:korea.kr",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        }
+      ],
+      "candidates": [],
+      "selectedUrls": [],
+      "reads": [],
+      "snapshots": [],
+      "status": "hold-no-body",
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      },
+      "after": {
+        "discoveredUrlCount": 0,
+        "readSuccessCount": 0,
+        "snapshotCount": 0,
+        "selectedOfficialUrlCount": 0,
+        "bodyLengths": []
+      }
+    },
+    {
+      "id": "focus-06",
+      "question": "2026년 10월 서울 무료 개발자 행사 일정",
+      "referenceTime": "2026-10-24T00:00:00+09:00",
+      "experimentDate": "2026-10-24T00:00:00+09:00",
+      "queries": [
+        "2026년 10월 서울 무료 개발자 행사",
+        "October 2026 Seoul free developer events"
+      ],
+      "searches": [
+        {
+          "query": "2026년 10월 서울 무료 개발자 행사",
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "2026년 10월 서울 무료 개발자 행사",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        },
+        {
+          "query": "October 2026 Seoul free developer events",
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "October 2026 Seoul free developer events",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ],
+          "candidates": []
+        }
+      ],
+      "candidates": [],
+      "selectedUrls": [],
+      "reads": [],
+      "snapshots": [],
+      "status": "hold-no-body",
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      },
+      "after": {
+        "discoveredUrlCount": 0,
+        "readSuccessCount": 0,
+        "snapshotCount": 0,
+        "selectedOfficialUrlCount": 0,
+        "bodyLengths": []
+      }
+    }
+  ],
+  "baseline": {
+    "file": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json",
+    "evaluationFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-evaluation-current.json",
+    "dateDistinction": "experimentDate is retrieval time; source publication/observation/effective dates remain source fields and are not substituted"
+  }
+}

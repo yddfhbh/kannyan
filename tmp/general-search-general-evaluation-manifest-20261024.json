@@ -1,0 +1,1719 @@
+{
+  "version": 1,
+  "type": "offline-general-search-general-evaluation-manifest",
+  "generatedAt": "2026-10-24T06:40:12.260Z",
+  "noWebSearch": true,
+  "noGeminiCalls": true,
+  "holdoutExcluded": [
+    "오늘 광주 날씨와 강수 확률",
+    "내일 런던 날씨",
+    "Rust 최신 stable 버전",
+    "Vue 공식 migration 문서",
+    "최근 일주일 유럽연합 AI 규제 뉴스",
+    "Spotify 한국 요금제",
+    "서울과 부산의 다음 공공 해커톤 일정",
+    "GitHub Copilot과 Amazon Q Developer 공식 가격 비교"
+  ],
+  "focusQuestions": [
+    "MDN Fetch API 공식 문서에서 abort signal 사용법",
+    "Kubernetes 공식 문서의 liveness probe 설명",
+    "Python 최신 안정 버전",
+    "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+    "AWS Lambda 요청 요금",
+    "React 최신 버전"
+  ],
+  "remainingDevelopmentQuestionCount": 18,
+  "executionPolicy": {
+    "actualCallsMade": 0,
+    "maxModelHttpRequests": 6,
+    "retryAttemptsPerRequest": 1,
+    "fallbackAttemptsPerRequest": 1,
+    "retryAndFallbackIncludedInLimit": true,
+    "holdoutAccessed": false,
+    "webSearchPerformed": false,
+    "geminiCallsPerformed": false,
+    "requiresSeparateApproval": true
+  },
+  "cases": [
+    {
+      "id": "general-01",
+      "question": "오늘 서울 날씨",
+      "sourceCaseId": "live-1",
+      "questionType": "weather",
+      "claimType": "weather",
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "originalRequiredConditions": [
+        "오늘",
+        "서울",
+        "날씨"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 3,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 3,
+        "totalCount": 3,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 3,
+        "tokenHits": [
+          "오늘",
+          "서울",
+          "날씨"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 1088,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "korean.visitseoul.net:552:서울의 날씨 홈 > 여행정보 > 서울의 날씨 서울의 날씨 ",
+          "status": "captured",
+          "url": "https://korean.visitseoul.net/weather",
+          "title": "서울 실시간 날씨 정보 | 서울 공식 관광정보 웹사이트",
+          "official": false,
+          "bodyLength": 552,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.yonhapnewstv.co.kr:918:브라우저가 video 태그를 지원하지 않습니다. 죄송하지만",
+          "status": "captured",
+          "url": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+          "title": "[날씨] 태풍 ’참피’ 영향 제주·남부 비…곳곳 강풍 유의",
+          "official": false,
+          "bodyLength": 918,
+          "truncated": false
+        },
+        {
+          "snapshotId": "news.kbs.co.kr:1896:기사 본문 영역 뉴스 9 [뉴스9 날씨] 주말, 남부·제주",
+          "status": "captured",
+          "url": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "title": "KBS 뉴스",
+          "official": false,
+          "bodyLength": 1896,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-02",
+      "question": "내일 제주 날씨",
+      "sourceCaseId": "live-2",
+      "questionType": "weather",
+      "claimType": "weather",
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "originalRequiredConditions": [
+        "내일",
+        "제주",
+        "날씨"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 4,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 4,
+        "totalCount": 4,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 3,
+        "tokenHits": [
+          "내일",
+          "제주",
+          "날씨"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 1232,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "www.edaily.co.kr:793:[이데일리 안유리 기자] 태풍의 영향으로 토요일인 24일에",
+          "status": "captured",
+          "url": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+          "title": "태풍 참피 북상…제주·남부 강한 비[내일 날씨]",
+          "official": false,
+          "bodyLength": 793,
+          "truncated": false
+        },
+        {
+          "snapshotId": "news.kbs.co.kr:1896:기사 본문 영역 뉴스 9 [뉴스9 날씨] 주말, 남부·제주",
+          "status": "captured",
+          "url": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+          "title": "KBS 뉴스",
+          "official": false,
+          "bodyLength": 1896,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.obsnews.co.kr:696:【기상캐스터】 절기 상강인 오늘, 아침에는 때이른 추위가 ",
+          "status": "captured",
+          "url": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+          "title": "주말 예년 기온 웃돌아…남해안, 제주 호우 < 날씨 < 사회 < 기사본문 - OBS경인TV",
+          "official": false,
+          "bodyLength": 696,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.obsnews.co.kr:557:【기상캐스터】 이번 주말과 휴일에는 예년 기온을 웃돌겠습니",
+          "status": "captured",
+          "url": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+          "title": "주말 중부 내륙 큰 일교차…남해안, 제주 강한 비바람 < 날씨 < 사회 < 기사본문 - OBS경인TV",
+          "official": false,
+          "bodyLength": 557,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-03",
+      "question": "오늘 대전 미세먼지",
+      "sourceCaseId": "live-3",
+      "questionType": "weather",
+      "claimType": "weather",
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "originalRequiredConditions": [
+        "오늘",
+        "대전",
+        "미세먼지"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 4,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 4,
+        "totalCount": 4,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 3,
+        "tokenHits": [
+          "오늘",
+          "대전",
+          "미세먼지"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 1911,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "sinnake-town.com:5373:3년치 미세먼지를 한 그래프로 달을 넘기지 않아도 36개월",
+          "status": "captured",
+          "url": "https://sinnake-town.com/region/3017000000/air",
+          "title": "대전 서구 미세먼지·대기질 2026년 9월 — 신나게마을",
+          "official": false,
+          "bodyLength": 5373,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.sisunnews.co.kr:442:오늘(23일)은 최근 유입된 북서쪽 찬 공기의 영향으로 아",
+          "status": "captured",
+          "url": "http://www.sisunnews.co.kr/news/articleView.html?idxno=248248",
+          "title": "10월 23일 금요일, 오늘의 날씨와 미세먼지 농도 [인포그래픽] < 날씨 < 인포그래픽 < 기사본문 - 시선뉴스",
+          "official": false,
+          "bodyLength": 442,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.investkorea.org:753:본문 바로가기 주\n바로가기 뉴스·행사 인쇄 pdf 다운로드",
+          "status": "captured",
+          "url": "https://www.investkorea.org/dj-kr/bbs/i-948/detail.do?ntt_sn=491761",
+          "title": "대전시, 금강유역환경청·14개 기업과 미세먼지 감축 협약상세보기 | 뉴스·행사 | 대전 투자환경 홈페이지",
+          "official": false,
+          "bodyLength": 753,
+          "truncated": false
+        },
+        {
+          "snapshotId": "smartair.daedeok.go.kr:84:검색 센서아이콘을 터치하시면, 상세한 대기지수를 확인 할 ",
+          "status": "captured",
+          "url": "http://smartair.daedeok.go.kr/xeus/gis.jsp",
+          "title": "대전 대덕구 미세먼지 센서 MAP",
+          "official": false,
+          "bodyLength": 84,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-04",
+      "question": "내일 뉴욕 날씨",
+      "sourceCaseId": "live-4",
+      "questionType": "weather",
+      "claimType": "weather",
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "originalRequiredConditions": [
+        "내일",
+        "뉴욕",
+        "날씨"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 1,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 1,
+        "totalCount": 1,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 3,
+        "tokenHits": [
+          "내일",
+          "날씨"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 779,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "www.ventusky.com:2130:기온 체감 온도 강수량 날씨 레이더 Satellite 풍속",
+          "status": "captured",
+          "url": "https://www.ventusky.com/ko/new-york",
+          "title": "날씨 - 뉴욕 - 14일 예보: 기온, 바람 및 레이더 | Ventusky",
+          "official": false,
+          "bodyLength": 2130,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-05",
+      "question": "PostgreSQL 최신 버전",
+      "sourceCaseId": "live-7",
+      "questionType": "software-version",
+      "claimType": "version",
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "originalRequiredConditions": [
+        "postgresql",
+        "최신",
+        "버전"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 4,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 4,
+        "totalCount": 4,
+        "officialCapturedCount": 1
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "official-host-present; freshness-unverified"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 3,
+        "tokenHits": [
+          "postgresql",
+          "최신",
+          "버전"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 3358,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "freshness-not-independently-verified",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 7,
+      "snapshots": [
+        {
+          "snapshotId": "aws.amazon.com:844:Amazon RDS for PostgreSQL, 마이너 버",
+          "status": "captured",
+          "url": "https://aws.amazon.com/ko/about-aws/whats-new/2025/05/amazon-rds-postgresql-supports-new-minor-versions/",
+          "title": "Amazon RDS for PostgreSQL, 마이너 버전 17.5, 16.9, 15.13, 14.18 및 13.21 지원 - AWS",
+          "official": true,
+          "bodyLength": 844,
+          "truncated": false
+        },
+        {
+          "snapshotId": "learn.microsoft.com:2494:목차 편집기 모드 종료 Ask Learn Ask Learn",
+          "status": "captured",
+          "url": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+          "title": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전 - Azure Database for PostgreSQL | Microsoft Learn",
+          "official": false,
+          "bodyLength": 2494,
+          "truncated": false
+        },
+        {
+          "snapshotId": "postgresql.kr.uptodown.com:1003:Zenless Zone Zero 네이티브 PC 포트 Ope",
+          "status": "captured",
+          "url": "https://postgresql.kr.uptodown.com/windows/versions",
+          "title": "PostgreSQL 구형 버전 (Windows) | Uptodown",
+          "official": false,
+          "bodyLength": 1003,
+          "truncated": false
+        },
+        {
+          "snapshotId": "ko.wikipedia.org:7997:위키백과, 우리 모두의 백과사전. PostgreSQL 포스",
+          "status": "captured",
+          "url": "https://ko.wikipedia.org/wiki/PostgreSQL#%EB%8B%A4%EC%A4%91_%EB%B2%84%EC%A0%84_%EB%8F%99%EC%8B%9C%EC%84%B1_%EC%A0%9C%EC%96%B4_%28MVCC%29",
+          "title": "PostgreSQL - 위키백과, 우리 모두의 백과사전",
+          "official": false,
+          "bodyLength": 7997,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-06",
+      "question": "Docker Engine 최신 버전",
+      "sourceCaseId": "live-8",
+      "questionType": "software-version",
+      "claimType": "version",
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "originalRequiredConditions": [
+        "docker",
+        "engine",
+        "최신",
+        "버전"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 4,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 4,
+        "totalCount": 4,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 4,
+        "tokenHits": [
+          "docker",
+          "engine",
+          "최신",
+          "버전"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 1958,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "www.boho.or.kr:1353:본문 바로가기 KISA 인터넷 보호나라&KrCERT 정보보",
+          "status": "captured",
+          "url": "https://www.boho.or.kr/kr/bbs/view.do?bbsId=B0000133&menuNo=205020&nttId=72022",
+          "title": "보안공지 > 알림마당 : KISA 보호나라&KrCERT/CC",
+          "official": false,
+          "bodyLength": 1353,
+          "truncated": false
+        },
+        {
+          "snapshotId": "go.lazyscheme.com:650:lazyscheme 필요한 공식 정보까지 가장 짧은 길 기",
+          "status": "captured",
+          "url": "https://go.lazyscheme.com/",
+          "title": "lazyscheme — 필요한 공식 정보까지 가장 짧은 길",
+          "official": false,
+          "bodyLength": 650,
+          "truncated": false
+        },
+        {
+          "snapshotId": "namu.wiki:4590:나무위키:대문 최근 수정 시각: 2026-10-09 15:",
+          "status": "captured",
+          "url": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+          "title": "나무위키:대문 - 나무위키",
+          "official": false,
+          "bodyLength": 4590,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.boho.or.kr:135:기업서비스 닫기 기업서비스 보안상담 침해사고 신고 내 서버",
+          "status": "captured",
+          "url": "https://www.boho.or.kr/",
+          "title": "KISA 보호나라&KrCERT/CC",
+          "official": false,
+          "bodyLength": 135,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-07",
+      "question": "최근 일주일 반도체 뉴스",
+      "sourceCaseId": "live-11",
+      "questionType": "news",
+      "claimType": "event",
+      "requiredAnswerItems": [
+        "event-type",
+        "date",
+        "location"
+      ],
+      "originalRequiredConditions": [
+        "최근",
+        "일주일",
+        "반도체",
+        "뉴스"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 4,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 4,
+        "totalCount": 4,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 4,
+        "tokenHits": [
+          "뉴스"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 957,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "mbnmoney.mbn.co.kr:1964:매일경제 MBN MBNGOLD 매경증권아카데미 매경이코노미",
+          "status": "captured",
+          "url": "https://mbnmoney.mbn.co.kr/",
+          "title": "경제채널 매일경제TV",
+          "official": false,
+          "bodyLength": 1964,
+          "truncated": false
+        },
+        {
+          "snapshotId": "kr.tradingview.com:224:비트코인 10월 22일 분석 (1) 고점에서 하락임펄스 형",
+          "status": "captured",
+          "url": "https://kr.tradingview.com/",
+          "title": "트레이딩뷰 - 모든 시장을 추적하세요 — TradingView",
+          "official": false,
+          "bodyLength": 224,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.youtube.com:338:정보보도자료저작권문의하기크리에이터\n개발자약관개인정보처리방침",
+          "status": "captured",
+          "url": "https://www.youtube.com/watch?v=fpTch4A9erE",
+          "title": "- YouTube",
+          "official": false,
+          "bodyLength": 338,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.yna.co.kr:254:톱기사 연관 검색어 #오세훈 #명태균 \"하얀 봉투, 보라 ",
+          "status": "captured",
+          "url": "https://www.yna.co.kr/",
+          "title": "연합뉴스",
+          "official": false,
+          "bodyLength": 254,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-08",
+      "question": "최근 일주일 생성형 AI 뉴스",
+      "sourceCaseId": "live-12",
+      "questionType": "news",
+      "claimType": "event",
+      "requiredAnswerItems": [
+        "event-type",
+        "date",
+        "location"
+      ],
+      "originalRequiredConditions": [
+        "최근",
+        "일주일",
+        "생성형",
+        "ai",
+        "뉴스"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 4,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 4,
+        "totalCount": 4,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 5,
+        "tokenHits": [
+          "최근",
+          "일주일",
+          "생성형",
+          "ai",
+          "뉴스"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 3357,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "www.topstarnews.net:6102:(톱스타뉴스 김명수 기자) AI 검색이 확산하면서 ‘검색→",
+          "status": "captured",
+          "url": "https://www.topstarnews.net/news/articleView.html?idxno=16225916",
+          "title": "AI가 웹의 지형을 바꾼다…검색·클릭·원문 방문의 공식이 무너진다 | 김명수 기자 | 톱스타뉴스",
+          "official": false,
+          "bodyLength": 6102,
+          "truncated": false
+        },
+        {
+          "snapshotId": "news.einfomax.co.kr:4527:(서울=연합인포맥스) 이재헌 김경림 홍경표 이민재 기자 =",
+          "status": "captured",
+          "url": "https://news.einfomax.co.kr/news/articleView.html?idxno=4440879",
+          "title": "[월가 톡톡] 연봉 4억3천만원 벌어도 정부 지원금 지원받는 샌프란시스코 < 월가 톡톡 < 마켓뷰 < 칼럼/이슈 < 기사본문 - 연합인포맥스",
+          "official": false,
+          "bodyLength": 4527,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.popcornnews.net:1401:한국앤컴퍼니그룹 본사 테크노플렉스(Technoplex) 외",
+          "status": "captured",
+          "url": "http://www.popcornnews.net/news/articleView.html?idxno=131486",
+          "title": "한국앤컴퍼니그룹, 업무 플랫폼 '아레나' 전면 개편…생성형 AI 기능 강화 < 산업·IT < 상생경제 < 기사본문 - 팝콘뉴스",
+          "official": false,
+          "bodyLength": 1401,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.youtube.com:338:정보보도자료저작권문의하기크리에이터\n개발자약관개인정보처리방침",
+          "status": "captured",
+          "url": "https://www.youtube.com/watch?v=2u7zhFIujgo",
+          "title": "- YouTube",
+          "official": false,
+          "bodyLength": 338,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-09",
+      "question": "최근 일주일 한국 과학기술 뉴스",
+      "sourceCaseId": "live-13",
+      "questionType": "news",
+      "claimType": "event",
+      "requiredAnswerItems": [
+        "event-type",
+        "free",
+        "date",
+        "location"
+      ],
+      "originalRequiredConditions": [
+        "최근",
+        "일주일",
+        "한국",
+        "과학기술",
+        "뉴스"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 3,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 3,
+        "totalCount": 3,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 5,
+        "tokenHits": [
+          "최근",
+          "일주일",
+          "한국",
+          "과학기술",
+          "뉴스"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 5169,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 4,
+      "snapshots": [
+        {
+          "snapshotId": "www.ibabynews.com:7121:베이비뉴스 앱 설치하고꿀팁 육아 & 출산지원금 정보 받기!",
+          "status": "captured",
+          "url": "https://www.ibabynews.com/news/articleView.html?idxno=151752",
+          "title": "[아이들과 가볼 만한 곳] 강서별빛우주과학관, 하지 맞이 천문 프로그램 풍성 外 - 임신·출산·육아 전문 언론ㅣ베이비뉴스",
+          "official": false,
+          "bodyLength": 7121,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.kosac.re.kr:4474:본문 바로가기 홈\n사이트맵 ENGLISH 재단 소개 인사말",
+          "status": "captured",
+          "url": "https://www.kosac.re.kr/menus/248/boards/459/posts/61120",
+          "title": "글로벌 과학기술 이슈와 토픽에 대한 월간 동향 (2026.3월) - 동향리포트 - KOSAC 지식관 - 성과/지식/홍보 - 한국과학창의재단",
+          "official": false,
+          "bodyLength": 4474,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.breaknews.com:7997:▲ 정희용 국민의힘 사무총장이 15일 오전 서울 여의도 국",
+          "status": "captured",
+          "url": "http://www.breaknews.com/1243708",
+          "title": "장동혁 국민의힘 대표 ˝경제·안보 위기˝…정점식 ˝증시 폭락 진상규명“:브레이크뉴스",
+          "official": false,
+          "bodyLength": 7997,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-10",
+      "question": "OpenAI API 최신 가격",
+      "sourceCaseId": "live-14",
+      "questionType": "price",
+      "claimType": "price",
+      "requiredAnswerItems": [
+        "price",
+        "currency-and-plan"
+      ],
+      "originalRequiredConditions": [
+        "openai",
+        "api",
+        "최신",
+        "가격"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 3,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 3,
+        "totalCount": 3,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 4,
+        "tokenHits": [
+          "openai",
+          "api",
+          "최신",
+          "가격"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 3331,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "apimaster.ai:3306:OpenAI API 가격 가이드 2026 OpenAI AP",
+          "status": "captured",
+          "url": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+          "title": "OpenAI API 가격 가이드 2026 — GPT-5, GPT-4o, o3 | APIMaster.ai | APIMaster.ai 使用文档",
+          "official": false,
+          "bodyLength": 3306,
+          "truncated": false
+        },
+        {
+          "snapshotId": "thorkit.kr:6794:무료 ·\n없이 바로 사용 월급·세금·대출, 헷갈리면 바로 ",
+          "status": "captured",
+          "url": "https://thorkit.kr/",
+          "title": "ThorKit(토르킷) — 계산과 기준을 함께 보는 곳",
+          "official": false,
+          "bodyLength": 6794,
+          "truncated": false
+        },
+        {
+          "snapshotId": "ko.showmetech.com.br:2165:Showmetech: 뉴스, 리뷰, 튜토리얼 및 기술 가이",
+          "status": "captured",
+          "url": "https://ko.showmetech.com.br/",
+          "title": "Showmetech: 뉴스, 리뷰, 튜토리얼 및 기술 가이드",
+          "official": false,
+          "bodyLength": 2165,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-11",
+      "question": "GitHub Actions 요금제",
+      "sourceCaseId": "live-15",
+      "questionType": "price",
+      "claimType": "price",
+      "requiredAnswerItems": [
+        "price",
+        "currency-and-plan"
+      ],
+      "originalRequiredConditions": [
+        "github",
+        "actions",
+        "요금제"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 4,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 3,
+        "totalCount": 4,
+        "officialCapturedCount": 2
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": false,
+        "status": "not-required-by-question"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 3,
+        "tokenHits": [
+          "github",
+          "actions",
+          "요금제"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 4185,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 7,
+      "snapshots": [
+        {
+          "snapshotId": "docs.github.com:6970:이 기사에서 GitHub Actions 비용 청구 사용량을",
+          "status": "captured",
+          "url": "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+          "title": "GitHub Actions 비용 청구 - GitHub 문서",
+          "official": true,
+          "bodyLength": 6970,
+          "truncated": false
+        },
+        {
+          "snapshotId": "docs.github.com:714:GitHub 문서 GitHub 여정의 모든 위치에 대한 도",
+          "status": "captured",
+          "url": "https://docs.github.com/ko",
+          "title": "GitHub Docs",
+          "official": true,
+          "bodyLength": 714,
+          "truncated": false
+        },
+        {
+          "snapshotId": "itwiki.kr:3570:GitHub Actions는 GitHub 저장소 내에서 워",
+          "status": "sensitive-content-blocked",
+          "url": "https://itwiki.kr/w/GitHub_Actions",
+          "title": "GitHub Actions - IT 위키",
+          "official": false,
+          "bodyLength": 3570,
+          "truncated": false
+        },
+        {
+          "snapshotId": "namu.wiki:7992:최근 변경최근 토론 특수 기능 GitHub 최근 수정 시각",
+          "status": "captured",
+          "url": "https://namu.wiki/w/GitHub",
+          "title": "GitHub - 나무위키",
+          "official": false,
+          "bodyLength": 7992,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-12",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "sourceCaseId": "live-17",
+      "questionType": "event",
+      "claimType": "event",
+      "requiredAnswerItems": [
+        "event-type",
+        "free",
+        "date",
+        "location"
+      ],
+      "originalRequiredConditions": [
+        "서울",
+        "이번",
+        "무료",
+        "개발자",
+        "행사",
+        "일정"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 4,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 4,
+        "totalCount": 4,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": false,
+        "status": "not-required-by-question"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 6,
+        "tokenHits": [
+          "서울",
+          "이번",
+          "무료",
+          "개발자",
+          "행사",
+          "일정"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 6296,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 4,
+      "snapshots": [
+        {
+          "snapshotId": "www.businessplus.kr:7985:금융권에서는 인공지능(AI)과 반도체 등 미래 산업에 투자",
+          "status": "captured",
+          "url": "https://www.businessplus.kr/news/articleView.html?idxno=118214",
+          "title": "[금융권 이모저모]KB자산운용, 국민성장펀드 2호 15일 모집 마감 外 < 금융·증권 < 인베스팅 < 기사본문 - 비즈니스플러스",
+          "official": false,
+          "bodyLength": 7985,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.gamevu.co.kr:7993:■ 신작 출시 및 테스트 -카카오게임즈의 신작 2.5D M",
+          "status": "captured",
+          "url": "https://www.gamevu.co.kr/news/articleView.html?idxno=61035",
+          "title": "[게임뉴스] 카카오게임즈 및 컴투스홀딩스 소식 외 < 보도자료 < 게임 < 기사본문 - 게임뷰",
+          "official": false,
+          "bodyLength": 7993,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.gamevu.co.kr:7991:■ 신작 출시 및 테스트 -스마일게이트는 로그라이크 액션 ",
+          "status": "captured",
+          "url": "https://www.gamevu.co.kr/news/articleView.html?idxno=61011",
+          "title": "[게임뉴스] 스마일게이트 및 컴투스홀딩스 소식 외 < 보도자료 < 게임 < 기사본문 - 게임뷰",
+          "official": false,
+          "bodyLength": 7991,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.seoul.go.kr:119:주요서비스 설정 주요서비스는 최대 개까지 설정이 가능합니다",
+          "status": "captured",
+          "url": "https://www.seoul.go.kr/main/index.jsp",
+          "title": "삶의 질 특별시 서울 | 서울특별시",
+          "official": false,
+          "bodyLength": 119,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-13",
+      "question": "부산 불꽃축제 올해 일정",
+      "sourceCaseId": "live-18",
+      "questionType": "event",
+      "claimType": "event",
+      "requiredAnswerItems": [
+        "event-name",
+        "date",
+        "location",
+        "source-check-time",
+        "authoritative-source"
+      ],
+      "originalRequiredConditions": [
+        "부산",
+        "불꽃축제",
+        "올해",
+        "일정"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 4,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 4,
+        "totalCount": 4,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": false,
+        "status": "not-required-by-question"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 4,
+        "tokenHits": [
+          "부산",
+          "불꽃축제",
+          "올해",
+          "일정"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 2711,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 4,
+      "snapshots": [
+        {
+          "snapshotId": "festival.kimgoon.kr:2583:예정 기타예정📍부산광역시 수영구 부산불꽃축제 ♡저장 부산",
+          "status": "captured",
+          "url": "https://festival.kimgoon.kr/festivals/235076",
+          "title": "부산불꽃축제 2026 일정·장소·입장료 | 놀러가자",
+          "official": false,
+          "bodyLength": 2583,
+          "truncated": false
+        },
+        {
+          "snapshotId": "hhakimm.github.io:619:📖 소개 '부산불꽃축제'는 광안리해수욕장과 광안대교 일대",
+          "status": "captured",
+          "url": "https://hhakimm.github.io/festivals-site/festival/%EB%B6%80%EC%82%B0%EB%B6%88%EA%BD%83%EC%B6%95%EC%A0%9C-235076/",
+          "title": "부산불꽃축제 | 부산 축제",
+          "official": false,
+          "bodyLength": 619,
+          "truncated": false
+        },
+        {
+          "snapshotId": "festival.kimgoon.kr:6100:이번 주말 뭐 하지? 전국 축제·놀거리를 한곳에서 🗓️ ",
+          "status": "captured",
+          "url": "https://festival.kimgoon.kr/",
+          "title": "놀러가자 - 전국 축제·관광지·맛집·숙박·레포츠 한곳에",
+          "official": false,
+          "bodyLength": 6100,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.youtube.com:338:정보보도자료저작권문의하기크리에이터\n개발자약관개인정보처리방침",
+          "status": "captured",
+          "url": "https://www.youtube.com/watch?v=Wt7e_9rlI-w",
+          "title": "- YouTube",
+          "official": false,
+          "bodyLength": 338,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-14",
+      "question": "대한민국 과학기술정보통신부 장관은 누구인가",
+      "sourceCaseId": "live-19",
+      "questionType": "fact",
+      "claimType": "person",
+      "requiredAnswerItems": [
+        "fact-value"
+      ],
+      "originalRequiredConditions": [
+        "대한민국",
+        "과학기술정보통신부",
+        "장관은",
+        "누구인가"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 4,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 4,
+        "totalCount": 4,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": false,
+        "status": "not-required-by-question"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 4,
+        "tokenHits": [
+          "대한민국",
+          "과학기술정보통신부",
+          "장관은"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 3764,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "ko.wikipedia.org:6583:좌표: 북위 37° 25′ 42″ 동경 126° 59′ 0",
+          "status": "captured",
+          "url": "https://ko.wikipedia.org/wiki/%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD_%EA%B3%BC%ED%95%99%EA%B8%B0%EC%88%A0%EC%A0%95%EB%B3%B4%ED%86%B5%EC%8B%A0%EB%B6%80",
+          "title": "대한민국 과학기술정보통신부 - 위키백과, 우리 모두의 백과사전",
+          "official": false,
+          "bodyLength": 6583,
+          "truncated": false
+        },
+        {
+          "snapshotId": "view.asiae.co.kr:2057:독파모·프론티어 AI 양대 축으로 \"독파모 3차 예정대로 ",
+          "status": "captured",
+          "url": "https://view.asiae.co.kr/article/2026093009151033017",
+          "title": "배경훈 \"독파모 계속된다…프론티어 AI도 함께 도전\"",
+          "official": false,
+          "bodyLength": 2057,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.korea.kr:235:사실은 이렇습니다 농림축산식품부 노인장기요양등급자 등에 대",
+          "status": "captured",
+          "url": "https://www.korea.kr/",
+          "title": "대한민국 정책브리핑",
+          "official": false,
+          "bodyLength": 235,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.etnews.com:5149:이정구 국립광주과학관장. 국립광주과학관이 최근 과학문화와 ",
+          "status": "captured",
+          "url": "https://www.etnews.com/20260921000443",
+          "title": "[특별인터뷰]이정구 국립광주과학관장 “과학관은 과학기술과 국민의 삶 연결 플랫폼” - 전자신문",
+          "official": false,
+          "bodyLength": 5149,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-15",
+      "question": "WHO 본부가 있는 도시와 기관 역할",
+      "sourceCaseId": "live-20",
+      "questionType": "fact",
+      "claimType": "location",
+      "requiredAnswerItems": [
+        "fact-value"
+      ],
+      "originalRequiredConditions": [
+        "who",
+        "본부가",
+        "있는",
+        "도시와",
+        "기관",
+        "역할"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 2,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 2,
+        "totalCount": 2,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": false,
+        "status": "not-required-by-question"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 6,
+        "tokenHits": [
+          "who",
+          "본부가",
+          "있는",
+          "기관",
+          "역할"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 3346,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "mymerci.kr:4363:성장을 멈추지 마세요 체험은 만족하셨나요? 현재 67,56",
+          "status": "captured",
+          "url": "https://mymerci.kr/pages/nclex_q.php?qn_id=279060",
+          "title": "세계보건기구의 6개 지역사무소 중 대한민국이 소속되어 있는 서태평양 지역사무소가 위치한 도시는? | 마이메르시 MyMerci",
+          "official": false,
+          "bodyLength": 4363,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.doctorstimes.com:8000:■부광약품, 조현병 디지털 치료제 ‘어펙터스’ 공동개발 협",
+          "status": "captured",
+          "url": "http://www.doctorstimes.com/news/articleView.html?idxno=240627",
+          "title": "[제약업계 소식] 10월 22일 - 의사신문",
+          "official": false,
+          "bodyLength": 8000,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-16",
+      "question": "MacBook Air와 Dell XPS 13의 공식 사양 비교",
+      "sourceCaseId": "live-21",
+      "questionType": "comparison",
+      "claimType": "comparison",
+      "requiredAnswerItems": [
+        "service-a",
+        "service-b",
+        "comparison-attributes",
+        "authoritative-source"
+      ],
+      "originalRequiredConditions": [
+        "macbook",
+        "air와",
+        "dell",
+        "xps",
+        "13의",
+        "공식",
+        "사양",
+        "비교"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 3,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 3,
+        "totalCount": 3,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": true,
+        "freshnessRequired": false,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 8,
+        "tokenHits": [
+          "macbook",
+          "air와",
+          "dell",
+          "xps",
+          "사양",
+          "비교"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 1974,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 4,
+      "snapshots": [
+        {
+          "snapshotId": "www.dell.com:1814:XPS 13 DX13260 설치 및 사양 목차 숨기기 참고",
+          "status": "captured",
+          "url": "https://www.dell.com/support/manuals/ko-kr/xps13dx13260laptop/xps-13-dx13260-ss/%EB%94%94%EC%8A%A4%ED%94%8C%EB%A0%88%EC%9D%B4?guid=guid-83905b9f-38da-47fd-8c2c-0ec9b2fc34ba",
+          "title": "XPS 13 DX13260 설치 및 사양 | Dell 대한민국",
+          "official": false,
+          "bodyLength": 1814,
+          "truncated": false
+        },
+        {
+          "snapshotId": "support.apple.com:4458:MacBook Air (Retina, 13-inch, 20",
+          "status": "captured",
+          "url": "https://support.apple.com/ko-kr/111991",
+          "title": "MacBook Air (Retina, 13-inch, 2020) - 제품사양 - Apple 지원 (KR)",
+          "official": false,
+          "bodyLength": 4458,
+          "truncated": false
+        },
+        {
+          "snapshotId": "www.youtube.com:338:정보보도자료저작권문의하기크리에이터\n개발자약관개인정보처리방침",
+          "status": "captured",
+          "url": "https://www.youtube.com/watch?v=xK4rIDIEIYQ",
+          "title": "- YouTube",
+          "official": false,
+          "bodyLength": 338,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-17",
+      "question": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인",
+      "sourceCaseId": "live-23",
+      "questionType": "software-version",
+      "claimType": "version",
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "originalRequiredConditions": [
+        "2024년",
+        "자료와",
+        "현재",
+        "자료가",
+        "섞인",
+        "node.js",
+        "릴리스",
+        "역사에서",
+        "최신",
+        "lts만",
+        "확인"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 3,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 3,
+        "totalCount": 3,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": true,
+        "status": "missing-official-source"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 11,
+        "tokenHits": [
+          "최신",
+          "확인"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 4209,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 5,
+      "snapshots": [
+        {
+          "snapshotId": "namu.wiki:7995:최근 변경최근 토론 특수 기능 PHP 최근 수정 시각: 2",
+          "status": "captured",
+          "url": "https://namu.wiki/w/PHP",
+          "title": "PHP - 나무위키",
+          "official": false,
+          "bodyLength": 7995,
+          "truncated": false
+        },
+        {
+          "snapshotId": "namu.wiki:4590:나무위키:대문 최근 수정 시각: 2026-10-09 15:",
+          "status": "captured",
+          "url": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+          "title": "나무위키:대문 - 나무위키",
+          "official": false,
+          "bodyLength": 4590,
+          "truncated": false
+        },
+        {
+          "snapshotId": "ko.wikipedia.org:3033:위키백과, 우리 모두의 백과사전. 위키백과 우리 모두가 만",
+          "status": "captured",
+          "url": "https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8",
+          "title": "위키백과, 우리 모두의 백과사전",
+          "official": false,
+          "bodyLength": 3033,
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "general-18",
+      "question": "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교",
+      "sourceCaseId": "live-24",
+      "questionType": "comparison",
+      "claimType": "comparison",
+      "requiredAnswerItems": [
+        "service-a",
+        "service-b",
+        "free-capacity-a",
+        "free-capacity-b",
+        "monthly-price-a",
+        "monthly-price-b",
+        "currency-and-plan"
+      ],
+      "originalRequiredConditions": [
+        "한국에서",
+        "사용할",
+        "있는",
+        "가지",
+        "클라우드",
+        "저장소의",
+        "무료",
+        "용량과",
+        "요금",
+        "비교"
+      ],
+      "searchResult": {
+        "exists": true,
+        "storedReadCount": 2,
+        "sourceBodyFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-bodies-final-semantic.json"
+      },
+      "originalSnapshots": {
+        "exists": true,
+        "capturedCount": 2,
+        "totalCount": 2,
+        "officialCapturedCount": 0
+      },
+      "officialityFreshness": {
+        "officialRequired": false,
+        "freshnessRequired": false,
+        "status": "not-required-by-question"
+      },
+      "relatedSpan": {
+        "status": "candidate-token-hit-unreviewed",
+        "tokenCount": 10,
+        "tokenHits": [
+          "사용할",
+          "있는",
+          "가지",
+          "클라우드",
+          "무료",
+          "용량과",
+          "요금",
+          "비교"
+        ],
+        "independentlyVerified": false
+      },
+      "gemini": {
+        "callAllowedThisRun": false,
+        "eligibleAfterApproval": true,
+        "reason": "이번 작업의 실제 Gemini 호출 금지; 별도 승인 필요"
+      },
+      "estimatedInputTokens": 1342,
+      "currentEvidenceGaps": [
+        "span-semantic-review-required",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ],
+      "materialScore": 4,
+      "snapshots": [
+        {
+          "snapshotId": "chaenggim.co.kr:1379:구독·디지털 클라우드 저장공간 비교 사진·파일 백업용 클라",
+          "status": "captured",
+          "url": "https://chaenggim.co.kr/cloud",
+          "title": "클라우드 저장공간 비교 (구글 One·네이버 MyBox·iCloud) | 챙김",
+          "official": false,
+          "bodyLength": 1379,
+          "truncated": false
+        },
+        {
+          "snapshotId": "angelsitter.co.kr:2513:무료 대용량 저장 클라우드 모음 지금순간 게시일 : 202",
+          "status": "captured",
+          "url": "https://angelsitter.co.kr/board.view.php?board=bbs5&no=37",
+          "title": "무료 대용량 저장 클라우드 모음",
+          "official": false,
+          "bodyLength": 2513,
+          "truncated": false
+        }
+      ]
+    }
+  ],
+  "selectedForFutureExperiment": [
+    {
+      "id": "general-05",
+      "question": "PostgreSQL 최신 버전",
+      "questionType": "software-version",
+      "estimatedInputTokens": 3358,
+      "materialScore": 7,
+      "selectionReason": "저장 본문·질문 관련 토큰·질문 유형별 최대 6개 제한을 만족; 독립 의미 검토와 최신성은 미완료",
+      "geminiCallAllowed": false
+    },
+    {
+      "id": "general-11",
+      "question": "GitHub Actions 요금제",
+      "questionType": "price",
+      "estimatedInputTokens": 4185,
+      "materialScore": 7,
+      "selectionReason": "저장 본문·질문 관련 토큰·질문 유형별 최대 6개 제한을 만족; 독립 의미 검토와 최신성은 미완료",
+      "geminiCallAllowed": false
+    },
+    {
+      "id": "general-01",
+      "question": "오늘 서울 날씨",
+      "questionType": "weather",
+      "estimatedInputTokens": 1088,
+      "materialScore": 5,
+      "selectionReason": "저장 본문·질문 관련 토큰·질문 유형별 최대 6개 제한을 만족; 독립 의미 검토와 최신성은 미완료",
+      "geminiCallAllowed": false
+    },
+    {
+      "id": "general-07",
+      "question": "최근 일주일 반도체 뉴스",
+      "questionType": "news",
+      "estimatedInputTokens": 957,
+      "materialScore": 5,
+      "selectionReason": "저장 본문·질문 관련 토큰·질문 유형별 최대 6개 제한을 만족; 독립 의미 검토와 최신성은 미완료",
+      "geminiCallAllowed": false
+    },
+    {
+      "id": "general-14",
+      "question": "대한민국 과학기술정보통신부 장관은 누구인가",
+      "questionType": "fact",
+      "estimatedInputTokens": 3764,
+      "materialScore": 5,
+      "selectionReason": "저장 본문·질문 관련 토큰·질문 유형별 최대 6개 제한을 만족; 독립 의미 검토와 최신성은 미완료",
+      "geminiCallAllowed": false
+    },
+    {
+      "id": "general-12",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "questionType": "event",
+      "estimatedInputTokens": 6296,
+      "materialScore": 4,
+      "selectionReason": "저장 본문·질문 관련 토큰·질문 유형별 최대 6개 제한을 만족; 독립 의미 검토와 최신성은 미완료",
+      "geminiCallAllowed": false
+    }
+  ]
+}

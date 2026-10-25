@@ -1,0 +1,898 @@
+{
+  "version": 2,
+  "type": "limited-general-search-source-research",
+  "generatedAt": "2026-10-24T03:59:50.331Z",
+  "dryRun": false,
+  "noGeminiCalls": true,
+  "budgets": {
+    "maxSearchAttemptsPerQuestion": 4,
+    "maxTotalSearches": 12,
+    "maxRetriesPerQuery": 1,
+    "maxReadsPerQuestion": 4,
+    "maxTotalReads": 24,
+    "searchBudgetUnit": "actual HTTP attempts; includes search-engine fallback and retries",
+    "bodyReadBudgetUnit": "actual HTTP attempts; includes redirects and retries",
+    "searchEngines": [
+      "naver",
+      "duckduckgo"
+    ],
+    "searchPriority": "naver-first, globally round-robin primary terms before fallback",
+    "exhaustionPolicy": "check immediately before every HTTP attempt; when exhausted, skip retries and stop retrieval"
+  },
+  "questions": [
+    {
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "searchQueries": [
+        "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "completed-source-selection",
+      "requestCount": 1,
+      "attempts": [
+        {
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "success",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 8,
+              "durationMs": 961
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "title": "Utiliser l'API Fetch - Les API Web | MDN새 창 열림",
+          "url": "https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch",
+          "snippet": ""
+        },
+        {
+          "title": "AbortController: abort() method새 창 열림",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort",
+          "snippet": ""
+        },
+        {
+          "title": "AbortController새 창 열림",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController",
+          "snippet": ""
+        },
+        {
+          "title": "AbortController: signal property새 창 열림",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+          "snippet": ""
+        },
+        {
+          "title": "AbortController: AbortController() constructor새 창 열림",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/AbortController",
+          "snippet": ""
+        },
+        {
+          "title": "MDN Web Docsdeveloper.mozilla.org›en-US새 창 열림",
+          "url": "https://developer.mozilla.org/ko/",
+          "snippet": ""
+        },
+        {
+          "title": "Using readable streams새 창 열림",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams",
+          "snippet": ""
+        },
+        {
+          "title": "파파고 플러스새 창 열림",
+          "url": "https://papago-plus.com/about",
+          "snippet": ""
+        }
+      ],
+      "selectedUrls": [
+        "https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch",
+        "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+        "https://papago-plus.com/about"
+      ],
+      "reads": [
+        {
+          "url": "https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch",
+          "status": "success",
+          "bodyLength": 8000
+        },
+        {
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+          "status": "success",
+          "bodyLength": 917
+        },
+        {
+          "url": "https://papago-plus.com/about",
+          "status": "success",
+          "bodyLength": 4532
+        }
+      ]
+    },
+    {
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "searchQueries": [
+        "site:kubernetes.io/docs liveness probe official documentation"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "Kubernetes 공식 문서의 liveness probe 설명",
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "Kubernetes 공식 문서의 liveness probe 설명",
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "completed-source-selection",
+      "requestCount": 1,
+      "attempts": [
+        {
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "success",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:kubernetes.io/docs liveness probe official documentation",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 21,
+              "durationMs": 961
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "title": "Configure Liveness, Readiness and Startup Probes새 창 열림",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+          "snippet": ""
+        },
+        {
+          "title": "Liveness, Readiness, and Startup Probes새 창 열림",
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+          "snippet": ""
+        },
+        {
+          "title": "Kuberneteskubernetes.io›docs새 창 열림",
+          "url": "https://kubernetes.io/",
+          "snippet": ""
+        },
+        {
+          "title": "Kubernetes API Reference Docs새 창 열림",
+          "url": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+          "snippet": ""
+        },
+        {
+          "title": "Container Lifecycle Hooks새 창 열림",
+          "url": "https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/",
+          "snippet": ""
+        },
+        {
+          "title": "Images - Kubernetes새 창 열림",
+          "url": "https://kubernetes.io/docs/concepts/containers/images/",
+          "snippet": ""
+        },
+        {
+          "title": "Windows containers in Kubernetes새 창 열림",
+          "url": "https://kubernetes.io/docs/concepts/windows/intro/",
+          "snippet": ""
+        },
+        {
+          "title": "Disruptions새 창 열림",
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/disruptions/",
+          "snippet": ""
+        },
+        {
+          "title": "kubeadm init새 창 열림",
+          "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/",
+          "snippet": ""
+        },
+        {
+          "title": "Kubernetes Metrics Reference새 창 열림",
+          "url": "https://kubernetes.io/docs/reference/instrumentation/metrics/",
+          "snippet": ""
+        },
+        {
+          "title": "Pull an Image from a Private Registry새 창 열림",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://kubernetes.io/docs/reference/networking/virtual-ips/",
+          "snippet": ""
+        },
+        {
+          "title": "Assign Memory Resources to Containers and Pods새 창 열림",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/",
+          "snippet": ""
+        },
+        {
+          "title": "Enforce Pod Security Standards with Namespace Labels새 창 열림",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-namespace-labels/",
+          "snippet": ""
+        },
+        {
+          "title": "Pod - Kubernetes새 창 열림",
+          "url": "https://kubernetes.io/docs/reference/kubernetes-api/core/pod-v1/",
+          "snippet": ""
+        },
+        {
+          "title": "Sidecar Containers새 창 열림",
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://kubernetes.io/docs/contribute/style/diagram-guide/",
+          "snippet": ""
+        },
+        {
+          "title": "Assign Pods to Nodes새 창 열림",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/",
+          "snippet": ""
+        },
+        {
+          "title": "Configure Service Accounts for Pods새 창 열림",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+          "snippet": ""
+        }
+      ],
+      "selectedUrls": [
+        "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+        "https://kubernetes.io/docs/concepts/workloads/pods/probes/"
+      ],
+      "reads": [
+        {
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+          "status": "success",
+          "bodyLength": 8000
+        },
+        {
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+          "status": "success",
+          "bodyLength": 7999
+        }
+      ]
+    },
+    {
+      "question": "Python 최신 안정 버전",
+      "searchQueries": [
+        "site:python.org/downloads latest stable Python release download"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "Python 최신 안정 버전",
+          "query": "site:python.org/downloads latest stable Python release download",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "Python 최신 안정 버전",
+          "query": "site:python.org/downloads latest stable Python release download",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "completed-source-selection",
+      "requestCount": 1,
+      "attempts": [
+        {
+          "query": "site:python.org/downloads latest stable Python release download",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "success",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:python.org/downloads latest stable Python release download",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 2,
+              "durationMs": 659
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "title": "파파고 플러스새 창 열림",
+          "url": "https://papago-plus.com/about",
+          "snippet": ""
+        },
+        {
+          "title": "© NAVER Corp.새 창 열림",
+          "url": "https://www.navercorp.com/",
+          "snippet": ""
+        }
+      ],
+      "selectedUrls": [
+        "https://papago-plus.com/about",
+        "https://www.navercorp.com/"
+      ],
+      "reads": [
+        {
+          "url": "https://papago-plus.com/about",
+          "status": "success",
+          "bodyLength": 4532
+        },
+        {
+          "url": "https://www.navercorp.com/",
+          "status": "success",
+          "bodyLength": 2264
+        }
+      ]
+    },
+    {
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "searchQueries": [
+        "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+        "site:dev.mysql.com/doc/refman JSON data type MySQL official"
+      ],
+      "plannedSearches": 2,
+      "plannedEngineRequests": [
+        {
+          "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+          "query": "site:dev.mysql.com/doc/refman JSON data type MySQL official",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 3,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "completed-source-selection",
+      "requestCount": 2,
+      "attempts": [
+        {
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "success",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 2,
+              "durationMs": 636
+            }
+          ]
+        },
+        {
+          "query": "site:dev.mysql.com/doc/refman JSON data type MySQL official",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "success",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:dev.mysql.com/doc/refman JSON data type MySQL official",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 2,
+              "durationMs": 625
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "title": "파파고 플러스새 창 열림",
+          "url": "https://papago-plus.com/about",
+          "snippet": ""
+        },
+        {
+          "title": "© NAVER Corp.새 창 열림",
+          "url": "https://www.navercorp.com/",
+          "snippet": ""
+        }
+      ],
+      "selectedUrls": [
+        "https://papago-plus.com/about",
+        "https://www.navercorp.com/"
+      ],
+      "reads": [
+        {
+          "url": "https://papago-plus.com/about",
+          "status": "success",
+          "bodyLength": 4532
+        },
+        {
+          "url": "https://www.navercorp.com/",
+          "status": "success",
+          "bodyLength": 2264
+        }
+      ]
+    },
+    {
+      "question": "AWS Lambda 요청 요금",
+      "searchQueries": [
+        "site:aws.amazon.com AWS Lambda request pricing free tier",
+        "site:docs.aws.amazon.com/lambda latest pricing request charges"
+      ],
+      "plannedSearches": 2,
+      "plannedEngineRequests": [
+        {
+          "question": "AWS Lambda 요청 요금",
+          "query": "site:aws.amazon.com AWS Lambda request pricing free tier",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "AWS Lambda 요청 요금",
+          "query": "site:docs.aws.amazon.com/lambda latest pricing request charges",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "completed-source-selection",
+      "requestCount": 2,
+      "attempts": [
+        {
+          "query": "site:aws.amazon.com AWS Lambda request pricing free tier",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "success",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:aws.amazon.com AWS Lambda request pricing free tier",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 22,
+              "durationMs": 893
+            }
+          ]
+        },
+        {
+          "query": "site:docs.aws.amazon.com/lambda latest pricing request charges",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "success",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:docs.aws.amazon.com/lambda latest pricing request charges",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 20,
+              "durationMs": 624
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "title": "Tracking your AWS Free Tier usage - AWS Billing새 창 열림",
+          "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/tracking-free-tier-usage.html",
+          "snippet": ""
+        },
+        {
+          "title": "Explore AWS services with AWS Free Tier - AWS Billing새 창 열림",
+          "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html",
+          "snippet": ""
+        },
+        {
+          "title": "Trying services using AWS Free Tier (before July 15, 2025) - AWS Billing새 창 열림",
+          "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-free-tier.html",
+          "snippet": ""
+        },
+        {
+          "title": "AWS Lambda 요금새 창 열림",
+          "url": "https://aws.amazon.com/ko/lambda/pricing/",
+          "snippet": ""
+        },
+        {
+          "title": "AWS Lambda - Big Data Analytics Options on AWS새 창 열림",
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/big-data-analytics-options/aws-lambda.html",
+          "snippet": ""
+        },
+        {
+          "title": "Monitoring, debugging, and troubleshooting Lambda Event Functions - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-monitoring.html",
+          "snippet": ""
+        },
+        {
+          "title": "프리 티어 API 사용 - AWS 결제새 창 열림",
+          "url": "https://docs.aws.amazon.com/ko_kr/awsaccountbilling/latest/aboutv2/using-free-tier-api.html",
+          "snippet": ""
+        },
+        {
+          "title": "Amazon Web Services, Incaws.amazon.com›컴퓨팅›AWS Lambda›요금새 창 열림",
+          "url": "https://aws.amazon.com/ko/",
+          "snippet": ""
+        },
+        {
+          "title": "Cost - Automated Security Response on AWS새 창 열림",
+          "url": "https://docs.aws.amazon.com/solutions/latest/automated-security-response-on-aws/cost.html",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://aws.amazon.com/ko/blogs/korea/aws-free-tier-update-new-customers-can-get-started-and-explore-aws-with-up-to-200-in-credits/",
+          "snippet": ""
+        },
+        {
+          "title": "AWS Marketplace: CircleCI - MCP Server Reviews새 창 열림",
+          "url": "https://aws.amazon.com/marketplace/reviews/reviews-list/prodview-qouiwrpqaezmm",
+          "snippet": ""
+        },
+        {
+          "title": "AWS Marketplace: N2W Backup & Recovery for AWS Standard Edition Reviews새 창 열림",
+          "url": "https://aws.amazon.com/marketplace/reviews/reviews-list/B00UIO8C3A?rating=5",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://docs.aws.amazon.com/pdfs/whitepapers/latest/serverless-multi-tier-architectures-api-gateway-lambda/serverless-multi-tier-architectures-api-gateway-lambda.pdf",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://aws.amazon.com/blogs/aws/new-for-aws-lambda-1ms-billing-granularity-adds-cost-savings/",
+          "snippet": ""
+        },
+        {
+          "title": "무료 웹 사이트 및 웹 앱 구축새 창 열림",
+          "url": "https://aws.amazon.com/ko/free/webapps/",
+          "snippet": ""
+        },
+        {
+          "title": "Amazon API Gateway 요금새 창 열림",
+          "url": "https://aws.amazon.com/ko/api-gateway/pricing/",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://docs.aws.amazon.com/pdfs/decision-guides/latest/fargate-or-lambda/fargate-or-lambda.pdf",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://aws.amazon.com/blogs/architecture/building-a-three-tier-architecture-on-a-budget/",
+          "snippet": ""
+        },
+        {
+          "title": "파파고 플러스새 창 열림",
+          "url": "https://papago-plus.com/about",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://aws.amazon.com/marketplace/reviews/reviews-list/B00UIO8514",
+          "snippet": ""
+        },
+        {
+          "title": "Cost optimization - Best Practices for Designing Amazon API Gateway Private APIs and Private Integration새 창 열림",
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/best-practices-api-gateway-private-apis-integration/cost-optimization.html",
+          "snippet": ""
+        },
+        {
+          "title": "Network Traffic Distribution – Elastic Load Balancing FAQs새 창 열림",
+          "url": "https://aws.amazon.com/ko/elasticloadbalancing/faqs/?nc=sn&loc=5&trk=sl_card&sc_channel=ell",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html",
+          "snippet": ""
+        },
+        {
+          "title": "Logging AWS Lambda API calls using AWS CloudTrail - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/logging-using-cloudtrail.html",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/provisioned-concurrency.html",
+          "snippet": ""
+        },
+        {
+          "title": "Tenant isolation - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/tenant-isolation.html",
+          "snippet": ""
+        },
+        {
+          "title": "Improving startup performance with Lambda SnapStart - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html",
+          "snippet": ""
+        },
+        {
+          "title": "Instrumenting C# code in AWS Lambda - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/csharp-tracing.html",
+          "snippet": ""
+        },
+        {
+          "title": "Using Lambda to process records from Amazon Kinesis Data Streams - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html",
+          "snippet": ""
+        },
+        {
+          "title": "Configuring scaling behavior for SQS event source mappings - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-scaling.html",
+          "snippet": ""
+        },
+        {
+          "title": "Encrypting AWS Lambda durable execution data - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/durable-encryption.html",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/java-tracing.html",
+          "snippet": ""
+        },
+        {
+          "title": "Monitoring Lambda Web Functions - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/web-functions-monitoring.html",
+          "snippet": ""
+        },
+        {
+          "title": "Instrumenting Ruby code in AWS Lambda - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/ruby-tracing.html",
+          "snippet": ""
+        },
+        {
+          "title": "Security model for Lambda SnapStart - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/snapstart-security.html",
+          "snippet": ""
+        },
+        {
+          "title": "Publishing custom metrics with the embedded metric format - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/web-functions-emf.html",
+          "snippet": ""
+        },
+        {
+          "title": "Instrumenting Python code in AWS Lambda - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/python-tracing.html",
+          "snippet": ""
+        },
+        {
+          "title": "Using AWS Lambda with Amazon RDS - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-rds.html",
+          "snippet": ""
+        },
+        {
+          "title": "Instrumenting Go code in AWS Lambda - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/golang-tracing.html",
+          "snippet": ""
+        },
+        {
+          "title": "Encryption at rest for Web Functions - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/web-functions-encryption.html",
+          "snippet": ""
+        },
+        {
+          "title": "Using Lambda functions in AWS SAM and Infrastructure Composer - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/foundation-iac-getting-started.html",
+          "snippet": ""
+        }
+      ],
+      "selectedUrls": [
+        "https://aws.amazon.com/ko/lambda/pricing/",
+        "https://aws.amazon.com/ko/",
+        "https://docs.aws.amazon.com/whitepapers/latest/big-data-analytics-options/aws-lambda.html"
+      ],
+      "reads": [
+        {
+          "url": "https://aws.amazon.com/ko/lambda/pricing/",
+          "status": "success",
+          "bodyLength": 7999
+        },
+        {
+          "url": "https://aws.amazon.com/ko/",
+          "status": "success",
+          "bodyLength": 2477
+        },
+        {
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/big-data-analytics-options/aws-lambda.html",
+          "status": "success",
+          "bodyLength": 7420
+        }
+      ]
+    },
+    {
+      "question": "React 최신 버전",
+      "searchQueries": [
+        "site:react.dev/blog latest React release official"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "React 최신 버전",
+          "query": "site:react.dev/blog latest React release official",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        }
+      ],
+      "plannedRequestCount": 1,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "completed-source-selection",
+      "requestCount": 1,
+      "attempts": [
+        {
+          "query": "site:react.dev/blog latest React release official",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "success",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:react.dev/blog latest React release official",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 11,
+              "durationMs": 482
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog/2024/12/05/react-19",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog/2022/03/29/react-v18",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog/2025/12/11/denial-of-service-and-source-code-exposure-in-react-server-components",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog/2023/05/03/react-canaries",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog/2025/10/01/react-19-2",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog/2022/03/08/react-18-upgrade-guide",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog/2023/03/16/introducing-react-dev",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog/2024/02/15/react-labs-what-we-have-been-working-on-february-2024",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog/2024/04/25/react-19-upgrade-guide",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://react.dev/blog",
+          "snippet": ""
+        }
+      ],
+      "selectedUrls": [
+        "https://react.dev/blog/2024/12/05/react-19",
+        "https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components"
+      ],
+      "reads": [
+        {
+          "url": "https://react.dev/blog/2024/12/05/react-19",
+          "status": "success",
+          "bodyLength": 8000
+        },
+        {
+          "url": "https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components",
+          "status": "success",
+          "bodyLength": 6548
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "plannedSearchQueries": 8,
+    "plannedEngineRequests": 12,
+    "plannedBodyReads": 24,
+    "actualSearchHttpAttempts": 8,
+    "actualReadHttpAttempts": 16
+  }
+}

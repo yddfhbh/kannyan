@@ -1,0 +1,686 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-23T15:15:59.283Z",
+  "labelPolicy": [
+    "supported",
+    "contradicted",
+    "insufficient",
+    "irrelevant",
+    "unreviewed"
+  ],
+  "cases": [
+    {
+      "reviewId": "gemini-01-source-1",
+      "question": "오늘 서울 날씨",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://korean.visitseoul.net/weather",
+      "sourceTitle": "서울 실시간 날씨 정보 | 서울 공식 관광정보 웹사이트",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-01-source-2",
+      "question": "오늘 서울 날씨",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+      "sourceTitle": "[날씨] 태풍 ’참피’ 영향 제주·남부 비…곳곳 강풍 유의",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-01-source-3",
+      "question": "오늘 서울 날씨",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+      "sourceTitle": "KBS 뉴스",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-02-source-1",
+      "question": "내일 제주 날씨",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+      "sourceTitle": "태풍 참피 북상…제주·남부 강한 비[내일 날씨]",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-02-source-2",
+      "question": "내일 제주 날씨",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+      "sourceTitle": "KBS 뉴스",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-02-source-3",
+      "question": "내일 제주 날씨",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+      "sourceTitle": "주말 예년 기온 웃돌아…남해안, 제주 호우 < 날씨 < 사회 < 기사본문 - OBS경인TV",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-02-source-4",
+      "question": "내일 제주 날씨",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+      "sourceTitle": "주말 중부 내륙 큰 일교차…남해안, 제주 강한 비바람 < 날씨 < 사회 < 기사본문 - OBS경인TV",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "weather-value"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-03-source-1",
+      "question": "Python 최신 안정 버전",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://cliearl.github.io/posts/linux/python-install/",
+      "sourceTitle": "[WSL2] Python 3.14 설치 가이드 및 시스템 기본 버전 관리법",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-03-source-2",
+      "question": "Python 최신 안정 버전",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://ko.console-linux.com/?p=276",
+      "sourceTitle": "Ubuntu에 최신 Python 3.11을 설치하는 방법",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-03-source-3",
+      "question": "Python 최신 안정 버전",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.python.org/downloads/release/python-3913/",
+      "sourceTitle": "Python Release Python 3.9.13 | Python.org",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-03-source-4",
+      "question": "Python 최신 안정 버전",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://navix.navercorp.com/docs/releasenotes/navix-9.8-release/",
+      "sourceTitle": "NAVIX 9.8 Release Notes",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-04-source-1",
+      "question": "React 최신 버전",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+      "sourceTitle": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-04-source-2",
+      "question": "React 최신 버전",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+      "sourceTitle": "React(라이브러리) - 나무위키",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-04-source-3",
+      "question": "React 최신 버전",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+      "sourceTitle": "React 서버 컴포넌트 보안 업데이트 권고(2025.12.09) | Cafe24 호스팅",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-05-source-1",
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://velog.io/@ehdgus8054/Fetch-API",
+      "sourceTitle": "Fetch API",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "service-a",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-05-source-2",
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+      "sourceTitle": "fetch() 전역 함수 - Web API | MDN",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "service-a",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-05-source-3",
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://developer.mozilla.org/ko/",
+      "sourceTitle": "MDN Web Docs",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "service-a",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-06-source-1",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.speedykorea.com/blog/kubernetes-startup-readiness-liveness-probes",
+      "sourceTitle": "파드는 실행 중인데 요청을 못 받는다: Kubernetes 상태 검사 3가지를 나누는 법 │ 스피디 블로그",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "service-a",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-06-source-2",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://ttlab.hopto.org/blog/kubernetes/2026-07-26-kubernetes-probes-liveness-readiness-startup",
+      "sourceTitle": "Kubernetes 프로브 3종 제대로 쓰기 — liveness, readiness, startup의 정확한 경계 — TT Lab 블로그",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "service-a",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-06-source-3",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://docs.cloud.google.com/service-mesh/docs/gateway/configure-readiness-probes?hl=ko",
+      "sourceTitle": "Kubernetes 준비 프로브 구성(선택사항) | Cloud Service Mesh | Google Cloud Documentation",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "service-a",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-07-source-1",
+      "question": "OpenAI API 최신 가격",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+      "sourceTitle": "OpenAI API 가격 가이드 2026 — GPT-5, GPT-4o, o3 | APIMaster.ai | APIMaster.ai 使用文档",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "price",
+        "currency-and-plan"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-07-source-2",
+      "question": "OpenAI API 최신 가격",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://thorkit.kr/",
+      "sourceTitle": "ThorKit(토르킷) — 계산과 기준을 함께 보는 곳",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "price",
+        "currency-and-plan"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-07-source-3",
+      "question": "OpenAI API 최신 가격",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://ko.showmetech.com.br/",
+      "sourceTitle": "Showmetech: 뉴스, 리뷰, 튜토리얼 및 기술 가이드",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "price",
+        "currency-and-plan"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-08-source-1",
+      "question": "AWS Lambda 요청 요금",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+      "sourceTitle": "AWS Lambda 요금",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "price",
+        "currency-and-plan",
+        "free-tier",
+        "pricing-conditions"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-08-source-2",
+      "question": "AWS Lambda 요청 요금",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+      "sourceTitle": "Lambda 함수의 동시성 한도 증가 요청 | AWS re:Post",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "price",
+        "currency-and-plan",
+        "free-tier",
+        "pricing-conditions"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-08-source-3",
+      "question": "AWS Lambda 요청 요금",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/lambda-concurrency.html",
+      "sourceTitle": "Lambda 함수 규모 조정 이행 - AWS Lambda",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "price",
+        "currency-and-plan",
+        "free-tier",
+        "pricing-conditions"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-08-source-4",
+      "question": "AWS Lambda 요청 요금",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://aws.amazon.com/ko/",
+      "sourceTitle": "클라우드 컴퓨팅 서비스-Amazon Web Services(AWS)",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "price",
+        "currency-and-plan",
+        "free-tier",
+        "pricing-conditions"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-09-source-1",
+      "question": "최근 일주일 반도체 뉴스",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://mbnmoney.mbn.co.kr/",
+      "sourceTitle": "경제채널 매일경제TV",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "fact-value",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-09-source-2",
+      "question": "최근 일주일 반도체 뉴스",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://kr.tradingview.com/",
+      "sourceTitle": "트레이딩뷰 - 모든 시장을 추적하세요 — TradingView",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "fact-value",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-09-source-3",
+      "question": "최근 일주일 반도체 뉴스",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.youtube.com/watch?v=fpTch4A9erE",
+      "sourceTitle": "- YouTube",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "fact-value",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-09-source-4",
+      "question": "최근 일주일 반도체 뉴스",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.yna.co.kr/",
+      "sourceTitle": "연합뉴스",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "fact-value",
+        "freshness"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-10-source-1",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.businessplus.kr/news/articleView.html?idxno=118214",
+      "sourceTitle": "[금융권 이모저모]KB자산운용, 국민성장펀드 2호 15일 모집 마감 外 < 금융·증권 < 인베스팅 < 기사본문 - 비즈니스플러스",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "event-name",
+        "date",
+        "location",
+        "authoritative-source"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-10-source-2",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.gamevu.co.kr/news/articleView.html?idxno=61035",
+      "sourceTitle": "[게임뉴스] 카카오게임즈 및 컴투스홀딩스 소식 외 < 보도자료 < 게임 < 기사본문 - 게임뷰",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "event-name",
+        "date",
+        "location",
+        "authoritative-source"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-10-source-3",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.gamevu.co.kr/news/articleView.html?idxno=61011",
+      "sourceTitle": "[게임뉴스] 스마일게이트 및 컴투스홀딩스 소식 외 < 보도자료 < 게임 < 기사본문 - 게임뷰",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "event-name",
+        "date",
+        "location",
+        "authoritative-source"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-10-source-4",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.seoul.go.kr/main/index.jsp",
+      "sourceTitle": "삶의 질 특별시 서울 | 서울특별시",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "event-name",
+        "date",
+        "location",
+        "authoritative-source"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-11-source-1",
+      "question": "부산 불꽃축제 올해 일정",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://festival.kimgoon.kr/festivals/235076",
+      "sourceTitle": "부산불꽃축제 2026 일정·장소·입장료 | 놀러가자",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "event-name",
+        "date",
+        "location",
+        "authoritative-source"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-11-source-2",
+      "question": "부산 불꽃축제 올해 일정",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://hhakimm.github.io/festivals-site/festival/%EB%B6%80%EC%82%B0%EB%B6%88%EA%BD%83%EC%B6%95%EC%A0%9C-235076/",
+      "sourceTitle": "부산불꽃축제 | 부산 축제",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "event-name",
+        "date",
+        "location",
+        "authoritative-source"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-11-source-3",
+      "question": "부산 불꽃축제 올해 일정",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://festival.kimgoon.kr/",
+      "sourceTitle": "놀러가자 - 전국 축제·관광지·맛집·숙박·레포츠 한곳에",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "event-name",
+        "date",
+        "location",
+        "authoritative-source"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-11-source-4",
+      "question": "부산 불꽃축제 올해 일정",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.youtube.com/watch?v=Wt7e_9rlI-w",
+      "sourceTitle": "- YouTube",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "event-name",
+        "date",
+        "location",
+        "authoritative-source"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-12-source-1",
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://www.elancer.co.kr/blog/detail/737",
+      "sourceTitle": "PostgreSQL의 차별화된 기능과 MySQL과의 차이 I 이랜서 블로그",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "service-a",
+        "service-b",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-12-source-2",
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://namu.wiki/w/PostgreSQL#s-2",
+      "sourceTitle": "PostgreSQL - 나무위키",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "service-a",
+        "service-b",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-12-source-3",
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://namu.wiki/w/PostgreSQL#s-4.1",
+      "sourceTitle": "PostgreSQL - 나무위키",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "service-a",
+        "service-b",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    },
+    {
+      "reviewId": "gemini-12-source-4",
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "candidateFacts": [],
+      "sourceQuote": "",
+      "sourceUrl": "https://w00lam.github.io/posts/postgresql-data-integrity-jsonb/",
+      "sourceTitle": "실무에서 PostgreSQL을 선택하는 이유: 데이터 정합성과 JSONB를 중심으로 | WooLam",
+      "sourceDate": null,
+      "requiredAnswerItems": [
+        "service-a",
+        "service-b",
+        "comparison-attributes"
+      ],
+      "label": "unreviewed",
+      "reviewerNote": "자동 확정 금지: 원문과 후보 사실을 대조한 뒤 독립 검토자가 라벨링"
+    }
+  ]
+}

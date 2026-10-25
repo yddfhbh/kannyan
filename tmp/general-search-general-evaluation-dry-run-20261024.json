@@ -1,0 +1,222 @@
+{
+  "version": 1,
+  "type": "offline-general-search-gemini-six-call-dry-run",
+  "generatedAt": "2026-10-24T06:40:12.260Z",
+  "manifestFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-general-evaluation-manifest-20261024.json",
+  "actualCallsMade": 0,
+  "maxModelHttpRequests": 6,
+  "retryAttemptsPerRequest": 1,
+  "fallbackAttemptsPerRequest": 1,
+  "retryAndFallbackIncludedInLimit": true,
+  "holdoutAccessed": false,
+  "webSearchPerformed": false,
+  "geminiCallsPerformed": false,
+  "requiresSeparateApproval": true,
+  "plannedCalls": 6,
+  "plannedRetryAndFallbackBudget": 6,
+  "cases": [
+    {
+      "id": "general-05",
+      "question": "PostgreSQL 최신 버전",
+      "questionType": "software-version",
+      "plannedHttpRequests": 1,
+      "maxHttpRequestsIncludingRetryFallback": 6,
+      "status": "ready-after-separate-approval",
+      "reason": "실제 호출은 이번 작업에서 차단됨",
+      "estimatedInputTokens": 3358
+    },
+    {
+      "id": "general-11",
+      "question": "GitHub Actions 요금제",
+      "questionType": "price",
+      "plannedHttpRequests": 1,
+      "maxHttpRequestsIncludingRetryFallback": 6,
+      "status": "ready-after-separate-approval",
+      "reason": "실제 호출은 이번 작업에서 차단됨",
+      "estimatedInputTokens": 4185
+    },
+    {
+      "id": "general-01",
+      "question": "오늘 서울 날씨",
+      "questionType": "weather",
+      "plannedHttpRequests": 1,
+      "maxHttpRequestsIncludingRetryFallback": 6,
+      "status": "ready-after-separate-approval",
+      "reason": "실제 호출은 이번 작업에서 차단됨",
+      "estimatedInputTokens": 1088
+    },
+    {
+      "id": "general-07",
+      "question": "최근 일주일 반도체 뉴스",
+      "questionType": "news",
+      "plannedHttpRequests": 1,
+      "maxHttpRequestsIncludingRetryFallback": 6,
+      "status": "ready-after-separate-approval",
+      "reason": "실제 호출은 이번 작업에서 차단됨",
+      "estimatedInputTokens": 957
+    },
+    {
+      "id": "general-14",
+      "question": "대한민국 과학기술정보통신부 장관은 누구인가",
+      "questionType": "fact",
+      "plannedHttpRequests": 1,
+      "maxHttpRequestsIncludingRetryFallback": 6,
+      "status": "ready-after-separate-approval",
+      "reason": "실제 호출은 이번 작업에서 차단됨",
+      "estimatedInputTokens": 3764
+    },
+    {
+      "id": "general-12",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "questionType": "event",
+      "plannedHttpRequests": 1,
+      "maxHttpRequestsIncludingRetryFallback": 6,
+      "status": "ready-after-separate-approval",
+      "reason": "실제 호출은 이번 작업에서 차단됨",
+      "estimatedInputTokens": 6296
+    }
+  ],
+  "holds": [
+    {
+      "id": "general-02",
+      "question": "내일 제주 날씨",
+      "questionType": "weather",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-03",
+      "question": "오늘 대전 미세먼지",
+      "questionType": "weather",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-04",
+      "question": "내일 뉴욕 날씨",
+      "questionType": "weather",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-06",
+      "question": "Docker Engine 최신 버전",
+      "questionType": "software-version",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-08",
+      "question": "최근 일주일 생성형 AI 뉴스",
+      "questionType": "news",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-09",
+      "question": "최근 일주일 한국 과학기술 뉴스",
+      "questionType": "news",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-10",
+      "question": "OpenAI API 최신 가격",
+      "questionType": "price",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-13",
+      "question": "부산 불꽃축제 올해 일정",
+      "questionType": "event",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-15",
+      "question": "WHO 본부가 있는 도시와 기관 역할",
+      "questionType": "fact",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-16",
+      "question": "MacBook Air와 Dell XPS 13의 공식 사양 비교",
+      "questionType": "comparison",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-17",
+      "question": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인",
+      "questionType": "software-version",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "official-source-missing",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    },
+    {
+      "id": "general-18",
+      "question": "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교",
+      "questionType": "comparison",
+      "status": "hold",
+      "reason": [
+        "span-semantic-review-required",
+        "fact-accuracy-not-reviewed",
+        "answer-completeness-not-reviewed"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,222 @@
+{
+  "version": 1,
+  "type": "focused-gemini-saved-response-replay",
+  "runFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-focused-gemini-run-20261024.json",
+  "inputFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-focused-gemini-runner-input-20261024.json",
+  "geminiApiCalls": 0,
+  "webHttpRequests": 0,
+  "holdoutAccessed": false,
+  "candidateCount": 8,
+  "cases": [
+    {
+      "id": "focus-02",
+      "question": "GitHub Actions 요금제",
+      "responseSchemaValid": true,
+      "facts": [
+        {
+          "index": 1,
+          "subject": "GitHub Free",
+          "relation": "free-minutes-per-month",
+          "value": "2,000",
+          "unit": "minutes",
+          "quote": "GitHub Free 500 MB 2,000 10 GB Not applicable",
+          "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+          "sourceSpan": {
+            "start": 6655,
+            "end": 6700
+          },
+          "quoteMatchesSource": true,
+          "previousStatus": "rejected",
+          "previousFailures": [
+            "field-not-supported-by-quote:relation"
+          ],
+          "status": "verified",
+          "semanticStatus": "supported",
+          "validationFailures": []
+        },
+        {
+          "index": 2,
+          "subject": "GitHub Pro",
+          "relation": "free-minutes-per-month",
+          "value": "3,000",
+          "unit": "minutes",
+          "quote": "GitHub Pro 1 GB 3,000 10 GB Not applicable",
+          "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+          "sourceSpan": {
+            "start": 6701,
+            "end": 6743
+          },
+          "quoteMatchesSource": true,
+          "previousStatus": "rejected",
+          "previousFailures": [
+            "field-not-supported-by-quote:relation"
+          ],
+          "status": "verified",
+          "semanticStatus": "supported",
+          "validationFailures": []
+        },
+        {
+          "index": 3,
+          "subject": "GitHub Free for organizations",
+          "relation": "free-minutes-per-month",
+          "value": "2,000",
+          "unit": "minutes",
+          "quote": "GitHub Free for organizations 500 MB 2,000 10 GB Not applicable",
+          "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+          "sourceSpan": {
+            "start": 6744,
+            "end": 6807
+          },
+          "quoteMatchesSource": true,
+          "previousStatus": "rejected",
+          "previousFailures": [
+            "field-not-supported-by-quote:relation"
+          ],
+          "status": "verified",
+          "semanticStatus": "supported",
+          "validationFailures": []
+        },
+        {
+          "index": 4,
+          "subject": "GitHub Team",
+          "relation": "free-minutes-per-month",
+          "value": "3,000",
+          "unit": "minutes",
+          "quote": "GitHub Team 2 GB 3,000 10 GB 75 GB",
+          "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+          "sourceSpan": {
+            "start": 6808,
+            "end": 6842
+          },
+          "quoteMatchesSource": true,
+          "previousStatus": "rejected",
+          "previousFailures": [
+            "field-not-supported-by-quote:relation"
+          ],
+          "status": "verified",
+          "semanticStatus": "supported",
+          "validationFailures": []
+        },
+        {
+          "index": 5,
+          "subject": "GitHub Enterprise Cloud",
+          "relation": "free-minutes-per-month",
+          "value": "50,000",
+          "unit": "minutes",
+          "quote": "GitHub Enterprise Cloud 50 GB 50,000 10 GB 150 GB",
+          "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+          "sourceSpan": {
+            "start": 6843,
+            "end": 6892
+          },
+          "quoteMatchesSource": true,
+          "previousStatus": "rejected",
+          "previousFailures": [
+            "field-not-supported-by-quote:relation"
+          ],
+          "status": "verified",
+          "semanticStatus": "supported",
+          "validationFailures": []
+        },
+        {
+          "index": 6,
+          "subject": "GitHub Actions",
+          "relation": "overage-billing-rule",
+          "value": "Any usage beyond your included minutes is billed at standard GitHub Actions rates.",
+          "unit": "",
+          "quote": "Any usage beyond your included minutes is billed at standard GitHub Actions rates.",
+          "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+          "sourceSpan": {
+            "start": 1336,
+            "end": 1418
+          },
+          "quoteMatchesSource": true,
+          "previousStatus": "rejected",
+          "previousFailures": [
+            "field-not-supported-by-quote:relation"
+          ],
+          "status": "verified",
+          "semanticStatus": "supported",
+          "validationFailures": []
+        }
+      ],
+      "previousOutcome": "hold",
+      "outcome": "partial",
+      "satisfiedAnswerItems": [
+        "free-allowance-by-plan",
+        "overage-billing-rule"
+      ],
+      "missingAnswerItems": [
+        "unit-price-table"
+      ],
+      "independentAccuracy": null,
+      "executionAndOfflineIdentical": true
+    },
+    {
+      "id": "focus-05",
+      "question": "2026-10-24 기준 과학기술정보통신부 장관",
+      "responseSchemaValid": true,
+      "facts": [
+        {
+          "index": 1,
+          "subject": "배경훈",
+          "relation": "부총리 겸 과학기술정보통신부 장관",
+          "value": "배경훈 부총리 겸 과학기술정보통신부 장관",
+          "unit": null,
+          "quote": "배경훈 부총리 겸 과학기술정보통신부 장관이 19일 오전",
+          "sourceUrl": "https://www.msit.go.kr/index.do",
+          "sourceSpan": {
+            "start": 2254,
+            "end": 2284
+          },
+          "quoteMatchesSource": true,
+          "previousStatus": "verified",
+          "previousFailures": [],
+          "status": "verified",
+          "semanticStatus": "supported",
+          "validationFailures": []
+        },
+        {
+          "index": 2,
+          "subject": "배경훈 부총리 겸 과학기술정보통신부 장관",
+          "relation": "evidence-date",
+          "value": "2026-10-19",
+          "unit": null,
+          "quote": "pstgBgngDt=2026-10-19 09:00:00.0",
+          "sourceUrl": "https://www.msit.go.kr/index.do",
+          "sourceSpan": {
+            "start": 2419,
+            "end": 2451
+          },
+          "quoteMatchesSource": true,
+          "previousStatus": "rejected",
+          "previousFailures": [
+            "field-not-supported-by-quote:subject",
+            "field-not-supported-by-quote:relation"
+          ],
+          "status": "verified",
+          "semanticStatus": "supported",
+          "validationFailures": []
+        }
+      ],
+      "previousOutcome": "partial",
+      "outcome": "partial",
+      "satisfiedAnswerItems": [
+        "minister-name-and-title",
+        "evidence-date"
+      ],
+      "missingAnswerItems": [
+        "incumbency-at-2026-10-24"
+      ],
+      "independentAccuracy": null,
+      "executionAndOfflineIdentical": true
+    }
+  ],
+  "totals": {
+    "complete": 0,
+    "partial": 2,
+    "hold": 0
+  },
+  "independentAccuracy": null,
+  "methodAComparison": "not-comparable-different-input-conditions"
+}

@@ -1,0 +1,301 @@
+{
+  "generatedAt": "2026-10-24T07:11:56.544Z",
+  "referenceTime": "2026-10-24T00:00:00+09:00",
+  "budgets": {
+    "maxSearches": 12,
+    "maxReads": 24,
+    "searchAttempts": 12,
+    "bodyReadHttpAttempts": 0,
+    "reusedBodiesNotCountedAsHttpReads": true
+  },
+  "questions": [
+    {
+      "id": "focus-01",
+      "question": "PostgreSQL 최신 안정 버전",
+      "status": "hold-no-body",
+      "searches": [
+        {
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "PostgreSQL latest stable release official download",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 39,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        {
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "site:postgresql.org PostgreSQL current version release",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 3,
+              "errorCode": "TypeError"
+            }
+          ]
+        }
+      ],
+      "discovered": 0,
+      "readSuccess": 0,
+      "snapshots": 0,
+      "official": 0,
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      }
+    },
+    {
+      "id": "focus-02",
+      "question": "GitHub Actions 요금제",
+      "status": "body-obtained",
+      "searches": [
+        {
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "GitHub Actions pricing billing official",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        {
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "site:docs.github.com GitHub Actions 비용 청구",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ]
+        }
+      ],
+      "discovered": 0,
+      "readSuccess": 4,
+      "snapshots": 3,
+      "official": 2,
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      }
+    },
+    {
+      "id": "focus-03",
+      "question": "2026-10-24 서울 날씨",
+      "status": "hold-no-body",
+      "searches": [
+        {
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "2026-10-24 서울 날씨 기상청",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        {
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "site:weather.go.kr 2026-10-24 서울 날씨",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ]
+        }
+      ],
+      "discovered": 0,
+      "readSuccess": 0,
+      "snapshots": 0,
+      "official": 0,
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      }
+    },
+    {
+      "id": "focus-04",
+      "question": "2026-10-18~24 반도체 뉴스",
+      "status": "hold-no-body",
+      "searches": [
+        {
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "2026-10-18 2026-10-24 반도체 뉴스",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        {
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "2026 semiconductor news October 18 24",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ]
+        }
+      ],
+      "discovered": 0,
+      "readSuccess": 0,
+      "snapshots": 0,
+      "official": 0,
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      }
+    },
+    {
+      "id": "focus-05",
+      "question": "2026-10-24 기준 과학기술정보통신부 장관",
+      "status": "hold-no-body",
+      "searches": [
+        {
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "2026-10-24 과학기술정보통신부 장관 site:msit.go.kr",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 6,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        {
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "2026-10-24 과학기술정보통신부 장관 site:korea.kr",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ]
+        }
+      ],
+      "discovered": 0,
+      "readSuccess": 0,
+      "snapshots": 0,
+      "official": 0,
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      }
+    },
+    {
+      "id": "focus-06",
+      "question": "2026년 10월 서울 무료 개발자 행사 일정",
+      "status": "hold-no-body",
+      "searches": [
+        {
+          "engine": "naver",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "naver",
+              "query": "2026년 10월 서울 무료 개발자 행사",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 2,
+              "errorCode": "TypeError"
+            }
+          ]
+        },
+        {
+          "engine": "duckduckgo",
+          "status": "failed",
+          "attempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "October 2026 Seoul free developer events",
+              "httpStatus": null,
+              "status": "transport-error",
+              "count": 0,
+              "durationMs": 1,
+              "errorCode": "TypeError"
+            }
+          ]
+        }
+      ],
+      "discovered": 0,
+      "readSuccess": 0,
+      "snapshots": 0,
+      "official": 0,
+      "before": {
+        "officialUrls": null,
+        "bodyCount": null,
+        "requiredFacts": null,
+        "freshness": null,
+        "gemini": "hold"
+      }
+    }
+  ]
+}

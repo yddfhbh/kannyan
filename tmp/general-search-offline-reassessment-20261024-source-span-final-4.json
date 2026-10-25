@@ -1,0 +1,653 @@
+{
+  "version": 1,
+  "type": "offline-general-search-gemini-reassessment",
+  "generatedAt": "2026-10-24T02:09:57.771Z",
+  "noApiCalls": true,
+  "noWebSearch": true,
+  "runFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-gemini-experiment-run-20261024T015845Z.json",
+  "inputFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-gemini-experiment-input-20261024-ab.json",
+  "cases": [
+    {
+      "id": "gemini-01",
+      "question": "MDN Fetch API AbortSignal 사용법",
+      "existing": {
+        "candidateCount": 1,
+        "passedCount": 0,
+        "failures": [
+          "source-span-mismatch"
+        ]
+      },
+      "facts": [
+        {
+          "subject": "AbortSignal",
+          "relation": "사용법",
+          "value": "AbortSignal 객체 인스턴스입니다. 취득 요청과 통신하다가 필요한 경우 AbortController를 통해 요청을 중단할 수 있습니다.",
+          "unit": null,
+          "quote": "signal AbortSignal 객체 인스턴스입니다. 취득 요청과 통신하다가 필요한 경우 AbortController를 통해 요청을 중단할 수 있습니다.",
+          "sourceUrl": "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+          "status": "verified",
+          "sourceUrlExists": true,
+          "quoteInSource": true,
+          "quoteOccurrenceCount": 1,
+          "spanRestored": true,
+          "restoredSpan": {
+            "start": 3040,
+            "end": 3126
+          },
+          "sourceSliceMatches": true,
+          "structuralStatus": "verified",
+          "structuralFailures": [],
+          "semantic": {
+            "supported": true,
+            "reasons": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "hardReasons": []
+          },
+          "semanticSupport": false,
+          "officialSource": true,
+          "officialSourceRequired": false
+        }
+      ],
+      "quoteLocationRestoredCount": 1,
+      "structuralValidationSuccessCount": 1,
+      "semanticValidationAdditionalCount": 1,
+      "officialSource": {
+        "required": false,
+        "satisfied": true
+      },
+      "answerRequirements": {
+        "required": [
+          "fact-value"
+        ],
+        "satisfied": [
+          "fact-value"
+        ],
+        "missing": [],
+        "officialRequired": false,
+        "officialSatisfied": true,
+        "status": "complete-candidate",
+        "outcome": "complete"
+      },
+      "outcome": "partial",
+      "rationale": "검증된 일부 사실은 보존하지만 필수 항목 또는 의미 검토가 남음"
+    },
+    {
+      "id": "gemini-02",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "existing": {
+        "candidateCount": 1,
+        "passedCount": 0,
+        "failures": [
+          "source-span-mismatch"
+        ]
+      },
+      "facts": [
+        {
+          "subject": "liveness probe",
+          "relation": "확인 항목",
+          "value": "컨테이너 재시작이 필요한 상태인지",
+          "unit": null,
+          "quote": "liveness는 컨테이너 재시작이 필요한 상태인지를 확인합니다.",
+          "sourceUrl": "https://www.speedykorea.com/blog/kubernetes-startup-readiness-liveness-probes",
+          "status": "verified",
+          "sourceUrlExists": true,
+          "quoteInSource": true,
+          "quoteOccurrenceCount": 1,
+          "spanRestored": true,
+          "restoredSpan": {
+            "start": 1602,
+            "end": 1638
+          },
+          "sourceSliceMatches": true,
+          "structuralStatus": "verified",
+          "structuralFailures": [],
+          "semantic": {
+            "supported": false,
+            "reasons": [
+              "field-not-supported-by-quote:subject",
+              "field-not-supported-by-quote:relation",
+              "official-source-required"
+            ],
+            "hardReasons": [
+              "official-source-required"
+            ]
+          },
+          "semanticSupport": false,
+          "officialSource": false,
+          "officialSourceRequired": true
+        }
+      ],
+      "quoteLocationRestoredCount": 1,
+      "structuralValidationSuccessCount": 1,
+      "semanticValidationAdditionalCount": 1,
+      "officialSource": {
+        "required": true,
+        "satisfied": false
+      },
+      "answerRequirements": {
+        "required": [
+          "fact-value"
+        ],
+        "satisfied": [
+          "fact-value"
+        ],
+        "missing": [],
+        "officialRequired": true,
+        "officialSatisfied": false,
+        "status": "complete-candidate",
+        "outcome": "complete"
+      },
+      "outcome": "hold",
+      "rationale": "근거·공식성·출처 위치 중 하나 이상이 답변을 보류시킴"
+    },
+    {
+      "id": "gemini-03",
+      "question": "Python 최신 안정 버전",
+      "existing": {
+        "candidateCount": 1,
+        "passedCount": 0,
+        "failures": [
+          "source-span-mismatch"
+        ]
+      },
+      "facts": [
+        {
+          "subject": "Python",
+          "relation": "최신 안정 버전",
+          "value": "3.14",
+          "unit": null,
+          "quote": "오늘은 Python 3.14 설치법과 함께 시스템 환경을 망가뜨리지 않고 버전을 전환하는 방법을 정리해 보겠습니다.",
+          "sourceUrl": "https://cliearl.github.io/posts/linux/python-install/",
+          "status": "verified",
+          "sourceUrlExists": true,
+          "quoteInSource": true,
+          "quoteOccurrenceCount": 1,
+          "spanRestored": true,
+          "restoredSpan": {
+            "start": 117,
+            "end": 181
+          },
+          "sourceSliceMatches": true,
+          "structuralStatus": "verified",
+          "structuralFailures": [],
+          "semantic": {
+            "supported": false,
+            "reasons": [
+              "field-not-supported-by-quote:relation",
+              "installation-article-is-not-current-official-version-evidence"
+            ],
+            "hardReasons": [
+              "installation-article-is-not-current-official-version-evidence"
+            ]
+          },
+          "semanticSupport": false,
+          "officialSource": false,
+          "officialSourceRequired": true
+        }
+      ],
+      "quoteLocationRestoredCount": 1,
+      "structuralValidationSuccessCount": 1,
+      "semanticValidationAdditionalCount": 1,
+      "officialSource": {
+        "required": true,
+        "satisfied": false
+      },
+      "answerRequirements": {
+        "required": [
+          "version",
+          "release-status",
+          "freshness"
+        ],
+        "satisfied": [
+          "version",
+          "release-status"
+        ],
+        "missing": [
+          "freshness"
+        ],
+        "officialRequired": true,
+        "officialSatisfied": false,
+        "status": "partial",
+        "outcome": "partial"
+      },
+      "outcome": "hold",
+      "rationale": "근거·공식성·출처 위치 중 하나 이상이 답변을 보류시킴"
+    },
+    {
+      "id": "gemini-04",
+      "question": "PostgreSQL과 MySQL의 JSON 기능 비교",
+      "existing": {
+        "candidateCount": 3,
+        "passedCount": 0,
+        "failures": [
+          "source-span-mismatch",
+          "source-span-mismatch",
+          "source-span-mismatch"
+        ]
+      },
+      "facts": [
+        {
+          "subject": "PostgreSQL",
+          "relation": "지원 기능",
+          "value": "JSON 데이터 형식",
+          "unit": null,
+          "quote": "또한 JSON 데이터 형식을 다루거나 NoSQL 스타일의 데이터 저장 및 처리를 지원하는 유연성 덕분에 비정형 데이터를 저장 및 관리할 수 있는 장점을 가지고 있습니다.",
+          "sourceUrl": "https://www.elancer.co.kr/blog/detail/737",
+          "status": "verified",
+          "sourceUrlExists": true,
+          "quoteInSource": true,
+          "quoteOccurrenceCount": 1,
+          "spanRestored": true,
+          "restoredSpan": {
+            "start": 532,
+            "end": 626
+          },
+          "sourceSliceMatches": true,
+          "structuralStatus": "verified",
+          "structuralFailures": [],
+          "semantic": {
+            "supported": false,
+            "reasons": [
+              "field-not-supported-by-quote:subject",
+              "field-not-supported-by-quote:relation",
+              "comparison-side-not-supported-by-this-fact"
+            ],
+            "hardReasons": [
+              "comparison-side-not-supported-by-this-fact"
+            ]
+          },
+          "semanticSupport": false,
+          "officialSource": false,
+          "officialSourceRequired": false
+        },
+        {
+          "subject": "PostgreSQL",
+          "relation": "특징",
+          "value": "강력한 JSON 타입 및 일부 NoSQL 기능 지원",
+          "unit": null,
+          "quote": "PostgreSQL은 MySQL과 다르게 강력한 JSON 타입을 제공하며, 일부 NoSQL 기능도 지원해 비정형 데이터도 관리할 수 있는 장점이 있습니다.",
+          "sourceUrl": "https://www.elancer.co.kr/blog/detail/737",
+          "status": "verified",
+          "sourceUrlExists": true,
+          "quoteInSource": true,
+          "quoteOccurrenceCount": 1,
+          "spanRestored": true,
+          "restoredSpan": {
+            "start": 3744,
+            "end": 3830
+          },
+          "sourceSliceMatches": true,
+          "structuralStatus": "verified",
+          "structuralFailures": [],
+          "semantic": {
+            "supported": true,
+            "reasons": [
+              "field-not-supported-by-quote:relation",
+              "field-not-supported-by-quote:value"
+            ],
+            "hardReasons": []
+          },
+          "semanticSupport": false,
+          "officialSource": false,
+          "officialSourceRequired": false
+        },
+        {
+          "subject": "PostgreSQL",
+          "relation": "JSON 관련 타입",
+          "value": "json 및 jsonb 타입",
+          "unit": null,
+          "quote": "PostgreSQL에는 json과 jsonb 타입이 있다.",
+          "sourceUrl": "https://w00lam.github.io/posts/postgresql-data-integrity-jsonb/",
+          "status": "verified",
+          "sourceUrlExists": true,
+          "quoteInSource": true,
+          "quoteOccurrenceCount": 1,
+          "spanRestored": true,
+          "restoredSpan": {
+            "start": 6180,
+            "end": 6212
+          },
+          "sourceSliceMatches": true,
+          "structuralStatus": "verified",
+          "structuralFailures": [],
+          "semantic": {
+            "supported": false,
+            "reasons": [
+              "field-not-supported-by-quote:relation",
+              "field-not-supported-by-quote:value",
+              "comparison-side-not-supported-by-this-fact"
+            ],
+            "hardReasons": [
+              "comparison-side-not-supported-by-this-fact"
+            ]
+          },
+          "semanticSupport": false,
+          "officialSource": false,
+          "officialSourceRequired": false
+        }
+      ],
+      "quoteLocationRestoredCount": 3,
+      "structuralValidationSuccessCount": 3,
+      "semanticValidationAdditionalCount": 3,
+      "officialSource": {
+        "required": false,
+        "satisfied": false
+      },
+      "answerRequirements": {
+        "required": [
+          "service-a",
+          "service-b",
+          "comparison-attributes"
+        ],
+        "satisfied": [
+          "service-a",
+          "service-b",
+          "comparison-attributes"
+        ],
+        "missing": [],
+        "officialRequired": false,
+        "officialSatisfied": false,
+        "status": "complete-candidate",
+        "outcome": "complete"
+      },
+      "outcome": "partial",
+      "rationale": "검증된 일부 사실은 보존하지만 필수 항목 또는 의미 검토가 남음"
+    },
+    {
+      "id": "gemini-05",
+      "question": "AWS Lambda 요청 요금",
+      "existing": {
+        "candidateCount": 2,
+        "passedCount": 0,
+        "failures": [
+          "source-span-mismatch",
+          "source-span-mismatch"
+        ]
+      },
+      "facts": [
+        {
+          "subject": "AWS Lambda",
+          "relation": "요금 부과 기준",
+          "value": "함수 요청 수와 코드를 실행하는 데 걸리는 기간",
+          "unit": null,
+          "quote": "함수 요청 수와 코드를 실행하는 데 걸리는 기간에 따라 요금이 청구됩니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+          "status": "verified",
+          "sourceUrlExists": true,
+          "quoteInSource": true,
+          "quoteOccurrenceCount": 1,
+          "spanRestored": true,
+          "restoredSpan": {
+            "start": 283,
+            "end": 324
+          },
+          "sourceSliceMatches": true,
+          "structuralStatus": "verified",
+          "structuralFailures": [],
+          "semantic": {
+            "supported": false,
+            "reasons": [
+              "field-not-supported-by-quote:subject",
+              "field-not-supported-by-quote:relation",
+              "pricing-basis-is-not-unit-price"
+            ],
+            "hardReasons": [
+              "pricing-basis-is-not-unit-price"
+            ]
+          },
+          "semanticSupport": false,
+          "officialSource": true,
+          "officialSourceRequired": false
+        },
+        {
+          "subject": "AWS Lambda 프리 티어",
+          "relation": "포함 내역",
+          "value": "월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간",
+          "unit": null,
+          "quote": "AWS Lambda 프리 티어에는 월 100만 건의 무료 요청과 월 40만 GB-초의 컴퓨팅 시간이 포함되어 있으며 x86 및 Graviton2 프로세서로 구동되는 기능에 모두 사용할 수 있습니다.",
+          "sourceUrl": "https://aws.amazon.com/ko/lambda/pricing/",
+          "status": "verified",
+          "sourceUrlExists": true,
+          "quoteInSource": true,
+          "quoteOccurrenceCount": 1,
+          "spanRestored": true,
+          "restoredSpan": {
+            "start": 1282,
+            "end": 1392
+          },
+          "sourceSliceMatches": true,
+          "structuralStatus": "verified",
+          "structuralFailures": [],
+          "semantic": {
+            "supported": true,
+            "reasons": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "hardReasons": []
+          },
+          "semanticSupport": false,
+          "officialSource": true,
+          "officialSourceRequired": false
+        }
+      ],
+      "quoteLocationRestoredCount": 2,
+      "structuralValidationSuccessCount": 2,
+      "semanticValidationAdditionalCount": 2,
+      "officialSource": {
+        "required": false,
+        "satisfied": true
+      },
+      "answerRequirements": {
+        "required": [
+          "request-price",
+          "free-tier",
+          "pricing-conditions"
+        ],
+        "satisfied": [
+          "free",
+          "request-price",
+          "free-tier",
+          "pricing-conditions",
+          "comparison-attributes"
+        ],
+        "missing": [],
+        "officialRequired": false,
+        "officialSatisfied": true,
+        "status": "complete-candidate",
+        "outcome": "complete"
+      },
+      "outcome": "partial",
+      "rationale": "검증된 일부 사실은 보존하지만 필수 항목 또는 의미 검토가 남음"
+    },
+    {
+      "id": "gemini-06",
+      "question": "React 최신 버전",
+      "existing": {
+        "candidateCount": 1,
+        "passedCount": 0,
+        "failures": [
+          "source-url-not-supplied",
+          "quote-not-in-source",
+          "source-span-mismatch",
+          "invalid-applies-at"
+        ]
+      },
+      "facts": [
+        {
+          "subject": "React",
+          "relation": "버전",
+          "value": "19.3.0",
+          "unit": "",
+          "quote": "버전 19.3.0 (2026.",
+          "sourceUrl": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%BC%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+          "status": "rejected",
+          "sourceUrlExists": false,
+          "quoteInSource": false,
+          "quoteOccurrenceCount": 0,
+          "spanRestored": false,
+          "restoredSpan": null,
+          "sourceSliceMatches": false,
+          "structuralStatus": "rejected",
+          "structuralFailures": [
+            "source-url-not-supplied",
+            "quote-not-in-source",
+            "source-span-mismatch",
+            "invalid-applies-at"
+          ],
+          "semantic": {
+            "supported": false,
+            "reasons": [
+              "latest-version-official-source-required"
+            ],
+            "hardReasons": [
+              "latest-version-official-source-required"
+            ]
+          },
+          "semanticSupport": false,
+          "officialSource": false,
+          "officialSourceRequired": true
+        }
+      ],
+      "quoteLocationRestoredCount": 0,
+      "structuralValidationSuccessCount": 0,
+      "semanticValidationAdditionalCount": 0,
+      "officialSource": {
+        "required": true,
+        "satisfied": false
+      },
+      "answerRequirements": {
+        "required": [
+          "version",
+          "release-status",
+          "freshness"
+        ],
+        "satisfied": [],
+        "missing": [
+          "version",
+          "release-status",
+          "freshness"
+        ],
+        "officialRequired": true,
+        "officialSatisfied": false,
+        "status": "hold",
+        "outcome": "hold"
+      },
+      "outcome": "hold",
+      "rationale": "근거·공식성·출처 위치 중 하나 이상이 답변을 보류시킴"
+    }
+  ],
+  "comparison": {
+    "existingBCandidateCount": 9,
+    "existingBPassed": 0,
+    "quoteLocationRestored": 8,
+    "structuralValidationSuccess": 8,
+    "semanticValidationAdditional": 8,
+    "officialSourceHold": 3,
+    "preservedNormalFacts": 3,
+    "rejectedUnrelatedOrUnsupportedFacts": 6,
+    "requiredAnswerSatisfaction": [
+      {
+        "id": "gemini-01",
+        "question": "MDN Fetch API AbortSignal 사용법",
+        "required": [
+          "fact-value"
+        ],
+        "satisfied": [
+          "fact-value"
+        ],
+        "missing": [],
+        "rate": 1
+      },
+      {
+        "id": "gemini-02",
+        "question": "Kubernetes 공식 문서의 liveness probe 설명",
+        "required": [
+          "fact-value"
+        ],
+        "satisfied": [
+          "fact-value"
+        ],
+        "missing": [],
+        "rate": 1
+      },
+      {
+        "id": "gemini-03",
+        "question": "Python 최신 안정 버전",
+        "required": [
+          "version",
+          "release-status",
+          "freshness"
+        ],
+        "satisfied": [
+          "version",
+          "release-status"
+        ],
+        "missing": [
+          "freshness"
+        ],
+        "rate": 0.6666666666666666
+      },
+      {
+        "id": "gemini-04",
+        "question": "PostgreSQL과 MySQL의 JSON 기능 비교",
+        "required": [
+          "service-a",
+          "service-b",
+          "comparison-attributes"
+        ],
+        "satisfied": [
+          "service-a",
+          "service-b",
+          "comparison-attributes"
+        ],
+        "missing": [],
+        "rate": 1
+      },
+      {
+        "id": "gemini-05",
+        "question": "AWS Lambda 요청 요금",
+        "required": [
+          "request-price",
+          "free-tier",
+          "pricing-conditions"
+        ],
+        "satisfied": [
+          "free",
+          "request-price",
+          "free-tier",
+          "pricing-conditions",
+          "comparison-attributes"
+        ],
+        "missing": [],
+        "rate": 1
+      },
+      {
+        "id": "gemini-06",
+        "question": "React 최신 버전",
+        "required": [
+          "version",
+          "release-status",
+          "freshness"
+        ],
+        "satisfied": [],
+        "missing": [
+          "version",
+          "release-status",
+          "freshness"
+        ],
+        "rate": 0
+      }
+    ],
+    "finalOutcomes": {
+      "complete": 0,
+      "partial": 3,
+      "hold": 3
+    }
+  },
+  "notes": [
+    "requiredAnswerItems는 모델 반환 배열을 사용하지 않고 질문 분석기와 재검증된 facts로 다시 매핑했다.",
+    "quote 위치 복원 성공은 의미 검증 성공으로 집계하지 않았다.",
+    "독립 정답 라벨이 없으므로 실제 정확도 점수는 산출하지 않았다."
+  ]
+}

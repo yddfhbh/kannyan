@@ -1,0 +1,9 @@
+{
+  "description": "Stored candidate/page material for comparing the legacy review outcome with the opt-in atomic-fact prototype.",
+  "cases": [
+    {"id":"weather-date","question":"2026년 10월 23일 부산 날씨","baseline":{"evidence":"rejected","reason":"strict weather scope"},"sources":[{"url":"https://weather.example/busan","title":"부산 예보","pageText":"2026년 10월 23일 부산은 흐리고 저녁부터 비가 내리겠다."}]},
+    {"id":"node-lts","question":"Node.js 최신 LTS","baseline":{"evidence":"rejected","reason":"official-domain path"},"sources":[{"url":"https://docs.example/node","title":"Node.js 최신 LTS 공식 문서","publishedAt":"2026-10-22","pageText":"Node.js 24.10.0은 최신 LTS 릴리스다."}]},
+    {"id":"ai-news","question":"최근 일주일 AI 뉴스","baseline":{"evidence":"rejected","reason":"article review mismatch"},"sources":[{"url":"https://news.example/ai","title":"AI 모델 공개","publishedAt":"2026-10-20","pageText":"2026년 10월 20일 새 AI 모델이 공개됐다. 개발사는 추론 기능을 설명했다."}]},
+    {"id":"stale-or-unrelated","question":"오늘 부산 날씨","baseline":{"evidence":"rejected","reason":"old or unrelated source"},"sources":[{"url":"https://news.example/story","title":"서울 행사","pageText":"2025년 1월 1일 서울에서 행사가 열렸다."}]}
+  ]
+}

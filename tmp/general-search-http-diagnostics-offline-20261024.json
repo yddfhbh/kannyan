@@ -1,0 +1,849 @@
+{
+  "version": 1,
+  "type": "offline-general-search-http-diagnostics",
+  "generatedAt": "2026-10-24T07:33:57.039Z",
+  "referenceTime": "2026-10-24T00:00:00+09:00",
+  "noNetworkRequests": true,
+  "noGeminiCalls": true,
+  "holdoutAccessed": false,
+  "observedFailedRequests": [
+    {
+      "id": "focus-01",
+      "question": "PostgreSQL 최신 안정 버전",
+      "query": "PostgreSQL latest stable release official download",
+      "engine": "naver",
+      "attempts": [
+        {
+          "provider": "naver",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-01",
+      "question": "PostgreSQL 최신 안정 버전",
+      "query": "site:postgresql.org PostgreSQL current version release",
+      "engine": "duckduckgo",
+      "attempts": [
+        {
+          "provider": "duckduckgo",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-02",
+      "question": "GitHub Actions 요금제",
+      "query": "GitHub Actions pricing billing official",
+      "engine": "naver",
+      "attempts": [
+        {
+          "provider": "naver",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-02",
+      "question": "GitHub Actions 요금제",
+      "query": "site:docs.github.com GitHub Actions 비용 청구",
+      "engine": "duckduckgo",
+      "attempts": [
+        {
+          "provider": "duckduckgo",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-03",
+      "question": "2026-10-24 서울 날씨",
+      "query": "2026-10-24 서울 날씨 기상청",
+      "engine": "naver",
+      "attempts": [
+        {
+          "provider": "naver",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-03",
+      "question": "2026-10-24 서울 날씨",
+      "query": "site:weather.go.kr 2026-10-24 서울 날씨",
+      "engine": "duckduckgo",
+      "attempts": [
+        {
+          "provider": "duckduckgo",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-04",
+      "question": "2026-10-18~24 반도체 뉴스",
+      "query": "2026-10-18 2026-10-24 반도체 뉴스",
+      "engine": "naver",
+      "attempts": [
+        {
+          "provider": "naver",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-04",
+      "question": "2026-10-18~24 반도체 뉴스",
+      "query": "2026 semiconductor news October 18 24",
+      "engine": "duckduckgo",
+      "attempts": [
+        {
+          "provider": "duckduckgo",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-05",
+      "question": "2026-10-24 기준 과학기술정보통신부 장관",
+      "query": "2026-10-24 과학기술정보통신부 장관 site:msit.go.kr",
+      "engine": "naver",
+      "attempts": [
+        {
+          "provider": "naver",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-05",
+      "question": "2026-10-24 기준 과학기술정보통신부 장관",
+      "query": "2026-10-24 과학기술정보통신부 장관 site:korea.kr",
+      "engine": "duckduckgo",
+      "attempts": [
+        {
+          "provider": "duckduckgo",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-06",
+      "question": "2026년 10월 서울 무료 개발자 행사 일정",
+      "query": "2026년 10월 서울 무료 개발자 행사",
+      "engine": "naver",
+      "attempts": [
+        {
+          "provider": "naver",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    },
+    {
+      "id": "focus-06",
+      "question": "2026년 10월 서울 무료 개발자 행사 일정",
+      "query": "October 2026 Seoul free developer events",
+      "engine": "duckduckgo",
+      "attempts": [
+        {
+          "provider": "duckduckgo",
+          "status": "transport-error",
+          "httpStatus": null,
+          "fetchInvoked": "unknown",
+          "responseReceived": "unknown",
+          "failureStage": "unknown",
+          "errorName": "TypeError",
+          "errorMessage": "unknown",
+          "errorCauseCode": "unknown",
+          "abort": "unknown",
+          "requestAttemptCount": 1,
+          "budgetReason": "one focused query reservation; original log did not expose reservation callback outcome"
+        }
+      ],
+      "conclusion": "no HTTP response recorded; fetch invocation and wire transmission unknown"
+    }
+  ],
+  "mockCases": [
+    {
+      "name": "valid-200",
+      "calls": [
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        }
+      ],
+      "status": "success",
+      "attempts": [
+        {
+          "provider": "naver",
+          "query": "valid-200",
+          "httpStatus": 200,
+          "fetchInvoked": true,
+          "responseReceived": true,
+          "stage": "response-parsed",
+          "status": "success",
+          "count": 1,
+          "rawCandidateCount": 1,
+          "eligibleCandidateCount": 1,
+          "durationMs": 106
+        }
+      ],
+      "candidates": 1
+    },
+    {
+      "name": "valid-200-empty",
+      "calls": [
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        }
+      ],
+      "status": "empty",
+      "attempts": [
+        {
+          "provider": "naver",
+          "query": "valid-200-empty",
+          "httpStatus": 200,
+          "fetchInvoked": true,
+          "responseReceived": true,
+          "stage": "response-parsed",
+          "status": "empty",
+          "count": 0,
+          "rawCandidateCount": 0,
+          "eligibleCandidateCount": 0,
+          "durationMs": 16
+        }
+      ],
+      "candidates": 0
+    },
+    {
+      "name": "fetch-typeerror",
+      "calls": [
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        }
+      ],
+      "status": "failed",
+      "attempts": [
+        {
+          "provider": "naver",
+          "query": "fetch-typeerror",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": "ECONNRESET",
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        }
+      ],
+      "candidates": 0
+    },
+    {
+      "name": "dns-failure",
+      "calls": [
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        }
+      ],
+      "status": "failed",
+      "attempts": [
+        {
+          "provider": "naver",
+          "query": "dns-failure",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": "ENOTFOUND",
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        }
+      ],
+      "candidates": 0
+    },
+    {
+      "name": "request-timeout",
+      "calls": [
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        }
+      ],
+      "status": "failed",
+      "attempts": [
+        {
+          "provider": "naver",
+          "query": "request-timeout",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "timeout",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "AbortError",
+          "errorName": "AbortError",
+          "errorMessage": "The operation was aborted",
+          "errorCauseCode": null,
+          "abort": true,
+          "failureStage": "timeout-or-abort"
+        }
+      ],
+      "candidates": 0
+    },
+    {
+      "name": "http-202-blocked",
+      "calls": [
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        }
+      ],
+      "status": "blocked",
+      "attempts": [
+        {
+          "provider": "naver",
+          "query": "http-202-blocked",
+          "httpStatus": 202,
+          "fetchInvoked": true,
+          "responseReceived": true,
+          "stage": "response-received",
+          "status": "blocked",
+          "count": 0,
+          "durationMs": 1,
+          "errorCode": "Error",
+          "errorName": "Error",
+          "errorMessage": "Search request challenged",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "http-response"
+        }
+      ],
+      "candidates": 0
+    },
+    {
+      "name": "fallback",
+      "calls": [
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "html.duckduckgo.com",
+          "method": "GET",
+          "signal": true
+        }
+      ],
+      "status": "success",
+      "attempts": [
+        {
+          "provider": "naver",
+          "query": "fallback",
+          "httpStatus": 202,
+          "fetchInvoked": true,
+          "responseReceived": true,
+          "stage": "response-received",
+          "status": "blocked",
+          "count": 0,
+          "durationMs": 1,
+          "errorCode": "Error",
+          "errorName": "Error",
+          "errorMessage": "Search request challenged",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "http-response"
+        },
+        {
+          "provider": "duckduckgo",
+          "query": "fallback",
+          "httpStatus": 200,
+          "fetchInvoked": true,
+          "responseReceived": true,
+          "stage": "response-parsed",
+          "status": "success",
+          "count": 1,
+          "rawCandidateCount": 1,
+          "eligibleCandidateCount": 1,
+          "durationMs": 24
+        }
+      ],
+      "candidates": 1
+    },
+    {
+      "name": "global-budget",
+      "calls": [
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        },
+        {
+          "host": "search.naver.com",
+          "method": "GET",
+          "signal": true
+        }
+      ],
+      "status": "failed",
+      "attempts": [
+        {
+          "provider": "naver",
+          "query": "global-budget-1",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-2",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-3",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-4",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-5",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-6",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 1,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-7",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-8",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-9",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-10",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-11",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        },
+        {
+          "provider": "naver",
+          "query": "global-budget-12",
+          "httpStatus": null,
+          "fetchInvoked": true,
+          "responseReceived": false,
+          "stage": "fetch-invoked",
+          "status": "transport-error",
+          "count": 0,
+          "durationMs": 0,
+          "errorCode": "TypeError",
+          "errorName": "TypeError",
+          "errorMessage": "fetch failed",
+          "errorCauseCode": null,
+          "abort": false,
+          "failureStage": "transport-before-http-response"
+        }
+      ],
+      "candidates": 0,
+      "budgetReservations": 12,
+      "budgetFetches": 12
+    }
+  ],
+  "githubActionsReassessment": {
+    "sourceCount": 4,
+    "sources": [
+      {
+        "url": "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+        "official": true,
+        "sensitive": false,
+        "pricing": true,
+        "freeAllowance": true,
+        "billing": true,
+        "conditions": true
+      },
+      {
+        "url": "https://docs.github.com/ko",
+        "official": true,
+        "sensitive": false,
+        "pricing": true,
+        "freeAllowance": false,
+        "billing": true,
+        "conditions": true
+      },
+      {
+        "url": "https://itwiki.kr/w/GitHub_Actions",
+        "official": false,
+        "sensitive": true,
+        "pricing": true,
+        "freeAllowance": false,
+        "billing": false,
+        "conditions": false
+      },
+      {
+        "url": "https://namu.wiki/w/GitHub",
+        "official": false,
+        "sensitive": false,
+        "pricing": true,
+        "freeAllowance": true,
+        "billing": false,
+        "conditions": true
+      }
+    ],
+    "officialPricingSourceSufficient": true,
+    "sensitiveBlockScope": "source-local; itwiki/other contaminated pages do not invalidate the clean official GitHub billing page",
+    "recommendedStatus": "extraction-testable-or-freshness-hold; not ready because the cached source does not independently establish 2026-10-24 freshness"
+  },
+  "datePolicy": {
+    "referenceStart": "2026-10-24T00:00:00+09:00",
+    "retrievalTimeIsSeparate": true,
+    "weather": "observation or forecast effective time must match the requested date/location",
+    "news": "[2026-10-18T00:00:00+09:00, 2026-10-25T00:00:00+09:00)",
+    "minister": "incumbency evidence must be valid at answer time",
+    "events": "actual October 2026 Seoul event schedule and free condition must be evidenced",
+    "unknownFreshnessNotReady": true
+  },
+  "interpretation": {
+    "fetchInvoked": "The injected transport invocation is observable; it does not prove packets left the process.",
+    "httpSent": "unknown when httpStatus is null; native fetch does not expose DNS/TCP/TLS wire completion.",
+    "budget": "A budget reservation is not an HTTP attempt unless fetchInvoked is true; the mock budget case records the distinction."
+  }
+}

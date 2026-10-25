@@ -1,0 +1,2901 @@
+{
+  "version": 1,
+  "capturedAt": "2026-10-23T14:35:18.422Z",
+  "now": "2026-10-23T14:00:00.000Z",
+  "cases": [
+    {
+      "id": "live-1",
+      "question": "오늘 서울 날씨",
+      "retrieval": {
+        "searches": 0,
+        "reads": 1,
+        "httpRequests": 1,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": [
+          {
+            "url": "https://news.tvchosun.com/site/data/html_dir/2026/10/23/2026102390280.html",
+            "code": "Error"
+          }
+        ]
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://korean.visitseoul.net/weather",
+            "title": "서울 실시간 날씨 정보 | 서울 공식 관광정보 웹사이트",
+            "score": 24,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+            "title": "[날씨] 태풍 ’참피’ 영향 제주·남부 비…곳곳 강풍 유의",
+            "score": 22,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://news.tvchosun.com/site/data/html_dir/2026/10/23/2026102390280.html",
+            "title": "[날씨] 남부·제주 폭우 가능성…비바람 피해 주의",
+            "score": 13,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 2,
+              "hasBody": false,
+              "hasDate": true,
+              "access": 1,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+            "title": "KBS 뉴스",
+            "score": 11,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://korean.visitseoul.net/weather",
+            "title": "서울 실시간 날씨 정보 | 서울 공식 관광정보 웹사이트",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 552,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.yonhapnewstv.co.kr/news/MYH20261023161320OEQ",
+            "title": "[날씨] 태풍 ’참피’ 영향 제주·남부 비…곳곳 강풍 유의",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 927,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://news.tvchosun.com/site/data/html_dir/2026/10/23/2026102390280.html",
+            "title": "[날씨] 남부·제주 폭우 가능성…비바람 피해 주의",
+            "attempted": true,
+            "status": "failed",
+            "httpStatus": null,
+            "errorType": "Error",
+            "errorCode": "EAI_AGAIN",
+            "bodyLength": 0,
+            "bodyReason": "fetch-failed",
+            "durationMs": 9
+          },
+          {
+            "url": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+            "title": "KBS 뉴스",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1918,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 111,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 3,
+          "extractedBody": 3
+        }
+      }
+    },
+    {
+      "id": "live-2",
+      "question": "내일 제주 날씨",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+            "title": "태풍 참피 북상…제주·남부 강한 비[내일 날씨]",
+            "score": 25,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 3,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+            "title": "KBS 뉴스",
+            "score": 25,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 3,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+            "title": "주말 예년 기온 웃돌아…남해안, 제주 호우 < 날씨 < 사회 < 기사본문 - OBS경인TV",
+            "score": 25,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 3,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+            "title": "주말 중부 내륙 큰 일교차…남해안, 제주 강한 비바람 < 날씨 < 사회 < 기사본문 - OBS경인TV",
+            "score": 22,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://www.edaily.co.kr/News/Read?newsId=06392726645615872&mediaCodeNo=257&utm_source=naver&utm_medium=referral&utm_campaign=news_syndication&utm_content=original_article",
+            "title": "태풍 참피 북상…제주·남부 강한 비[내일 날씨]",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 793,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8694004&ref=A",
+            "title": "KBS 뉴스",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1918,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541544",
+            "title": "주말 예년 기온 웃돌아…남해안, 제주 호우 < 날씨 < 사회 < 기사본문 - OBS경인TV",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 696,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.obsnews.co.kr/news/articleView.html?idxno=1541552",
+            "title": "주말 중부 내륙 큰 일교차…남해안, 제주 강한 비바람 < 날씨 < 사회 < 기사본문 - OBS경인TV",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 557,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 79,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-3",
+      "question": "오늘 대전 미세먼지",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://sinnake-town.com/region/3017000000/air",
+            "title": "대전 서구 미세먼지·대기질 2026년 9월 — 신나게마을",
+            "score": 22,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "http://www.sisunnews.co.kr/news/articleView.html?idxno=248248",
+            "title": "10월 23일 금요일, 오늘의 날씨와 미세먼지 농도 [인포그래픽] < 날씨 < 인포그래픽 < 기사본문 - 시선뉴스",
+            "score": 22,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.investkorea.org/dj-kr/bbs/i-948/detail.do?ntt_sn=491761",
+            "title": "대전시, 금강유역환경청·14개 기업과 미세먼지 감축 협약상세보기 | 뉴스·행사 | 대전 투자환경 홈페이지",
+            "score": 18,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "http://smartair.daedeok.go.kr/xeus/gis.jsp",
+            "title": "대전 대덕구 미세먼지 센서 MAP",
+            "score": 16,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://sinnake-town.com/region/3017000000/air",
+            "title": "대전 서구 미세먼지·대기질 2026년 9월 — 신나게마을",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 5382,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "http://www.sisunnews.co.kr/news/articleView.html?idxno=248248",
+            "title": "10월 23일 금요일, 오늘의 날씨와 미세먼지 농도 [인포그래픽] < 날씨 < 인포그래픽 < 기사본문 - 시선뉴스",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 442,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.investkorea.org/dj-kr/bbs/i-948/detail.do?ntt_sn=491761",
+            "title": "대전시, 금강유역환경청·14개 기업과 미세먼지 감축 협약상세보기 | 뉴스·행사 | 대전 투자환경 홈페이지",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 755,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "http://smartair.daedeok.go.kr/xeus/gis.jsp",
+            "title": "대전 대덕구 미세먼지 센서 MAP",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 84,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 78,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-4",
+      "question": "내일 뉴욕 날씨",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://www.ventusky.com/ko/new-york",
+            "title": "날씨 - 뉴욕 - 14일 예보: 기온, 바람 및 레이더 | Ventusky",
+            "score": 24,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://www.ventusky.com/ko/new-york",
+            "title": "날씨 - 뉴욕 - 14일 예보: 기온, 바람 및 레이더 | Ventusky",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 2130,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 13,
+          "candidates": 1,
+          "selected": 1,
+          "pagesRead": 1,
+          "extractedBody": 1
+        }
+      }
+    },
+    {
+      "id": "live-5",
+      "question": "Python 최신 안정 버전",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://cliearl.github.io/posts/linux/python-install/",
+            "title": "[WSL2] Python 3.14 설치 가이드 및 시스템 기본 버전 관리법",
+            "score": 25,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 3
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://ko.console-linux.com/?p=276",
+            "title": "Ubuntu에 최신 Python 3.11을 설치하는 방법",
+            "score": 24,
+            "signals": {
+              "overlap": 4,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.python.org/downloads/release/python-3913/",
+            "title": "Python Release Python 3.9.13 | Python.org",
+            "score": 20,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 6,
+              "titleNoise": 0,
+              "releaseSignal": 3
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://navix.navercorp.com/docs/releasenotes/navix-9.8-release/",
+            "title": "NAVIX 9.8 Release Notes",
+            "score": 19,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 3
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://cliearl.github.io/posts/linux/python-install/",
+            "title": "[WSL2] Python 3.14 설치 가이드 및 시스템 기본 버전 관리법",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1749,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://ko.console-linux.com/?p=276",
+            "title": "Ubuntu에 최신 Python 3.11을 설치하는 방법",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 2878,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.python.org/downloads/release/python-3913/",
+            "title": "Python Release Python 3.9.13 | Python.org",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 4816,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://navix.navercorp.com/docs/releasenotes/navix-9.8-release/",
+            "title": "NAVIX 9.8 Release Notes",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 5370,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 13,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-6",
+      "question": "React 최신 버전",
+      "retrieval": {
+        "searches": 0,
+        "reads": 1,
+        "httpRequests": 1,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": [
+          {
+            "url": "https://okky.kr/",
+            "code": "Error"
+          }
+        ]
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+            "title": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+            "score": 27,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 3
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+            "title": "React(라이브러리) - 나무위키",
+            "score": 21,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+            "title": "React 서버 컴포넌트 보안 업데이트 권고(2025.12.09) | Cafe24 호스팅",
+            "score": 19,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://okky.kr/",
+            "title": "OKKY - All That Developer",
+            "score": 0,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": false,
+              "hasDate": false,
+              "access": 0,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://koofree.com/2024/03/15/react-%EB%B2%84%EC%A0%84-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EB%B0%A9%EB%B2%95/",
+            "title": "React 버전 업데이트 방법 – Yongku Lee (Koo)",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1247,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://namu.wiki/w/React(%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)",
+            "title": "React(라이브러리) - 나무위키",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://help.cafe24.com/notice/security-patch/20251209_react_server_components_vuln/",
+            "title": "React 서버 컴포넌트 보안 업데이트 권고(2025.12.09) | Cafe24 호스팅",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 971,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://okky.kr/",
+            "title": "OKKY - All That Developer",
+            "attempted": true,
+            "status": "failed",
+            "httpStatus": null,
+            "errorType": "Error",
+            "errorCode": "EAI_AGAIN",
+            "bodyLength": 0,
+            "bodyReason": "fetch-failed",
+            "durationMs": 3
+          }
+        ],
+        "totals": {
+          "elapsedMs": 31,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 3,
+          "extractedBody": 3
+        }
+      }
+    },
+    {
+      "id": "live-7",
+      "question": "PostgreSQL 최신 버전",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://aws.amazon.com/ko/about-aws/whats-new/2025/05/amazon-rds-postgresql-supports-new-minor-versions/",
+            "title": "Amazon RDS for PostgreSQL, 마이너 버전 17.5, 16.9, 15.13, 14.18 및 13.21 지원 - AWS",
+            "score": 25,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 3
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+            "title": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전 - Azure Database for PostgreSQL | Microsoft Learn",
+            "score": 25,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 3
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://postgresql.kr.uptodown.com/windows/versions",
+            "title": "PostgreSQL 구형 버전 (Windows) | Uptodown",
+            "score": 23,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 3
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://ko.wikipedia.org/wiki/PostgreSQL#%EB%8B%A4%EC%A4%91_%EB%B2%84%EC%A0%84_%EB%8F%99%EC%8B%9C%EC%84%B1_%EC%A0%9C%EC%96%B4_%28MVCC%29",
+            "title": "PostgreSQL - 위키백과, 우리 모두의 백과사전",
+            "score": 17,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://aws.amazon.com/ko/about-aws/whats-new/2025/05/amazon-rds-postgresql-supports-new-minor-versions/",
+            "title": "Amazon RDS for PostgreSQL, 마이너 버전 17.5, 16.9, 15.13, 14.18 및 13.21 지원 - AWS",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 844,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://learn.microsoft.com/ko-kr/azure/postgresql/configure-maintain/concepts-supported-versions",
+            "title": "Azure Database for PostgreSQL 유연한 서버에서 지원되는 PostgreSQL 버전 - Azure Database for PostgreSQL | Microsoft Learn",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 2497,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://postgresql.kr.uptodown.com/windows/versions",
+            "title": "PostgreSQL 구형 버전 (Windows) | Uptodown",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1009,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://ko.wikipedia.org/wiki/PostgreSQL#%EB%8B%A4%EC%A4%91_%EB%B2%84%EC%A0%84_%EB%8F%99%EC%8B%9C%EC%84%B1_%EC%A0%9C%EC%96%B4_%28MVCC%29",
+            "title": "PostgreSQL - 위키백과, 우리 모두의 백과사전",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 66,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-8",
+      "question": "Docker Engine 최신 버전",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://www.boho.or.kr/kr/bbs/view.do?bbsId=B0000133&menuNo=205020&nttId=72022",
+            "title": "보안공지 > 알림마당 : KISA 보호나라&KrCERT/CC",
+            "score": 18,
+            "signals": {
+              "overlap": 4,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://go.lazyscheme.com/",
+            "title": "lazyscheme — 필요한 공식 정보까지 가장 짧은 길",
+            "score": 6,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+            "title": "나무위키:대문 - 나무위키",
+            "score": 6,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.boho.or.kr/",
+            "title": "KISA 보호나라&KrCERT/CC",
+            "score": 2,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://www.boho.or.kr/kr/bbs/view.do?bbsId=B0000133&menuNo=205020&nttId=72022",
+            "title": "보안공지 > 알림마당 : KISA 보호나라&KrCERT/CC",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1371,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://go.lazyscheme.com/",
+            "title": "lazyscheme — 필요한 공식 정보까지 가장 짧은 길",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 650,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+            "title": "나무위키:대문 - 나무위키",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 4590,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.boho.or.kr/",
+            "title": "KISA 보호나라&KrCERT/CC",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 135,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 8,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-9",
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "retrieval": {
+        "searches": 0,
+        "reads": 1,
+        "httpRequests": 1,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": [
+          {
+            "url": "https://apidog.com/",
+            "code": "Error"
+          }
+        ]
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://velog.io/@ehdgus8054/Fetch-API",
+            "title": "Fetch API",
+            "score": 34,
+            "signals": {
+              "overlap": 6,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+            "title": "fetch() 전역 함수 - Web API | MDN",
+            "score": 33,
+            "signals": {
+              "overlap": 5,
+              "titleOverlap": 3,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://developer.mozilla.org/ko/",
+            "title": "MDN Web Docs",
+            "score": 9,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://apidog.com/",
+            "title": "",
+            "score": 0,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": false,
+              "hasDate": false,
+              "access": 0,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://velog.io/@ehdgus8054/Fetch-API",
+            "title": "Fetch API",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://developer.mozilla.org/ko/docs/Web/API/Window/fetch",
+            "title": "fetch() 전역 함수 - Web API | MDN",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 6075,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://developer.mozilla.org/ko/",
+            "title": "MDN Web Docs",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 202,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://apidog.com/",
+            "title": "",
+            "attempted": true,
+            "status": "failed",
+            "httpStatus": null,
+            "errorType": "Error",
+            "errorCode": "EAI_AGAIN",
+            "bodyLength": 0,
+            "bodyReason": "fetch-failed",
+            "durationMs": 0
+          }
+        ],
+        "totals": {
+          "elapsedMs": 17,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 3,
+          "extractedBody": 3
+        }
+      }
+    },
+    {
+      "id": "live-10",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://www.speedykorea.com/blog/kubernetes-startup-readiness-liveness-probes",
+            "title": "파드는 실행 중인데 요청을 못 받는다: Kubernetes 상태 검사 3가지를 나누는 법 │ 스피디 블로그",
+            "score": 23,
+            "signals": {
+              "overlap": 4,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://ttlab.hopto.org/blog/kubernetes/2026-07-26-kubernetes-probes-liveness-readiness-startup",
+            "title": "Kubernetes 프로브 3종 제대로 쓰기 — liveness, readiness, startup의 정확한 경계 — TT Lab 블로그",
+            "score": 20,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://docs.cloud.google.com/service-mesh/docs/gateway/configure-readiness-probes?hl=ko",
+            "title": "Kubernetes 준비 프로브 구성(선택사항) | Cloud Service Mesh | Google Cloud Documentation",
+            "score": 11,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://www.speedykorea.com/blog/kubernetes-startup-readiness-liveness-probes",
+            "title": "파드는 실행 중인데 요청을 못 받는다: Kubernetes 상태 검사 3가지를 나누는 법 │ 스피디 블로그",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 5942,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://ttlab.hopto.org/blog/kubernetes/2026-07-26-kubernetes-probes-liveness-readiness-startup",
+            "title": "Kubernetes 프로브 3종 제대로 쓰기 — liveness, readiness, startup의 정확한 경계 — TT Lab 블로그",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://docs.cloud.google.com/service-mesh/docs/gateway/configure-readiness-probes?hl=ko",
+            "title": "Kubernetes 준비 프로브 구성(선택사항) | Cloud Service Mesh | Google Cloud Documentation",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1983,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 16,
+          "candidates": 3,
+          "selected": 3,
+          "pagesRead": 3,
+          "extractedBody": 3
+        }
+      }
+    },
+    {
+      "id": "live-11",
+      "question": "최근 일주일 반도체 뉴스",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://mbnmoney.mbn.co.kr/",
+            "title": "경제채널 매일경제TV",
+            "score": 8,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://kr.tradingview.com/",
+            "title": "트레이딩뷰 - 모든 시장을 추적하세요 — TradingView",
+            "score": 4,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.youtube.com/watch?v=fpTch4A9erE",
+            "title": "- YouTube",
+            "score": 2,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.yna.co.kr/",
+            "title": "연합뉴스",
+            "score": 2,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://mbnmoney.mbn.co.kr/",
+            "title": "경제채널 매일경제TV",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1973,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://kr.tradingview.com/",
+            "title": "트레이딩뷰 - 모든 시장을 추적하세요 — TradingView",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 224,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.youtube.com/watch?v=fpTch4A9erE",
+            "title": "- YouTube",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 341,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.yna.co.kr/",
+            "title": "연합뉴스",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 254,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 3,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-12",
+      "question": "최근 일주일 생성형 AI 뉴스",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://www.topstarnews.net/news/articleView.html?idxno=16225916",
+            "title": "AI가 웹의 지형을 바꾼다…검색·클릭·원문 방문의 공식이 무너진다 | 김명수 기자 | 톱스타뉴스",
+            "score": 35,
+            "signals": {
+              "overlap": 5,
+              "titleOverlap": 3,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://news.einfomax.co.kr/news/articleView.html?idxno=4440879",
+            "title": "[월가 톡톡] 연봉 4억3천만원 벌어도 정부 지원금 지원받는 샌프란시스코 < 월가 톡톡 < 마켓뷰 < 칼럼/이슈 < 기사본문 - 연합인포맥스",
+            "score": 24,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "http://www.popcornnews.net/news/articleView.html?idxno=131486",
+            "title": "한국앤컴퍼니그룹, 업무 플랫폼 '아레나' 전면 개편…생성형 AI 기능 강화 < 산업·IT < 상생경제 < 기사본문 - 팝콘뉴스",
+            "score": 20,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.youtube.com/watch?v=2u7zhFIujgo",
+            "title": "- YouTube",
+            "score": 2,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://www.topstarnews.net/news/articleView.html?idxno=16225916",
+            "title": "AI가 웹의 지형을 바꾼다…검색·클릭·원문 방문의 공식이 무너진다 | 김명수 기자 | 톱스타뉴스",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 6107,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://news.einfomax.co.kr/news/articleView.html?idxno=4440879",
+            "title": "[월가 톡톡] 연봉 4억3천만원 벌어도 정부 지원금 지원받는 샌프란시스코 < 월가 톡톡 < 마켓뷰 < 칼럼/이슈 < 기사본문 - 연합인포맥스",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 4527,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "http://www.popcornnews.net/news/articleView.html?idxno=131486",
+            "title": "한국앤컴퍼니그룹, 업무 플랫폼 '아레나' 전면 개편…생성형 AI 기능 강화 < 산업·IT < 상생경제 < 기사본문 - 팝콘뉴스",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1401,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.youtube.com/watch?v=2u7zhFIujgo",
+            "title": "- YouTube",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 341,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 13,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-13",
+      "question": "최근 일주일 한국 과학기술 뉴스",
+      "retrieval": {
+        "searches": 0,
+        "reads": 1,
+        "httpRequests": 1,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": [
+          {
+            "url": "https://www.kast.or.kr/kr/index.php",
+            "code": "Error"
+          }
+        ]
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://www.ibabynews.com/news/articleView.html?idxno=151752",
+            "title": "[아이들과 가볼 만한 곳] 강서별빛우주과학관, 하지 맞이 천문 프로그램 풍성 外 - 임신·출산·육아 전문 언론ㅣ베이비뉴스",
+            "score": 24,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.kosac.re.kr/menus/248/boards/459/posts/61120",
+            "title": "글로벌 과학기술 이슈와 토픽에 대한 월간 동향 (2026.3월) - 동향리포트 - KOSAC 지식관 - 성과/지식/홍보 - 한국과학창의재단",
+            "score": 19,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "http://www.breaknews.com/1243708",
+            "title": "장동혁 국민의힘 대표 ˝경제·안보 위기˝…정점식 ˝증시 폭락 진상규명“:브레이크뉴스",
+            "score": 17,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.kast.or.kr/kr/index.php",
+            "title": "한국과학기술한림원",
+            "score": 0,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": false,
+              "hasDate": false,
+              "access": 0,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://www.ibabynews.com/news/articleView.html?idxno=151752",
+            "title": "[아이들과 가볼 만한 곳] 강서별빛우주과학관, 하지 맞이 천문 프로그램 풍성 外 - 임신·출산·육아 전문 언론ㅣ베이비뉴스",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 7147,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.kosac.re.kr/menus/248/boards/459/posts/61120",
+            "title": "글로벌 과학기술 이슈와 토픽에 대한 월간 동향 (2026.3월) - 동향리포트 - KOSAC 지식관 - 성과/지식/홍보 - 한국과학창의재단",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 4505,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "http://www.breaknews.com/1243708",
+            "title": "장동혁 국민의힘 대표 ˝경제·안보 위기˝…정점식 ˝증시 폭락 진상규명“:브레이크뉴스",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.kast.or.kr/kr/index.php",
+            "title": "한국과학기술한림원",
+            "attempted": true,
+            "status": "failed",
+            "httpStatus": null,
+            "errorType": "Error",
+            "errorCode": "EAI_AGAIN",
+            "bodyLength": 0,
+            "bodyReason": "fetch-failed",
+            "durationMs": 0
+          }
+        ],
+        "totals": {
+          "elapsedMs": 16,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 3,
+          "extractedBody": 3
+        }
+      }
+    },
+    {
+      "id": "live-14",
+      "question": "OpenAI API 최신 가격",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+            "title": "OpenAI API 가격 가이드 2026 — GPT-5, GPT-4o, o3 | APIMaster.ai | APIMaster.ai 使用文档",
+            "score": 29,
+            "signals": {
+              "overlap": 4,
+              "titleOverlap": 3,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://thorkit.kr/",
+            "title": "ThorKit(토르킷) — 계산과 기준을 함께 보는 곳",
+            "score": 10,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://ko.showmetech.com.br/",
+            "title": "Showmetech: 뉴스, 리뷰, 튜토리얼 및 기술 가이드",
+            "score": 6,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://apimaster.ai/docs/ko/guides/openai-api-pricing",
+            "title": "OpenAI API 가격 가이드 2026 — GPT-5, GPT-4o, o3 | APIMaster.ai | APIMaster.ai 使用文档",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 3306,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://thorkit.kr/",
+            "title": "ThorKit(토르킷) — 계산과 기준을 함께 보는 곳",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 6821,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://ko.showmetech.com.br/",
+            "title": "Showmetech: 뉴스, 리뷰, 튜토리얼 및 기술 가이드",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 2169,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 39,
+          "candidates": 3,
+          "selected": 3,
+          "pagesRead": 3,
+          "extractedBody": 3
+        }
+      }
+    },
+    {
+      "id": "live-15",
+      "question": "GitHub Actions 요금제",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+            "title": "GitHub Actions 비용 청구 - GitHub 문서",
+            "score": 22,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://docs.github.com/ko",
+            "title": "GitHub Docs",
+            "score": 19,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://itwiki.kr/w/GitHub_Actions",
+            "title": "GitHub Actions - IT 위키",
+            "score": 18,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://namu.wiki/w/GitHub",
+            "title": "GitHub - 나무위키",
+            "score": 15,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://docs.github.com/ko/billing/concepts/product-billing/github-actions",
+            "title": "GitHub Actions 비용 청구 - GitHub 문서",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 6978,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://docs.github.com/ko",
+            "title": "GitHub Docs",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 714,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://itwiki.kr/w/GitHub_Actions",
+            "title": "GitHub Actions - IT 위키",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 3570,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://namu.wiki/w/GitHub",
+            "title": "GitHub - 나무위키",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 44,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-16",
+      "question": "AWS Lambda 요청 요금",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://aws.amazon.com/ko/lambda/pricing/",
+            "title": "AWS Lambda 요금",
+            "score": 27,
+            "signals": {
+              "overlap": 4,
+              "titleOverlap": 3,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+            "title": "Lambda 함수의 동시성 한도 증가 요청 | AWS re:Post",
+            "score": 25,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 3,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/lambda-concurrency.html",
+            "title": "Lambda 함수 규모 조정 이행 - AWS Lambda",
+            "score": 24,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 4,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://aws.amazon.com/ko/",
+            "title": "클라우드 컴퓨팅 서비스-Amazon Web Services(AWS)",
+            "score": 9,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://aws.amazon.com/ko/lambda/pricing/",
+            "title": "AWS Lambda 요금",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 7999,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://repost.aws/ko/knowledge-center/lambda-concurrency-limit-increase",
+            "title": "Lambda 함수의 동시성 한도 증가 요청 | AWS re:Post",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 3224,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/lambda-concurrency.html",
+            "title": "Lambda 함수 규모 조정 이행 - AWS Lambda",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 7999,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://aws.amazon.com/ko/",
+            "title": "클라우드 컴퓨팅 서비스-Amazon Web Services(AWS)",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 2479,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 58,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-17",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://www.businessplus.kr/news/articleView.html?idxno=118214",
+            "title": "[금융권 이모저모]KB자산운용, 국민성장펀드 2호 15일 모집 마감 外 < 금융·증권 < 인베스팅 < 기사본문 - 비즈니스플러스",
+            "score": 26,
+            "signals": {
+              "overlap": 4,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.gamevu.co.kr/news/articleView.html?idxno=61035",
+            "title": "[게임뉴스] 카카오게임즈 및 컴투스홀딩스 소식 외 < 보도자료 < 게임 < 기사본문 - 게임뷰",
+            "score": 22,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.gamevu.co.kr/news/articleView.html?idxno=61011",
+            "title": "[게임뉴스] 스마일게이트 및 컴투스홀딩스 소식 외 < 보도자료 < 게임 < 기사본문 - 게임뷰",
+            "score": 18,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.seoul.go.kr/main/index.jsp",
+            "title": "삶의 질 특별시 서울 | 서울특별시",
+            "score": 9,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://www.businessplus.kr/news/articleView.html?idxno=118214",
+            "title": "[금융권 이모저모]KB자산운용, 국민성장펀드 2호 15일 모집 마감 外 < 금융·증권 < 인베스팅 < 기사본문 - 비즈니스플러스",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.gamevu.co.kr/news/articleView.html?idxno=61035",
+            "title": "[게임뉴스] 카카오게임즈 및 컴투스홀딩스 소식 외 < 보도자료 < 게임 < 기사본문 - 게임뷰",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.gamevu.co.kr/news/articleView.html?idxno=61011",
+            "title": "[게임뉴스] 스마일게이트 및 컴투스홀딩스 소식 외 < 보도자료 < 게임 < 기사본문 - 게임뷰",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.seoul.go.kr/main/index.jsp",
+            "title": "삶의 질 특별시 서울 | 서울특별시",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 121,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 34,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-18",
+      "question": "부산 불꽃축제 올해 일정",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://festival.kimgoon.kr/festivals/235076",
+            "title": "부산불꽃축제 2026 일정·장소·입장료 | 놀러가자",
+            "score": 19,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://hhakimm.github.io/festivals-site/festival/%EB%B6%80%EC%82%B0%EB%B6%88%EA%BD%83%EC%B6%95%EC%A0%9C-235076/",
+            "title": "부산불꽃축제 | 부산 축제",
+            "score": 17,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://festival.kimgoon.kr/",
+            "title": "놀러가자 - 전국 축제·관광지·맛집·숙박·레포츠 한곳에",
+            "score": 10,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.youtube.com/watch?v=Wt7e_9rlI-w",
+            "title": "- YouTube",
+            "score": 2,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://festival.kimgoon.kr/festivals/235076",
+            "title": "부산불꽃축제 2026 일정·장소·입장료 | 놀러가자",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 2626,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://hhakimm.github.io/festivals-site/festival/%EB%B6%80%EC%82%B0%EB%B6%88%EA%BD%83%EC%B6%95%EC%A0%9C-235076/",
+            "title": "부산불꽃축제 | 부산 축제",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 620,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://festival.kimgoon.kr/",
+            "title": "놀러가자 - 전국 축제·관광지·맛집·숙박·레포츠 한곳에",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 6141,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.youtube.com/watch?v=Wt7e_9rlI-w",
+            "title": "- YouTube",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 341,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 11,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-19",
+      "question": "대한민국 과학기술정보통신부 장관은 누구인가",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://ko.wikipedia.org/wiki/%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD_%EA%B3%BC%ED%95%99%EA%B8%B0%EC%88%A0%EC%A0%95%EB%B3%B4%ED%86%B5%EC%8B%A0%EB%B6%80",
+            "title": "대한민국 과학기술정보통신부 - 위키백과, 우리 모두의 백과사전",
+            "score": 22,
+            "signals": {
+              "overlap": 3,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://view.asiae.co.kr/article/2026093009151033017",
+            "title": "배경훈 \"독파모 계속된다…프론티어 AI도 함께 도전\"",
+            "score": 15,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.korea.kr/",
+            "title": "대한민국 정책브리핑",
+            "score": 11,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.etnews.com/20260921000443",
+            "title": "[특별인터뷰]이정구 국립광주과학관장 “과학관은 과학기술과 국민의 삶 연결 플랫폼” - 전자신문",
+            "score": 11,
+            "signals": {
+              "overlap": 1,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://ko.wikipedia.org/wiki/%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD_%EA%B3%BC%ED%95%99%EA%B8%B0%EC%88%A0%EC%A0%95%EB%B3%B4%ED%86%B5%EC%8B%A0%EB%B6%80",
+            "title": "대한민국 과학기술정보통신부 - 위키백과, 우리 모두의 백과사전",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 6583,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://view.asiae.co.kr/article/2026093009151033017",
+            "title": "배경훈 \"독파모 계속된다…프론티어 AI도 함께 도전\"",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 2057,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.korea.kr/",
+            "title": "대한민국 정책브리핑",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 235,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.etnews.com/20260921000443",
+            "title": "[특별인터뷰]이정구 국립광주과학관장 “과학관은 과학기술과 국민의 삶 연결 플랫폼” - 전자신문",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 5149,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 9,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-20",
+      "question": "WHO 본부가 있는 도시와 기관 역할",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://mymerci.kr/pages/nclex_q.php?qn_id=279060",
+            "title": "세계보건기구의 6개 지역사무소 중 대한민국이 소속되어 있는 서태평양 지역사무소가 위치한 도시는? | 마이메르시 MyMerci",
+            "score": 25,
+            "signals": {
+              "overlap": 5,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "http://www.doctorstimes.com/news/articleView.html?idxno=240627",
+            "title": "[제약업계 소식] 10월 22일 - 의사신문",
+            "score": 15,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://mymerci.kr/pages/nclex_q.php?qn_id=279060",
+            "title": "세계보건기구의 6개 지역사무소 중 대한민국이 소속되어 있는 서태평양 지역사무소가 위치한 도시는? | 마이메르시 MyMerci",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 4367,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "http://www.doctorstimes.com/news/articleView.html?idxno=240627",
+            "title": "[제약업계 소식] 10월 22일 - 의사신문",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 20,
+          "candidates": 2,
+          "selected": 2,
+          "pagesRead": 2,
+          "extractedBody": 2
+        }
+      }
+    },
+    {
+      "id": "live-21",
+      "question": "MacBook Air와 Dell XPS 13의 공식 사양 비교",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://www.dell.com/support/manuals/ko-kr/xps13dx13260laptop/xps-13-dx13260-ss/%EB%94%94%EC%8A%A4%ED%94%8C%EB%A0%88%EC%9D%B4?guid=guid-83905b9f-38da-47fd-8c2c-0ec9b2fc34ba",
+            "title": "XPS 13 DX13260 설치 및 사양 | Dell 대한민국",
+            "score": 29,
+            "signals": {
+              "overlap": 4,
+              "titleOverlap": 3,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://support.apple.com/ko-kr/111991",
+            "title": "MacBook Air (Retina, 13-inch, 2020) - 제품사양 - Apple 지원 (KR)",
+            "score": 13,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 1,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://www.youtube.com/watch?v=xK4rIDIEIYQ",
+            "title": "- YouTube",
+            "score": 2,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 0,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://www.dell.com/support/manuals/ko-kr/xps13dx13260laptop/xps-13-dx13260-ss/%EB%94%94%EC%8A%A4%ED%94%8C%EB%A0%88%EC%9D%B4?guid=guid-83905b9f-38da-47fd-8c2c-0ec9b2fc34ba",
+            "title": "XPS 13 DX13260 설치 및 사양 | Dell 대한민국",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1814,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://support.apple.com/ko-kr/111991",
+            "title": "MacBook Air (Retina, 13-inch, 2020) - 제품사양 - Apple 지원 (KR)",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 4461,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://www.youtube.com/watch?v=xK4rIDIEIYQ",
+            "title": "- YouTube",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 341,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 7,
+          "candidates": 3,
+          "selected": 3,
+          "pagesRead": 3,
+          "extractedBody": 3
+        }
+      }
+    },
+    {
+      "id": "live-22",
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://www.elancer.co.kr/blog/detail/737",
+            "title": "PostgreSQL의 차별화된 기능과 MySQL과의 차이 I 이랜서 블로그",
+            "score": 24,
+            "signals": {
+              "overlap": 5,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://namu.wiki/w/PostgreSQL#s-2",
+            "title": "PostgreSQL - 나무위키",
+            "score": 24,
+            "signals": {
+              "overlap": 5,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://namu.wiki/w/PostgreSQL#s-4.1",
+            "title": "PostgreSQL - 나무위키",
+            "score": 24,
+            "signals": {
+              "overlap": 5,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://w00lam.github.io/posts/postgresql-data-integrity-jsonb/",
+            "title": "실무에서 PostgreSQL을 선택하는 이유: 데이터 정합성과 JSONB를 중심으로 | WooLam",
+            "score": 12,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://www.elancer.co.kr/blog/detail/737",
+            "title": "PostgreSQL의 차별화된 기능과 MySQL과의 차이 I 이랜서 블로그",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://namu.wiki/w/PostgreSQL#s-2",
+            "title": "PostgreSQL - 나무위키",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 5452,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://namu.wiki/w/PostgreSQL#s-4.1",
+            "title": "PostgreSQL - 나무위키",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 5500,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://w00lam.github.io/posts/postgresql-data-integrity-jsonb/",
+            "title": "실무에서 PostgreSQL을 선택하는 이유: 데이터 정합성과 JSONB를 중심으로 | WooLam",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 31,
+          "candidates": 4,
+          "selected": 4,
+          "pagesRead": 4,
+          "extractedBody": 4
+        }
+      }
+    },
+    {
+      "id": "live-23",
+      "question": "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://namu.wiki/w/PHP",
+            "title": "PHP - 나무위키",
+            "score": 14,
+            "signals": {
+              "overlap": 2,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+            "title": "나무위키:대문 - 나무위키",
+            "score": 6,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8",
+            "title": "위키백과, 우리 모두의 백과사전",
+            "score": 6,
+            "signals": {
+              "overlap": 0,
+              "titleOverlap": 0,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 2,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://namu.wiki/w/PHP",
+            "title": "PHP - 나무위키",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 8000,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+            "title": "나무위키:대문 - 나무위키",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 4590,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8",
+            "title": "위키백과, 우리 모두의 백과사전",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 3033,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 17,
+          "candidates": 3,
+          "selected": 3,
+          "pagesRead": 3,
+          "extractedBody": 3
+        }
+      }
+    },
+    {
+      "id": "live-24",
+      "question": "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교",
+      "retrieval": {
+        "searches": 0,
+        "reads": 0,
+        "httpRequests": 0,
+        "cached": true,
+        "searchStatus": "cached-or-fixture",
+        "searchAttempts": [],
+        "failures": []
+      },
+      "pipeline": {
+        "search": null,
+        "candidates": [
+          {
+            "url": "https://chaenggim.co.kr/cloud",
+            "title": "클라우드 저장공간 비교 (구글 One·네이버 MyBox·iCloud) | 챙김",
+            "score": 38,
+            "signals": {
+              "overlap": 7,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": false,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          },
+          {
+            "url": "https://angelsitter.co.kr/board.view.php?board=bbs5&no=37",
+            "title": "무료 대용량 저장 클라우드 모음",
+            "score": 26,
+            "signals": {
+              "overlap": 4,
+              "titleOverlap": 2,
+              "hasBody": true,
+              "hasDate": true,
+              "access": 2,
+              "freshness": 0,
+              "authority": 2,
+              "titleNoise": 0,
+              "releaseSignal": 0
+            },
+            "selected": true,
+            "exclusionReason": ""
+          }
+        ],
+        "reads": [
+          {
+            "url": "https://chaenggim.co.kr/cloud",
+            "title": "클라우드 저장공간 비교 (구글 One·네이버 MyBox·iCloud) | 챙김",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 1379,
+            "bodyReason": "provided-body"
+          },
+          {
+            "url": "https://angelsitter.co.kr/board.view.php?board=bbs5&no=37",
+            "title": "무료 대용량 저장 클라우드 모음",
+            "attempted": false,
+            "status": "provided",
+            "bodyLength": 2517,
+            "bodyReason": "provided-body"
+          }
+        ],
+        "totals": {
+          "elapsedMs": 5,
+          "candidates": 2,
+          "selected": 2,
+          "pagesRead": 2,
+          "extractedBody": 2
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "version": 2,
+  "type": "limited-general-search-source-research",
+  "generatedAt": "2026-10-24T03:54:52.801Z",
+  "dryRun": true,
+  "noGeminiCalls": true,
+  "budgets": {
+    "maxSearchAttemptsPerQuestion": 4,
+    "maxTotalSearches": 12,
+    "maxRetriesPerQuery": 1,
+    "maxReadsPerQuestion": 4,
+    "maxTotalReads": 24,
+    "searchBudgetUnit": "actual HTTP attempts; includes search-engine fallback and retries",
+    "bodyReadBudgetUnit": "actual HTTP attempts; includes redirects and retries",
+    "searchEngines": [
+      "duckduckgo",
+      "naver"
+    ],
+    "exhaustionPolicy": "check immediately before every HTTP attempt; when exhausted, skip retries and stop retrieval"
+  },
+  "questions": [
+    {
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "searchQueries": [
+        "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "engine": "duckduckgo",
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "fallback": false
+        },
+        {
+          "engine": "naver",
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "fallback": true
+        }
+      ],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    },
+    {
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "searchQueries": [
+        "site:kubernetes.io/docs liveness probe official documentation"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "engine": "duckduckgo",
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "fallback": false
+        },
+        {
+          "engine": "naver",
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "fallback": true
+        }
+      ],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    },
+    {
+      "question": "Python 최신 안정 버전",
+      "searchQueries": [
+        "site:python.org/downloads latest stable Python release download"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "engine": "duckduckgo",
+          "query": "site:python.org/downloads latest stable Python release download",
+          "fallback": false
+        },
+        {
+          "engine": "naver",
+          "query": "site:python.org/downloads latest stable Python release download",
+          "fallback": true
+        }
+      ],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    },
+    {
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "searchQueries": [
+        "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+        "site:mysql.com/docs JSON data type MySQL official"
+      ],
+      "plannedSearches": 2,
+      "plannedEngineRequests": [
+        {
+          "engine": "duckduckgo",
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "fallback": false
+        },
+        {
+          "engine": "naver",
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "fallback": true
+        },
+        {
+          "engine": "duckduckgo",
+          "query": "site:mysql.com/docs JSON data type MySQL official",
+          "fallback": false
+        },
+        {
+          "engine": "naver",
+          "query": "site:mysql.com/docs JSON data type MySQL official",
+          "fallback": true
+        }
+      ],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    },
+    {
+      "question": "AWS Lambda 요청 요금",
+      "searchQueries": [
+        "site:aws.amazon.com/lambda/pricing AWS Lambda request pricing free tier",
+        "site:docs.aws.amazon.com/lambda latest pricing request charges"
+      ],
+      "plannedSearches": 2,
+      "plannedEngineRequests": [
+        {
+          "engine": "duckduckgo",
+          "query": "site:aws.amazon.com/lambda/pricing AWS Lambda request pricing free tier",
+          "fallback": false
+        },
+        {
+          "engine": "naver",
+          "query": "site:aws.amazon.com/lambda/pricing AWS Lambda request pricing free tier",
+          "fallback": true
+        },
+        {
+          "engine": "duckduckgo",
+          "query": "site:docs.aws.amazon.com/lambda latest pricing request charges",
+          "fallback": false
+        },
+        {
+          "engine": "naver",
+          "query": "site:docs.aws.amazon.com/lambda latest pricing request charges",
+          "fallback": true
+        }
+      ],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    },
+    {
+      "question": "React 최신 버전",
+      "searchQueries": [
+        "site:react.dev/blog latest React release official"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "engine": "duckduckgo",
+          "query": "site:react.dev/blog latest React release official",
+          "fallback": false
+        },
+        {
+          "engine": "naver",
+          "query": "site:react.dev/blog latest React release official",
+          "fallback": true
+        }
+      ],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    }
+  ],
+  "totals": {
+    "plannedSearchQueries": 8,
+    "plannedEngineRequests": 16,
+    "plannedBodyReads": 24
+  }
+}

@@ -1,0 +1,588 @@
+{
+  "version": 3,
+  "experiment": "general-search-llm-direct-extraction-final",
+  "generatedAt": "2026-10-24T11:35:26.759Z",
+  "inputFile": "tmp/general-search-focused-gemini-runner-input-20261024.json",
+  "aReportFile": "/home/ubuntu/.local/share/agent-hebi/task-worktrees/discord-bot/66b69d705e5b4eb78d5ebc7e97dba738/tmp/general-search-gemini-experiment-run-20261024-ssh.json",
+  "aReportFound": true,
+  "envFile": "/home/ubuntu/discord-bot-new/.env",
+  "questionCount": 2,
+  "holdQuestionCount": 4,
+  "maxApiCalls": 2,
+  "calls": 2,
+  "model": "gemini-3.5-flash-lite",
+  "apiKeyConfigured": true,
+  "elapsedMs": 11074,
+  "results": [
+    {
+      "id": "focus-02",
+      "question": "GitHub Actions 요금제",
+      "sourceQuestion": "GitHub Actions 요금제",
+      "httpCalls": 1,
+      "model": "gemini-3.5-flash-lite",
+      "processingMs": 6487,
+      "inputTokens": 1303,
+      "outputTokens": 1072,
+      "methodA": {
+        "storedReport": null,
+        "replay": {
+          "facts": [
+            {
+              "id": "fact-1-0",
+              "subject": "github",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "50 GB",
+              "unit": "GB",
+              "normalizedQuantity": 50,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [
+                "50 GB"
+              ],
+              "quote": "50 GB on the Enterprise plan) is converted to an hourly rate for billing calculations Shared storage: Actions artifacts and GitHub Packages storage share the same pooled allowance.",
+              "quoteStart": 2062,
+              "sourceSpan": {
+                "start": 2062,
+                "end": 2242
+              },
+              "contextSpan": "You can also configure GitHub-hosted larger runners or self-hosted runners via Actions Runner Controller (ARC), which are billed at different rates. How storage billing works GitHub Actions storage billing operates on an hourly accrual model: Continuous billing: Storage charges accrue every hour based on your actual usage throughout the month Monthly total: Your bill reflects the total storage used throughout the month, measured in GB-Hours Included amount: The free storage allowance for your plan (for example, 50 GB on the Enterprise plan) is converted to an hourly rate for billing calculations Shared storage: Actions artifacts and GitHub Packages storage share the same pooled allowance.",
+              "scopeText": "\nYou can also configure GitHub-hosted larger runners or self-hosted runners via Actions Runner Controller (ARC), which are billed at different rates. How storage billing works GitHub Actions storage billing operates on an hourly accrual model: Continuous billing: Storage charges accrue every hour based on your actual usage throughout the month Monthly total: Your bill reflects the total storage used throughout the month, measured in GB-Hours Included amount: The free storage allowance for your plan (for example, 50 GB on the Enterprise plan) is converted to an hourly rate for billing calculations Shared storage: Actions artifacts and GitHub Packages storage share the same pooled allowance.",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+              "sourceTitle": "GitHub Actions billing - GitHub Docs",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": null,
+              "preparedAt": null,
+              "referenceTime": null,
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "",
+                "output": "",
+                "currency": "",
+                "tokenUnit": "",
+                "raw": "In this article GitHub Actions billing Learn how usage of GitHub Actions is measured against your free allowance and how to pay for additional use. Copy markdown In this article How use of GitHub Actions is measured GitHub Actions usage is free for self-hosted runners and for public repositories that use standard GitHub-hosted runners. See Choosing the runner for a job. For private repositories, each GitHub account receives a quota of free minutes, artifact storage, and cache storage for use with GitHub-hosted runners, depending on the account's plan. Any usage beyond the included amounts is billed to your account. Minutes: Your free minutes reset to the full amount at the start of each billing cycle. Minutes usage is charged to the repository owner, not the person who triggered the workflow runs. Storage: Storage charges accumulate throughout the month based on hourly usage. Your accrued storage charges reset to zero at the start of each billing cycle. Tip Anyone with write access to a repository can run actions. Any costs of running the actions are billed to the repository owner. Copilot code review and GitHub Actions minutes Each Copilot code review consumes GitHub Actions minutes in addition to AI credits. Private repositories: Minutes are consumed from your account or organization's existing plan entitlement. Any usage beyond your included minutes is billed at standard GitHub Actions rates. Public repositories: Minutes remain free. Copilot code review runs on standard GitHub-hosted Ubuntu Linux runners by default. You can also configure GitHub-hosted larger runners or self-hosted runners via Actions Runner Controller (ARC), which are billed at different rates. How storage billing works GitHub Actions storage billing operates on an hourly accrual model: Continuous billing: Storage charges accrue every hour based on your actual usage throughout the month Monthly total: Your bill reflects the total storage used throughout the month, measured in GB-Hours Included amount: The free storage allowance for your plan (for example, 50 GB on the Enterprise plan) is converted to an hourly rate for billing calculations Shared storage: Actions artifacts and GitHub Packages storage share the same pooled allowance. See GitHub Packages billing. Cache storage: Actions cache storage is a separate allowance of 10 GB per repository. Cache storage is not shared with artifacts or GitHub Packages. Custom image storage: Storage for custom images used with GitHub-hosted larger runners has its own included allowance based on your plan. Understanding current vs. accrued storage It's important to understand the difference between what you see on GitHub and what appears on your bill: Current storage: The amount of storage you have right now Accrued storage: The cumulative total of storage used throughout the billing cycle (determines your bill) When you delete artifacts: Current storage decreases immediately Future hourly charges stop accumulating Storage already accrued during the current billing cycle remains in your total and will appear on your bill Example (30-day billing cycle): If you store 10 GB of artifacts for 10 days, then delete everything on day 11: Days 1-10: Accruing 240 GB-Hours per day (10 GB × 24 hours) Day 11: Delete artifacts → current storage drops to 0 GB Days 11-30: Accruing 0 GB-Hours (no storage) Your bill: Shows 2,400 GB-Hours total (10 days × 240 GB-Hours/day) Deleting artifacts reduces your current storage and prevents future charges, but does not remove charges already recorded for the time the storage existed. Storage measurement units GitHub Actions measures storage in binary gigabytes (GB), where: 1 GB = 2^30 bytes = 1,073,741,824 bytes This is also known as a gibibyte (GiB) 1 GB = 1,024 megabytes (MB) Billing calculations use GB-Hours: 1 GB-Hour = 1 GB of storage for 1 hour Example: Storing 3 GB for 10 days = 720 GB-Hours (3 GB × 10 days × 24 hours) Your monthly bill converts GB-Hours to GB-Months by dividing by the hours in the month (usually 720 hours for a 30-day month). Custom image storage For GitHub-hosted larger runners, storage for custom images is billed through GitHub Actions storage. Custom image storage uses the same hourly accrual model as other GitHub Actions storage. Your bill is based on the amount of image data that is stored over time, measured in GB-Hours. Storage usage for custom images depends on: The size of each image version The number of image versions that you retain How long each version is stored Each successful workflow job that includes the snapshot keyword creates a new custom image version. Each retained version contributes to your storage usage until the version is deleted or removed by a retention policy. For more information, see Using custom images and Enforcing policies for GitHub Actions in your enterprise. Custom image storage is based on retained image data over time, not on the number of times that a runner uses or pulls an existing image. For example: Storing one 150 GB custom image version for 24 hours uses 3,600 GB-Hours. Storing four 150 GB versions of the same image for 24 hours uses 14,400 GB-Hours. Examples of how usage is measured If you run a workflow on a Linux runner and it takes 10 minutes to complete, you'll use 10 minutes of the repository owner's allowance. If the workflow generates a 10 MB artifact, then you'll also use 10 MB of the repository owner's artifact storage allowance. If you run a workflow that normally takes 10 minutes and it fails after 5 minutes because a dependency isn't available, you'll use 5 minutes of the repository owner's allowance. If you fix the problem and re-run the workflow successfully, in total you'll use 15 minutes of the repository owner's allowance. If you run a workflow that generates many log files and a long job summary, these files do not count towards the repository owner's artifact storage allowance. Cache storage usage is measured by the peak usage for each hour. The included allowance is 10 GB per repository. For a given hour, if a repository has a peak cache usage of 15 GB, then the repository owner will be charged for the 5 GB of usage above the 10 GB included for that repository. The repository owner will only be charged if the repository cache storage limit has been configured higher than the included usage. Free use of GitHub Actions The following amounts of time for standard runners, artifact storage, and cache storage are included in your GitHub plan. At the start of each month, the minutes used by the account are reset to zero. Plan Artifact storage Minutes (per month) Cache storage (per repository) Custom image storage GitHub Free 500 MB 2,000 10 GB Not applicable GitHub Pro 1 GB 3,000 10 GB Not applicable GitHub Free for organizations 500 MB 2,000 10 GB Not applicable GitHub Team 2 GB 3,000 10 GB 75 GB GitHub Enterprise Cloud 50 GB 50,000 10 GB 150 GB The use of standard GitHub-hosted runners is free: In public repositories For GitHub Pages For Dependabot Note Larger runners are always charged for, even when used by public repositories or when you have quota available from your plan. The artifact storage amounts shown are shared with GitHub Packages. This means your total storage across Actions artifacts and GitHub Packages storage cannot exceed the included amount for your plan. Cache storage and custom image storage are separate allowances. Copilot code review consumes GitHub Actions minutes on private repositories. For public repositories, GitHub Actions minutes remain free. Using more than your included quota If your account does not have a valid payment method on file, usage is blocked once you use up your quota. Usage of larger runners is always blocked until you set up a payment method. Paying for additional GitHub Actions use You pay for any additional use above your quota using the payment method set up for your GitHub account. See Managing your payment and billing information. For GitHub-hosted runners, storage is billed bas..."
+              },
+              "extractionStatus": "candidate",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "50gbontheenterpriseplanisconvertedtoanhourlyrateforbillingcalculationssharedstorageactionsartifactsandgithubpackagesstoragesharethesamepooledallowance",
+              "verifiedAt": "2026-10-23T15:00:00.000Z"
+            },
+            {
+              "id": "fact-1-1",
+              "subject": "github",
+              "predicate": "price",
+              "relation": "price",
+              "claimType": "price",
+              "value": "",
+              "unit": "",
+              "normalizedQuantity": null,
+              "targetDate": "",
+              "targetLocation": "",
+              "attributes": [],
+              "quote": "Storage measurement units GitHub Actions measures storage in binary gigabytes (GB)",
+              "quoteStart": 3580,
+              "sourceSpan": {
+                "start": 3580,
+                "end": 3662
+              },
+              "contextSpan": "accrued storage It's important to understand the difference between what you see on GitHub and what appears on your bill: Current storage: The amount of storage you have right now Accrued storage: The cumulative total of storage used throughout the billing cycle (determines your bill) When you delete artifacts: Current storage decreases immediately Future hourly charges stop accumulating Storage already accrued during the current billing cycle remains in your total and will appear on your bill Example (30-day billing cycle): If you store 10 GB of artifacts for 10 days, then delete everything on day 11: Days 1-10: Accruing 240 GB-Hours per day (10 GB × 24 hours) Day 11: Delete artifacts → current storage drops to 0 GB Days 11-30: Accruing 0 GB-Hours (no storage) Your bill: Shows 2,400 GB-Hours total (10 days × 240 GB-Hours/day) Deleting artifacts reduces your current storage and prevents future charges, but does not remove charges already recorded for the time the storage existed. Storage measurement units GitHub Actions measures storage in binary gigabytes (GB)",
+              "scopeText": "\naccrued storage It's important to understand the difference between what you see on GitHub and what appears on your bill: Current storage: The amount of storage you have right now Accrued storage: The cumulative total of storage used throughout the billing cycle (determines your bill) When you delete artifacts: Current storage decreases immediately Future hourly charges stop accumulating Storage already accrued during the current billing cycle remains in your total and will appear on your bill Example (30-day billing cycle): If you store 10 GB of artifacts for 10 days, then delete everything on day 11: Days 1-10: Accruing 240 GB-Hours per day (10 GB × 24 hours) Day 11: Delete artifacts → current storage drops to 0 GB Days 11-30: Accruing 0 GB-Hours (no storage) Your bill: Shows 2,400 GB-Hours total (10 days × 240 GB-Hours/day) Deleting artifacts reduces your current storage and prevents future charges, but does not remove charges already recorded for the time the storage existed. Storage measurement units GitHub Actions measures storage in binary gigabytes (GB)",
+              "temporalResolutionConfidence": "unresolved",
+              "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+              "sourceTitle": "GitHub Actions billing - GitHub Docs",
+              "publishedAt": null,
+              "publicationDate": null,
+              "fetchedAt": null,
+              "preparedAt": null,
+              "referenceTime": null,
+              "effectiveDate": null,
+              "status": "rejected",
+              "priceDetails": {
+                "modelNames": [],
+                "input": "",
+                "output": "",
+                "currency": "",
+                "tokenUnit": "",
+                "raw": "In this article GitHub Actions billing Learn how usage of GitHub Actions is measured against your free allowance and how to pay for additional use. Copy markdown In this article How use of GitHub Actions is measured GitHub Actions usage is free for self-hosted runners and for public repositories that use standard GitHub-hosted runners. See Choosing the runner for a job. For private repositories, each GitHub account receives a quota of free minutes, artifact storage, and cache storage for use with GitHub-hosted runners, depending on the account's plan. Any usage beyond the included amounts is billed to your account. Minutes: Your free minutes reset to the full amount at the start of each billing cycle. Minutes usage is charged to the repository owner, not the person who triggered the workflow runs. Storage: Storage charges accumulate throughout the month based on hourly usage. Your accrued storage charges reset to zero at the start of each billing cycle. Tip Anyone with write access to a repository can run actions. Any costs of running the actions are billed to the repository owner. Copilot code review and GitHub Actions minutes Each Copilot code review consumes GitHub Actions minutes in addition to AI credits. Private repositories: Minutes are consumed from your account or organization's existing plan entitlement. Any usage beyond your included minutes is billed at standard GitHub Actions rates. Public repositories: Minutes remain free. Copilot code review runs on standard GitHub-hosted Ubuntu Linux runners by default. You can also configure GitHub-hosted larger runners or self-hosted runners via Actions Runner Controller (ARC), which are billed at different rates. How storage billing works GitHub Actions storage billing operates on an hourly accrual model: Continuous billing: Storage charges accrue every hour based on your actual usage throughout the month Monthly total: Your bill reflects the total storage used throughout the month, measured in GB-Hours Included amount: The free storage allowance for your plan (for example, 50 GB on the Enterprise plan) is converted to an hourly rate for billing calculations Shared storage: Actions artifacts and GitHub Packages storage share the same pooled allowance. See GitHub Packages billing. Cache storage: Actions cache storage is a separate allowance of 10 GB per repository. Cache storage is not shared with artifacts or GitHub Packages. Custom image storage: Storage for custom images used with GitHub-hosted larger runners has its own included allowance based on your plan. Understanding current vs. accrued storage It's important to understand the difference between what you see on GitHub and what appears on your bill: Current storage: The amount of storage you have right now Accrued storage: The cumulative total of storage used throughout the billing cycle (determines your bill) When you delete artifacts: Current storage decreases immediately Future hourly charges stop accumulating Storage already accrued during the current billing cycle remains in your total and will appear on your bill Example (30-day billing cycle): If you store 10 GB of artifacts for 10 days, then delete everything on day 11: Days 1-10: Accruing 240 GB-Hours per day (10 GB × 24 hours) Day 11: Delete artifacts → current storage drops to 0 GB Days 11-30: Accruing 0 GB-Hours (no storage) Your bill: Shows 2,400 GB-Hours total (10 days × 240 GB-Hours/day) Deleting artifacts reduces your current storage and prevents future charges, but does not remove charges already recorded for the time the storage existed. Storage measurement units GitHub Actions measures storage in binary gigabytes (GB), where: 1 GB = 2^30 bytes = 1,073,741,824 bytes This is also known as a gibibyte (GiB) 1 GB = 1,024 megabytes (MB) Billing calculations use GB-Hours: 1 GB-Hour = 1 GB of storage for 1 hour Example: Storing 3 GB for 10 days = 720 GB-Hours (3 GB × 10 days × 24 hours) Your monthly bill converts GB-Hours to GB-Months by dividing by the hours in the month (usually 720 hours for a 30-day month). Custom image storage For GitHub-hosted larger runners, storage for custom images is billed through GitHub Actions storage. Custom image storage uses the same hourly accrual model as other GitHub Actions storage. Your bill is based on the amount of image data that is stored over time, measured in GB-Hours. Storage usage for custom images depends on: The size of each image version The number of image versions that you retain How long each version is stored Each successful workflow job that includes the snapshot keyword creates a new custom image version. Each retained version contributes to your storage usage until the version is deleted or removed by a retention policy. For more information, see Using custom images and Enforcing policies for GitHub Actions in your enterprise. Custom image storage is based on retained image data over time, not on the number of times that a runner uses or pulls an existing image. For example: Storing one 150 GB custom image version for 24 hours uses 3,600 GB-Hours. Storing four 150 GB versions of the same image for 24 hours uses 14,400 GB-Hours. Examples of how usage is measured If you run a workflow on a Linux runner and it takes 10 minutes to complete, you'll use 10 minutes of the repository owner's allowance. If the workflow generates a 10 MB artifact, then you'll also use 10 MB of the repository owner's artifact storage allowance. If you run a workflow that normally takes 10 minutes and it fails after 5 minutes because a dependency isn't available, you'll use 5 minutes of the repository owner's allowance. If you fix the problem and re-run the workflow successfully, in total you'll use 15 minutes of the repository owner's allowance. If you run a workflow that generates many log files and a long job summary, these files do not count towards the repository owner's artifact storage allowance. Cache storage usage is measured by the peak usage for each hour. The included allowance is 10 GB per repository. For a given hour, if a repository has a peak cache usage of 15 GB, then the repository owner will be charged for the 5 GB of usage above the 10 GB included for that repository. The repository owner will only be charged if the repository cache storage limit has been configured higher than the included usage. Free use of GitHub Actions The following amounts of time for standard runners, artifact storage, and cache storage are included in your GitHub plan. At the start of each month, the minutes used by the account are reset to zero. Plan Artifact storage Minutes (per month) Cache storage (per repository) Custom image storage GitHub Free 500 MB 2,000 10 GB Not applicable GitHub Pro 1 GB 3,000 10 GB Not applicable GitHub Free for organizations 500 MB 2,000 10 GB Not applicable GitHub Team 2 GB 3,000 10 GB 75 GB GitHub Enterprise Cloud 50 GB 50,000 10 GB 150 GB The use of standard GitHub-hosted runners is free: In public repositories For GitHub Pages For Dependabot Note Larger runners are always charged for, even when used by public repositories or when you have quota available from your plan. The artifact storage amounts shown are shared with GitHub Packages. This means your total storage across Actions artifacts and GitHub Packages storage cannot exceed the included amount for your plan. Cache storage and custom image storage are separate allowances. Copilot code review consumes GitHub Actions minutes on private repositories. For public repositories, GitHub Actions minutes remain free. Using more than your included quota If your account does not have a valid payment method on file, usage is blocked once you use up your quota. Usage of larger runners is always blocked until you set up a payment method. Paying for additional GitHub Actions use You pay for any additional use above your quota using the payment method set up for your GitHub account. See Managing your payment and billing information. For GitHub-hosted runners, storage is billed bas..."
+              },
+              "extractionStatus": "held-no-reliable-value",
+              "verificationStage": "rejected",
+              "semanticRelevance": "not-reviewed",
+              "validationFailures": [
+                "relation-or-value-unresolved",
+                "requested-location-not-in-scope"
+              ],
+              "normalizedQuote": "storagemeasurementunitsgithubactionsmeasuresstorageinbinarygigabytesgb",
+              "verifiedAt": "2026-10-23T15:00:00.000Z"
+            }
+          ],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "answerRequirements": {
+            "required": [
+              "price",
+              "currency-and-plan"
+            ],
+            "satisfied": [],
+            "missing": [
+              "price",
+              "currency-and-plan"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "officialRequired": false,
+            "officialSatisfied": false,
+            "policyHold": false,
+            "answerEligible": [],
+            "referenceOnly": [],
+            "status": "incomplete-requirements"
+          }
+        }
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "candidateFactCount": 6,
+        "verifiedFactCount": 0,
+        "structuralSemanticPassCount": 0,
+        "officialSourceSatisfied": false,
+        "satisfiedAnswerItems": [],
+        "missingAnswerItems": [
+          "free-allowance-by-plan",
+          "overage-billing-rule",
+          "unit-price-table"
+        ],
+        "outcome": "hold",
+        "independentAccuracy": null
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "GitHub Free",
+            "relation": "free-minutes-per-month",
+            "value": "2,000",
+            "unit": "minutes",
+            "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+            "quote": "GitHub Free 500 MB 2,000 10 GB Not applicable",
+            "sourceSpan": {
+              "start": 6655,
+              "end": 6700
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [
+              "free-allowance-by-plan"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:relation"
+            ]
+          },
+          {
+            "subject": "GitHub Pro",
+            "relation": "free-minutes-per-month",
+            "value": "3,000",
+            "unit": "minutes",
+            "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+            "quote": "GitHub Pro 1 GB 3,000 10 GB Not applicable",
+            "sourceSpan": {
+              "start": 6701,
+              "end": 6743
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [
+              "free-allowance-by-plan"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:relation"
+            ]
+          },
+          {
+            "subject": "GitHub Free for organizations",
+            "relation": "free-minutes-per-month",
+            "value": "2,000",
+            "unit": "minutes",
+            "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+            "quote": "GitHub Free for organizations 500 MB 2,000 10 GB Not applicable",
+            "sourceSpan": {
+              "start": 6744,
+              "end": 6807
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [
+              "free-allowance-by-plan"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:relation"
+            ]
+          },
+          {
+            "subject": "GitHub Team",
+            "relation": "free-minutes-per-month",
+            "value": "3,000",
+            "unit": "minutes",
+            "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+            "quote": "GitHub Team 2 GB 3,000 10 GB 75 GB",
+            "sourceSpan": {
+              "start": 6808,
+              "end": 6842
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [
+              "free-allowance-by-plan"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:relation"
+            ]
+          },
+          {
+            "subject": "GitHub Enterprise Cloud",
+            "relation": "free-minutes-per-month",
+            "value": "50,000",
+            "unit": "minutes",
+            "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+            "quote": "GitHub Enterprise Cloud 50 GB 50,000 10 GB 150 GB",
+            "sourceSpan": {
+              "start": 6843,
+              "end": 6892
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [
+              "free-allowance-by-plan"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:relation"
+            ]
+          },
+          {
+            "subject": "GitHub Actions",
+            "relation": "overage-billing-rule",
+            "value": "Any usage beyond your included minutes is billed at standard GitHub Actions rates.",
+            "unit": "",
+            "sourceUrl": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+            "quote": "Any usage beyond your included minutes is billed at standard GitHub Actions rates.",
+            "sourceSpan": {
+              "start": 1336,
+              "end": 1418
+            },
+            "appliesAt": null,
+            "requiredAnswerItems": [
+              "overage-billing-rule"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:relation"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:relation"
+            ]
+          }
+        ],
+        "verified": [],
+        "responseSchemaValid": true,
+        "evidenceStatus": "evidence-insufficient",
+        "calls": 1,
+        "model": "gemini-3.5-flash-lite",
+        "usage": {
+          "promptTokenCount": 1303,
+          "candidatesTokenCount": 1072,
+          "totalTokenCount": 2375,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1303
+            }
+          ],
+          "serviceTier": "standard"
+        },
+        "verifiedFacts": []
+      }
+    },
+    {
+      "id": "focus-05",
+      "question": "2026-10-24 기준 과학기술정보통신부 장관",
+      "sourceQuestion": "2026-10-24 기준 과학기술정보통신부 장관",
+      "httpCalls": 1,
+      "model": "gemini-3.5-flash-lite",
+      "processingMs": 4587,
+      "inputTokens": 880,
+      "outputTokens": 409,
+      "methodA": {
+        "storedReport": null,
+        "replay": {
+          "facts": [],
+          "verifiedFacts": [],
+          "status": "insufficient-evidence",
+          "answerRequirements": {
+            "required": [
+              "fact-value"
+            ],
+            "satisfied": [],
+            "missing": [
+              "fact-value"
+            ],
+            "complete": false,
+            "semanticReviewed": false,
+            "officialRequired": false,
+            "officialSatisfied": false,
+            "policyHold": false,
+            "answerEligible": [],
+            "referenceOnly": [],
+            "status": "incomplete-requirements"
+          }
+        }
+      },
+      "evaluation": {
+        "responseSchemaValid": true,
+        "candidateFactCount": 2,
+        "verifiedFactCount": 1,
+        "structuralSemanticPassCount": 1,
+        "officialSourceSatisfied": true,
+        "satisfiedAnswerItems": [
+          "minister-name-and-title"
+        ],
+        "missingAnswerItems": [
+          "evidence-date",
+          "incumbency-at-2026-10-24"
+        ],
+        "outcome": "partial",
+        "independentAccuracy": null
+      },
+      "methodB": {
+        "facts": [
+          {
+            "subject": "배경훈",
+            "relation": "부총리 겸 과학기술정보통신부 장관",
+            "value": "배경훈 부총리 겸 과학기술정보통신부 장관",
+            "unit": null,
+            "sourceUrl": "https://www.msit.go.kr/index.do",
+            "quote": "배경훈 부총리 겸 과학기술정보통신부 장관이 19일 오전",
+            "sourceSpan": {
+              "start": 2254,
+              "end": 2284
+            },
+            "appliesAt": "2026-10-19",
+            "requiredAnswerItems": [
+              "minister-name-and-title"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "verified",
+            "validationFailures": [],
+            "semanticStatus": "supported",
+            "semanticSupport": true,
+            "semanticValidationFailures": []
+          },
+          {
+            "subject": "배경훈 부총리 겸 과학기술정보통신부 장관",
+            "relation": "evidence-date",
+            "value": "2026-10-19",
+            "unit": null,
+            "sourceUrl": "https://www.msit.go.kr/index.do",
+            "quote": "pstgBgngDt=2026-10-19 09:00:00.0",
+            "sourceSpan": {
+              "start": 2419,
+              "end": 2451
+            },
+            "appliesAt": "2026-10-19",
+            "requiredAnswerItems": [
+              "evidence-date"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "rejected",
+            "validationFailures": [
+              "field-not-supported-by-quote:subject",
+              "field-not-supported-by-quote:relation"
+            ],
+            "semanticStatus": "needs-review",
+            "semanticSupport": false,
+            "semanticValidationFailures": [
+              "field-not-supported-by-quote:subject",
+              "field-not-supported-by-quote:relation"
+            ]
+          }
+        ],
+        "verified": [
+          {
+            "subject": "배경훈",
+            "relation": "부총리 겸 과학기술정보통신부 장관",
+            "value": "배경훈 부총리 겸 과학기술정보통신부 장관",
+            "unit": null,
+            "sourceUrl": "https://www.msit.go.kr/index.do",
+            "quote": "배경훈 부총리 겸 과학기술정보통신부 장관이 19일 오전",
+            "sourceSpan": {
+              "start": 2254,
+              "end": 2284
+            },
+            "appliesAt": "2026-10-19",
+            "requiredAnswerItems": [
+              "minister-name-and-title"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "verified",
+            "validationFailures": [],
+            "semanticStatus": "supported",
+            "semanticSupport": true,
+            "semanticValidationFailures": []
+          }
+        ],
+        "responseSchemaValid": true,
+        "evidenceStatus": "verified",
+        "calls": 2,
+        "model": "gemini-3.5-flash-lite",
+        "usage": {
+          "promptTokenCount": 880,
+          "candidatesTokenCount": 409,
+          "totalTokenCount": 1289,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 880
+            }
+          ],
+          "serviceTier": "standard"
+        },
+        "verifiedFacts": [
+          {
+            "subject": "배경훈",
+            "relation": "부총리 겸 과학기술정보통신부 장관",
+            "value": "배경훈 부총리 겸 과학기술정보통신부 장관",
+            "unit": null,
+            "sourceUrl": "https://www.msit.go.kr/index.do",
+            "quote": "배경훈 부총리 겸 과학기술정보통신부 장관이 19일 오전",
+            "sourceSpan": {
+              "start": 2254,
+              "end": 2284
+            },
+            "appliesAt": "2026-10-19",
+            "requiredAnswerItems": [
+              "minister-name-and-title"
+            ],
+            "uncertainties": [],
+            "sourceSpanOrigin": "quote-search",
+            "quoteOccurrenceCount": 1,
+            "status": "verified",
+            "validationFailures": [],
+            "semanticStatus": "supported",
+            "semanticSupport": true,
+            "semanticValidationFailures": []
+          }
+        ]
+      }
+    }
+  ],
+  "holds": [
+    {
+      "id": "focus-01",
+      "question": "PostgreSQL 최신 안정 버전",
+      "httpCalls": 0,
+      "finalOutcome": "hold",
+      "reason": [
+        "official-snapshot-missing"
+      ]
+    },
+    {
+      "id": "focus-03",
+      "question": "2026-10-24 서울 날씨",
+      "httpCalls": 0,
+      "finalOutcome": "hold",
+      "reason": [
+        "official-snapshot-missing"
+      ]
+    },
+    {
+      "id": "focus-04",
+      "question": "2026-10-18~24 반도체 뉴스",
+      "httpCalls": 0,
+      "finalOutcome": "hold",
+      "reason": [
+        "official-snapshot-missing"
+      ]
+    },
+    {
+      "id": "focus-06",
+      "question": "2026년 10월 서울 무료 개발자 행사 일정",
+      "httpCalls": 0,
+      "finalOutcome": "hold",
+      "reason": [
+        "official-snapshot-missing"
+      ]
+    }
+  ],
+  "evaluation": {
+    "independentAnswerLabels": false,
+    "note": "모델 승인 자체는 정답이 아니다. 독립 검토 전 판정은 unreviewed.",
+    "totals": {
+      "candidateFactCount": 8,
+      "verifiedFactCount": 1,
+      "structuralSemanticPassCount": 1,
+      "complete": 0,
+      "partial": 1,
+      "hold": 1,
+      "inputTokens": 2183,
+      "outputTokens": 1481,
+      "independentAccuracy": null
+    }
+  }
+}

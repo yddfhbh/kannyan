@@ -97,7 +97,8 @@ export async function runGeneralSearchChat(question, searchData, options = {}) {
     titleLength: String(page.title || '').length, bodyLength: String(page.pageText || '').length,
     relevantSegments: page.relevantSegments?.length || 0, official: classifyOfficialSource(page.url) }));
   if (extraction.skipped || extraction.responseSchemaValid !== true) return { mode, action: 'legacy', reason: extraction.skipped || 'invalid-extraction', pages: pages.length, sourceDiagnostics,
-    extractionDiagnostics: { schemaValid: false, rawFacts: extraction.rawFactCount ?? 0, failures: extraction.failures || [] },
+    extractionDiagnostics: { schemaValid: false, rawFacts: extraction.rawFactCount ?? 0, failures: extraction.failures || [],
+      ...(extraction.diagnostics || {}) },
     extractionCalls: extraction.calls || 0, extractionStatus: extraction.error?.status ?? null };
   // Only strictSemantic-approved facts may reach assessment or display.
   const checked = (extraction.facts || []).map((fact) => validateExtractedEvidenceFact(fact, pages, { strictSemantic: true }));
@@ -115,7 +116,8 @@ export async function runGeneralSearchChat(question, searchData, options = {}) {
       && fact.sourceSpan.end === extraction.facts[index]?.sourceSpan?.end).length,
     sourceSpanRecovered: checked.filter((fact, index) => fact.sourceSpan
       && (fact.sourceSpan.start !== extraction.facts[index]?.sourceSpan?.start
-        || fact.sourceSpan.end !== extraction.facts[index]?.sourceSpan?.end)).length };
+        || fact.sourceSpan.end !== extraction.facts[index]?.sourceSpan?.end)).length,
+    ...(extraction.diagnostics || {}) };
   const assessment = assessRequiredAnswerItems(question, verified, { now: options.now });
   const asOfDate = String(question).match(/\b20\d{2}-\d{2}-\d{2}\b/)?.[0];
   if (asOfDate && !verified.some((fact) => fact.appliesAt === asOfDate)) {

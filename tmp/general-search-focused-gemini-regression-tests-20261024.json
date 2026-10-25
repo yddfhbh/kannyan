@@ -1,0 +1,12 @@
+{
+  "type": "focused-gemini-replay-regression-tests",
+  "results": [
+    { "command": "node test/general-search-focused-replay.test.js", "tests": 6, "pass": 6, "fail": 0, "exitCode": 0 },
+    { "command": "node test/general-search-llm-extraction.test.js", "tests": 5, "pass": 5, "fail": 0, "exitCode": 0 },
+    { "command": "node test/general-search-pipeline.test.js", "tests": 49, "pass": 49, "fail": 0, "exitCode": 0 }
+  ],
+  "totals": { "tests": 60, "pass": 60, "fail": 0 },
+  "geminiApiCalls": 0,
+  "webHttpRequests": 0,
+  "holdoutAccessed": false
+}

@@ -1,0 +1,200 @@
+{
+  "fixtureCodeSha256": "01d01a80923976a87280677466a71f80a83d444cb24cd51305533cb863076cb9",
+  "results": [
+    {
+      "id": "toefl-fact",
+      "answer": "제공된 검색 자료에서는 토플 응시료의 정확한 현재 금액을 확인할 수 없다냥.",
+      "verifier": "recorded local exception reproduced",
+      "transport": "captured raw model response"
+    },
+    {
+      "id": "toefl-current-fee-evidence",
+      "reviews": [
+        {
+          "id": 0,
+          "relevant": false,
+          "quote": "",
+          "reason": "토플 시험 특강 및 학원 개강에 관한 내용으로, 토플 응시료 금액에 대한 정보는 포함되어 있지 않다.",
+          "region": "",
+          "validTime": "",
+          "kind": "unknown",
+          "dataType": "prose",
+          "weatherFields": [],
+          "rawModelReview": {
+            "id": 0,
+            "relevant": false,
+            "quote": "종로토플학원 YBM종로 바나나토플, 겨울방학 단기 특강 프로그램 개강",
+            "reason": "토플 시험 특강 및 학원 개강에 관한 내용으로, 토플 응시료 금액에 대한 정보는 포함되어 있지 않다.",
+            "region": "",
+            "validTime": "",
+            "kind": "unknown",
+            "dataType": "prose",
+            "weatherFields": []
+          },
+          "validationFailures": [],
+          "requestSatisfied": false,
+          "requestMismatch": "",
+          "reviewMetrics": {
+            "sourceCount": 2,
+            "inputChars": 1248,
+            "originalChars": 1032,
+            "finalVerification": false,
+            "elapsedMs": 8,
+            "outputChars": 1013
+          },
+          "status": "reviewed"
+        },
+        {
+          "id": 1,
+          "relevant": false,
+          "quote": "",
+          "reason": "review-describes-missing-attribute",
+          "region": "",
+          "validTime": "",
+          "kind": "unknown",
+          "dataType": "prose",
+          "weatherFields": [],
+          "rawModelReview": {
+            "id": 1,
+            "relevant": true,
+            "quote": "토플·토익 응시료 年 1000억원 ''해외로''새 창 열림국회 문광위 소속 한나라당 심재철 의원은 이날 보도자료를 내고 “얼마 전 토익 고위관계자가 사석에서 모 인사와 만나 자신들은 한국에서 작년에 9700만달러를 벌어들였다고 밝혔다”고 주장했다. 심 의원은 “작년 한국인 13만4000명의 토플 응시료 2278만달러가 토플 출제기관인 미국 교육평가원...",
+            "reason": "토플 응시료 관련 언급이 있으나 과거 연도 기준 총액에 대한 내용이며 현재 응시료 단가 금액은 명시되어 있지 않다.",
+            "region": "",
+            "validTime": "",
+            "kind": "unknown",
+            "dataType": "prose",
+            "weatherFields": []
+          },
+          "validationFailures": [
+            "review-describes-missing-attribute"
+          ],
+          "requestSatisfied": false,
+          "requestMismatch": "review-describes-missing-attribute",
+          "reviewMetrics": {
+            "sourceCount": 2,
+            "inputChars": 1248,
+            "originalChars": 1032,
+            "finalVerification": false,
+            "elapsedMs": 8,
+            "outputChars": 1013
+          },
+          "status": "reviewed"
+        }
+      ]
+    },
+    {
+      "id": "weather",
+      "answer": "",
+      "reviews": [
+        {
+          "id": 0,
+          "relevant": false,
+          "quote": "",
+          "reason": "경남 남부지역 중심의 내용으로 부산의 구체적인 예보 수치가 부족하다냥.",
+          "region": "",
+          "validTime": "",
+          "kind": "unknown",
+          "dataType": "prose",
+          "weatherFields": [],
+          "rawModelReview": {
+            "id": 0,
+            "relevant": false,
+            "quote": "",
+            "reason": "경남 남부지역 중심의 내용으로 부산의 구체적인 예보 수치가 부족하다냥.",
+            "region": "",
+            "validTime": "",
+            "kind": "unknown",
+            "dataType": "prose",
+            "weatherFields": []
+          },
+          "validationFailures": [
+            "weather-time-is-not-observation-or-forecast",
+            "weather-fields-not-verbatim-or-incomplete"
+          ],
+          "requestSatisfied": false,
+          "requestMismatch": "weather-time-is-not-observation-or-forecast",
+          "reviewMetrics": {
+            "sourceCount": 2,
+            "inputChars": 2488,
+            "originalChars": 3088,
+            "finalVerification": false,
+            "elapsedMs": 3,
+            "outputChars": 1324
+          },
+          "status": "reviewed"
+        },
+        {
+          "id": 1,
+          "relevant": false,
+          "quote": "",
+          "reason": "weather-target-date-mismatch",
+          "region": "부산",
+          "validTime": "17일",
+          "kind": "forecast",
+          "dataType": "weather",
+          "weatherFields": [
+            "▲ 부산 : [맑음, 구름많음] (17∼24) <10, 20>"
+          ],
+          "rawModelReview": {
+            "id": 1,
+            "relevant": true,
+            "quote": "▲ 부산 : [맑음, 구름많음] (17∼24) <10, 20>",
+            "reason": "부산의 17일 오전/오후 날씨와 기온, 강수 확률 정보가 포함되어 있다냥.",
+            "region": "부산",
+            "validTime": "17일",
+            "kind": "forecast",
+            "dataType": "weather",
+            "weatherFields": [
+              "▲ 부산 : [맑음, 구름많음] (17∼24) <10, 20>"
+            ]
+          },
+          "validationFailures": [
+            "weather-target-date-mismatch"
+          ],
+          "requestSatisfied": false,
+          "requestMismatch": "weather-target-date-mismatch",
+          "reviewMetrics": {
+            "sourceCount": 2,
+            "inputChars": 2488,
+            "originalChars": 3088,
+            "finalVerification": false,
+            "elapsedMs": 3,
+            "outputChars": 1324
+          },
+          "status": "reviewed"
+        }
+      ]
+    },
+    {
+      "id": "news",
+      "answer": "최근 14일 범위에서 게시일과 본문을 확인한 관련 기사는 2건이다냥. 아래 내용은 확보한 기사에 한정한 요약이다냥.\n\n제목: 명령·데이터 구분 못하는 AI에이전트 ‘해킹 취약’…기준 구체화 필요\n게시일: 2026-10-15T23:33:21+09:00\n요약: 제공된 기사에 따르면 김 교수는 프롬프트 인젝션 현상이 에이전틱 AI의 가장 큰 보안 위협이라고 설명했다냥. (출처: 서울경제, https://www.sedaily.com/article/20102271)\nURL: https://www.sedaily.com/article/20102271\n\n제목: 美 FTC, ‘해킹 논란’ 오픈AI·앤트로픽 조사…경영진 소환\n게시일: 2026-10-15T20:58:04+09:00\n요약: 미국 FTC가 최근 잇따른 AI 에이전트 해킹 논란 등 보안 사고를 이유로 오픈AI와 앤트로픽을 조사하기 시작했다는 내용이다냥.\n\n출처: https://www.sedaily.com/article/20102252\nURL: https://www.sedaily.com/article/20102252",
+      "verifier": "explicit successful test double; original log has no completed validator response",
+      "transport": "captured raw summary responses through production generator"
+    },
+    {
+      "id": "wiki",
+      "answer": "푝무위키 파이호크 문서의 생년월일은 2007-09-14이며, 2026-10-16 기준 만 19세다냥. 위키 서술 기준이다냥.",
+      "transport": "captured planning and evidence through production handler"
+    },
+    {
+      "id": "mixed",
+      "answer": "나는 CODEX가 만든 고양이귀 미소녀 챗봇 깐냥이다냥.\n\n자료 확인 시간 한도에 도달해 요청 조건을 검증하지 못했다냥.",
+      "transport": "captured planning and evidence through production handler"
+    },
+    {
+      "id": "toefl-search",
+      "answer": "자료 확인 시간 한도에 도달해 요청 조건을 검증하지 못했다냥.",
+      "transport": "captured planning and evidence through production handler"
+    },
+    {
+      "id": "self-answer",
+      "answer": "나는 CODEX가 만든 고양이귀 미소녀 챗봇 깐냥이다냥! 너와 나눈 대화를 기억하고 있고, 도움이 필요하면 언제든 편하게 물어봐 달라냥.",
+      "transport": "captured planning and evidence through production handler"
+    },
+    {
+      "id": "product-comparison",
+      "answer": "답변을 위한 호출 예약 때문에 추가 근거 검토를 중단해 요청 조건을 확인하지 못했다냥.",
+      "transport": "captured planning and evidence through production handler"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "questions": [
+    "오늘 서울 날씨", "내일 제주 날씨", "오늘 대전 미세먼지", "내일 뉴욕 날씨",
+    "Python 최신 안정 버전", "React 최신 버전", "PostgreSQL 최신 버전", "Docker Engine 최신 버전",
+    "MDN Fetch API 공식 문서에서 abort signal 사용법", "Kubernetes 공식 문서의 liveness probe 설명",
+    "최근 일주일 반도체 뉴스", "최근 일주일 생성형 AI 뉴스", "최근 일주일 한국 과학기술 뉴스",
+    "OpenAI API 최신 가격", "GitHub Actions 요금제", "AWS Lambda 요청 요금",
+    "서울 이번 달 무료 개발자 행사 일정", "부산 불꽃축제 올해 일정",
+    "대한민국 과학기술정보통신부 장관은 누구인가", "WHO 본부가 있는 도시와 기관 역할",
+    "MacBook Air와 Dell XPS 13의 공식 사양 비교", "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+    "2024년 자료와 현재 자료가 섞인 Node.js 릴리스 역사에서 최신 LTS만 확인",
+    "한국에서 사용할 수 있는 두 가지 클라우드 저장소의 무료 용량과 월 요금 비교"
+  ]
+}

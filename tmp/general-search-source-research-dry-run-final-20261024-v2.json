@@ -1,0 +1,205 @@
+{
+  "version": 2,
+  "type": "limited-general-search-source-research",
+  "generatedAt": "2026-10-24T03:58:34.030Z",
+  "dryRun": true,
+  "noGeminiCalls": true,
+  "budgets": {
+    "maxSearchAttemptsPerQuestion": 4,
+    "maxTotalSearches": 12,
+    "maxRetriesPerQuery": 1,
+    "maxReadsPerQuestion": 4,
+    "maxTotalReads": 24,
+    "searchBudgetUnit": "actual HTTP attempts; includes search-engine fallback and retries",
+    "bodyReadBudgetUnit": "actual HTTP attempts; includes redirects and retries",
+    "searchEngines": [
+      "naver",
+      "duckduckgo"
+    ],
+    "searchPriority": "naver-first, globally round-robin primary terms before fallback",
+    "exhaustionPolicy": "check immediately before every HTTP attempt; when exhausted, skip retries and stop retrieval"
+  },
+  "questions": [
+    {
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "searchQueries": [
+        "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    },
+    {
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "searchQueries": [
+        "site:kubernetes.io/docs liveness probe official documentation"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "Kubernetes 공식 문서의 liveness probe 설명",
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "Kubernetes 공식 문서의 liveness probe 설명",
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    },
+    {
+      "question": "Python 최신 안정 버전",
+      "searchQueries": [
+        "site:python.org/downloads latest stable Python release download"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "Python 최신 안정 버전",
+          "query": "site:python.org/downloads latest stable Python release download",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "Python 최신 안정 버전",
+          "query": "site:python.org/downloads latest stable Python release download",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    },
+    {
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "searchQueries": [
+        "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+        "site:dev.mysql.com/doc/refman JSON data type MySQL official"
+      ],
+      "plannedSearches": 2,
+      "plannedEngineRequests": [
+        {
+          "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+          "query": "site:dev.mysql.com/doc/refman JSON data type MySQL official",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 3,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    },
+    {
+      "question": "AWS Lambda 요청 요금",
+      "searchQueries": [
+        "site:aws.amazon.com AWS Lambda request pricing free tier",
+        "site:docs.aws.amazon.com/lambda latest pricing request charges"
+      ],
+      "plannedSearches": 2,
+      "plannedEngineRequests": [
+        {
+          "question": "AWS Lambda 요청 요금",
+          "query": "site:aws.amazon.com AWS Lambda request pricing free tier",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "AWS Lambda 요청 요금",
+          "query": "site:docs.aws.amazon.com/lambda latest pricing request charges",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    },
+    {
+      "question": "React 최신 버전",
+      "searchQueries": [
+        "site:react.dev/blog latest React release official"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "React 최신 버전",
+          "query": "site:react.dev/blog latest React release official",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        }
+      ],
+      "plannedRequestCount": 1,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "planned"
+    }
+  ],
+  "totals": {
+    "plannedSearchQueries": 8,
+    "plannedEngineRequests": 12,
+    "plannedBodyReads": 24
+  }
+}

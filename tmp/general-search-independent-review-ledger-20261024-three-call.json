@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-24T06:39:56.062Z",
+  "noApiCalls": true,
+  "noWebSearch": true,
+  "sourceRun": "tmp/general-search-gemini-experiment-run-20261024T062503Z.json",
+  "sourceSnapshotInput": "tmp/general-search-gemini-final-input-20261024.json",
+  "labelPolicy": [
+    "supported",
+    "needs-review",
+    "unsupported"
+  ],
+  "note": "독립 검토 라벨은 저장된 인용문과 스냅샷의 오프라인 대조 참고값이며, 외부 최신성·실제 세계 정확도 검증이 아니다.",
+  "cases": [
+    {
+      "id": "gemini-01",
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "originalQuestion": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "finalOutcome": "partial",
+      "facts": [
+        {
+          "factId": "gemini-01-fact-1",
+          "reviewLabel": "supported",
+          "reviewNote": "AbortController/AbortSignal 목적은 인용문과 문맥으로 지지되지만 usage-procedure는 별도 요건이다.",
+          "subject": "AbortController와 AbortSignal",
+          "relation": "사용 목적",
+          "value": "아직 완료되지 않은 fetch() 작업을 취소",
+          "quote": "아직 완료되지 않은 fetch() 작업을 취소하려면 AbortController와 AbortSignal 인터페이스를 사용하세요.",
+          "sourceUrl": "https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch",
+          "sourceSpan": {
+            "start": 2396,
+            "end": 2467
+          },
+          "lexicalMismatches": [
+            "relation"
+          ],
+          "context": ") => { console.log(data); // JSON 데이터가 `data.json()` 호출에 의해 파싱됨 }); mode: \"no-cors\"를 지정하면 요청에 사용할 수 있는 헤더가 다음 목록으로 제한됩니다. Accept Accept-Language Content-Language Content-Type, 값으로는 application/x-www-form-urlencoded, multipart/form-data, 또는 text/plain 취득 요청 중단 아직 완료되지 않은 fetch() 작업을 취소하려면 AbortController와 AbortSignal 인터페이스를 사용하세요. js const controller = new AbortController(); const signal = controller.signal; const url = \"video.mp4\"; const downloadBtn = document.querySelector(\"#download\"); const abortBtn = document.querySelector(\"#abort\"); downloadBtn.addEventListener(\"click\", async () ",
+          "structuralStatus": "verified",
+          "semanticStatus": "supported"
+        }
+      ]
+    },
+    {
+      "id": "gemini-02",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "originalQuestion": "Kubernetes 공식 문서의 liveness probe 설명",
+      "finalOutcome": "hold",
+      "facts": [
+        {
+          "factId": "gemini-02-fact-1",
+          "reviewLabel": "needs-review",
+          "reviewNote": "such situations의 앞 문맥은 스냅샷에서 확인되지만, 독립 장부에서는 단독 인용문 의미를 보수적으로 보류한다.",
+          "subject": "Kubernetes liveness probe",
+          "relation": "purpose",
+          "value": "detect and remedy such situations",
+          "quote": "Kubernetes provides liveness probes to detect and remedy such situations.",
+          "sourceUrl": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+          "sourceSpan": {
+            "start": 803,
+            "end": 876
+          },
+          "lexicalMismatches": [
+            "subject",
+            "relation"
+          ],
+          "context": "g minikube or you can use one of these Kubernetes playgrounds: iximiuz Labs Killercoda KodeKloud Define a liveness command Many applications running for long periods of time eventually transition to broken states, and cannot recover except by being restarted. Kubernetes provides liveness probes to detect and remedy such situations. In this exercise, you create a Pod that runs a container based on the registry.k8s.io/busybox:1.27.2 image. Here is the configuration file for the Pod: pods/probe/exec-liveness.yaml apiVersion: v1 kind: Pod metadata: labels: test: liveness name: liveness-exec",
+          "structuralStatus": "verified",
+          "semanticStatus": "needs-review"
+        }
+      ]
+    },
+    {
+      "id": "gemini-04",
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "originalQuestion": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "finalOutcome": "complete",
+      "facts": [
+        {
+          "factId": "gemini-04-fact-1",
+          "reviewLabel": "supported",
+          "reviewNote": "json/jsonb 두 저장 타입이라는 관계가 인용문에 직접 표현된다.",
+          "subject": "PostgreSQL",
+          "relation": "offers types for storing JSON data",
+          "value": "json and jsonb",
+          "quote": "PostgreSQL offers two types for storing JSON data: json and jsonb.",
+          "sourceUrl": "https://www.postgresql.org/docs/current/datatype-json.html",
+          "sourceSpan": {
+            "start": 890,
+            "end": 956
+          },
+          "lexicalMismatches": [
+            "relation"
+          ],
+          "context": "stored as text, but the JSON data types have the advantage of enforcing that each stored value is valid according to the JSON rules. There are also assorted JSON-specific functions and operators available for data stored in these data types; see Section 9.16. PostgreSQL offers two types for storing JSON data: json and jsonb. To implement efficient query mechanisms for these data types, PostgreSQL also provides the jsonpath data type described in Section 8.14.7. The json and jsonb data types accept almost identical sets of values as input. The major practical difference is one of ",
+          "structuralStatus": "verified",
+          "semanticStatus": "supported"
+        },
+        {
+          "factId": "gemini-04-fact-2",
+          "reviewLabel": "supported",
+          "reviewNote": "괄호의 JavaScript Object Notation 설명이 value 문자열의 비연속 일치를 만들었지만 의미는 인용문에 직접 표현된다.",
+          "subject": "MySQL",
+          "relation": "supports native JSON data type",
+          "value": "native JSON data type defined by RFC 8259",
+          "quote": "MySQL supports a native JSON (JavaScript Object Notation) data type defined by RFC 8259 that enables efficient access to data in JSON documents.",
+          "sourceUrl": "https://dev.mysql.com/doc/refman/8.4/en/json.html",
+          "sourceSpan": {
+            "start": 621,
+            "end": 765
+          },
+          "lexicalMismatches": [
+            "relation",
+            "value"
+          ],
+          "context": " The JSON Data Type Creating JSON Values Normalization, Merging, and Autowrapping of JSON Values Searching and Modifying JSON Values JSON Path Syntax Comparison and Ordering of JSON Values Converting between JSON and non-JSON values Aggregation of JSON Values MySQL supports a native JSON (JavaScript Object Notation) data type defined by RFC 8259 that enables efficient access to data in JSON documents. The JSON data type provides these advantages over storing JSON-format strings in a string column: Automatic validation of JSON documents stored in JSON columns. Invalid documents produce an error. Optimized storage format. JSON documents stored in JSON column",
+          "structuralStatus": "verified",
+          "semanticStatus": "supported"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "type": "final-general-search-development-validation-dry-run",
+  "generatedAt": "2026-10-24T06:55:40.057Z",
+  "manifestFile": "tmp/general-search-final-development-validation-20261024.json",
+  "noWebSearch": true,
+  "noGeminiCalls": true,
+  "holdoutRead": false,
+  "actualGeminiCalls": 0,
+  "actualWebSearchCalls": 0,
+  "maxGeminiHttpAttempts": 6,
+  "retry": false,
+  "fallback": false,
+  "plannedCalls": 0,
+  "callableQuestions": [],
+  "automaticHolds": [
+    {
+      "id": "general-01",
+      "question": "오늘 서울 날씨",
+      "status": "insufficient-evidence",
+      "reason": "저장 자료에 서울 값은 있으나 범용 검색 snapshot만 있고 기준일의 기상청 공식 근거가 없음"
+    },
+    {
+      "id": "general-05",
+      "question": "PostgreSQL 최신 버전",
+      "status": "stale-evidence",
+      "reason": "프로젝트 공식 최신 안정 버전 출처가 없고 RDS 2025 자료와 비공식/관리형 서비스 자료가 섞임"
+    },
+    {
+      "id": "general-07",
+      "question": "최근 일주일 반도체 뉴스",
+      "status": "stale-evidence",
+      "reason": "기사 발행일과 사건 발생일을 최근 7일 범위로 모두 확정할 수 없음"
+    },
+    {
+      "id": "general-11",
+      "question": "GitHub Actions 요금제",
+      "status": "sensitive-content-blocked",
+      "reason": "공식 문서 본문은 있으나 요금 관련 민감정보 차단/누락 흔적이 있어 우회하지 않음; 대체 공식 출처도 저장 자료에서 확인되지 않음"
+    },
+    {
+      "id": "general-12",
+      "question": "서울 이번 달 무료 개발자 행사 일정",
+      "status": "insufficient-evidence",
+      "reason": "서울·무료·개발자·10월 일정 조건을 동시에 입증하는 행사 원문이 없음"
+    },
+    {
+      "id": "general-14",
+      "question": "대한민국 과학기술정보통신부 장관은 누구인가",
+      "status": "stale-evidence",
+      "reason": "현직 장관을 확인할 정부의 기준일 공식 인사 근거가 없고 기사/위키 snapshot만 있음"
+    }
+  ],
+  "totalEstimatedInputTokens": 53654,
+  "selectedEstimatedInputTokens": 21187,
+  "sshCommand": "cd <this-worktree> && node scripts/finalize-general-search-development-validation.js"
+}

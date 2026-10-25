@@ -1,0 +1,234 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-24T05:10:00.115Z",
+  "sourceSnapshotFile": "tmp/general-search-official-source-snapshots-20261024.json",
+  "inputFile": "tmp/general-search-gemini-final-input-20261024.json",
+  "noGeminiCalls": true,
+  "questions": [
+    {
+      "id": "gemini-01",
+      "question": "MDN Fetch API AbortSignal 사용법",
+      "urls": [
+        {
+          "requested": "https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch",
+          "final": "https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch",
+          "official": true,
+          "body": "captured",
+          "bodyLength": 12353,
+          "fullBodyLength": 12353,
+          "truncated": false,
+          "snapshotId": "gemini-01-snapshot-1",
+          "relatedSegment": "bounded",
+          "relatedSegmentCount": 4,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body"
+        },
+        {
+          "requested": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+          "final": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+          "official": true,
+          "body": "captured",
+          "bodyLength": 917,
+          "fullBodyLength": 917,
+          "truncated": false,
+          "snapshotId": "gemini-01-snapshot-2",
+          "relatedSegment": "bounded",
+          "relatedSegmentCount": 4,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body"
+        }
+      ],
+      "requiredAnswerItems": [
+        "fact-value",
+        "usage-procedure",
+        "authoritative-source"
+      ],
+      "inputTokenEstimate": 1399,
+      "geminiCallAllowed": true,
+      "status": "ready",
+      "holdReason": null
+    },
+    {
+      "id": "gemini-02",
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "urls": [
+        {
+          "requested": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+          "final": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+          "official": true,
+          "body": "captured",
+          "bodyLength": 16074,
+          "fullBodyLength": 16074,
+          "truncated": false,
+          "snapshotId": "gemini-02-snapshot-1",
+          "relatedSegment": "bounded",
+          "relatedSegmentCount": 4,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body"
+        },
+        {
+          "requested": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+          "final": "https://kubernetes.io/docs/concepts/workloads/pods/probes/",
+          "official": true,
+          "body": "captured",
+          "bodyLength": 20352,
+          "fullBodyLength": 20352,
+          "truncated": false,
+          "snapshotId": "gemini-02-snapshot-2",
+          "relatedSegment": "bounded",
+          "relatedSegmentCount": 4,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body"
+        }
+      ],
+      "requiredAnswerItems": [
+        "fact-value",
+        "authoritative-source"
+      ],
+      "inputTokenEstimate": 1523,
+      "geminiCallAllowed": true,
+      "status": "ready",
+      "holdReason": null
+    },
+    {
+      "id": "gemini-03",
+      "question": "Python 최신 안정 버전",
+      "urls": [
+        {
+          "requested": "https://www.python.org/downloads/",
+          "final": "https://www.python.org/downloads/",
+          "official": true,
+          "body": "captured",
+          "bodyLength": 4606,
+          "fullBodyLength": 4606,
+          "truncated": false,
+          "snapshotId": "gemini-03-snapshot-1",
+          "relatedSegment": "bounded",
+          "relatedSegmentCount": 4,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body"
+        },
+        {
+          "requested": "https://www.python.org/downloads/release/python-3913/",
+          "final": "https://www.python.org/downloads/release/python-3913/",
+          "official": true,
+          "body": "captured",
+          "bodyLength": 4816,
+          "fullBodyLength": 4816,
+          "truncated": false,
+          "snapshotId": "gemini-03-snapshot-2",
+          "relatedSegment": "bounded",
+          "relatedSegmentCount": 4,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body"
+        }
+      ],
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness",
+        "authoritative-source"
+      ],
+      "inputTokenEstimate": 1333,
+      "geminiCallAllowed": false,
+      "status": "hold",
+      "holdReason": "official-body-or-related-segment-insufficient"
+    },
+    {
+      "id": "gemini-04",
+      "question": "PostgreSQL과 MySQL의 JSON 기능 비교",
+      "urls": [
+        {
+          "requested": "https://www.postgresql.org/docs/current/datatype-json.html",
+          "final": "https://www.postgresql.org/docs/current/datatype-json.html",
+          "official": true,
+          "body": "captured",
+          "bodyLength": 29257,
+          "fullBodyLength": 29257,
+          "truncated": false,
+          "snapshotId": "gemini-04-snapshot-1",
+          "relatedSegment": "bounded",
+          "relatedSegmentCount": 4,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body"
+        },
+        {
+          "requested": "https://dev.mysql.com/doc/refman/8.4/en/json.html",
+          "final": "https://dev.mysql.com/doc/refman/8.4/en/json.html",
+          "official": true,
+          "body": "captured",
+          "bodyLength": 30000,
+          "fullBodyLength": 41847,
+          "truncated": true,
+          "snapshotId": "gemini-04-snapshot-2",
+          "relatedSegment": "bounded",
+          "relatedSegmentCount": 4,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body"
+        }
+      ],
+      "requiredAnswerItems": [
+        "service-a",
+        "service-b",
+        "comparison-attributes",
+        "authoritative-source"
+      ],
+      "inputTokenEstimate": 1540,
+      "geminiCallAllowed": true,
+      "status": "ready",
+      "holdReason": null
+    },
+    {
+      "id": "gemini-05",
+      "question": "AWS Lambda 요청 요금",
+      "urls": [
+        {
+          "requested": "https://aws.amazon.com/ko/lambda/pricing/",
+          "final": "https://aws.amazon.com/ko/lambda/pricing/",
+          "official": true,
+          "body": "captured",
+          "bodyLength": 29999,
+          "fullBodyLength": 34044,
+          "truncated": true,
+          "snapshotId": "gemini-05-snapshot-1",
+          "relatedSegment": "bounded",
+          "relatedSegmentCount": 4,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body"
+        }
+      ],
+      "requiredAnswerItems": [
+        "request-price",
+        "free-tier",
+        "pricing-conditions",
+        "authoritative-source"
+      ],
+      "inputTokenEstimate": 1343,
+      "geminiCallAllowed": false,
+      "status": "hold",
+      "holdReason": "official-body-or-related-segment-insufficient"
+    },
+    {
+      "id": "gemini-06",
+      "question": "React 최신 버전",
+      "urls": [
+        {
+          "requested": "https://react.dev/blog/2025/10/01/react-19-2",
+          "final": "https://react.dev/blog/2025/10/01/react-19-2",
+          "official": true,
+          "body": "captured",
+          "bodyLength": 11790,
+          "fullBodyLength": 11790,
+          "truncated": false,
+          "snapshotId": "gemini-06-snapshot-1",
+          "relatedSegment": "bounded",
+          "relatedSegmentCount": 4,
+          "sourceSpanBasis": "body.text; identical to extractPageEvidence.body"
+        }
+      ],
+      "requiredAnswerItems": [
+        "version",
+        "release-status",
+        "freshness",
+        "authoritative-source"
+      ],
+      "inputTokenEstimate": 798,
+      "geminiCallAllowed": false,
+      "status": "hold",
+      "holdReason": "official-body-or-related-segment-insufficient"
+    }
+  ],
+  "actualGeminiCalls": 0,
+  "inputTokenEstimateTotal": 7936
+}

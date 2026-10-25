@@ -1,0 +1,631 @@
+{
+  "version": 2,
+  "type": "limited-general-search-source-research",
+  "generatedAt": "2026-10-24T04:33:40.527Z",
+  "dryRun": false,
+  "noGeminiCalls": true,
+  "budgets": {
+    "maxSearchAttemptsPerQuestion": 4,
+    "maxTotalSearches": 12,
+    "maxRetriesPerQuery": 1,
+    "maxReadsPerQuestion": 4,
+    "maxTotalReads": 24,
+    "searchBudgetUnit": "actual HTTP attempts; includes search-engine fallback and retries",
+    "bodyReadBudgetUnit": "actual HTTP attempts; includes redirects and retries",
+    "searchEngines": [
+      "naver",
+      "duckduckgo"
+    ],
+    "searchPriority": "naver-first, globally round-robin primary terms before fallback",
+    "exhaustionPolicy": "check immediately before every HTTP attempt; when exhausted, skip retries and stop retrieval"
+  },
+  "questions": [
+    {
+      "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+      "searchQueries": [
+        "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "MDN Fetch API 공식 문서에서 abort signal 사용법",
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "completed-source-selection",
+      "requestCount": 1,
+      "attempts": [
+        {
+          "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "success",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:developer.mozilla.org fetch AbortSignal AbortController usage MDN",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 7,
+              "rawCandidateCount": 8,
+              "eligibleCandidateCount": 7,
+              "durationMs": 1179
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "title": "Utiliser l'API Fetch - Les API Web | MDN새 창 열림",
+          "url": "https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch",
+          "snippet": ""
+        },
+        {
+          "title": "AbortController: abort() method새 창 열림",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort",
+          "snippet": ""
+        },
+        {
+          "title": "AbortController새 창 열림",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController",
+          "snippet": ""
+        },
+        {
+          "title": "AbortController: signal property새 창 열림",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+          "snippet": ""
+        },
+        {
+          "title": "AbortController: AbortController() constructor새 창 열림",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/AbortController",
+          "snippet": ""
+        },
+        {
+          "title": "MDN Web Docsdeveloper.mozilla.org›en-US새 창 열림",
+          "url": "https://developer.mozilla.org/ko/",
+          "snippet": ""
+        },
+        {
+          "title": "Using readable streams새 창 열림",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams",
+          "snippet": ""
+        }
+      ],
+      "selectedUrls": [
+        "https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch",
+        "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal"
+      ],
+      "reads": [
+        {
+          "url": "https://developer.mozilla.org/fr/docs/Web/API/Fetch_API/Using_Fetch",
+          "status": "success",
+          "bodyLength": 8000
+        },
+        {
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal",
+          "status": "success",
+          "bodyLength": 917
+        }
+      ]
+    },
+    {
+      "question": "Kubernetes 공식 문서의 liveness probe 설명",
+      "searchQueries": [
+        "site:kubernetes.io/docs liveness probe official documentation"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "Kubernetes 공식 문서의 liveness probe 설명",
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "Kubernetes 공식 문서의 liveness probe 설명",
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "hold-no-candidates",
+      "requestCount": 2,
+      "attempts": [
+        {
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "no-eligible-results",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:kubernetes.io/docs liveness probe official documentation",
+              "httpStatus": 200,
+              "status": "no-eligible-results",
+              "count": 0,
+              "rawCandidateCount": 21,
+              "eligibleCandidateCount": 0,
+              "durationMs": 997
+            }
+          ]
+        },
+        {
+          "query": "site:kubernetes.io/docs liveness probe official documentation",
+          "engine": "duckduckgo",
+          "phase": "fallback",
+          "status": "blocked",
+          "httpAttempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "site:kubernetes.io/docs liveness probe official documentation",
+              "httpStatus": 202,
+              "status": "blocked",
+              "count": 0,
+              "durationMs": 604,
+              "errorCode": "Error"
+            }
+          ]
+        }
+      ],
+      "candidates": [],
+      "selectedUrls": [],
+      "reads": []
+    },
+    {
+      "question": "Python 최신 안정 버전",
+      "searchQueries": [
+        "site:python.org/downloads latest stable Python release download"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "Python 최신 안정 버전",
+          "query": "site:python.org/downloads latest stable Python release download",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "Python 최신 안정 버전",
+          "query": "site:python.org/downloads latest stable Python release download",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "hold-no-candidates",
+      "requestCount": 2,
+      "attempts": [
+        {
+          "query": "site:python.org/downloads latest stable Python release download",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "no-eligible-results",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:python.org/downloads latest stable Python release download",
+              "httpStatus": 200,
+              "status": "no-eligible-results",
+              "count": 0,
+              "rawCandidateCount": 2,
+              "eligibleCandidateCount": 0,
+              "durationMs": 690
+            }
+          ]
+        },
+        {
+          "query": "site:python.org/downloads latest stable Python release download",
+          "engine": "duckduckgo",
+          "phase": "fallback",
+          "status": "blocked",
+          "httpAttempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "site:python.org/downloads latest stable Python release download",
+              "httpStatus": 202,
+              "status": "blocked",
+              "count": 0,
+              "durationMs": 345,
+              "errorCode": "Error"
+            }
+          ]
+        }
+      ],
+      "candidates": [],
+      "selectedUrls": [],
+      "reads": []
+    },
+    {
+      "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+      "searchQueries": [
+        "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+        "site:dev.mysql.com/doc/refman JSON data type MySQL official"
+      ],
+      "plannedSearches": 2,
+      "plannedEngineRequests": [
+        {
+          "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+          "query": "site:dev.mysql.com/doc/refman JSON data type MySQL official",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "PostgreSQL과 MySQL의 공식 문서상 JSON 기능 비교",
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "required": true,
+          "engine": "duckduckgo",
+          "phase": "fallback"
+        }
+      ],
+      "plannedRequestCount": 3,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "hold-no-candidates",
+      "requestCount": 4,
+      "attempts": [
+        {
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "no-eligible-results",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+              "httpStatus": 200,
+              "status": "no-eligible-results",
+              "count": 0,
+              "rawCandidateCount": 2,
+              "eligibleCandidateCount": 0,
+              "durationMs": 735
+            }
+          ]
+        },
+        {
+          "query": "site:dev.mysql.com/doc/refman JSON data type MySQL official",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "no-eligible-results",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:dev.mysql.com/doc/refman JSON data type MySQL official",
+              "httpStatus": 200,
+              "status": "no-eligible-results",
+              "count": 0,
+              "rawCandidateCount": 2,
+              "eligibleCandidateCount": 0,
+              "durationMs": 653
+            }
+          ]
+        },
+        {
+          "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+          "engine": "duckduckgo",
+          "phase": "fallback",
+          "status": "blocked",
+          "httpAttempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "site:postgresql.org/docs current JSON jsonb PostgreSQL official",
+              "httpStatus": 202,
+              "status": "blocked",
+              "count": 0,
+              "durationMs": 103,
+              "errorCode": "Error"
+            }
+          ]
+        },
+        {
+          "query": "site:dev.mysql.com/doc/refman JSON data type MySQL official",
+          "engine": "duckduckgo",
+          "phase": "fallback",
+          "status": "blocked",
+          "httpAttempts": [
+            {
+              "provider": "duckduckgo",
+              "query": "site:dev.mysql.com/doc/refman JSON data type MySQL official",
+              "httpStatus": 202,
+              "status": "blocked",
+              "count": 0,
+              "durationMs": 110,
+              "errorCode": "Error"
+            }
+          ]
+        }
+      ],
+      "candidates": [],
+      "selectedUrls": [],
+      "reads": []
+    },
+    {
+      "question": "AWS Lambda 요청 요금",
+      "searchQueries": [
+        "site:aws.amazon.com AWS Lambda request pricing free tier",
+        "site:docs.aws.amazon.com/lambda latest pricing request charges"
+      ],
+      "plannedSearches": 2,
+      "plannedEngineRequests": [
+        {
+          "question": "AWS Lambda 요청 요금",
+          "query": "site:aws.amazon.com AWS Lambda request pricing free tier",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        },
+        {
+          "question": "AWS Lambda 요청 요금",
+          "query": "site:docs.aws.amazon.com/lambda latest pricing request charges",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        }
+      ],
+      "plannedRequestCount": 2,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "completed-source-selection",
+      "requestCount": 2,
+      "attempts": [
+        {
+          "query": "site:aws.amazon.com AWS Lambda request pricing free tier",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "success",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:aws.amazon.com AWS Lambda request pricing free tier",
+              "httpStatus": 200,
+              "status": "success",
+              "count": 21,
+              "rawCandidateCount": 22,
+              "eligibleCandidateCount": 21,
+              "durationMs": 928
+            }
+          ]
+        },
+        {
+          "query": "site:docs.aws.amazon.com/lambda latest pricing request charges",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "no-eligible-results",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:docs.aws.amazon.com/lambda latest pricing request charges",
+              "httpStatus": 200,
+              "status": "no-eligible-results",
+              "count": 0,
+              "rawCandidateCount": 20,
+              "eligibleCandidateCount": 0,
+              "durationMs": 654
+            }
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "title": "Tracking your AWS Free Tier usage - AWS Billing새 창 열림",
+          "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/tracking-free-tier-usage.html",
+          "snippet": ""
+        },
+        {
+          "title": "Explore AWS services with AWS Free Tier - AWS Billing새 창 열림",
+          "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html",
+          "snippet": ""
+        },
+        {
+          "title": "Trying services using AWS Free Tier (before July 15, 2025) - AWS Billing새 창 열림",
+          "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-free-tier.html",
+          "snippet": ""
+        },
+        {
+          "title": "AWS Lambda 요금새 창 열림",
+          "url": "https://aws.amazon.com/ko/lambda/pricing/",
+          "snippet": ""
+        },
+        {
+          "title": "AWS Lambda - Big Data Analytics Options on AWS새 창 열림",
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/big-data-analytics-options/aws-lambda.html",
+          "snippet": ""
+        },
+        {
+          "title": "Monitoring, debugging, and troubleshooting Lambda Event Functions - AWS Lambda새 창 열림",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-monitoring.html",
+          "snippet": ""
+        },
+        {
+          "title": "프리 티어 API 사용 - AWS 결제새 창 열림",
+          "url": "https://docs.aws.amazon.com/ko_kr/awsaccountbilling/latest/aboutv2/using-free-tier-api.html",
+          "snippet": ""
+        },
+        {
+          "title": "Amazon Web Services, Incaws.amazon.com›컴퓨팅›AWS Lambda›요금새 창 열림",
+          "url": "https://aws.amazon.com/ko/",
+          "snippet": ""
+        },
+        {
+          "title": "Cost - Automated Security Response on AWS새 창 열림",
+          "url": "https://docs.aws.amazon.com/solutions/latest/automated-security-response-on-aws/cost.html",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://aws.amazon.com/ko/blogs/korea/aws-free-tier-update-new-customers-can-get-started-and-explore-aws-with-up-to-200-in-credits/",
+          "snippet": ""
+        },
+        {
+          "title": "AWS Marketplace: CircleCI - MCP Server Reviews새 창 열림",
+          "url": "https://aws.amazon.com/marketplace/reviews/reviews-list/prodview-qouiwrpqaezmm",
+          "snippet": ""
+        },
+        {
+          "title": "AWS Marketplace: N2W Backup & Recovery for AWS Standard Edition Reviews새 창 열림",
+          "url": "https://aws.amazon.com/marketplace/reviews/reviews-list/B00UIO8C3A?rating=5",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://docs.aws.amazon.com/pdfs/whitepapers/latest/serverless-multi-tier-architectures-api-gateway-lambda/serverless-multi-tier-architectures-api-gateway-lambda.pdf",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://aws.amazon.com/blogs/aws/new-for-aws-lambda-1ms-billing-granularity-adds-cost-savings/",
+          "snippet": ""
+        },
+        {
+          "title": "무료 웹 사이트 및 웹 앱 구축새 창 열림",
+          "url": "https://aws.amazon.com/ko/free/webapps/",
+          "snippet": ""
+        },
+        {
+          "title": "Amazon API Gateway 요금새 창 열림",
+          "url": "https://aws.amazon.com/ko/api-gateway/pricing/",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://docs.aws.amazon.com/pdfs/decision-guides/latest/fargate-or-lambda/fargate-or-lambda.pdf",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://aws.amazon.com/blogs/architecture/building-a-three-tier-architecture-on-a-budget/",
+          "snippet": ""
+        },
+        {
+          "title": "새 창 열림",
+          "url": "https://aws.amazon.com/marketplace/reviews/reviews-list/B00UIO8514",
+          "snippet": ""
+        },
+        {
+          "title": "Cost optimization - Best Practices for Designing Amazon API Gateway Private APIs and Private Integration새 창 열림",
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/best-practices-api-gateway-private-apis-integration/cost-optimization.html",
+          "snippet": ""
+        },
+        {
+          "title": "Network Traffic Distribution – Elastic Load Balancing FAQs새 창 열림",
+          "url": "https://aws.amazon.com/ko/elasticloadbalancing/faqs/?nc=sn&loc=5&trk=sl_card&sc_channel=ell",
+          "snippet": ""
+        }
+      ],
+      "selectedUrls": [
+        "https://aws.amazon.com/ko/lambda/pricing/",
+        "https://aws.amazon.com/ko/",
+        "https://docs.aws.amazon.com/lambda/latest/dg/lambda-monitoring.html"
+      ],
+      "reads": [
+        {
+          "url": "https://aws.amazon.com/ko/lambda/pricing/",
+          "status": "success",
+          "bodyLength": 7999
+        },
+        {
+          "url": "https://aws.amazon.com/ko/",
+          "status": "success",
+          "bodyLength": 2477
+        },
+        {
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-monitoring.html",
+          "status": "success",
+          "bodyLength": 2126
+        }
+      ]
+    },
+    {
+      "question": "React 최신 버전",
+      "searchQueries": [
+        "site:react.dev/blog latest React release official"
+      ],
+      "plannedSearches": 1,
+      "plannedEngineRequests": [
+        {
+          "question": "React 최신 버전",
+          "query": "site:react.dev/blog latest React release official",
+          "required": true,
+          "engine": "naver",
+          "phase": "primary"
+        }
+      ],
+      "plannedRequestCount": 1,
+      "skippedSearchQueries": [],
+      "plannedReads": 4,
+      "searchBudget": 4,
+      "readBudget": 4,
+      "status": "hold-no-candidates",
+      "requestCount": 1,
+      "attempts": [
+        {
+          "query": "site:react.dev/blog latest React release official",
+          "engine": "naver",
+          "phase": "primary",
+          "status": "no-eligible-results",
+          "httpAttempts": [
+            {
+              "provider": "naver",
+              "query": "site:react.dev/blog latest React release official",
+              "httpStatus": 200,
+              "status": "no-eligible-results",
+              "count": 0,
+              "rawCandidateCount": 11,
+              "eligibleCandidateCount": 0,
+              "durationMs": 510
+            }
+          ]
+        }
+      ],
+      "candidates": [],
+      "selectedUrls": [],
+      "reads": []
+    }
+  ],
+  "totals": {
+    "plannedSearchQueries": 8,
+    "plannedEngineRequests": 12,
+    "plannedBodyReads": 24,
+    "actualSearchHttpAttempts": 12,
+    "actualReadHttpAttempts": 5
+  }
+}
