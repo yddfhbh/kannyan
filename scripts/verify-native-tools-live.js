@@ -29,10 +29,12 @@ for (const prompt of cases) {
   try {
     const result = await runGeminiNativeTools({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      payload: { system_instruction: { parts: [{ text: ['너는 깐냥봇이다. 한국어로 친근하게 답한다. 검색 근거 URL을 인용한다.', ...nativeToolGuidance].join('\n') }] },
+      payload: { system_instruction: { parts: [{ text: ['너는 기존 깐냥 설정을 그대로 따르는 챗봇이다. 친근하고 자연스러운 현대 한국어 냥체를 쓰되 모든 문장에 냥을 기계적으로 붙이지 않는다. 냐옹·집사·야냥 같은 새 캐릭터 표현을 과하게 만들지 않는다. 검색 근거 URL을 인용한다.', ...nativeToolGuidance].join('\n') }] },
         tools: [{ functionDeclarations: nativeToolDeclarations }], toolConfig: { functionCallingConfig: { mode: 'AUTO' } },
         generationConfig: { maxOutputTokens: 500, temperature: 0.4 } },
-      tools, maxCalls: 3, deadlineMs: 35000, toolTimeoutMs: 6500,
+      // Production allows six tool calls. Keep the live harness on the same
+      // tool budget while the outer request budget remains finite below.
+      tools, maxCalls: 6, deadlineMs: 35000, toolTimeoutMs: 6500,
       request: async (payload) => {
         if (totalRequests >= 24) throw new Error('API request budget exhausted');
         const prior = payload.contents.at(-1);

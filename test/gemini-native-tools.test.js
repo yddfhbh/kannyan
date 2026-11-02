@@ -112,8 +112,42 @@ test('웹 어댑터는 대체 검색 결과 상태와 본문을 제한해 반환
 test('검색 제목만 있고 요약이 없으면 최신 사실의 근거가 부족하다고 표시한다', async () => {
   const tools = createNativeSearchTools({ searchWeb: async () => ({ status: 'success', results: [{ title: 'Patch notes', url: 'https://example.com/notes', snippet: '' }] }), wikiConfig: { enabled: false } });
   const result = await tools.web_search({ query: 'latest update' });
-  assert.equal(result.status, 'insufficient');
+  assert.equal(result.status, 'discovery-only');
+  assert.equal(result.searchStatus, 'success');
   assert.equal(result.results[0].url, 'https://example.com/notes');
+});
+
+test('검색 결과에 악성 URL이나 비 HTTP URL이 섞여도 읽기 후보와 본문 도구를 오염시키지 않는다', async () => {
+  let fetched = null;
+  const tools = createNativeSearchTools({
+    searchWeb: async () => ({ status: 'success', results: [
+      { title: 'bad', url: 'javascript:alert(1)', snippet: 'x' },
+      { title: 'credential', url: 'https://user:pass@example.com/a', snippet: 'x' },
+      { title: 'safe', url: 'https://example.com/a', snippet: '' },
+    ] }),
+    readPage: async (url) => { fetched = url; return { url, title: 'Safe', text: '본문', bodyQuality: 'substantive' }; },
+    wikiConfig: { enabled: false },
+  });
+  const search = await tools.web_search({ query: 'safe lookup' });
+  assert.deepEqual(search.results.map((item) => item.url), ['https://example.com/a']);
+  assert.equal((await tools.read_webpage({ url: 'javascript:alert(1)' })).status, 'invalid_url');
+  assert.equal((await tools.read_webpage({ url: 'https://user:pass@example.com/a' })).status, 'invalid_url');
+  assert.equal((await tools.read_webpage({ url: 'https://example.com/a' })).status, 'success');
+  assert.equal(fetched, 'https://example.com/a');
+});
+
+test('공식 후보의 본문 성공과 추출 실패를 각각 원문 확인 상태로 보존한다', async () => {
+  const success = createNativeSearchTools({
+    searchWeb: async () => ({ status: 'success', results: [{ title: 'Official notes', url: 'https://official.example/notes', snippet: '' }] }),
+    readPage: async () => ({ url: 'https://official.example/notes', title: 'Official notes', text: '2026-11-01 Version 1.2 changed matchmaking and added maps.', bodyQuality: 'substantive' }),
+    wikiConfig: { enabled: false },
+  });
+  assert.equal((await success.read_webpage({ url: 'https://official.example/notes' })).status, 'success');
+  const failed = createNativeSearchTools({
+    readPage: async () => ({ url: 'https://official.example/notes', title: 'Loader', text: 'Loading...', bodyQuality: 'insufficient' }),
+    wikiConfig: { enabled: false },
+  });
+  assert.equal((await failed.read_webpage({ url: 'https://official.example/notes' })).status, 'insufficient');
 });
 
 test('위키 상세 제목이 일치하지 않으면 명시적인 실패 상태를 반환한다', async () => {
