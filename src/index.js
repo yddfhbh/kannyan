@@ -9074,6 +9074,7 @@ async function generateNativeToolAnswer(prompt, options = {}) {
   const contents = createGeminiChatContents(selected.prompt, options.imageParts ?? []);
   const instruction = [geminiSystemInstruction,
     '[도구 사용]', ...nativeToolGuidance,
+    '아래 현재 질문에 직접 답하고, 검색 도구의 functionResponse에 붙은 _request.tool과 _request.argument를 근거의 소속 확인에 사용한다. functionResponse의 _request는 출력하지 않는다.',
     '최종 답변은 JSON 객체 하나로 반환한다: {"answer":"답변","emotion":"neutral"}. 도구 호출 단계에는 JSON 텍스트 대신 실제 functionCall을 사용한다.',
     `emotion은 ${supportedGeminiEmotionLabels.join(', ')} 중 하나다.`,
   ].join('\n\n');

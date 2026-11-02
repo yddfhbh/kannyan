@@ -36,6 +36,38 @@ test('위키 검색 후 상세 조회와 다른 도구 연속 호출에서 전�
   assert.deepEqual(requests[3].contents.filter((item) => item.role === 'model').map((item) => item.parts[0].thoughtSignature), ['signature-w1', 'signature-w2', 'signature-w3']);
 });
 
+test('실제 복수 출처 질문은 각 도구 인자와 Function Response를 같은 근거로 연결한다', async () => {
+  const responses = [
+    call('wiki_search', { query: '깐냥' }, 'wiki-kannyang'),
+    call('web_search', { query: '깐냥 최신 정보' }, 'web-kannyang'),
+    final('푝무위키와 웹에서 각각 확인한 깐냥 정보를 비교했다냥.'),
+  ];
+  const { result, requests } = await replay(responses, {
+    wiki_search: async () => ({ status: 'success', results: [{ title: '깐냥', body: '위키 자료' }] }),
+    web_search: async () => ({ status: 'success', results: [{ title: '깐냥 최신 정보', description: '웹 자료' }] }),
+  });
+  assert.deepEqual(result.calls.map(({ name, argument }) => [name, argument]), [
+    ['wiki_search', '깐냥'], ['web_search', '깐냥 최신 정보'],
+  ]);
+  assert.deepEqual(requests[1].contents[2].parts[0].functionResponse.response._request, { tool: 'wiki_search', argument: '깐냥' });
+  assert.deepEqual(requests[2].contents[4].parts[0].functionResponse.response._request, { tool: 'web_search', argument: '깐냥 최신 정보' });
+});
+
+test('TETR.IO 최신 패치 질문은 검색 결과가 부족하면 공식 페이지를 추가 조회한다', async () => {
+  const responses = [
+    call('web_search', { query: 'TETR.IO 최근 업데이트' }, 'tetr-search'),
+    call('read_webpage', { url: 'https://tetr.io/about/patchnotes/' }, 'tetr-page'),
+    final('최근 패치 내용을 확인했다냥.'),
+  ];
+  const { result, requests } = await replay(responses, {
+    web_search: async () => ({ status: 'success', results: [{ title: 'PATCH NOTES', url: 'https://tetr.io/about/patchnotes/', description: '' }] }),
+    read_webpage: async () => ({ status: 'success', sourceFormat: 'official-json', body: 'BETA 1.7.8 Mutation' }),
+  });
+  assert.deepEqual(result.calls.map(({ name }) => name), ['web_search', 'read_webpage']);
+  assert.equal(requests[2].contents[4].parts[0].functionResponse.response.sourceFormat, 'official-json');
+  assert.equal(requests[2].contents[4].parts[0].functionResponse.response._request.argument, 'https://tetr.io/about/patchnotes/');
+});
+
 test('웹 차단을 모델에 알리고 다른 검색으로 회복할 수 있다', async () => {
   const { requests } = await replay([call('web_search', { query: 'blocked-query' }, 'b1'), call('wiki_search', { query: '대체 자료' }, 'b2'), final()], {
     web_search: async () => ({ status: 'blocked', results: [] }), wiki_search: async () => ({ status: 'success', results: [{ title: '자료' }] }),

@@ -5,6 +5,10 @@ export function formatChatDisplayAnswer(answer) {
     .replace(/!?\[([^\]\n]*)\]\(\s*<?(?:https?:\/\/|www\.)[^\s]*?(?:\([^\s]*?\)[^\s]*?)*>?\s*(?:["'][^\n]*?["'])?\)/gi,
       (_match, label) => /^(?:\d+|문서\s*\d+|https?:\/\/\S+|www\.\S+)$/.test(label) ? '' : label)
     .replace(/^\s*\[[^\]\n]+\]:\s*(?:<?https?:\/\/|www\.)[^\n]*$/gim, '')
+    // Remove a wrapper's opening parenthesis together with the URL. Without
+    // this, prose such as "공식 페이지( https://... 직접" became
+    // "공식 페이지(  직접" after applying the existing link policy.
+    .replace(/\(\s*(?:<https?:\/\/[^>\n]+>|(?:https?:\/\/|www\.)[^\s<>\[\]"']+)/gi, '')
     .replace(/<https?:\/\/[^>\n]+>|(?:https?:\/\/|www\.)[^\s<>\[\]"']+/gi, '')
     .split('\n').map(line => line.trimEnd())
     .filter(line => !/^\s*(?:(?:[-*]\s*)?(?:URL|출처|출처 URL|공식 원문 URL|링크)\s*[:：]?\s*|[-*]\s*)$/i.test(line))

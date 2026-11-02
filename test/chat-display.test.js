@@ -42,6 +42,13 @@ test('ordinary generated chat delivery strips links after the answer is produced
   assert.match(r.stored[1].text,/https:/);
 });
 
+test('removing an inline source URL does not leave its opening parenthesis', () => {
+  assert.equal(
+    formatChatDisplayAnswer('공식 패치 노트 페이지(https://tetr.io/about/patchnotes/) 직접 확인해보는 것을 추천한다냥.'),
+    '공식 패치 노트 페이지 직접 확인해보는 것을 추천한다냥.'
+  );
+});
+
 test('captured KMA mixed evidence reaches delivery with issue time distinct from target day', async () => {
   const fs=await import('node:fs');
   const {extractKmaDailyForecast}=await import('../src/evidence-review.js');
