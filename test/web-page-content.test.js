@@ -50,3 +50,28 @@ test('total page deadline covers slow DNS before any network request', async () 
   }), {name:'AbortError'});
   assert.equal(requests, 0);
 });
+
+test('official TETR.IO loader resolves its own public patch notes JSON', async () => {
+  const urls = [];
+  const page = await fetchWebPageText('https://tetr.io/about/patchnotes/', {
+    resolveHostnames: async () => ['104.21.1.1'],
+    fetchImpl: async (url) => {
+      urls.push(String(url));
+      if (urls.length === 1) return new Response(`<title>PATCH NOTES - TETR.IO</title><main><p>Loading patch notes...</p></main><script>xhr.get('/about/patchnotes/notes.json', undefined)</script>`, { headers: { 'content-type': 'text/html' } });
+      return new Response(JSON.stringify({ 'BETA 1.7.8': { ts: '2026-04-01', contents: [{ header: 'FOOL\'S DAY 2026', items: ['➔ The Fool: Mutation is available.', '➔ Climb 30,000m for a voucher.'] }] }, 'BETA 1.7.7': { ts: '2026-02-13', contents: [{ header: 'NEW FEATURES', items: ['➔ Username history is displayed on profiles.'] }] } }), { headers: { 'content-type': 'application/json' } });
+    },
+  });
+  assert.equal(urls.length, 2);
+  assert.equal(page.sourceFormat, 'official-json');
+  assert.equal(page.bodyQuality, 'substantive');
+  assert.match(page.text, /BETA 1\.7\.8[\s\S]*Mutation/);
+});
+
+test('unavailable patch notes JSON leaves loader insufficient', async () => {
+  const page = await fetchWebPageText('https://tetr.io/about/patchnotes/', {
+    resolveHostnames: async () => ['104.21.1.1'],
+    fetchImpl: async (_url) => new Response('<main>Loading patch notes...</main><script>xhr.get(\'/about/patchnotes/notes.json\')</script>', { headers: { 'content-type': 'text/html' } }),
+  });
+  assert.equal(page.bodyQuality, 'insufficient');
+  assert.equal(page.sourceUrl, undefined);
+});

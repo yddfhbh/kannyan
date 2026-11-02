@@ -16,6 +16,7 @@ import { isExplicitPyhokWikiPrompt, isPyhokWikiLinkRequest, wikiSearchUnavailabl
 import { isLikelyContextDependentPrompt } from '../../src/gemini-followup.js';
 import { analyzePromptSecurity } from '../../src/prompt-security.js';
 import { classifyPromptControlAttempt } from '../../src/gemini-prompt-guard.js';
+import { shouldUseNativeToolsForChannel } from '../../src/native-tools-channel.js';
 
 // Execute actual entry functions without logging in to Discord or loading data files.
 export const source = fs.readFileSync(new URL('../../src/index.js', import.meta.url), 'utf8');
@@ -27,13 +28,14 @@ export function declaration(name) {
   return end < 0 ? rest : rest.slice(0, end + 1);
 }
 export function runtime({ images = [], history = [], wiki = null, search = null, reply = null, plan = {mode:'local'}, localAnswer = '자체 문맥으로 답했다냥.', page = {context:'',pages:[]} } = {}) {
-  const sent=[], queries=[], generated=[], stored=[];
+  const sent=[], queries=[], generated=[], stored=[], native=[];
   const context = vm.createContext({
+    shouldUseNativeToolsForChannel:(id)=>shouldUseNativeToolsForChannel(id, context.process.env),
     formatChatDisplayAnswer, startChatBudget, chatTimeRemaining, chatStageTimeout, answerSupplementaryWikiFacts, renderWeatherEvidence, answerVerifiedNews, classifyWebSearchIntent, resolveChatSourcePlan, resolveChatEvidence, answerChatBySource, buildVerifiedWebAgeReply,
     answerClockQuestion, shouldUseWebSearch, deriveWebSearchQuery, shouldIncludeWebSearchSources, isClearlyLocalChatPrompt,
     isExplicitPyhokWikiPrompt, isPyhokWikiLinkRequest, wikiSearchUnavailableReply, answerWikiAgeQuestion,
     isLikelyContextDependentPrompt, analyzePromptSecurity, classifyPromptControlAttempt,
-    Date, console, parseChessImageAnalysisPrompt:()=>null,
+    Date, console, process: { env: {} }, parseChessImageAnalysisPrompt:()=>null,
     collectEmojiOnlyTextDetails:()=>({matchedTextCount:0}),
     getCanonicalPercentCommand:()=>null,
     ensureGeminiMemoryLoaded:async()=>{}, getGeminiSessionKey:()=> 'g:c',
@@ -62,9 +64,10 @@ export function runtime({ images = [], history = [], wiki = null, search = null,
         : opts.completeAnswer ? [localAnswer,external].filter(Boolean).join('\n\n') : external,
         emotion:'neutral',usedPermanentMemoryIds:[]};
     },
+    generateNativeToolAnswer:async(q,opts)=>{native.push({q,opts});return {answer:'도구 판단 완료다냥.',emotion:'neutral',usedPermanentMemoryIds:[],nativeToolCalls:[]};},
     sendGeminiChatUsageLog:async()=>{},getGeminiEmotionReplyFiles:()=>[],formatPermanentMemoryAttribution:()=>'',
     chunkDiscordMessage:(text)=>[text],getGeminiUserErrorMessage:(e)=>{throw e;},
   });
   for (const name of ['parseGeminiFallbackPrompt','getImmediatePreviousWebSearchQuery','sendChatFactReply','handleGeminiFallbackMessage','createWebSearchResponse']) vm.runInContext(declaration(name),context);
-  return {context,sent,queries,generated,stored};
+  return {context,sent,queries,generated,stored,native};
 }

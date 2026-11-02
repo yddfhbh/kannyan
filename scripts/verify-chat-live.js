@@ -41,19 +41,29 @@ const defaultCases = [
   { id: 'product-comparison', question: 'gpt 6 sol vs gpt 6.1 sol', category: 'general-external-fact' },
   { id: 'weather', question: '오늘 부산 날씨는 어때?', category: 'general-external-fact' },
 ];
+const nativeComparisonCases = [
+  { id: 'greeting', question: '안녕 깐냥아', category: 'self-answer' },
+  { id: 'tired', question: '오늘 좀 피곤하다', category: 'self-answer' },
+  { id: 'wiki-name', question: '푝무위키에서 깐냥 찾아줘', category: 'general-external-fact' },
+];
 const args = process.argv.slice(2);
+const comparisonCase = args.includes('--native-comparison-case') ? args[args.indexOf('--native-comparison-case') + 1] : null;
+if (args.includes('--native-comparison-case') && !nativeComparisonCases.some(({ id }) => id === comparisonCase)) {
+  console.error('Unknown native comparison case'); process.exit(2);
+}
 const caseArgument = args.find((arg) => arg === '--case' || arg.startsWith('--case='));
 const selectedCase = caseArgument === '--case' ? args[args.indexOf('--case') + 1] : caseArgument?.slice('--case='.length);
 if (caseArgument && (!selectedCase || !defaultCases.some(({ id }) => id === selectedCase))) {
   console.error(`Unknown --case: ${selectedCase ?? '(missing value)'}`);
   process.exit(2);
 }
-const questions = selectedCase ? [defaultCases.find(({ id }) => id === selectedCase).question]
+const questions = comparisonCase ? [nativeComparisonCases.find(({ id }) => id === comparisonCase).question]
+  : selectedCase ? [defaultCases.find(({ id }) => id === selectedCase).question]
   : args.includes('--flight-time-only') ? ['naia to pus flight time']
   : args.includes('--model-comparison-only') ? [regressionQuestions[0]]
   : args.includes('--product-comparisons') ? regressionQuestions
   : defaultCases.map(({ question }) => question);
-const questionCategory = (question) => defaultCases.find((entry) => entry.question === question)?.category
+const questionCategory = (question) => [...defaultCases, ...nativeComparisonCases].find((entry) => entry.question === question)?.category
   ?? (question === 'naia to pus flight time' ? 'general-external-fact' : 'probe');
 
 const limits = { modelRequests: 20, httpRequests: 36, durationMs: 180_000 };

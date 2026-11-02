@@ -9,6 +9,8 @@ import { chatSourcePlanGuidance, resolveChatSourcePlan } from './chat-source-pla
 import { buildVerifiedWebAgeReply, validateChatCitationsWithStatus } from './chat-evidence.js';
 import { answerClockQuestion, getChatClock } from './chat-clock.js';
 import { requestChatWithFallback } from './gemini-chat-request.js';
+import { createNativeSearchTools, nativeToolDeclarations, nativeToolGuidance, runGeminiNativeTools } from './gemini-native-tools.js';
+import { shouldUseNativeToolsForChannel } from './native-tools-channel.js';
 import 'dotenv/config';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
@@ -7944,6 +7946,28 @@ const chessAnalysis =
       }
     }
 
+    if (shouldUseNativeToolsForChannel(message.channelId)
+      && !prioritizeChessImageAnalysis && !isChessPrompt) {
+      const answerResult = await generateNativeToolAnswer(prompt, {
+        now: requestNow, history, replyContext, mentionContext, currentUserContext,
+        contextDependentPrompt, permanentMemories, promptControl,
+        currentAuthorId: message.author?.id, imageParts,
+      });
+      await sendGeminiChatUsageLog(message, answerResult, { hasImages: imageParts.length > 0, source: 'native-tools-chat' });
+      const attribution = formatPermanentMemoryAttribution(permanentMemories, answerResult.usedPermanentMemoryIds);
+      appendGeminiMemoryEntry(sessionKey, { role: 'user', authorId: message.author?.id,
+        authorName: getMessageAuthorName(message), text: prompt, timestamp: Date.now() });
+      appendGeminiMemoryEntry(sessionKey, { role: 'model', authorName: message.client.user?.username ?? 'Bot',
+        text: answerResult.answer, timestamp: Date.now() });
+      await saveGeminiMemory();
+      const chunks = chunkDiscordMessage(formatChatDisplayAnswer([answerResult.answer, attribution].filter(Boolean).join('\n\n')));
+      const files = getGeminiEmotionReplyFiles(answerResult.emotion, { prompt: rawPrompt, source: 'chat' });
+      await sendReplyOrChannelMessage(message, { content: chunks[0] || '답변을 만들지 못했다냥.',
+        ...(files.length ? { files } : {}), allowedMentions: { parse: [], repliedUser: false } }, 'handleGeminiFallbackMessage:native-tools');
+      for (const chunk of chunks.slice(1)) await message.channel.send({ content: chunk, allowedMentions: { parse: [] } });
+      return true;
+    }
+
     const shouldForceChessWebSearch = shouldForceWebSearchForChessPrompt(rawPrompt, {
       hasStockfishContext: Boolean(chessAnalysis.context),
       detectedChessboard: chessAnalysis.detectedChessboard,
@@ -9037,6 +9061,76 @@ function getUniqueValues(values) {
   return [...new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean))];
 }
 
+async function generateNativeToolAnswer(prompt, options = {}) {
+  if (!geminiApiKeys.length) throw new Error('No Gemini API key configured');
+  const clock = getChatClock(options.now ?? new Date());
+  const selected = selectGeminiContextSections({
+    clockContext: `[신뢰할 수 있는 실행 시각] UTC=${clock.utc}; Asia/Seoul=${clock.date} ${clock.weekday} ${clock.time}.`,
+    prompt, history: options.history, replyContext: options.replyContext,
+    mentionContext: options.mentionContext, currentUserContext: options.currentUserContext,
+    contextDependentPrompt: options.contextDependentPrompt, permanentMemories: options.permanentMemories,
+    currentAuthorId: options.currentAuthorId, maxContextLength: geminiMemoryMaxContextLength,
+  });
+  const contents = createGeminiChatContents(selected.prompt, options.imageParts ?? []);
+  const instruction = [geminiSystemInstruction,
+    '[도구 사용]', ...nativeToolGuidance,
+    '최종 답변은 JSON 객체 하나로 반환한다: {"answer":"답변","emotion":"neutral"}. 도구 호출 단계에는 JSON 텍스트 대신 실제 functionCall을 사용한다.',
+    `emotion은 ${supportedGeminiEmotionLabels.join(', ')} 중 하나다.`,
+  ].join('\n\n');
+  const payload = { system_instruction: { parts: [{ text: instruction }] },
+    tools: [{ functionDeclarations: nativeToolDeclarations }],
+    toolConfig: { functionCallingConfig: { mode: 'AUTO' } },
+    generationConfig: { maxOutputTokens: geminiMaxOutputTokens, temperature: 0.55, topP: 0.9 },
+  };
+  const deadlineMs = Math.max(3000, Math.min(35000, chatTimeRemaining() - 2000));
+  payload[Symbol.for('chat.nativeDeadline')] = Date.now() + deadlineMs;
+  const models = options.imageParts?.length ? geminiVisionModels : geminiModels;
+  let pinned = null;
+  let modelRequests = 0;
+  const startedAt = Date.now();
+  let result;
+  try {
+    result = await runGeminiNativeTools({ contents, payload, tools: createNativeSearchTools({ wikiConfig: pyhokWikiSearchConfig }),
+    deadlineMs,
+    request: async (body) => {
+      modelRequests += 1;
+      if (!pinned) {
+        const response = await fetchGeminiGenerateContent(body, { chat: true, models, stage: 'native-tools' });
+        const model = response._requestMeta?.model;
+        const keyIndex = Number(response._requestMeta?.keyLabel?.match(/\d+/)?.[0] ?? 1) - 1;
+        pinned = { model, key: geminiApiKeys[keyIndex] };
+        return response;
+      }
+      const keys = [pinned.key, ...geminiApiKeys.filter((key) => key !== pinned.key)];
+      const response = await requestChatWithFallback(body, {
+        models: [pinned.model], keys, request: requestGeminiGenerateContent,
+        maxAttempts: 2, sleep: wait,
+        log: (message) => console.log(`[Chat model] stage=native-tools-continuation ${message}`),
+      });
+      pinned.key = keys[Number(response._requestMeta?.keyLabel?.match(/\d+/)?.[0] ?? 1) - 1];
+      return response;
+    },
+    });
+  } catch (error) {
+    logGeminiTiming(`native-tools failed modelRequests=${modelRequests} total=${Date.now() - startedAt}ms status=${formatGeminiErrorStatus(error)}`);
+    throw error;
+  }
+  for (const call of result.calls) logGeminiTiming(`native-tool name=${call.name} status=${call.status} duration=${call.durationMs}ms${call.errorType ? ` errorType=${call.errorType}` : ''}`);
+  logGeminiTiming(`native-tools status=${result.status} modelRequests=${modelRequests} toolCalls=${result.calls.length} total=${Date.now() - startedAt}ms`);
+  if (result.status !== 'complete') throw Object.assign(new Error('Native tool conversation timed out'), { code: 'CHAT_STAGE_TIME_LIMIT' });
+  const responseText = extractGeminiResponseText(result.response);
+  const parsed = parseGeminiAnswerPayload(responseText);
+  const guarded = classifyPromptControlResponse(parsed.answer || responseText, { promptRiskScore: options.promptControl?.score ?? 0 });
+  const memoryUsage = extractPermanentMemoryUsage(guarded.blocked ? '' : parsed.answer || responseText,
+    (options.permanentMemories ?? []).map((entry) => entry.id));
+  const answer = guarded.blocked ? '그런 요청은 들어줄 수 없다냥. 질문이 있으면 그냥 물어봐달라냥.'
+    : transformKannyangProse(sanitizeGeminiAnswer(memoryUsage.cleanText), (prose) => applyCustomEmojiAliases(
+      normalizeDiscordMarkdown(normalizeKannyangSpeech(prose)), prompt));
+  return { answer: answer || '답변을 만들지 못했다냥.', emotion: parsed.emotion || 'neutral',
+    usedPermanentMemoryIds: memoryUsage.usedIds.length ? memoryUsage.usedIds : inferPermanentMemoryUsage(answer, options.permanentMemories ?? []),
+    requestMeta: result.response?._requestMeta ?? null, nativeToolCalls: result.calls };
+}
+
 async function generateGeminiAnswer(prompt, options = {}) {
   const {
     history = [],
@@ -9089,7 +9183,7 @@ async function generateGeminiAnswer(prompt, options = {}) {
     ...(options.retrievalReview ? ['searchRefinement에 requestedSatisfied(boolean: 요청한 속성을 확인했는지; 식별만 확인했으면 false), aliases([{from,to,sourceId,quote}]: 제공 자료에 명시된 동일 대상의 별칭·정식명·도시·코드 대응과 정확한 연속 인용), queries(최대 2개 검색어)를 반환한다. 답변 근거로는 무관하거나 부족하다고 판정한 자료도 정체성 근거는 독립적으로 검사하고, 동일 대상임을 명시한 인용 안의 별칭·정식명·IATA/ICAO 코드를 aliases에 각각 연결한다. 단순 동시 등장은 대응의 증거가 아니다. 부족하면 원래 요청 속성과 검증된 별칭을 활용한 검색어를 단순 official 추가보다 우선한다. 중복 첫 후보 때문에 다음 후보를 생략하지 않는다. 방향 관계의 출발·도착 순서를 보존하고, 별칭은 자료로 확인한 경우만 사용한다. 비행시간 요청에 직항 여부·경유 총시간을 필수 조건으로 추가하지 않는다.'] : []),
     ...(options.repairPlan ? ['이전 응답에서 필수 sourcePlan을 파싱하지 못했다. 현재 요청과 문맥으로 계획을 다시 판단하고 필수 형식을 정확히 반환한다.'] : []),
     ...(options.completeAnswer ? ['현재 전체 요청의 자체 답변과 검색으로 확인한 답변을 하나의 완성된 answer로 쓴다. 검색 예고나 임시 문구는 쓰지 않는다.'] : []),
-    ...(options.localOnly ? ['현재 요청 중 설정·대화·제공 자료만으로 답할 수 있는 독립된 부분만 답한다. 외부 사실, 검색 예고, 임시 문구는 쓰지 않는다. 독립된 부분이 없으면 answer는 빈 문자열이다.'] : []),
+    ...(options.localOnly ? ['현재 요청 중 검색 결과 없이 독립적으로 답할 수 있는 부분만 답한다. 설정·대화·제공 자료·일반 지식·의견·창작을 활용할 수 있다. 확인되지 않은 외부 대상의 구체적 사실이나 최신 정보는 쓰지 않고, 검색 예고나 임시 문구도 쓰지 않는다. 독립된 부분이 없으면 answer는 빈 문자열이다.'] : []),
     ...(options.externalOnly ? ['answer에는 지정된 외부 요청에 관한 내용만 쓴다. 제공 근거로 확인한 주장에는 출처 URL을 인용하고, 확인 못한 사실만 유보한다. 자체 설정·대화 답변을 다시 쓰지 않는다.'] : []),
     ...(imageParts.length > 0 ? [
       '',
@@ -9980,7 +10074,8 @@ break;
 }
 
 async function requestGeminiGenerateContent(modelName, payload, apiKey) {
-  const stageTimeoutMs = chatStageTimeout(payload);
+  const nativeDeadline = payload[Symbol.for('chat.nativeDeadline')];
+  const stageTimeoutMs = Math.min(chatStageTimeout(payload), nativeDeadline ? nativeDeadline - Date.now() : Infinity);
   if (stageTimeoutMs < 1500) {
     throw Object.assign(new Error('Gemini request skipped because the chat stage budget is exhausted'), {
       code: 'GEMINI_STAGE_TIMEOUT',

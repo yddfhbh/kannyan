@@ -135,8 +135,34 @@ async function fetchWebPageTextWithinDeadline(input, options = {}) {
       throw new Error('The HTML response is too large.');
     }
     const html = await readLimitedResponse(response, maxHtmlBytes);
-    return { url: url.toString(), status: response.status, contentType, redirectChain,
-      ...extractReadablePageText(html, maxTextLength, { fragment: url.hash }) };
+    const extracted = extractReadablePageText(html, maxTextLength, { fragment: url.hash });
+    // The official patch notes HTML is a loader. Its own script points at this
+    // public JSON document; reading it does not require executing page scripts.
+    if (extracted.bodyQuality === 'insufficient'
+      && url.origin === 'https://tetr.io' && url.pathname === '/about/patchnotes/'
+      && /xhr\.get\(['"]\/about\/patchnotes\/notes\.json['"]/.test(html)) {
+      try {
+        const notesUrl = new URL('/about/patchnotes/notes.json', url);
+        await assertSafePublicUrl(notesUrl, resolveHostnames);
+        if (!consumeGeneralSearchAttempt('read') || (options.beforeHttpAttempt && !(await options.beforeHttpAttempt({ type: 'page-read', url: notesUrl.toString(), redirect: 0 })))) throw new Error('HTTP request budget exhausted.');
+        const notesResponse = await fetchImpl(notesUrl, {
+          signal: requestSignal ? AbortSignal.any([AbortSignal.timeout(timeoutMs), requestSignal]) : AbortSignal.timeout(timeoutMs),
+          headers: { 'user-agent': userAgent, accept: 'application/json' }, redirect: 'error',
+        });
+        if (!notesResponse.ok || !/\bapplication\/json\b/i.test(notesResponse.headers.get('content-type') ?? '')) throw new Error('Official patch notes JSON unavailable.');
+        const notes = JSON.parse(await readLimitedResponse(notesResponse, 350_000));
+        const latest = Object.entries(notes).slice(0, 3).map(([version, entry]) => {
+          if (!/^BETA [\d.]+$/.test(version) || !entry || typeof entry !== 'object' || !Array.isArray(entry.contents)) return '';
+          const lines = entry.contents.flatMap((section) => [section.header, ...(Array.isArray(section.items) ? section.items : [])]);
+          return [version, entry.ts, ...lines].map((value) => normalizeText(String(value ?? '').replace(/<[^>]*>/g, ''))).filter(Boolean).join('\n');
+        }).filter(Boolean).join('\n\n');
+        if (latest.length >= 120) return { url: url.toString(), status: response.status, contentType, redirectChain,
+          ...extracted, text: truncateText(latest, maxTextLength), fullTextLength: latest.length,
+          textTruncated: latest.length > maxTextLength, bodyQuality: 'substantive',
+          sourceUrl: notesUrl.toString(), sourceFormat: 'official-json' };
+      } catch { /* A failed secondary source never upgrades the loader to evidence. */ }
+    }
+    return { url: url.toString(), status: response.status, contentType, redirectChain, ...extracted };
   }
   throw new Error('Too many redirects.');
 }

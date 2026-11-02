@@ -16,6 +16,18 @@ Node.js와 `discord.js`로 만든 디스코드 봇입니다. TETR.IO 프로필/�
 
 그림 생성 API와 자동 그리기 요청 감지는 제공하지 않습니다. 이미지 첨부·답장 이미지 이해, 체스 이미지→FEN, 카드 렌더링과 감정 이미지는 유지합니다.
 
+## Native Function Calling 검색
+
+`GEMINI_NATIVE_TOOLS_ENABLED=true`와 `GEMINI_NATIVE_TOOLS_TEST_CHANNEL_ID=<허가된 채널 ID>`를 함께 설정한 경우 그 채널의 일반 챗봇 대화에서만 Gemini가 `web_search`, `wiki_search`, `read_webpage`, `wiki_read`를 직접 선택합니다. 채널 ID가 없거나 형식이 잘못되면 모든 채널이 기존 검색 경로를 사용합니다. 푝무위키 도구는 기존 `PYHOK_WIKI_SEARCH_ENABLED=true`와 Meilisearch 인증 설정을 사용합니다. 체스 전용 분석 경로와 `%검색` 명령은 기존 구현을 유지합니다.
+
+새 경로는 한 대화에 최대 6회 도구를 호출하고, 전체 최대 35초 및 도구별 최대 7초 제한을 적용합니다. TETR.IO 공식 패치노트 HTML의 로더 본문이 부족하면 페이지가 직접 참조하는 공식 `notes.json`을 추가로 읽습니다. JSON을 확인하지 못하면 본문을 부족한 상태로 유지합니다.
+
+운영 전 검증 순서: `git status --short`, `git diff --check`, `npm test`로 작업 상태와 전체 테스트를 확인합니다. 기존 미커밋 변경의 소유 범위를 확인한 뒤 관련 변경만 커밋합니다. 운영 코드와 작업 코드의 차이를 확인하고 운영 파일 및 Git HEAD를 백업한 뒤 허가된 테스트 채널 ID로만 기능을 활성화합니다. 운영 PM2는 승인된 배포 시점에만 재시작합니다. 기존 토큰으로 두 번째 Gateway 세션을 실행하지 않습니다.
+
+테스트 채널에서 일반 대화, 검색, 푝무위키 검색, 연속 대화와 기억 사용, 감정 이미지, 답변 형식을 차례로 확인합니다. `DISCORD_TOKEN`과 채널 ID가 환경에 준비된 뒤 `node scripts/audit-native-discord-channel.js <채널 ID>`로 해당 채널의 메시지와 첨부 수를 읽기 전용 REST API로 확인할 수 있습니다. 이 스크립트는 메시지를 보내거나 Gateway에 연결하지 않습니다. 실제 응답의 사실성 및 기억 사용은 테스트 메시지와 로그를 함께 확인합니다.
+
+문제 발생 시 운영 환경의 `GEMINI_NATIVE_TOOLS_ENABLED=false`로 되돌리고 `pm2 restart <운영 봇 PM2 이름> --update-env`를 실행합니다. 코드 자체의 복원이 필요하면 백업한 파일과 Git HEAD를 먼저 확인하여 복원합니다.
+
 ## 요구 사항
 
 - Node.js 18 이상, Node.js 22 권장
