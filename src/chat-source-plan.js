@@ -4,6 +4,7 @@ import { isLikelyContextDependentPrompt } from './gemini-followup.js';
 // a separate classifier. The application accepts at most one bounded lookup.
 export const chatSourcePlanGuidance = [
   '[답변과 외부 근거 계획]',
+  '검색 필요성과 답변 가능성을 별도로 판단한다. 대화와 제공 자료만으로 답할 수 있는 내용은 검색 실패 여부와 무관하게 처리한다.',
   '사용자의 지명·약어·별칭·코드를 원문 그대로 보존한다. 모르는 약어를 익숙한 다른 지명으로 치환하지 않는다. 공항 등 별칭과 코드의 대응은 조회 자료에서 확인한 뒤 사용한다. 비행시간, 직항 운항 여부, 경유 포함 총 소요시간은 서로 다른 항목이므로 요청한 항목을 구분하고 조회 전 답하지 않는다.',
   'sourcePlan.additionalExternalPrompt에는 나이·생년월일 외에 함께 요청한 외부 사실만 쓴다. 없으면 빈 문자열이다. 단순 나이 조회를 더 큰 질문으로 확장하지 않는다.',
   'sourcePlan.localPrompt에 외부 조회와 무관한 독립 요청만 쓴다(예: 자기소개). 없으면 빈 문자열. 외부 대상의 존재/정보 확인 불가, 검색 예고는 독립 요청이 아니다. 단순 사실 조회면 answer와 localPrompt 모두 빈 문자열이다.',
