@@ -115,7 +115,7 @@ globalThis.fetch = async (input, options) => {
 };
 
 const exports = {};
-for (const name of ['chat-clock', 'chat-source-plan', 'chat-evidence', 'chat-search-policy', 'gemini-chat-request', 'gemini-context', 'gemini-answer', 'gemini-memory', 'gemini-permanent-memory', 'gemini-prompt-guard', 'gemini-style-guidance', 'kannyang-speech', 'discord-markdown', 'web-search', 'web-page-content', 'news-evidence', 'evidence-review', 'web-evidence', 'pyhok-wiki-search']) {
+for (const name of ['chat-clock', 'chat-source-plan', 'chat-evidence', 'chat-search-policy', 'gemini-chat-request', 'gemini-context', 'gemini-answer', 'gemini-memory', 'gemini-permanent-memory', 'gemini-prompt-guard', 'gemini-style-guidance', 'kannyang-speech', 'discord-markdown', 'web-search', 'web-page-content', 'news-evidence', 'evidence-review', 'web-evidence', 'pyhok-wiki-search', 'gemini-key-rotation']) {
   Object.assign(exports, await import(`../src/${name}.js`));
 }
 const collectEvidence = exports.collectWebBodyEvidence;

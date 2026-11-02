@@ -14,7 +14,7 @@ export function classifyChatRequestError(error) {
 // Chat-only policy: try another key for the SAME model before lowering quality.
 // Every attempt receives the exact same payload (including images and evidence).
 export async function requestChatWithFallback(payload, options) {
-  const { models, keys, request, maxAttempts = 2, canAttempt, sleep = () => Promise.resolve(), log = () => {} } = options;
+  const { models, keys, request, maxAttempts = 2, canAttempt, sleep = () => Promise.resolve(), log = () => {}, keyLabel = (_key, i) => `key#${i + 1}` } = options;
   let lastError;
   for (const model of models) {
     let modelFailure = false;
@@ -27,13 +27,13 @@ export async function requestChatWithFallback(payload, options) {
         try {
           const response = await request(model, payload, keys[keyIndex]);
           const responseModel = response.modelVersion || null;
-          response._requestMeta = { ...(response._requestMeta ?? {}), model, responseModel, keyLabel: `key#${keyIndex + 1}`, attempt };
-          log(`success model=${model} responseModel=${responseModel ?? 'unreported'} key#${keyIndex + 1} attempt=${attempt}`);
+          response._requestMeta = { ...(response._requestMeta ?? {}), model, responseModel, keyLabel: keyLabel(keys[keyIndex], keyIndex), attempt };
+          log(`success model=${model} responseModel=${responseModel ?? 'unreported'} ${keyLabel(keys[keyIndex], keyIndex)} attempt=${attempt}`);
           return response;
         } catch (error) {
           lastError = error;
           const action = classifyChatRequestError(error);
-          log(`failed model=${model} key#${keyIndex + 1} status=${error.status ?? error.name} action=${action}`);
+          log(`failed model=${model} ${keyLabel(keys[keyIndex], keyIndex)} status=${error.status ?? error.name} action=${action}`);
           if (action === 'request' || action === 'budget') throw error;
           if (action === 'quota') quotaFailure = true;
           if (action === 'key' || action === 'quota') break;

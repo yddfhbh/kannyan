@@ -114,3 +114,19 @@ test('outside the configured channel the legacy source planner remains active', 
   assert.equal(r.generated.length, 1);
   assert.match(r.sent[0], /자체 문맥으로 답했다냥/);
 });
+
+test('native timeout can recover through legacy chat', async () => {
+  const r = runtime({ plan: { mode: 'local' } });
+  r.context.process.env.GEMINI_NATIVE_TOOLS_ENABLED = 'true';
+  r.context.process.env.GEMINI_NATIVE_TOOLS_ALL_CHANNELS = 'true';
+  r.context.generateNativeToolAnswer = async () => {
+    throw Object.assign(new Error('timeout'), {
+      code: 'GEMINI_STAGE_TIMEOUT',
+    });
+  };
+  await r.context.handleGeminiFallbackMessage({
+    ...message('안녕'), channelId: '123456789012345679',
+  });
+  assert.equal(r.generated.length, 1);
+  assert.match(r.sent[0], /자체 문맥으로 답했다냥/);
+});

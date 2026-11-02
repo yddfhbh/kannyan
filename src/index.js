@@ -11,6 +11,7 @@ import { answerClockQuestion, getChatClock } from './chat-clock.js';
 import { requestChatWithFallback } from './gemini-chat-request.js';
 import { createNativeSearchTools, nativeToolDeclarations, nativeToolGuidance, runGeminiNativeTools } from './gemini-native-tools.js';
 import { shouldUseNativeToolsForChannel } from './native-tools-channel.js';
+import { createGeminiKeyRotation } from './gemini-key-rotation.js';
 import 'dotenv/config';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
@@ -297,6 +298,7 @@ const geminiApiKeys = getUniqueValues([
   process.env.GEMINI_API_KEY,
   process.env.GEMMA_API_KEY,
 ]);
+const geminiKeyRotation = createGeminiKeyRotation(geminiApiKeys);
 const port = Number(process.env.PORT) || 8080;
 const chessComBaseUrl = 'https://api.chess.com/pub/player';
 const lichessBaseUrl = 'https://lichess.org/api/user';
@@ -7948,11 +7950,24 @@ const chessAnalysis =
 
     if (shouldUseNativeToolsForChannel(message.channelId)
       && !prioritizeChessImageAnalysis && !isChessPrompt) {
-      const answerResult = await generateNativeToolAnswer(prompt, {
-        now: requestNow, history, replyContext, mentionContext, currentUserContext,
-        contextDependentPrompt, permanentMemories, promptControl,
-        currentAuthorId: message.author?.id, imageParts,
-      });
+      let answerResult;
+      try {
+        answerResult = await generateNativeToolAnswer(prompt, {
+          now: requestNow, history, replyContext, mentionContext, currentUserContext,
+          contextDependentPrompt, permanentMemories, promptControl,
+          currentAuthorId: message.author?.id, imageParts,
+        });
+      } catch (error) {
+        const timedOut = [
+          'GEMINI_STAGE_TIMEOUT',
+          'CHAT_STAGE_TIME_LIMIT',
+        ].includes(error?.code);
+
+        if (!timedOut || chatTimeRemaining() < 14_000) throw error;
+        console.warn(`[Chat native] fallback=legacy reason=${error.code}`);
+      }
+
+      if (answerResult) {
       await sendGeminiChatUsageLog(message, answerResult, { hasImages: imageParts.length > 0, source: 'native-tools-chat' });
       const attribution = formatPermanentMemoryAttribution(permanentMemories, answerResult.usedPermanentMemoryIds);
       appendGeminiMemoryEntry(sessionKey, { role: 'user', authorId: message.author?.id,
@@ -7966,6 +7981,7 @@ const chessAnalysis =
         ...(files.length ? { files } : {}), allowedMentions: { parse: [], repliedUser: false } }, 'handleGeminiFallbackMessage:native-tools');
       for (const chunk of chunks.slice(1)) await message.channel.send({ content: chunk, allowedMentions: { parse: [] } });
       return true;
+      }
     }
 
     const shouldForceChessWebSearch = shouldForceWebSearchForChessPrompt(rawPrompt, {
@@ -8904,6 +8920,9 @@ function isPromptOverrideAttempt(prompt) {
 }
 
 function getGeminiUserErrorMessage(error) {
+  if (['GEMINI_STAGE_TIMEOUT', 'CHAT_STAGE_TIME_LIMIT'].includes(error?.code)) {
+    return '모델 응답 시간이 부족해 요청을 완료하지 못했다냥. 잠시 후 다시 시도해달라냥.';
+  }
   if (error?.code === 'GEMINI_IMAGE_UNAVAILABLE') {
     return '첨부 이미지를 읽지 못했다냥. 이미지가 만료되지 않았는지, 지원되는 PNG/JPEG/WebP 형식인지 확인해서 다시 올려달라냥.';
   }
@@ -9105,10 +9124,11 @@ async function generateNativeToolAnswer(prompt, options = {}) {
       const keys = [pinned.key, ...geminiApiKeys.filter((key) => key !== pinned.key)];
       const response = await requestChatWithFallback(body, {
         models: [pinned.model], keys, request: requestGeminiGenerateContent,
+        keyLabel: (key) => geminiKeyRotation.label(key),
         maxAttempts: 2, sleep: wait,
         log: (message) => console.log(`[Chat model] stage=native-tools-continuation ${message}`),
       });
-      pinned.key = keys[Number(response._requestMeta?.keyLabel?.match(/\d+/)?.[0] ?? 1) - 1];
+      pinned.key = geminiApiKeys[Number(response._requestMeta?.keyLabel?.match(/\d+/)?.[0] ?? 1) - 1];
       return response;
     },
     });
@@ -9996,7 +10016,9 @@ function extractQuotedFinalAnswer(text) {
 
 async function fetchGeminiGenerateContent(payload, options = {}) {
   if (options.chat) return requestChatWithFallback(payload, {
-    models: options.models ?? geminiModels, keys: geminiApiKeys,
+    models: options.models ?? geminiModels,
+    keys: options.keys ?? geminiKeyRotation.nextKeys(),
+    keyLabel: (key) => geminiKeyRotation.label(key),
     request: requestGeminiGenerateContent, canAttempt: requestGeminiGenerateContent.canAttempt, maxAttempts: geminiMaxAttemptsPerModel,
     sleep: wait, log: (message) => console.log(`[Chat model] stage=${options.stage ?? 'unknown'} ${message}`),
   });

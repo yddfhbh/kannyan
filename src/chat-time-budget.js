@@ -18,6 +18,16 @@ export function chatTimeRemaining() {
 }
 export function chatStageTimeout(payload) {
   if (!scope.getStore()) return Infinity;
+
+  const nativeDeadline = payload?.[Symbol.for('chat.nativeDeadline')];
+  if (Number.isFinite(nativeDeadline)) {
+    return Math.max(0, Math.min(
+      18_000,
+      nativeDeadline - Date.now() - 3_000,
+      chatTimeRemaining() - 3_000
+    ));
+  }
+
   const properties = payload?.generationConfig?.responseSchema?.properties;
   const finalReview = payload?.[Symbol.for('chat.finalVerification')] === true;
   const reserve = properties?.sourcePlan ? 24_000 : properties?.evidenceReviews && !finalReview ? 16_000 : properties?.evidenceReviews ? 500 : 9000;
