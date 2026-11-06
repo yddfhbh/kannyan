@@ -12,6 +12,7 @@ import { requestChatWithFallback } from './gemini-chat-request.js';
 import { createNativeSearchTools, nativeToolDeclarations, nativeToolGuidance, runGeminiNativeTools } from './gemini-native-tools.js';
 import { shouldUseNativeToolsForChannel } from './native-tools-channel.js';
 import { createGeminiKeyRotation } from './gemini-key-rotation.js';
+import { buildGuildListEmbeds, GUILD_LIST_EMBED_MARKER } from './guild-list.js';
 import 'dotenv/config';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
@@ -1082,11 +1083,15 @@ async function readGuildListState() {
 
     return {
       messageId: parsed.messageId ?? null,
+      messageIds: Array.isArray(parsed.messageIds) ? parsed.messageIds : [],
+      pendingDeleteMessageIds: Array.isArray(parsed.pendingDeleteMessageIds) ? parsed.pendingDeleteMessageIds : [],
       guilds: parsed.guilds && typeof parsed.guilds === 'object' ? parsed.guilds : {},
     };
   } catch {
     return {
       messageId: null,
+      messageIds: [],
+      pendingDeleteMessageIds: [],
       guilds: {},
     };
   }
@@ -1112,50 +1117,6 @@ function formatKstTime(value) {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-function buildGuildListMessage(state) {
-  const guilds = Object.entries(state.guilds)
-    .map(([id, guild]) => ({ id, ...guild }))
-    .sort((a, b) => {
-      if (a.status !== b.status) {
-        return a.status === 'active' ? -1 : 1;
-      }
-
-      return String(a.name ?? '').localeCompare(String(b.name ?? ''), 'ko');
-    });
-
-  const activeCount = guilds.filter((guild) => guild.status === 'active').length;
-  const leftCount = guilds.filter((guild) => guild.status === 'left').length;
-
-  const lines = [];
-
-  lines.push('**현재 봇 참가 서버 목록**');
-  lines.push(`마지막 갱신: ${formatKstTime(new Date())}`);
-  lines.push(`현재 참가: ${activeCount}개 / 탈퇴 기록: ${leftCount}개 / 전체 기록: ${guilds.length}개`);
-  lines.push('');
-
-  if (guilds.length === 0) {
-    lines.push('아직 기록된 서버가 없음.');
-  } else {
-    for (const guild of guilds) {
-      const statusText = guild.status === 'left' ? ' (탈퇴)' : '';
-      const memberText = guild.memberCount == null ? '?' : String(guild.memberCount);
-
-      lines.push(
-        `- ${guild.status === 'left' ? '⚫' : '🟢'} **${guild.name ?? '이름 알 수 없음'}**${statusText}`
-      );
-      lines.push(`  ID: \`${guild.id}\` / 멤버: ${memberText}`);
-    }
-  }
-
-  let content = lines.join('\n');
-
-  if (content.length > 1900) {
-    content = content.slice(0, 1850) + '\n\n...서버가 많아서 일부 생략됨.';
-  }
-
-  return content;
 }
 
 async function fetchTextChannel(client, channelId, label) {
@@ -1306,41 +1267,73 @@ async function updateGuildListMessage(client, reason = 'unknown') {
     return;
   }
 
-  const content = buildGuildListMessage(state);
+  const embeds = buildGuildListEmbeds(state);
+  const storedIds = [
+    ...(Array.isArray(state.messageIds) ? state.messageIds : []),
+    ...(Array.isArray(state.pendingDeleteMessageIds) ? state.pendingDeleteMessageIds : []),
+    ...(state.messageId ? [state.messageId] : []),
+  ].filter(Boolean);
+  const oldIds = [...new Set(storedIds)];
 
-  if (state.messageId) {
-    const oldMessage = await channel.messages.fetch(state.messageId).catch(() => null);
-
-    if (oldMessage) {
-      await oldMessage.edit({
-        content,
-        allowedMentions: { parse: [] },
-      }).catch((error) => {
-        console.error(`[GUILD LIST] 기존 메시지 수정 실패 reason=${reason} messageId=${state.messageId}`);
-        console.error(error);
-        throw error;
-      });
-
-      console.log(
-        `[GUILD LIST] 메시지 갱신 완료 reason=${reason} messageId=${oldMessage.id} channel=${channel.id}`
-      );
-      return;
+  // 상태 파일이 없는 마이그레이션 환경에서도 대상 채널의 봇 메시지만 찾는다.
+  if (oldIds.length === 0 && channel.messages?.fetch) {
+    const recent = await channel.messages.fetch({ limit: 100 }).catch(() => null);
+    for (const message of recent?.values?.() ?? []) {
+      const isOwn = message.author?.id === client.user?.id;
+      const isGuildList = message.embeds?.some((embed) => embed.footer?.text === GUILD_LIST_EMBED_MARKER)
+        || String(message.content ?? '').startsWith('**현재 봇 참가 서버 목록**');
+      if (isOwn && isGuildList) oldIds.push(message.id);
     }
   }
 
-  const sent = await channel.send({
-    content,
-    allowedMentions: { parse: [] },
-  }).catch((error) => {
-    console.error(`[GUILD LIST] 새 메시지 전송 실패 reason=${reason}`);
+  const sent = [];
+  try {
+    for (const embed of embeds) {
+      sent.push(await channel.send({ embeds: [embed], allowedMentions: { parse: [] } }));
+    }
+  } catch (error) {
+    await Promise.allSettled(sent.map((message) => message.delete().catch(() => null)));
+    console.error(`[GUILD LIST] Embed 전체 게시 실패; 기존 목록 유지 reason=${reason}`);
     console.error(error);
     throw error;
-  });
+  }
 
-  state.messageId = sent.id;
+  // 새 목록 ID를 먼저 저장해, 삭제 직후 재시작해도 중복 정리가 가능하게 한다.
+  state.messageId = sent[0]?.id ?? null;
+  state.messageIds = sent.map((message) => message.id);
+  state.pendingDeleteMessageIds = oldIds;
+  try {
+    await writeGuildListState(state);
+  } catch (error) {
+    await Promise.allSettled(sent.map((message) => message.delete().catch(() => null)));
+    console.error(`[GUILD LIST] 새 Embed ID 저장 실패; 기존 목록 유지 reason=${reason}`);
+    console.error(error);
+    throw error;
+  }
+
+  const failedDeletes = [];
+  for (const messageId of oldIds) {
+    const oldMessage = await channel.messages.fetch(messageId).catch(() => null);
+    if (!oldMessage) continue;
+    if (oldMessage.author?.id !== client.user?.id) {
+      console.warn(`[GUILD LIST] 다른 작성자 메시지 삭제 건너뜀 messageId=${messageId}`);
+      continue;
+    }
+    try {
+      await oldMessage.delete();
+    } catch (error) {
+      failedDeletes.push(messageId);
+      console.error(`[GUILD LIST] 기존 목록 삭제 지연 messageId=${messageId}`);
+      console.error(error);
+    }
+  }
+
+  state.pendingDeleteMessageIds = failedDeletes;
   await writeGuildListState(state);
 
-  console.log(`[GUILD LIST] 새 메시지 생성 완료 messageId=${sent.id} reason=${reason}`);
+  console.log(
+    `[GUILD LIST] Embed 목록 갱신 완료 reason=${reason} messages=${sent.length} records=${Object.keys(state.guilds).length}`
+  );
 }
 
 async function syncCurrentGuildsToGuildListState(client, options = {}) {
