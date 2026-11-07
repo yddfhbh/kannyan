@@ -1,3 +1,4 @@
+import { handleChessleInviteInteraction } from './chessle-invite.js';
 import { formatChatDisplayAnswer } from './chat-display.js';
 import { TetrioLinkStore } from './tetrio-link-store.js';
 import { createChessAccountMonitor, handleChessAccountMonitorCommand } from './chess-account-monitor-commands.js';
@@ -5507,6 +5508,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
+    if (await handleChessleInviteInteraction(interaction)) return;
+
     if (interaction.isAutocomplete()) {
       await handleSlashCommandAutocomplete(interaction);
       return;
@@ -5516,10 +5519,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    if (interaction.commandName === '체슬') {
-      await interaction.launchActivity();
-      return;
-    }
 
     console.log(
       `Received /${interaction.commandName} from ${interaction.user.tag} in guild ${interaction.guildId ?? 'DM'}`
