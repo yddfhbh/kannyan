@@ -1,4 +1,5 @@
 import { handleChessleInviteInteraction } from './chessle-invite.js';
+import { createChessleLiveMonitor } from './chessle/live-feed.js';
 import { formatChatDisplayAnswer } from './chat-display.js';
 import { TetrioLinkStore } from './tetrio-link-store.js';
 import { createChessAccountMonitor, handleChessAccountMonitorCommand } from './chess-account-monitor-commands.js';
@@ -1484,8 +1485,17 @@ client.on('guildDelete', async (guild) => {
 
 installDiscordConsoleMirror(client);
 
+let chessleLiveMonitor = null;
 client.once(Events.ClientReady, async (readyClient) => {
   discordReady = true;
+  chessleLiveMonitor = createChessleLiveMonitor({
+    client: readyClient,
+    botToken: DISCORD_TOKEN,
+    applicationId: process.env.CLIENT_ID,
+    gamesFile: process.env.CHESSLE_LIVE_GAMES_FILE,
+    stateFile: process.env.CHESSLE_LIVE_STATE_FILE,
+  });
+  if (chessleLiveMonitor.enabled) chessleLiveMonitor.start();
   readyClient.user.setPresence({
     activities: [{ name: 'Chess.Com & Tetr.io', type: ActivityType.Playing }],
     status: 'online',
@@ -5895,6 +5905,7 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
     stopGuildListUpdater();
     stopVmStatusUpdater();
     stopChessPlayInactivityMonitor();
+    chessleLiveMonitor?.stop();
     closeStockfishEngine();
     client.destroy();
     await closeSvgRendererPool();

@@ -46,7 +46,23 @@ async function handleApi(request, response, url) {
   const validated = validateSequence(moves, puzzle.length); if (!validated.ok) return send(response, 400, { error: validated.error });
   const answer = validateSequence(puzzle.moves, puzzle.length).moves; const result = scoreGuess(validated.moves, answer, matching); const solved = result.every((cell) => cell === 'green'); const finished = solved || game.rows.length + 1 >= 6;
   const row = { moves: validated.moves.map((move) => move.san), result };
-  const next = { rows: [...game.rows, row], matching: game.matching || matching, finished, solved, opening: finished ? puzzle.name : undefined }; await store.update((state) => { state.games[gameKey(user.id, date, mode)] = next; });
+  const next = { rows: [...game.rows, row], matching: game.matching || matching, finished, solved, opening: finished ? puzzle.name : undefined };
+  // This is untrusted client metadata. The bot verifies the Activity instance
+  // with Discord's authenticated API before publishing or counting streaks.
+  const instanceId = typeof body.instanceId === 'string' && /^[\w-]{8,240}$/.test(body.instanceId) ? body.instanceId : null;
+  const liveEvent = instanceId ? {
+    id: `${user.id}:${date}:${mode}:${next.rows.length}`,
+    userId: String(user.id), instanceId, date, mode,
+    attempt: next.rows.length, result, solved, finished, createdAt: Date.now(),
+  } : null;
+  await store.update((state) => {
+    state.games[gameKey(user.id, date, mode)] = next;
+    if (liveEvent) {
+      state.liveEvents ||= [];
+      state.liveEvents.push(liveEvent);
+      if (state.liveEvents.length > 10000) state.liveEvents.splice(0, state.liveEvents.length - 10000);
+    }
+  });
   return send(response, 200, { row, result, matching: next.matching, solved, finished, opening: finished ? puzzle.name : undefined, share: shareText({ date, mode, attempt: next.rows.length, rows: next.rows.map(rowResult) }) });
 }
 
