@@ -5516,6 +5516,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
+    if (interaction.commandName === '체슬') {
+      await interaction.launchActivity();
+      return;
+    }
+
     console.log(
       `Received /${interaction.commandName} from ${interaction.user.tag} in guild ${interaction.guildId ?? 'DM'}`
     );

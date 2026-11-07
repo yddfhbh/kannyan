@@ -26,6 +26,10 @@ function buildSlashCommands() {
     .addStringOption((option) => option.setName('닉네임').setDescription('TETR.IO 닉네임').setRequired(true))
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('체슬')
+    .setDescription('Chessle 체스 오프닝 추측 게임을 실행합니다.')
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('도움말')
     .setDescription('사용 가능한 명령어를 보여줍니다.')
     .toJSON(),
@@ -994,7 +998,69 @@ async function registerSlashCommands() {
 
   console.log(`Registering ${commands.length} global slash command(s)...`);
 
-  await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
+  const existing = await rest.get(
+    Routes.applicationCommands(CLIENT_ID)
+  );
+
+  if (!Array.isArray(existing)) {
+    throw new Error('Cannot inspect Discord commands');
+  }
+
+  const entryPoints = existing.filter(
+    command => command.type === 4
+  );
+
+  if (entryPoints.length !== 1) {
+    throw new Error(
+      `Expected one Activity Entry Point, found ${entryPoints.length}`
+    );
+  }
+
+  const entry = entryPoints[0];
+
+  if (![1, 2].includes(entry.handler ?? 2)) {
+    throw new Error('Unexpected Activity handler');
+  }
+
+  const desired = new Set(
+    commands.map(command =>
+      `${command.type ?? 1}:${command.name}`
+    )
+  );
+
+  desired.add(`4:${entry.name}`);
+
+  const unexpected = existing.filter(
+    command => !desired.has(
+      `${command.type}:${command.name}`
+    )
+  );
+
+  if (unexpected.length > 0) {
+    throw new Error(
+      'Registration would remove existing commands: ' +
+      unexpected.map(command => command.name).join(', ')
+    );
+  }
+
+  const preservedEntryPoint = {
+    name: entry.name,
+    description: entry.description || 'Launch Activity',
+    type: 4,
+    handler: entry.handler ?? 2,
+    ...(entry.name_localizations
+      ? { name_localizations: entry.name_localizations } : {}),
+    ...(entry.description_localizations
+      ? { description_localizations: entry.description_localizations } : {}),
+    ...(Array.isArray(entry.contexts)
+      ? { contexts: entry.contexts } : {}),
+    ...(Array.isArray(entry.integration_types)
+      ? { integration_types: entry.integration_types } : {}),
+  };
+
+  await rest.put(Routes.applicationCommands(CLIENT_ID), {
+    body: [...commands, preservedEntryPoint],
+  });
   console.log('Global slash commands registered. They can take up to an hour to appear.');
 
   const guildCommandBodies = new Map();

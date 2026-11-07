@@ -18,7 +18,9 @@
     "experiment:general-search-gemini": "node scripts/run-general-search-gemini-experiment.js",
     "uci": "node src/chess/kannyan-uci.js",
     "check": "node --test",
-    "test": "node --test"
+    "test": "node --test",
+    "build:activity": "esbuild activity/activity.js --bundle --format=esm --outfile=activity/activity.bundle.js",
+    "start:chessle": "node scripts/chessle-server.js"
   },
   "keywords": [
     "discord",
@@ -36,6 +38,10 @@
     "minomuncher-core": "^0.0.5",
     "playwright": "^1.60.0",
     "sharp": "^0.34.5",
-    "stockfish": "^18.0.7"
+    "stockfish": "^18.0.7",
+    "@discord/embedded-app-sdk": "2.5.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
   }
 }
