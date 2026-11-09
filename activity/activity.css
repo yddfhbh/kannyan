@@ -75,6 +75,8 @@
   min-height: 0;
 }
 
+.answer{margin-top:10px;border:1px solid #4d956d;border-radius:5px;background:#213127;padding:9px 10px;color:#e8eee8;font-size:12px}.answer strong{display:block;color:#9ed2ad;font-size:11px;letter-spacing:.04em}.answer span{display:block;margin-top:3px;color:#c7d1c8;font-size:11px}.answer ol{display:flex;flex-wrap:wrap;gap:4px 10px;margin:7px 0 0;padding-left:20px;color:#f5f5ef;font:600 12px ui-monospace,SFMono-Regular,monospace}.answer li{padding-right:2px}
+
 @media (max-width: 780px) {
   .game-layout {
     grid-template-columns: minmax(0, 1fr);

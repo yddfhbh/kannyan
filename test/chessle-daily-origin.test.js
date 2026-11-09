@@ -29,7 +29,7 @@ test('uses same original daily for normal and expert and pins across restart', a
   const filePath = await temp(t);
   let calls = 0;
   const fetchImpl = async () => { calls++; return response(answer); };
-  const create = () => createChessleDailyOrigin({ filePath, fetchImpl, dateKst: () => '2026-11-08' });
+  const create = () => createChessleDailyOrigin({ filePath, fetchImpl, dateKst: () => '2026-11-07' });
   const first = await create().current();
   assert.equal(first.date, '2026-11-07');
   assert.equal(first.puzzles.normal.moves.length, 6);
@@ -46,7 +46,7 @@ test('when API fails the fallback remains frozen for the KST day', async t => {
   const filePath = await temp(t);
   let shouldFail = true;
   const daily = createChessleDailyOrigin({
-    filePath, dateKst: () => '2026-11-08', refreshMs: 0,
+    filePath, dateKst: () => '2026-11-07', refreshMs: 0,
     fetchImpl: async () => { if (shouldFail) throw Error('offline'); return response(answer); },
   });
   const first = await daily.current();
@@ -60,7 +60,7 @@ test('when API fails the fallback remains frozen for the KST day', async t => {
 test('protects legacy games on matching date instead of silently swapping answers', async t => {
   const filePath = await temp(t);
   const daily = createChessleDailyOrigin({
-    filePath, dateKst: () => '2026-11-08',
+    filePath, dateKst: () => '2026-11-07',
     fetchImpl: async () => response(answer),
   });
   const first = await daily.current({ legacyDates: ['2026-11-07'] });
@@ -72,13 +72,27 @@ test('protects legacy games on matching date instead of silently swapping answer
 test('refreshes with a newly published original date, without overwriting old cache', async t => {
   const filePath = await temp(t);
   let payload = answer;
+  let date = '2026-11-07';
   const daily = createChessleDailyOrigin({
-    filePath, dateKst: () => '2026-11-08', refreshMs: 0,
+    filePath, dateKst: () => date, refreshMs: 0,
     fetchImpl: async () => response(payload),
   });
   assert.equal((await daily.current()).date, '2026-11-07');
-  payload = { ...answer, date: '2026-11-08', num: 1730 };
+  date = '2026-11-08';
+  payload = { ...answer, date, num: 1730 };
   assert.equal((await daily.current()).date, '2026-11-08');
   const saved = JSON.parse(await fs.readFile(filePath, 'utf8'));
   assert.deepEqual(Object.keys(saved.records).sort(), ['2026-11-07', '2026-11-08']);
+});
+
+test('KST midnight never reuses an in-memory puzzle from the previous day', async t => {
+  const filePath = await temp(t);
+  let date = '2026-11-07';
+  let payload = answer;
+  const daily = createChessleDailyOrigin({ filePath, dateKst: () => date, refreshMs: 10 * 60_000, fetchImpl: async () => response(payload) });
+  assert.equal((await daily.current()).date, '2026-11-07');
+  // Simulate KST 23:59 -> 00:00 while the process and its active cache remain alive.
+  date = '2026-11-08';
+  payload = { ...answer, date, num: 1730 };
+  assert.equal((await daily.current()).date, '2026-11-08');
 });

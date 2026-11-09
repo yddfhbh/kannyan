@@ -35,7 +35,7 @@ test('poll validates active membership, edits one message, deduplicates and reco
   const id='123456789012345678', guild='987654321098765432', channel='987654321098765431';
   const instanceId='i-1234567890-gc-987654321098765432-987654321098765431';
   const base={userId:id,date:'2026-11-07',mode:'normal',instanceId,result:Array(6).fill('gray'),solved:false,finished:false,createdAt:Date.now()};
-  const events=[{...base,id:'guess-1',attempt:1},{...base,id:'guess-2',attempt:2,result:Array(6).fill('green'),solved:true,finished:true}];
+  const events=[{...base,id:'guess-1',attempt:1},{...base,id:'guess-2',attempt:2,result:Array(6).fill('green'),rows:[Array(6).fill('gray'),Array(6).fill('green')],solved:true,finished:true}];
   await fs.writeFile(gamesFile,JSON.stringify({liveEvents:events}));
   let sent=0,edits=0,verified=0;
   const client={guilds:{cache:{has:g=>g===guild}},channels:{fetch:async()=>({guildId:guild,send:async()=>{sent++;return {id:'111111111111111111'}},messages:{fetch:async()=>({edit:async()=>{edits++}})}})}};
@@ -48,4 +48,7 @@ test('poll validates active membership, edits one message, deduplicates and reco
   const state=JSON.parse(await fs.readFile(stateFile,'utf8'));
   assert.deepEqual(state.guildWins[guild]['2026-11-07'],[id]);
   assert.equal(Object.keys(state.processed).length,2);
+  const board=state.boards[`${guild}:${channel}:2026-11-07:normal`];
+  assert.equal(board.players[id].attempt,2);
+  assert.deepEqual(board.players[id].rows,[Array(6).fill('gray'),Array(6).fill('green')]);
 });

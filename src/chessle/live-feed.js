@@ -60,6 +60,11 @@ export function isChessleLiveEvent(event) {
     && Array.isArray(event.result)
     && event.result.length === (event.mode === 'expert' ? 10 : 6)
     && event.result.every(cell => Object.hasOwn(colors, cell))
+    && (event.rows === undefined || (Array.isArray(event.rows)
+      && event.rows.length === event.attempt
+      && event.rows.every(row => Array.isArray(row)
+        && row.length === (event.mode === 'expert' ? 10 : 6)
+        && row.every(cell => Object.hasOwn(colors, cell)))))
     && typeof event.solved === 'boolean'
     && typeof event.finished === 'boolean'
     && Number.isFinite(event.createdAt));
@@ -145,8 +150,11 @@ export function createChessleLiveMonitor({
         const key = `${guildId}:${channelId}:${event.date}:${event.mode}`;
         const board = state.boards[key] ||= { guildId, channelId, date: event.date, mode: event.mode, players: {} };
         const player = board.players[event.userId] ||= { rows: [], attempt: 0, solved: false, finished: false };
-        if (event.attempt > player.attempt && event.attempt <= 6) {
-          player.rows.push(event.result);
+        if (event.attempt >= player.attempt && event.attempt <= 6) {
+          // New servers publish a complete, transactionally stored snapshot.
+          // Retain compatibility with older one-row events during rollout.
+          player.rows = event.rows ? event.rows.map(row => [...row]) : event.attempt > player.attempt
+            ? [...player.rows, event.result] : player.rows;
           player.attempt = event.attempt;
           player.solved = event.solved;
           player.finished = event.finished;

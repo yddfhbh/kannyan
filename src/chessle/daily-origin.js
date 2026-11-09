@@ -81,9 +81,11 @@ export function createChessleDailyOrigin({
     await load();
     const today = dateKst();
     if (!validDate(today)) throw Error('Invalid current KST date');
-    if (state.fallbacks[today]) return project({ source: 'local', date: state.fallbacks[today] });
+    if (state.fallbacks[today]) return project({ source: 'local', date: today });
     const t = now();
-    if (active && t - lastCheckedAt < refreshMs) return project(active);
+    // Never carry an in-memory answer past a KST day boundary.  This used to
+    // return yesterday's active puzzle for up to refreshMs after midnight.
+    if (active?.date === today && t - lastCheckedAt < refreshMs) return project(active);
 
     try {
       const response = await fetchImpl(endpoint, {
@@ -95,12 +97,15 @@ export function createChessleDailyOrigin({
       const raw = await response.text();
       if (raw.length > 20_000) throw Error('Original daily payload too large');
       const daily = normalizeOriginalDaily(JSON.parse(raw));
+      // The Activity's calendar is KST, not the upstream publisher's clock.
+      // A stale upstream response must not revive yesterday's game key.
+      if (daily.date !== today) return await pinFallback(today);
       // Never change a pinned answer for an already-seen original date.
       if (state.records[daily.date]) {
         active = state.records[daily.date];
-      } else if (legacyDates.includes(daily.date)) {
+      } else if (legacyDates.includes(today)) {
         // Pre-migration plays may already use the old local answer for this date.
-        return await pinFallback(today, daily.date);
+        return await pinFallback(today);
       } else {
         state.records[daily.date] = daily;
         await persist();
@@ -110,7 +115,7 @@ export function createChessleDailyOrigin({
       return project(active);
     } catch (error) {
       // Once anyone starts a fallback problem, keep its answer stable for the KST day.
-      if (active) {
+      if (active?.date === today) {
         lastCheckedAt = t - Math.max(0, refreshMs - 60_000);
         return project(active);
       }
