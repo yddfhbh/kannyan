@@ -33,6 +33,12 @@ function buildSlashCommands() {
     .addStringOption((option) => option.setName('닉네임').setDescription('새 TETR.IO 닉네임').setRequired(true))
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('리오로그인삭제')
+    .setDescription('지정 운영자가 Discord 유저의 TETR.IO 수동 연동을 삭제합니다.')
+    .setDefaultMemberPermissions(0)
+    .addUserOption((option) => option.setName('유저').setDescription('연동을 삭제할 Discord 유저').setRequired(true))
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('체슬')
     .setDescription('Chessle 체스 오프닝 추측 게임을 실행합니다.')
     .toJSON(),

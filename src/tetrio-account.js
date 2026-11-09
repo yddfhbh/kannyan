@@ -66,3 +66,26 @@ export async function handleTetrioLoginUpdate(interaction, { store, findAccount 
     await interaction.editReply(message);
   }
 }
+
+export async function handleTetrioLoginDelete(interaction, { store }) {
+  if (interaction.user.id !== TETRIO_LINK_ADMIN_ID) {
+    await interaction.reply({ content: '이 명령어를 사용할 권한이 없다냥.', flags: MessageFlags.Ephemeral });
+    return;
+  }
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  try {
+    const user = interaction.options.getUser('유저', true);
+    const removed = await store.deleteLink(user.id);
+    if (!removed) {
+      await interaction.editReply('삭제할 수동 TETR.IO 연동 정보가 없다냥.');
+      return;
+    }
+    await interaction.editReply({
+      content: `**TETR.IO 연동 삭제 완료**\n\n- Discord 유저: <@${user.id}>\n- 기존 TETR.IO 닉네임: ${removed.username}\n- 처리 결과: 수동 연동 정보 삭제 완료`,
+      allowedMentions: { parse: [] },
+    });
+  } catch (error) {
+    console.error('[TETRIO LINK] deletion failed:', error);
+    await interaction.editReply('TETR.IO 수동 연동 정보 삭제에 실패했다냥. 기존 연동 정보는 유지했다냥.');
+  }
+}

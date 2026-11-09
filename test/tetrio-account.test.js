@@ -6,7 +6,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { MessageFlags } from 'discord.js';
 import { TetrioLinkStore } from '../src/tetrio-link-store.js';
-import { createTetrioAccountResolver, handleTetrioLogin, handleTetrioLoginUpdate, TETRIO_LINK_ADMIN_ID } from '../src/tetrio-account.js';
+import { createTetrioAccountResolver, handleTetrioLogin, handleTetrioLoginDelete, handleTetrioLoginUpdate, TETRIO_LINK_ADMIN_ID } from '../src/tetrio-account.js';
 import { findTetrioAccount, findTetrioAccountById, findTetrioUsername, findTetrioUsernameByDiscordId } from '../src/tetrio-card.js';
 import { buildSlashCommands } from '../src/deploy-commands.js';
 
@@ -167,6 +167,84 @@ test('concurrent saves preserve all users across restarts', async (t) => {
   assert.deepEqual((await fs.readdir(path.dirname(store.filePath))), ['tetrio-user-links.json']);
 });
 
+test('deletes only the requested v1 link and preserves other users', async (t) => {
+  const store = await temporaryStore(t);
+  const secondId = '223456789012345678';
+  await fs.writeFile(store.filePath, JSON.stringify({ version: 1, links: {
+    [id]: 'LegacyName', [secondId]: 'OtherName',
+  } }));
+  assert.deepEqual(await store.deleteLink(id), { id: null, username: 'legacyname' });
+  assert.equal(await store.getLink(id), null);
+  assert.deepEqual(await store.getLink(secondId), { id: null, username: 'othername' });
+  const restarted = new TetrioLinkStore(store.filePath);
+  assert.equal(await restarted.getLink(id), null);
+  assert.deepEqual(await restarted.getLink(secondId), { id: null, username: 'othername' });
+});
+
+test('deletes a v2 account link completely and permits re-registration', async (t) => {
+  const store = await temporaryStore(t);
+  await store.setAccount(id, { id: '0123456789abcdef01234567', username: 'OldName' });
+  assert.deepEqual(await store.deleteLink(id), { id: '0123456789abcdef01234567', username: 'oldname' });
+  assert.equal(await store.getLink(id), null);
+  await store.setAccount(id, { id: 'fedcba9876543210fedcba98', username: 'NewName' });
+  assert.deepEqual(await store.getLink(id), { id: 'fedcba9876543210fedcba98', username: 'newname' });
+});
+
+test('missing and failed deletions preserve the existing link', async (t) => {
+  const store = await temporaryStore(t);
+  assert.equal(await store.deleteLink(id), null);
+  await store.setAccount(id, { id: '0123456789abcdef01234567', username: 'Original' });
+  const before = await fs.readFile(store.filePath, 'utf8');
+  store.writeLinks = async () => { throw new Error('disk full'); };
+  await assert.rejects(store.deleteLink(id), /disk full/);
+  assert.equal(await fs.readFile(store.filePath, 'utf8'), before);
+  assert.deepEqual(await store.getLink(id), { id: '0123456789abcdef01234567', username: 'original' });
+});
+
+test('concurrent register, update, and delete operations serialize without losing other links', async (t) => {
+  const store = await temporaryStore(t);
+  const secondId = '223456789012345678';
+  await Promise.all([
+    store.setNickname(id, 'first'),
+    store.setNickname(secondId, 'second'),
+  ]);
+  await Promise.all([
+    store.setAccount(id, { id: '0123456789abcdef01234567', username: 'updated' }),
+    store.deleteLink(secondId),
+  ]);
+  assert.deepEqual(await store.getLink(id), { id: '0123456789abcdef01234567', username: 'updated' });
+  assert.equal(await store.getLink(secondId), null);
+});
+
+test('deletion handler is restricted, ephemeral, reports the old nickname, and handles missing links', async (t) => {
+  const store = await temporaryStore(t);
+  const unauthorized = interaction(id);
+  await handleTetrioLoginDelete(unauthorized, { store });
+  assert.equal(unauthorized.calls[0][1].flags, MessageFlags.Ephemeral);
+
+  const missing = interaction();
+  await handleTetrioLoginDelete(missing, { store });
+  assert.match(missing.calls.at(-1)[1], /삭제할 수동 TETR\.IO 연동 정보가 없다/);
+
+  await store.setAccount(id, { id: '0123456789abcdef01234567', username: 'OldName' });
+  const request = interaction();
+  await handleTetrioLoginDelete(request, { store });
+  assert.equal(request.calls[0][1].flags, MessageFlags.Ephemeral);
+  assert.match(request.calls.at(-1)[1].content, /기존 TETR\.IO 닉네임: oldname/);
+  assert.match(request.calls.at(-1)[1].content, /수동 연동 정보 삭제 완료/);
+  assert.equal(await store.getLink(id), null);
+});
+
+test('deletion handler keeps the link after a save failure', async (t) => {
+  const store = await temporaryStore(t);
+  await store.setNickname(id, 'original');
+  store.writeLinks = async () => { throw new Error('disk full'); };
+  const request = interaction();
+  await handleTetrioLoginDelete(request, { store });
+  assert.match(request.calls.at(-1)[1], /기존 연동 정보는 유지/);
+  assert.equal(await store.getNickname(id), 'original');
+});
+
 test('corrupt persistent data fails closed instead of overwriting mappings', async (t) => {
   const store = await temporaryStore(t);
   await fs.writeFile(store.filePath, '{broken');
@@ -308,6 +386,14 @@ test('slash login update uses the same restricted required options', () => {
   assert.equal(command.default_member_permissions, '0');
   assert.deepEqual(command.options.map(({ name, type, required }) => ({ name, type, required })), [
     { name: '유저', type: 6, required: true }, { name: '닉네임', type: 3, required: true },
+  ]);
+});
+
+test('slash login delete uses the same restricted required user option', () => {
+  const command = buildSlashCommands().find((entry) => entry.name === '리오로그인삭제');
+  assert.equal(command.default_member_permissions, '0');
+  assert.deepEqual(command.options.map(({ name, type, required }) => ({ name, type, required })), [
+    { name: '유저', type: 6, required: true },
   ]);
 });
 

@@ -85,7 +85,7 @@ test('guild registration preserves existing commands and fixed daily puzzle comm
   assert.deepEqual(plan.deleted, []);
 });
 
-test('global registration keeps Activity and existing commands while adding both TETR.IO login commands', () => {
+test('global registration keeps Activity and existing commands while adding all TETR.IO login commands', () => {
   const existing = [
     command('기존글로벌'),
     { name: 'KanNyan', description: 'Activity', type: 4, handler: 2 },
@@ -97,6 +97,7 @@ test('global registration keeps Activity and existing commands while adding both
   assert.ok(names.includes('KanNyan'));
   assert.ok(names.includes('리오로그인'));
   assert.ok(names.includes('리오로그인수정'));
+  assert.ok(names.includes('리오로그인삭제'));
   assert.equal(plan.deleted.length, 0);
   assert.equal(new Set(plan.body.map((item) => `${item.type}:${item.name}`)).size, plan.body.length);
 });
@@ -130,7 +131,7 @@ test('registration reads every scope before PUT and does not delete on API failu
 
 test('TETR.IO login commands retain restricted administrator permission', () => {
   const commands = buildSlashCommands();
-  for (const name of ['리오로그인', '리오로그인수정']) {
+  for (const name of ['리오로그인', '리오로그인수정', '리오로그인삭제']) {
     assert.equal(commands.find((item) => item.name === name)?.default_member_permissions, '0');
   }
 });

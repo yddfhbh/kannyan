@@ -3,7 +3,7 @@ import { createChessleLiveMonitor } from './chessle/live-feed.js';
 import { formatChatDisplayAnswer } from './chat-display.js';
 import { TetrioLinkStore } from './tetrio-link-store.js';
 import { createChessAccountMonitor, handleChessAccountMonitorCommand } from './chess-account-monitor-commands.js';
-import { createTetrioAccountResolver, handleTetrioLogin, handleTetrioLoginUpdate } from './tetrio-account.js';
+import { createTetrioAccountResolver, handleTetrioLogin, handleTetrioLoginDelete, handleTetrioLoginUpdate } from './tetrio-account.js';
 import { runChatBudget, chatTimeRemaining, chatStageTimeout } from './chat-time-budget.js';
 import { collectWebBodyEvidence, collectGeneralSearchBodies, renderWeatherEvidence } from './web-evidence.js';
 import { reviewSourceBodies, answerSupplementaryWikiFacts } from './evidence-review.js';
@@ -5658,6 +5658,11 @@ if (interaction.commandName === '개념글테스트') {
 
     if (interaction.commandName === '리오로그인수정') {
       await handleTetrioLoginUpdate(interaction, { store: tetrioLinkStore });
+      return;
+    }
+
+    if (interaction.commandName === '리오로그인삭제') {
+      await handleTetrioLoginDelete(interaction, { store: tetrioLinkStore });
       return;
     }
 

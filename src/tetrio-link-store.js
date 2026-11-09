@@ -115,6 +115,23 @@ export class TetrioLinkStore {
     return save;
   }
 
+  deleteLink(discordUserId) {
+    const id = String(discordUserId ?? '');
+    if (!validId(id)) return Promise.reject(new Error('Invalid TETR.IO link'));
+    const save = this.saveQueue.catch(() => {}).then(async () => {
+      await this.load();
+      const before = this.links.get(id);
+      if (!before) return null;
+      const links = new Map(this.links);
+      links.delete(id);
+      await this.writeLinks(links);
+      this.links = links;
+      return { ...before };
+    });
+    this.saveQueue = save;
+    return save;
+  }
+
   async writeLinks(links) {
     await fs.mkdir(path.dirname(this.filePath), { recursive: true });
     const tmpPath = `${this.filePath}.${randomUUID()}.tmp`;
