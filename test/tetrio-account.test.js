@@ -6,8 +6,8 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { MessageFlags } from 'discord.js';
 import { TetrioLinkStore } from '../src/tetrio-link-store.js';
-import { createTetrioAccountResolver, handleTetrioLogin, TETRIO_LINK_ADMIN_ID } from '../src/tetrio-account.js';
-import { findTetrioUsername, findTetrioUsernameByDiscordId } from '../src/tetrio-card.js';
+import { createTetrioAccountResolver, handleTetrioLogin, handleTetrioLoginUpdate, TETRIO_LINK_ADMIN_ID } from '../src/tetrio-account.js';
+import { findTetrioAccount, findTetrioAccountById, findTetrioUsername, findTetrioUsernameByDiscordId } from '../src/tetrio-card.js';
 import { buildSlashCommands } from '../src/deploy-commands.js';
 
 const id = '123456789012345678';
@@ -65,6 +65,100 @@ test('missing accounts and API failures never modify existing mappings', async (
   assert.equal(await store.getNickname(id), 'original');
 });
 
+test('login update replaces an existing link with account identity and reports before/after', async (t) => {
+  const store = await temporaryStore(t);
+  await store.setNickname(id, 'oldname');
+  const request = interaction();
+  await handleTetrioLoginUpdate(request, {
+    store,
+    findAccount: async (input) => {
+      assert.equal(input, 'Arcane123');
+      return { id: '0123456789abcdef01234567', username: 'NewName' };
+    },
+  });
+  assert.match(request.calls.at(-1)[1].content, /oldname → NewName/);
+  assert.deepEqual(await store.getLink(id), { id: '0123456789abcdef01234567', username: 'newname' });
+});
+
+test('login update preserves the old link for missing accounts, API errors, and save errors', async (t) => {
+  const store = await temporaryStore(t);
+  await store.setAccount(id, { id: '0123456789abcdef01234567', username: 'original' });
+  for (const findAccount of [async () => null, async () => { throw new Error('API unavailable'); }]) {
+    const request = interaction();
+    await handleTetrioLoginUpdate(request, { store, findAccount });
+    assert.deepEqual(await store.getLink(id), { id: '0123456789abcdef01234567', username: 'original' });
+  }
+  const originalSetAccount = store.setAccount.bind(store);
+  store.setAccount = async () => { throw new Error('disk full'); };
+  const failedSave = interaction();
+  await handleTetrioLoginUpdate(failedSave, { store, findAccount: async () => ({ id: 'fedcba9876543210fedcba98', username: 'newname' }) });
+  assert.match(failedSave.calls.at(-1)[1], /기존 연동 정보는 유지/);
+  store.setAccount = originalSetAccount;
+});
+
+test('login update rejects unlinked users, unauthorized users, and duplicate accounts', async (t) => {
+  const store = await temporaryStore(t);
+  const missing = interaction();
+  await handleTetrioLoginUpdate(missing, { store, findAccount: () => assert.fail('API called') });
+  assert.match(missing.calls.at(-1)[1], /기존 TETR\.IO 연동 정보가 없다/);
+
+  const unauthorized = interaction(id);
+  await handleTetrioLoginUpdate(unauthorized, { store, findAccount: () => assert.fail('API called') });
+  assert.equal(unauthorized.calls[0][1].flags, MessageFlags.Ephemeral);
+
+  await store.setNickname(id, 'old');
+  await store.setAccount('223456789012345678', { id: '0123456789abcdef01234567', username: 'first' });
+  const duplicate = interaction();
+  await handleTetrioLoginUpdate(duplicate, { store, findAccount: async () => ({ id: '0123456789abcdef01234567', username: 'first' }) });
+  assert.match(duplicate.calls.at(-1)[1], /이미 다른 Discord 유저/);
+  assert.equal(await store.getNickname(id), 'old');
+});
+
+test('version 1 string links remain readable and are migrated safely on the next write', async (t) => {
+  const store = await temporaryStore(t);
+  await fs.writeFile(store.filePath, JSON.stringify({ version: 1, links: { [id]: 'LegacyName' } }));
+  assert.deepEqual(await store.getLink(id), { id: null, username: 'legacyname' });
+  await store.setAccount(id, { id: '0123456789abcdef01234567', username: 'ModernName' });
+  const payload = JSON.parse(await fs.readFile(store.filePath, 'utf8'));
+  assert.equal(payload.version, 2);
+  assert.deepEqual(payload.links[id], { id: '0123456789abcdef01234567', username: 'modernname' });
+});
+
+test('migrating one of several version 1 links preserves every other user and survives reload', async (t) => {
+  const store = await temporaryStore(t);
+  const secondId = '223456789012345678';
+  const thirdId = '323456789012345678';
+  await fs.writeFile(store.filePath, JSON.stringify({ version: 1, links: {
+    [id]: 'FirstUser', [secondId]: 'SecondUser', [thirdId]: 'ThirdUser',
+  } }));
+  assert.equal(await store.getNickname(secondId), 'seconduser');
+  await store.setAccount(id, { id: '0123456789abcdef01234567', username: 'RenamedFirst' });
+  const payload = JSON.parse(await fs.readFile(store.filePath, 'utf8'));
+  assert.equal(payload.version, 2);
+  assert.deepEqual(payload.links, {
+    [id]: { id: '0123456789abcdef01234567', username: 'renamedfirst' },
+    [secondId]: { id: null, username: 'seconduser' },
+    [thirdId]: { id: null, username: 'thirduser' },
+  });
+  const restarted = new TetrioLinkStore(store.filePath);
+  assert.deepEqual(await restarted.getLink(secondId), { id: null, username: 'seconduser' });
+  assert.deepEqual(await restarted.getLink(thirdId), { id: null, username: 'thirduser' });
+});
+
+test('a failed migration write preserves both the old file and in-memory links', async (t) => {
+  const store = await temporaryStore(t);
+  const secondId = '223456789012345678';
+  await fs.writeFile(store.filePath, JSON.stringify({ version: 1, links: {
+    [id]: 'FirstUser', [secondId]: 'SecondUser',
+  } }));
+  const before = await fs.readFile(store.filePath, 'utf8');
+  store.writeLinks = async () => { throw new Error('disk full'); };
+  await assert.rejects(store.setAccount(id, { id: '0123456789abcdef01234567', username: 'newfirst' }), /disk full/);
+  assert.equal(await fs.readFile(store.filePath, 'utf8'), before);
+  assert.deepEqual(await store.getLink(id), { id: null, username: 'firstuser' });
+  assert.deepEqual(await store.getLink(secondId), { id: null, username: 'seconduser' });
+});
+
 test('concurrent saves preserve all users across restarts', async (t) => {
   const store = await temporaryStore(t);
   await Promise.all(Array.from({ length: 30 }, (_, i) => store.setNickname(String(BigInt(id) + BigInt(i)), `player${i}`)));
@@ -105,6 +199,74 @@ test('account priority: explicit, official, manual, missing; API failures propag
   }
 });
 
+test('manual links with an account ID resolve the current nickname after a rename', async (t) => {
+  const store = await temporaryStore(t);
+  await store.setAccount(id, { id: '0123456789abcdef01234567', username: 'oldname' });
+  const resolve = createTetrioAccountResolver({
+    store,
+    findOfficial: async () => null,
+    findAccountById: async (accountId) => {
+      assert.equal(accountId, '0123456789abcdef01234567');
+      return { id: accountId, username: 'newname' };
+    },
+  });
+  assert.equal(await resolve({ discordUserId: id }), 'newname');
+});
+
+test('version 1 links use the stored nickname only, while version 2 links use the stable ID lookup', async (t) => {
+  const store = await temporaryStore(t);
+  await fs.writeFile(store.filePath, JSON.stringify({ version: 1, links: { [id]: 'OldName' } }));
+  const v1Calls = [];
+  const v1Resolve = createTetrioAccountResolver({
+    store,
+    findOfficial: async () => null,
+    findAccountById: async () => { v1Calls.push('id'); return { username: 'unexpected' }; },
+  });
+  assert.equal(await v1Resolve({ discordUserId: id }), 'oldname');
+  assert.deepEqual(v1Calls, []);
+
+  await store.setAccount(id, { id: '0123456789abcdef01234567', username: 'OldName' });
+  const v2Calls = [];
+  const v2Resolve = createTetrioAccountResolver({
+    store,
+    findOfficial: async () => null,
+    findAccountById: async (accountId) => {
+      v2Calls.push(accountId);
+      return { id: accountId, username: 'renamed' };
+    },
+  });
+  assert.equal(await v2Resolve({ discordUserId: id }), 'renamed');
+  assert.deepEqual(v2Calls, ['0123456789abcdef01234567']);
+});
+
+test('ID lookup failures do not alter the saved v2 link', async (t) => {
+  const store = await temporaryStore(t);
+  await store.setAccount(id, { id: '0123456789abcdef01234567', username: 'oldname' });
+  const resolve = createTetrioAccountResolver({
+    store,
+    findOfficial: async () => null,
+    findAccountById: async () => { throw Object.assign(new Error('API unavailable'), { status: 503 }); },
+  });
+  await assert.rejects(resolve({ discordUserId: id }), { status: 503 });
+  assert.deepEqual(await store.getLink(id), { id: '0123456789abcdef01234567', username: 'oldname' });
+});
+
+test('account ID lookup requests the ID endpoint and returns the current nickname', async (t) => {
+  const original = globalThis.fetch;
+  t.after(() => { globalThis.fetch = original; });
+  let requestedUrl;
+  globalThis.fetch = async (input) => {
+    requestedUrl = String(input);
+    return { ok: true, status: 200, json: async () => ({
+      success: true, data: { _id: '0123456789abcdef01234567', username: 'RenamedUser' },
+    }) };
+  };
+  assert.deepEqual(await findTetrioAccountById('0123456789abcdef01234567'), {
+    id: '0123456789abcdef01234567', username: 'renameduser',
+  });
+  assert.match(requestedUrl, /\/users\/0123456789abcdef01234567$/);
+});
+
 test('API lookup preserves hardcoded mapping and rejects malformed successful responses', async (t) => {
   const original = globalThis.fetch;
   t.after(() => { globalThis.fetch = original; });
@@ -121,8 +283,28 @@ test('API lookup preserves hardcoded mapping and rejects malformed successful re
   await assert.rejects(findTetrioUsernameByDiscordId('423456789012345678'), { status: 503 });
 });
 
+test('official user lookup returns the stable account ID and current username', async (t) => {
+  const original = globalThis.fetch;
+  t.after(() => { globalThis.fetch = original; });
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({
+    success: true,
+    data: { _id: '0123456789abcdef01234567', username: 'RenamedUser' },
+  }) });
+  assert.deepEqual(await findTetrioAccount('OldUser'), {
+    id: '0123456789abcdef01234567', username: 'renameduser',
+  });
+});
+
 test('slash registration uses required User/String options and default disabled permissions', () => {
   const command = buildSlashCommands().find((entry) => entry.name === '리오로그인');
+  assert.equal(command.default_member_permissions, '0');
+  assert.deepEqual(command.options.map(({ name, type, required }) => ({ name, type, required })), [
+    { name: '유저', type: 6, required: true }, { name: '닉네임', type: 3, required: true },
+  ]);
+});
+
+test('slash login update uses the same restricted required options', () => {
+  const command = buildSlashCommands().find((entry) => entry.name === '리오로그인수정');
   assert.equal(command.default_member_permissions, '0');
   assert.deepEqual(command.options.map(({ name, type, required }) => ({ name, type, required })), [
     { name: '유저', type: 6, required: true }, { name: '닉네임', type: 3, required: true },

@@ -180,6 +180,11 @@ export async function createTetrioProfileCardSvg(username) {
 }
 
 export async function findTetrioUsername(input) {
+  const account = await findTetrioAccount(input);
+  return account?.username ?? null;
+}
+
+export async function findTetrioAccount(input) {
   const normalizedUsername = normalizeTetrioUsername(String(input ?? ''));
   const sessionId = createTetrioApiSessionId('username-lookup');
   if (!normalizedUsername) {
@@ -188,15 +193,32 @@ export async function findTetrioUsername(input) {
 
   try {
     const response = await fetchTetrioJson(`/users/${encodeURIComponent(normalizedUsername)}`, { sessionId });
-    if (typeof response.data?.username !== 'string' || !response.data.username.trim()) {
+    if (typeof response.data?.username !== 'string' || !response.data.username.trim()
+      || typeof response.data?._id !== 'string' || !/^[a-f0-9]{24}$/i.test(response.data._id)) {
       throw new Error('Invalid TETR.IO user lookup response');
     }
-    return response.data.username;
+    return { id: response.data._id.toLowerCase(), username: response.data.username.toLowerCase() };
   } catch (error) {
     if (error.status === 404) {
       return null;
     }
 
+    throw error;
+  }
+}
+
+export async function findTetrioAccountById(id) {
+  if (typeof id !== 'string' || !/^[a-f0-9]{24}$/i.test(id)) return null;
+  const sessionId = createTetrioApiSessionId('account-id-lookup');
+  try {
+    const response = await fetchTetrioJson(`/users/${encodeURIComponent(id)}`, { sessionId });
+    if (typeof response.data?.username !== 'string' || !response.data.username.trim()
+      || typeof response.data?._id !== 'string' || !/^[a-f0-9]{24}$/i.test(response.data._id)) {
+      throw new Error('Invalid TETR.IO user lookup response');
+    }
+    return { id: response.data._id.toLowerCase(), username: response.data.username.toLowerCase() };
+  } catch (error) {
+    if (error.status === 404) return null;
     throw error;
   }
 }

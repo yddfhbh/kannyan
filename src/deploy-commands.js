@@ -26,6 +26,13 @@ function buildSlashCommands() {
     .addStringOption((option) => option.setName('닉네임').setDescription('TETR.IO 닉네임').setRequired(true))
     .toJSON(),
   new SlashCommandBuilder()
+    .setName('리오로그인수정')
+    .setDescription('지정 운영자가 Discord 유저의 TETR.IO 계정 연동을 수정합니다.')
+    .setDefaultMemberPermissions(0)
+    .addUserOption((option) => option.setName('유저').setDescription('수정할 Discord 유저').setRequired(true))
+    .addStringOption((option) => option.setName('닉네임').setDescription('새 TETR.IO 닉네임').setRequired(true))
+    .toJSON(),
+  new SlashCommandBuilder()
     .setName('체슬')
     .setDescription('Chessle 체스 오프닝 추측 게임을 실행합니다.')
     .toJSON(),
@@ -989,26 +996,51 @@ const dailyPuzzleAnnouncementCommand = new SlashCommandBuilder()
 
 const commands = buildSlashCommands();
 
-async function registerSlashCommands() {
-  if (!DISCORD_TOKEN || !CLIENT_ID) {
-    throw new Error('DISCORD_TOKEN and CLIENT_ID must be set in .env');
+function commandKey(command) {
+  return `${command?.type ?? 1}:${command?.name ?? ''}`;
+}
+
+function buildPreservingCommandPlan(existing, desired) {
+  if (!Array.isArray(existing) || !Array.isArray(desired)) {
+    throw new Error('Cannot compare Discord commands');
   }
 
-  const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+  const desiredByKey = new Map(desired.map((command) => [commandKey(command), command]));
+  const existingByKey = new Map(existing.map((command) => [commandKey(command), command]));
+  const body = [];
+  const preserved = [];
+  const replaced = [];
+  const added = [];
 
-  console.log(`Registering ${commands.length} global slash command(s)...`);
-
-  const existing = await rest.get(
-    Routes.applicationCommands(CLIENT_ID)
-  );
-
-  if (!Array.isArray(existing)) {
-    throw new Error('Cannot inspect Discord commands');
+  for (const command of existing) {
+    const key = commandKey(command);
+    if (desiredByKey.has(key)) {
+      body.push(desiredByKey.get(key));
+      replaced.push(command.name);
+    } else {
+      body.push(command);
+      preserved.push(command.name);
+    }
   }
 
-  const entryPoints = existing.filter(
-    command => command.type === 4
-  );
+  for (const command of desired) {
+    if (!existingByKey.has(commandKey(command))) {
+      body.push(command);
+      added.push(command.name);
+    }
+  }
+
+  return {
+    body,
+    added,
+    preserved,
+    replaced,
+    deleted: [],
+  };
+}
+
+function getGlobalRegistrationPlan(existing) {
+  const entryPoints = existing.filter((command) => command.type === 4);
 
   if (entryPoints.length !== 1) {
     throw new Error(
@@ -1020,27 +1052,6 @@ async function registerSlashCommands() {
 
   if (![1, 2].includes(entry.handler ?? 2)) {
     throw new Error('Unexpected Activity handler');
-  }
-
-  const desired = new Set(
-    commands.map(command =>
-      `${command.type ?? 1}:${command.name}`
-    )
-  );
-
-  desired.add(`4:${entry.name}`);
-
-  const unexpected = existing.filter(
-    command => !desired.has(
-      `${command.type}:${command.name}`
-    )
-  );
-
-  if (unexpected.length > 0) {
-    throw new Error(
-      'Registration would remove existing commands: ' +
-      unexpected.map(command => command.name).join(', ')
-    );
   }
 
   const preservedEntryPoint = {
@@ -1058,24 +1069,83 @@ async function registerSlashCommands() {
       ? { integration_types: entry.integration_types } : {}),
   };
 
-  await rest.put(Routes.applicationCommands(CLIENT_ID), {
-    body: [...commands, preservedEntryPoint],
-  });
-  console.log('Global slash commands registered. They can take up to an hour to appear.');
+  return buildPreservingCommandPlan(existing, [...commands, preservedEntryPoint]);
+}
 
-  const guildCommandBodies = new Map();
+function getGuildRegistrationPlan(existing, additions = []) {
+  return buildPreservingCommandPlan(existing, additions);
+}
 
-  if (guildId) {
-    guildCommandBodies.set(guildId, []);
+async function registerSlashCommands(options = {}) {
+  const token = options.token ?? DISCORD_TOKEN;
+  const clientId = options.clientId ?? CLIENT_ID;
+  const targetGuildId = options.guildId ?? guildId;
+
+  if (!options.rest && (!token || !clientId)) {
+    throw new Error('DISCORD_TOKEN and CLIENT_ID must be set in .env');
   }
 
-  guildCommandBodies.set(dailyPuzzleAnnouncementGuildId, [
-    dailyPuzzleAnnouncementCommand,
-  ]);
+  const rest = options.rest ?? new REST({ version: '10' }).setToken(token);
+  const log = options.log ?? console.log;
 
-  for (const [targetGuildId, body] of guildCommandBodies.entries()) {
-    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, targetGuildId), { body });
-    console.log(`Guild slash commands registered for ${targetGuildId}.`);
+  log(`Registering ${commands.length} global slash command(s)...`);
+
+  const existing = await rest.get(
+    Routes.applicationCommands(clientId)
+  );
+
+  if (!Array.isArray(existing)) {
+    throw new Error('Cannot inspect Discord commands');
+  }
+
+  const guildIds = new Set();
+  if (targetGuildId) guildIds.add(targetGuildId);
+  guildIds.add(dailyPuzzleAnnouncementGuildId);
+
+  const globalPlan = getGlobalRegistrationPlan(existing);
+  const guildPlans = new Map();
+
+  for (const currentGuildId of guildIds) {
+    const guildExisting = await rest.get(
+      Routes.applicationGuildCommands(clientId, currentGuildId)
+    );
+    if (!Array.isArray(guildExisting)) {
+      throw new Error(`Cannot inspect Discord commands for guild ${currentGuildId}`);
+    }
+
+    const additions = currentGuildId === dailyPuzzleAnnouncementGuildId
+      ? [dailyPuzzleAnnouncementCommand]
+      : [];
+    guildPlans.set(currentGuildId, getGuildRegistrationPlan(guildExisting, additions));
+  }
+
+  const plans = [
+    { scope: 'global', plan: globalPlan },
+    ...[...guildPlans].map(([currentGuildId, plan]) => ({
+      scope: `guild:${currentGuildId}`,
+      plan,
+    })),
+  ];
+  for (const { scope, plan } of plans) {
+    if (plan.deleted.length > 0) {
+      throw new Error(`Refusing to delete existing ${scope} commands: ${plan.deleted.join(', ')}`);
+    }
+    log(
+      `[COMMAND PLAN] ${scope}: `
+      + `add=[${plan.added.join(', ')}], `
+      + `replace=[${plan.replaced.join(', ')}], `
+      + `preserve=[${plan.preserved.join(', ')}], delete=[]`
+    );
+  }
+
+  await rest.put(Routes.applicationCommands(clientId), {
+    body: globalPlan.body,
+  });
+  log('Global slash commands registered. They can take up to an hour to appear.');
+
+  for (const [currentGuildId, plan] of guildPlans) {
+    await rest.put(Routes.applicationGuildCommands(clientId, currentGuildId), { body: plan.body });
+    log(`Guild slash commands registered for ${currentGuildId}.`);
   }
 }
 
@@ -1096,5 +1166,8 @@ export {
   buildSlashCommands,
   commands,
   dailyPuzzleAnnouncementCommand,
+  buildPreservingCommandPlan,
+  getGlobalRegistrationPlan,
+  getGuildRegistrationPlan,
   registerSlashCommands,
 };
