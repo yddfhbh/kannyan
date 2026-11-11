@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import http from 'node:http';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -45,6 +46,31 @@ async function handleApi(request, response, url) {
     if (!MODES[mode]) return send(response, 400, { error: '지원하지 않는 모드입니다.' });
     const puzzle = dailyView.puzzles[mode]; const game = gameFor(user.id, date, mode);
     return send(response, 200, publicGame(game, puzzle, date, mode));
+  }
+  if (request.method === 'POST' && url.pathname === '/api/start') {
+    const body = await jsonBody(request);
+    if (body.puzzleDate && body.puzzleDate !== date) return send(response, 409, { error: '오늘의 문제가 갱신되었습니다. 게임을 다시 열어주세요.' });
+    const mode = body.mode;
+    if (!MODES[mode]) return send(response, 400, { error: '지원하지 않는 모드입니다.' });
+    const instanceId = typeof body.instanceId === 'string' && /^[\\w-]{8,240}$/.test(body.instanceId) ? body.instanceId : null;
+    if (!instanceId) return send(response, 400, { error: 'Discord Activity 세션 정보가 필요합니다.' });
+    // Stable per session, player, mode and day: reloads cannot endlessly bump the board.
+    const startId = 'start:' + createHash('sha256')
+      .update(`${user.id}:${date}:${mode}:${instanceId}`).digest('hex');
+    const recorded = await store.update((state) => {
+      const game = state.games[gameKey(user.id, date, mode)];
+      if (game?.finished) return false;
+      state.liveEvents ||= [];
+      if (!state.liveEvents.some(event => event.id === startId)) {
+        state.liveEvents.push({
+          id: startId, type: 'start', userId: String(user.id), instanceId,
+          date, mode, createdAt: Date.now(),
+        });
+        if (state.liveEvents.length > 10000) state.liveEvents.splice(0, state.liveEvents.length - 10000);
+      }
+      return true;
+    });
+    return send(response, 200, { ok: true, recorded });
   }
   if (request.method !== 'POST' || url.pathname !== '/api/guess') return send(response, 404, { error: 'Not found' });
   const body = await jsonBody(request);

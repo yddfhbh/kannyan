@@ -14172,12 +14172,19 @@ function renderAnswer() {
   $("answer-opening").textContent = puzzle.opening || "";
   const moves = $("answer-moves");
   moves.replaceChildren();
-  answer.forEach((san, index) => {
+  for (let index = 0; index < answer.length; index += 2) {
     const item = document.createElement("li");
-    item.value = index + 1;
-    item.textContent = san;
+    const number = document.createElement("span");
+    number.className = "turn-number";
+    number.textContent = `${Math.floor(index / 2) + 1}.`;
+    item.append(number);
+    for (const san of answer.slice(index, index + 2)) {
+      const move = document.createElement("span");
+      move.textContent = san;
+      item.append(move);
+    }
     moves.append(item);
-  });
+  }
 }
 function makeTile(text, state, empty = false) {
   const tile = document.createElement("span");
@@ -14225,6 +14232,12 @@ async function loadGame(mode, showMatching = false) {
   $("game").hidden = false;
   requestAnimationFrame(measureLayout);
   if (showMatching) $("matching").showModal();
+  if (!puzzle.finished && discordSdk?.instanceId) {
+    void request("/api/start", {
+      method: "POST",
+      body: JSON.stringify({ mode: puzzle.mode, puzzleDate: puzzle.date, instanceId: discordSdk.instanceId })
+    }).catch((error) => console.warn("[CHESSLE] start event:", error.message));
+  }
 }
 async function boot() {
   try {
