@@ -53,9 +53,9 @@ export function isChessleLiveEvent(event) {
   const common = Boolean(event && typeof event === 'object'
     && typeof event.id === 'string' && event.id.length <= 160
     && snowflake.test(event.userId)
-    && /^\\d{4}-\\d{2}-\\d{2}$/.test(event.date)
+    && /^\d{4}-\d{2}-\d{2}$/.test(event.date)
     && Object.hasOwn(modes, event.mode)
-    && /^[\\w-]{8,240}$/.test(event.instanceId)
+    && /^[\w-]{8,240}$/.test(event.instanceId)
     && Number.isFinite(event.createdAt));
   if (!common) return false;
   if (event.type === 'start') return true;
