@@ -52,7 +52,7 @@ async function handleApi(request, response, url) {
     if (body.puzzleDate && body.puzzleDate !== date) return send(response, 409, { error: '오늘의 문제가 갱신되었습니다. 게임을 다시 열어주세요.' });
     const mode = body.mode;
     if (!MODES[mode]) return send(response, 400, { error: '지원하지 않는 모드입니다.' });
-    const instanceId = typeof body.instanceId === 'string' && /^[\\w-]{8,240}$/.test(body.instanceId) ? body.instanceId : null;
+    const instanceId = typeof body.instanceId === 'string' && /^[\w-]{8,240}$/.test(body.instanceId) ? body.instanceId : null;
     if (!instanceId) return send(response, 400, { error: 'Discord Activity 세션 정보가 필요합니다.' });
     // Stable per session, player, mode and day: reloads cannot endlessly bump the board.
     const startId = 'start:' + createHash('sha256')
