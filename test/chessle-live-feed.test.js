@@ -127,7 +127,7 @@ test('a new play re-posts just the daily board while preserving prior wins and r
   assert.equal(board.players[second].attempt, 0);
   assert.deepEqual(state.guildWins[guild][date], [first]);
   assert.match(messages.get(sent[1]).payload.content, /참여 2명/);
-  assert.match(messages.get(sent[1]).payload.content, /서버 연속 성공: \\*\\*1일\\*\\*/);
+  assert.match(messages.get(sent[1]).payload.content, /서버 연속 성공: \*\*1일\*\*/);
   await monitor.tick();
   assert.equal(sent.length, 2);
   assert.equal(deleted.length, 1);
