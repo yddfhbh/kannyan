@@ -113,10 +113,40 @@ function render() {
 function clickSquare(sq){if(selected&&moveTo(sq))return;if(chess.get(sq)?.color===chess.turn()){selected=sq;$('status').textContent='이동할 칸을 선택하세요.';render()}}
 function moveTo(to){if(!selected)return false;try{const move=chess.move({from:selected,to,promotion:'q'});history.push(move);lastMove=move;selected=null;$('status').textContent=`${move.san} · ${history.length}/${puzzle.length}수`;render();return true}catch{return false}}
 function normalizedRow(row) { return Array.isArray(row) ? { moves: [], result: row } : { moves: row?.moves || [], result: row?.result || [] }; }
-function renderAnswer() { const answer = puzzle?.finished && Array.isArray(puzzle.answer) ? puzzle.answer : null; $('answer').hidden = !answer; if (!answer) return; $('answer-opening').textContent = puzzle.opening || ''; const moves = $('answer-moves'); moves.replaceChildren(); answer.forEach((san, index) => { const item = document.createElement('li'); item.value = index + 1; item.textContent = san; moves.append(item); }); }
+function renderAnswer() {
+  const answer = puzzle?.finished && Array.isArray(puzzle.answer) ? puzzle.answer : null;
+  $('answer').hidden = !answer;
+  if (!answer) return;
+  $('answer-opening').textContent = puzzle.opening || '';
+  const moves = $('answer-moves');
+  moves.replaceChildren();
+  for (let index = 0; index < answer.length; index += 2) {
+    const item = document.createElement('li');
+    const number = document.createElement('span');
+    number.className = 'turn-number';
+    number.textContent = `${Math.floor(index / 2) + 1}.`;
+    item.append(number);
+    for (const san of answer.slice(index, index + 2)) {
+      const move = document.createElement('span');
+      move.textContent = san;
+      item.append(move);
+    }
+    moves.append(item);
+  }
+}
 function makeTile(text, state, empty = false) { const tile = document.createElement('span'); tile.className = `guess-tile${state ? ` ${state}` : ''}${empty ? ' empty' : ' filled'}`; tile.textContent = text || ''; tile.title = text ? `${text}${state ? ` · ${state}` : ''}` : '입력 대기'; return tile; }
 function renderRows(){const container=$('rows');container.style.setProperty('--move-count',puzzle.length);container.replaceChildren();const active = rows.length < 6 && !puzzle?.finished; for(let index=0;index<6;index+=1){const saved=normalizedRow(rows[index]);const isActive=index===rows.length&&active;const moves=isActive?history.map((move)=>move.san):saved.moves;const line=document.createElement('div');line.className=`guess-row ${isActive?'active':''} ${index<rows.length?'submitted':''}`;const number=document.createElement('span');number.className='move-number';number.textContent=`${index+1}.`;line.append(number);for(let i=0;i<puzzle.length;i+=1){const state=isActive?'':saved.result[i];line.append(makeTile(moves[i] || '', state, !moves[i]));}container.append(line);}}
-async function loadGame(mode, showMatching=false){puzzle=await request(`/api/puzzle?mode=${mode}`);rows=(puzzle.rows||[]).map(normalizedRow);$('date').textContent=`${puzzle.date} · ${puzzle.mode==='expert'?'익스퍼트 모드':'노멀 모드'}`;chess=new Chess();history=[];selected=null;lastMove=null;$('submit').disabled=puzzle.finished;$('status').textContent=puzzle.finished?(puzzle.opening?`오늘의 정답: ${puzzle.opening}`:'오늘의 게임이 종료되었습니다.'):'백의 첫 수를 선택하세요.';$('share').hidden=!puzzle.share;if(puzzle.share)$('share').dataset.share=puzzle.share;renderAnswer();render();$('game').hidden=false;requestAnimationFrame(measureLayout);if(showMatching)$('matching').showModal()}
+async function loadGame(mode, showMatching=false){puzzle=await request(`/api/puzzle?mode=${mode}`);rows=(puzzle.rows||[]).map(normalizedRow);$('date').textContent=`${puzzle.date} · ${puzzle.mode==='expert'?'익스퍼트 모드':'노멀 모드'}`;chess=new Chess();history=[];selected=null;lastMove=null;$('submit').disabled=puzzle.finished;$('status').textContent=puzzle.finished?(puzzle.opening?`오늘의 정답: ${puzzle.opening}`:'오늘의 게임이 종료되었습니다.'):'백의 첫 수를 선택하세요.';$('share').hidden=!puzzle.share;if(puzzle.share)$('share').dataset.share=puzzle.share;renderAnswer();render();$('game').hidden=false;requestAnimationFrame(measureLayout);
+  if (showMatching) $('matching').showModal();
+  // An Activity session is the start of a play, even before the first guess.
+  // Discord location and membership are verified by the bot before publication.
+  if (!puzzle.finished && discordSdk?.instanceId) {
+    void request('/api/start', {
+      method: 'POST',
+      body: JSON.stringify({ mode: puzzle.mode, puzzleDate: puzzle.date, instanceId: discordSdk.instanceId }),
+    }).catch(error => console.warn('[CHESSLE] start event:', error.message));
+  }
+}
 async function boot(){try{await authenticate();await chooseOrRestore()}catch(error){$('loading').hidden=true;$('auth-message').textContent=error.message;$('auth-error').hidden=false}}
 async function chooseOrRestore(){const normal=await request('/api/puzzle?mode=normal');const expert=await request('/api/puzzle?mode=expert');$('loading').hidden=true;const saved=normal.rows.length||normal.matching||normal.finished?normal:expert.rows.length||expert.matching||expert.finished?expert:null;if(saved)await loadGame(saved.mode,false);else $('welcome').showModal()}
 document.querySelectorAll('[data-mode]').forEach((button)=>button.addEventListener('click',async()=>{try{ $('welcome').close();await loadGame(button.dataset.mode,true)}catch(error){$('status').textContent=error.message}}));

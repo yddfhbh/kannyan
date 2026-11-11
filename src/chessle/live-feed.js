@@ -50,13 +50,17 @@ export function renderChessleLiveBoard(board, winningDates = []) {
 }
 
 export function isChessleLiveEvent(event) {
-  return Boolean(event && typeof event === 'object'
+  const common = Boolean(event && typeof event === 'object'
     && typeof event.id === 'string' && event.id.length <= 160
     && snowflake.test(event.userId)
     && /^\d{4}-\d{2}-\d{2}$/.test(event.date)
     && Object.hasOwn(modes, event.mode)
     && /^[\w-]{8,240}$/.test(event.instanceId)
-    && Number.isInteger(event.attempt) && event.attempt >= 1 && event.attempt <= 6
+    && Number.isFinite(event.createdAt));
+  if (!common) return false;
+  if (event.type === 'start') return true;
+  if (event.type !== undefined && event.type !== 'guess') return false;
+  return Number.isInteger(event.attempt) && event.attempt >= 1 && event.attempt <= 6
     && Array.isArray(event.result)
     && event.result.length === (event.mode === 'expert' ? 10 : 6)
     && event.result.every(cell => Object.hasOwn(colors, cell))
@@ -66,8 +70,7 @@ export function isChessleLiveEvent(event) {
         && row.length === (event.mode === 'expert' ? 10 : 6)
         && row.every(cell => Object.hasOwn(colors, cell)))))
     && typeof event.solved === 'boolean'
-    && typeof event.finished === 'boolean'
-    && Number.isFinite(event.createdAt));
+    && typeof event.finished === 'boolean';
 }
 
 async function readJson(file, fallback) {
@@ -110,18 +113,28 @@ export function createChessleLiveMonitor({
     return { guildId: location.guild_id, channelId: location.channel_id };
   }
 
-  async function post(board, guildWins) {
+  async function post(board, guildWins, { rotate = false } = {}) {
     const channel = await client.channels.fetch(board.channelId).catch(() => null);
-    if (!channel || channel.guildId !== board.guildId || typeof channel.send !== 'function') return;
+    if (!channel || channel.guildId !== board.guildId || typeof channel.send !== 'function') {
+      throw new Error('Chessle board channel is unavailable');
+    }
     const payload = { content: renderChessleLiveBoard(board, Object.keys(guildWins)), allowedMentions: { parse: [] } };
     if (board.messageId) {
+      let existing;
       try {
-        const existing = await channel.messages.fetch(board.messageId);
-        await existing.edit(payload);
-        return;
+        existing = await channel.messages.fetch(board.messageId);
       } catch (error) {
         if (error.code !== 10008) throw error;
       }
+      if (existing) {
+        if (!rotate) {
+          await existing.edit(payload);
+          return;
+        }
+        // A new real play starts: delete only this date/mode's own board message.
+        await existing.delete();
+      }
+      board.messageId = null;
     }
     const posted = await channel.send(payload);
     board.messageId = posted.id;
@@ -150,7 +163,11 @@ export function createChessleLiveMonitor({
         const key = `${guildId}:${channelId}:${event.date}:${event.mode}`;
         const board = state.boards[key] ||= { guildId, channelId, date: event.date, mode: event.mode, players: {} };
         const player = board.players[event.userId] ||= { rows: [], attempt: 0, solved: false, finished: false };
-        if (event.attempt >= player.attempt && event.attempt <= 6) {
+        const isStart = event.type === 'start';
+        if (isStart) {
+          // Preserve all earlier rows and wins; only bring this player to the top.
+          player.updatedAt = Math.max(player.updatedAt || 0, event.createdAt);
+        } else if (event.attempt >= player.attempt && event.attempt <= 6) {
           // New servers publish a complete, transactionally stored snapshot.
           // Retain compatibility with older one-row events during rollout.
           player.rows = event.rows ? event.rows.map(row => [...row]) : event.attempt > player.attempt
@@ -161,14 +178,17 @@ export function createChessleLiveMonitor({
           player.updatedAt = event.createdAt;
         }
         const wins = state.guildWins[guildId] ||= {};
-        if (event.solved) {
+        if (!isStart && event.solved) {
           const members = wins[event.date] ||= [];
           if (!members.includes(event.userId)) members.push(event.userId);
         }
         // Persist progress before attempting Discord delivery; if posting fails
         // this event will retry without incrementing win counts twice.
         await atomicJson(stateFile, state);
-        try { await post(board, wins); }
+        try {
+          await post(board, wins, { rotate: isStart });
+          await atomicJson(stateFile, state);
+        }
         catch (error) { console.error('[CHESSLE LIVE] Discord message:', error.message); continue; }
         state.processed[event.id] = now();
         if (Object.keys(state.processed).length > 12000) {
