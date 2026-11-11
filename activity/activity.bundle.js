@@ -13978,6 +13978,11 @@ var Chess = class {
   }
 };
 
+// activity/move-limit.js
+function canEnterChessleMove(puzzle2, moveCount, busy = false) {
+  return Number.isInteger(puzzle2?.length) && puzzle2.length > 0 && !puzzle2.finished && !busy && Number.isInteger(moveCount) && moveCount >= 0 && moveCount < puzzle2.length;
+}
+
 // activity/activity.js
 var files = "abcdefgh";
 var pieceNames = { p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king" };
@@ -14109,7 +14114,8 @@ function pieceImage(piece) {
 }
 function render() {
   boardEl.replaceChildren();
-  const legal = selected ? chess.moves({ square: selected, verbose: true }) : [];
+  const canMove = canEnterChessleMove(puzzle, history.length, submitInFlight);
+  const legal = canMove && selected ? chess.moves({ square: selected, verbose: true }) : [];
   for (let i = 0; i < 64; i++) {
     const sq = squareName(i);
     const el = document.createElement("div");
@@ -14126,8 +14132,12 @@ function render() {
     const piece = chess.get(sq);
     if (piece) {
       el.append(pieceImage(piece));
-      el.draggable = true;
-      el.addEventListener("dragstart", () => {
+      el.draggable = canMove && piece.color === chess.turn();
+      el.addEventListener("dragstart", (event) => {
+        if (!canEnterChessleMove(puzzle, history.length, submitInFlight) || piece.color !== chess.turn()) {
+          event.preventDefault();
+          return;
+        }
         selected = sq;
         render();
       });
@@ -14141,6 +14151,11 @@ function render() {
   renderRows();
 }
 function clickSquare(sq) {
+  if (!canEnterChessleMove(puzzle, history.length, submitInFlight)) {
+    if (puzzle && !puzzle.finished && history.length >= puzzle.length)
+      $("status").textContent = `${puzzle.length}수를 모두 입력했습니다. 제출하거나 되돌리세요.`;
+    return;
+  }
   if (selected && moveTo(sq)) return;
   if (chess.get(sq)?.color === chess.turn()) {
     selected = sq;
@@ -14149,13 +14164,13 @@ function clickSquare(sq) {
   }
 }
 function moveTo(to) {
-  if (!selected) return false;
+  if (!selected || !canEnterChessleMove(puzzle, history.length, submitInFlight)) return false;
   try {
     const move = chess.move({ from: selected, to, promotion: "q" });
     history.push(move);
     lastMove = move;
     selected = null;
-    $("status").textContent = `${move.san} \xB7 ${history.length}/${puzzle.length}\uC218`;
+    $("status").textContent = `${move.san} \xB7 ${history.length}/${puzzle.length}\uC218${history.length === puzzle.length ? " \xB7 \uC81C\uCD9C\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4." : ""}`;
     render();
     return true;
   } catch {
@@ -14275,6 +14290,7 @@ $("undo").onclick = () => {
     history.pop();
     lastMove = history.at(-1) || null;
     selected = null;
+    $("status").textContent = history.length ? `${history.at(-1).san} \xB7 ${history.length}/${puzzle.length}\uC218` : "\uBC31\uC758 \uCCAB \uC218\uB97C \uC120\uD0DD\uD558\uC138\uC694.";
     render();
   }
 };
