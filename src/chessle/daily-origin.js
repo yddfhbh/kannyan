@@ -35,14 +35,14 @@ function project(snapshot) {
   }
   return { date: snapshot.date, source: 'original', originDate: snapshot.date, puzzleId: snapshot.id,
     puzzles: {
-      normal: { date: snapshot.date, mode: 'normal', length: 6, name: snapshot.normalName, eco: '', moves: snapshot.moves.slice(0, 6), source: 'original' },
-      expert: { date: snapshot.date, mode: 'expert', length: 10, name: snapshot.expertName, eco: '', moves: snapshot.moves.slice(0, 10), source: 'original' },
+      normal: { date: snapshot.date, mode: 'normal', puzzleId: snapshot.id, length: 6, name: snapshot.normalName, eco: '', moves: snapshot.moves.slice(0, 6), source: 'original' },
+      expert: { date: snapshot.date, mode: 'expert', puzzleId: snapshot.id, length: 10, name: snapshot.expertName, eco: '', moves: snapshot.moves.slice(0, 10), source: 'original' },
     } };
 }
 
 export function createChessleDailyOrigin({
   filePath, fetchImpl = fetch, endpoint = DEFAULT_ENDPOINT,
-  now = () => Date.now(), dateKst = () => kstDate(), refreshMs = 10 * 60_000,
+  now = () => Date.now(), dateKst = () => kstDate(), refreshMs = 60_000,
 } = {}) {
   if (!filePath) throw Error('Daily source cache path is required');
   let state = { version: 1, records: {}, fallbacks: {} };
@@ -57,6 +57,9 @@ export function createChessleDailyOrigin({
       const saved = JSON.parse(await fs.readFile(filePath, 'utf8'));
       if (saved.version !== 1 || !saved.records || !saved.fallbacks) throw Error('Invalid daily origin cache format');
       state = saved;
+      const remembered = state.activeDate && state.records[state.activeDate]
+        ? state.activeDate : Object.keys(state.records).sort().at(-1);
+      if (remembered) active = state.records[remembered];
     } catch (error) {
       if (error.code !== 'ENOENT') throw error;
     }
@@ -72,21 +75,10 @@ export function createChessleDailyOrigin({
       await fs.rm(temp, { force: true });
     }
   }
-  async function pinFallback(day, puzzleDate = day) {
-    state.fallbacks[day] = puzzleDate;
-    await persist();
-    return project({ source: 'local', date: puzzleDate });
-  }
-  async function getFresh(legacyDates) {
+  async function getFresh() {
     await load();
-    const today = dateKst();
-    if (!validDate(today)) throw Error('Invalid current KST date');
-    if (state.fallbacks[today]) return project({ source: 'local', date: today });
     const t = now();
-    // Never carry an in-memory answer past a KST day boundary.  This used to
-    // return yesterday's active puzzle for up to refreshMs after midnight.
-    if (active?.date === today && t - lastCheckedAt < refreshMs) return project(active);
-
+    if (active && t - lastCheckedAt < refreshMs) return project(active);
     try {
       const response = await fetchImpl(endpoint, {
         headers: { accept: 'application/json' },
@@ -97,36 +89,29 @@ export function createChessleDailyOrigin({
       const raw = await response.text();
       if (raw.length > 20_000) throw Error('Original daily payload too large');
       const daily = normalizeOriginalDaily(JSON.parse(raw));
-      // The Activity's calendar is KST, not the upstream publisher's clock.
-      // A stale upstream response must not revive yesterday's game key.
-      if (daily.date !== today) return await pinFallback(today);
-      // Never change a pinned answer for an already-seen original date.
-      if (state.records[daily.date]) {
-        active = state.records[daily.date];
-      } else if (legacyDates.includes(today)) {
-        // Pre-migration plays may already use the old local answer for this date.
-        return await pinFallback(today);
-      } else {
-        state.records[daily.date] = daily;
-        await persist();
-        active = daily;
+      // Publisher date is authoritative; ignore stale upstream responses.
+      if (!active || daily.date >= active.date) {
+        const pinned = state.records[daily.date] || daily;
+        if (!state.records[daily.date]) state.records[daily.date] = daily;
+        active = pinned;
+        if (state.activeDate !== pinned.date) {
+          state.activeDate = pinned.date;
+          await persist(); // The bot observes this persisted official cursor.
+        }
       }
       lastCheckedAt = t;
       return project(active);
     } catch (error) {
-      // Once anyone starts a fallback problem, keep its answer stable for the KST day.
-      if (active?.date === today) {
-        lastCheckedAt = t - Math.max(0, refreshMs - 60_000);
-        return project(active);
-      }
-      return pinFallback(today);
+      lastCheckedAt = t;
+      if (active) return project(active); // Keep the last verified official puzzle.
+      throw new Error(`Official Chessle puzzle unavailable: ${error.message}`, { cause: error });
     }
   }
   return {
     load,
     async current({ legacyDates = [] } = {}) {
       if (!inFlight) {
-        inFlight = getFresh(legacyDates).finally(() => { inFlight = null; });
+        inFlight = getFresh().finally(() => { inFlight = null; });
       }
       return inFlight;
     },
