@@ -32,7 +32,7 @@ function answerSan(puzzle) { return validateSequence(puzzle.moves, puzzle.length
 function publicGame(game, puzzle, date, mode) {
   return { date, mode, source: 'original', puzzleId: puzzle.puzzleId, length: puzzle.length, attempts: game.rows.length, rows: game.rows.map(publicRow), matching: game.matching, finished: game.finished,
     opening: game.finished ? (game.opening || puzzle.name) : undefined, answer: game.finished ? (game.answer || answerSan(puzzle)) : undefined,
-    share: game.rows.length ? shareText({ date, mode, attempt: game.rows.length, rows: game.rows.map(rowResult) }) : undefined };
+    share: game.rows.length ? shareText({ date, mode, puzzleId: puzzle.puzzleId, attempt: game.rows.length, rows: game.rows.map(rowResult) }) : undefined };
 }
 
 async function handleApi(request, response, url) {
