@@ -14250,7 +14250,7 @@ async function loadGame(mode, showMatching = false) {
   if (!puzzle.finished && discordSdk?.instanceId) {
     void request("/api/start", {
       method: "POST",
-      body: JSON.stringify({ mode: puzzle.mode, puzzleDate: puzzle.date, instanceId: discordSdk.instanceId })
+      body: JSON.stringify({ mode: puzzle.mode, puzzleDate: puzzle.date, puzzleId: puzzle.puzzleId, instanceId: discordSdk.instanceId })
     }).catch((error) => console.warn("[CHESSLE] start event:", error.message));
   }
 }
@@ -14316,7 +14316,7 @@ $("submit").onclick = async () => {
   $("submit").disabled = true;
   const submissionId = crypto.randomUUID();
   try {
-    const data = await request("/api/guess", { method: "POST", body: JSON.stringify({ mode: puzzle.mode, matching: puzzle.matching, moves: history.map((move) => move.san), instanceId: discordSdk?.instanceId || null, puzzleDate: puzzle.date, submissionId }) });
+    const data = await request("/api/guess", { method: "POST", body: JSON.stringify({ mode: puzzle.mode, matching: puzzle.matching, moves: history.map((move) => move.san), instanceId: discordSdk?.instanceId || null, puzzleDate: puzzle.date, puzzleId: puzzle.puzzleId, submissionId }) });
     rows = (data.rows || [...rows, normalizedRow(data.row || { moves: history.map((move) => move.san), result: data.result })]).map(normalizedRow);
     Object.assign(puzzle, data);
     puzzle.matching = data.matching || puzzle.matching;
@@ -14364,7 +14364,7 @@ setInterval(async () => {
   if (!puzzle || submitInFlight) return;
   try {
     const current = await request(`/api/puzzle?mode=${puzzle.mode}`);
-    if (current.date !== puzzle.date) await loadGame(puzzle.mode);
+    if (current.date !== puzzle.date || current.puzzleId !== puzzle.puzzleId) await loadGame(puzzle.mode);
   } catch {
   }
 }, 3e4);
