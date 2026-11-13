@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createChessleDailyOrigin, normalizeOriginalDaily } from '../src/chessle/daily-origin.js';
 
 const answer = {
-  num: 1729, date: '2026-11-07',
+  num: 1735, date: '2026-11-13',
   moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Bc5', 'c3', 'Nf6', 'd4', 'exd4'],
   name_normal: 'Normal test opening', name_expert: 'Expert test opening',
 };
@@ -17,82 +17,99 @@ async function temp(t) {
   return path.join(dir, 'cache.json');
 }
 
-test('normalizes valid original 10-ply SAN and rejects invalid moves', () => {
+test('validates official puzzle names, ID, dates and SAN sequences', () => {
   const daily = normalizeOriginalDaily(answer);
+  assert.equal(daily.id, 1735);
   assert.equal(daily.moves.length, 10);
-  assert.equal(daily.normalName, answer.name_normal);
   assert.throws(() => normalizeOriginalDaily({ ...answer, moves: ['a1a9'] }));
   assert.throws(() => normalizeOriginalDaily({ ...answer, date: '2026-02-30' }));
 });
 
-test('uses same original daily for normal and expert and pins across restart', async t => {
+test('uses publisher date even if KST calendar differs', async t => {
   const filePath = await temp(t);
-  let calls = 0;
-  const fetchImpl = async () => { calls++; return response(answer); };
-  const create = () => createChessleDailyOrigin({ filePath, fetchImpl, dateKst: () => '2026-11-07' });
-  const first = await create().current();
-  assert.equal(first.date, '2026-11-07');
-  assert.equal(first.puzzles.normal.moves.length, 6);
-  assert.deepEqual(first.puzzles.expert.moves.slice(0, 6), first.puzzles.normal.moves);
-  assert.equal(first.puzzles.normal.name, answer.name_normal);
-  const next = await create().current();
-  assert.equal(calls, 2);
-  assert.deepEqual(next.puzzles.expert.moves, first.puzzles.expert.moves);
-  const saved = JSON.parse(await fs.readFile(filePath, 'utf8'));
-  assert.equal(Object.keys(saved.records).length, 1);
-});
-
-test('when API fails the fallback remains frozen for the KST day', async t => {
-  const filePath = await temp(t);
-  let shouldFail = true;
-  const daily = createChessleDailyOrigin({
-    filePath, dateKst: () => '2026-11-07', refreshMs: 0,
-    fetchImpl: async () => { if (shouldFail) throw Error('offline'); return response(answer); },
-  });
-  const first = await daily.current();
-  assert.equal(first.source, 'local');
-  shouldFail = false;
-  const again = await daily.current();
-  assert.equal(again.source, 'local');
-  assert.deepEqual(again.puzzles.normal.moves, first.puzzles.normal.moves);
-});
-
-test('protects legacy games on matching date instead of silently swapping answers', async t => {
-  const filePath = await temp(t);
-  const daily = createChessleDailyOrigin({
-    filePath, dateKst: () => '2026-11-07',
+  const origin = createChessleDailyOrigin({
+    filePath, dateKst: () => '2026-11-14',
     fetchImpl: async () => response(answer),
   });
-  const first = await daily.current({ legacyDates: ['2026-11-07'] });
-  assert.equal(first.source, 'local');
-  assert.equal(first.date, '2026-11-07');
-  assert.deepEqual(first.puzzles.expert.moves, (await daily.current()).puzzles.expert.moves);
+  const view = await origin.current();
+  assert.equal(view.source, 'original');
+  assert.equal(view.date, '2026-11-13');
+  assert.equal(view.puzzleId, 1735);
+  assert.equal(view.puzzles.normal.length, 6);
+  assert.equal(view.puzzles.expert.length, 10);
+  assert.deepEqual(view.puzzles.expert.moves.slice(0, 6), view.puzzles.normal.moves);
 });
 
-test('refreshes with a newly published original date, without overwriting old cache', async t => {
+test('previously pinned local fallback dates cannot override a valid official puzzle', async t => {
   const filePath = await temp(t);
-  let payload = answer;
-  let date = '2026-11-07';
-  const daily = createChessleDailyOrigin({
-    filePath, dateKst: () => date, refreshMs: 0,
-    fetchImpl: async () => response(payload),
+  await fs.writeFile(filePath, JSON.stringify({
+    version: 1, records: {}, fallbacks: { '2026-11-13': '2026-11-13' },
+  }));
+  const view = await createChessleDailyOrigin({
+    filePath, fetchImpl: async () => response(answer),
+  }).current({ legacyDates: ['2026-11-13'] });
+  assert.equal(view.source, 'original');
+  assert.equal(view.puzzleId, 1735);
+  const cache = JSON.parse(await fs.readFile(filePath, 'utf8'));
+  assert.equal(cache.activeDate, '2026-11-13');
+  assert.equal(cache.fallbacks['2026-11-13'], '2026-11-13');
+});
+
+test('no official data and no verified cache must fail, not invent a local answer', async t => {
+  const filePath = await temp(t);
+  const origin = createChessleDailyOrigin({
+    filePath, fetchImpl: async () => { throw Error('offline'); },
   });
-  assert.equal((await daily.current()).date, '2026-11-07');
-  date = '2026-11-08';
-  payload = { ...answer, date, num: 1730 };
-  assert.equal((await daily.current()).date, '2026-11-08');
-  const saved = JSON.parse(await fs.readFile(filePath, 'utf8'));
-  assert.deepEqual(Object.keys(saved.records).sort(), ['2026-11-07', '2026-11-08']);
+  await assert.rejects(origin.current(), /Official Chessle puzzle unavailable/);
+  await assert.rejects(fs.stat(filePath), { code: 'ENOENT' });
 });
 
-test('KST midnight never reuses an in-memory puzzle from the previous day', async t => {
+test('transient outage retains last verified official answer across restarts', async t => {
   const filePath = await temp(t);
-  let date = '2026-11-07';
-  let payload = answer;
-  const daily = createChessleDailyOrigin({ filePath, dateKst: () => date, refreshMs: 10 * 60_000, fetchImpl: async () => response(payload) });
-  assert.equal((await daily.current()).date, '2026-11-07');
-  // Simulate KST 23:59 -> 00:00 while the process and its active cache remain alive.
-  date = '2026-11-08';
-  payload = { ...answer, date, num: 1730 };
-  assert.equal((await daily.current()).date, '2026-11-08');
+  await createChessleDailyOrigin({ filePath, fetchImpl: async () => response(answer) }).current();
+  const offline = createChessleDailyOrigin({ filePath, fetchImpl: async () => { throw Error('offline'); } });
+  const view = await offline.current();
+  assert.equal(view.date, answer.date);
+  assert.equal(view.puzzleId, 1735);
+});
+
+test('new upstream publication changes day without waiting for a KST midnight', async t => {
+  const filePath = await temp(t);
+  let published = answer;
+  const origin = createChessleDailyOrigin({
+    filePath, refreshMs: 0, dateKst: () => '2026-11-14',
+    fetchImpl: async () => response(published),
+  });
+  assert.equal((await origin.current()).date, '2026-11-13');
+  published = { ...answer, num: 1736, date: '2026-11-14' };
+  assert.equal((await origin.current()).date, '2026-11-14');
+  const cache = JSON.parse(await fs.readFile(filePath, 'utf8'));
+  assert.equal(cache.activeDate, '2026-11-14');
+  assert.deepEqual(Object.keys(cache.records).sort(), ['2026-11-13', '2026-11-14']);
+});
+
+test('stale CDN responses cannot undo a published reset', async t => {
+  const filePath = await temp(t);
+  let published = { ...answer, date: '2026-11-14', num: 1736 };
+  const origin = createChessleDailyOrigin({
+    filePath, refreshMs: 0, fetchImpl: async () => response(published),
+  });
+  assert.equal((await origin.current()).date, '2026-11-14');
+  published = answer;
+  assert.equal((await origin.current()).date, '2026-11-14');
+  const cache = JSON.parse(await fs.readFile(filePath, 'utf8'));
+  assert.equal(cache.activeDate, '2026-11-14');
+});
+
+test('same-date upstream edits do not change a pinned official answer', async t => {
+  const filePath = await temp(t);
+  let published = answer;
+  const origin = createChessleDailyOrigin({
+    filePath, refreshMs: 0, fetchImpl: async () => response(published),
+  });
+  assert.equal((await origin.current()).puzzleId, 1735);
+  published = { ...answer, num: 3000, name_expert: 'Rewritten' };
+  const view = await origin.current();
+  assert.equal(view.puzzleId, 1735);
+  assert.equal(view.puzzles.expert.name, answer.name_expert);
 });
