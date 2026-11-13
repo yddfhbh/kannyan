@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import os from 'node:os';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { guildStreak, renderChessleLiveBoard, createChessleLiveMonitor, isChessleLiveEvent } from '../src/chessle/live-feed.js';
+import { guildStreak, streakedChannelsForReset, renderChessleLiveBoard, createChessleLiveMonitor, isChessleLiveEvent } from '../src/chessle/live-feed.js';
 
 test('streak counts consecutive KST calendar dates and tolerates today pending', () => {
   const dates=['2026-11-05','2026-11-06','2026-11-07'];
@@ -140,4 +140,140 @@ test('a new play re-posts just the daily board while preserving prior wins and r
   assert.equal(sent.length, 2);
   assert.deepEqual(edited, [sent[1]]);
   assert.equal(messages.size, 1);
+});
+
+
+test('channel reset eligibility is based on that channel, not only guild-wide wins', () => {
+  const guild = '987654321098765432', a = '987654321098765431', b = '987654321098765430';
+  const boards = {};
+  for (const date of ['2026-11-11', '2026-11-12', '2026-11-13']) {
+    boards[guild + ':' + a + ':' + date + ':normal'] = {
+      guildId: guild, channelId: a, date, players: { '123456789012345678': { solved: true } },
+    };
+  }
+  boards[guild + ':' + b + ':2026-11-13:normal'] = {
+    guildId: guild, channelId: b, date: '2026-11-13',
+    players: { '123456789012345679': { solved: false } },
+  };
+  const eligible = streakedChannelsForReset(boards, '2026-11-13');
+  assert.deepEqual(eligible, [{ guildId: guild, channelId: a, streak: 3 }]);
+});
+
+test('announces only after verified official date changes, once per streak channel even after bot restart', async t => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'chessle-official-reset-'));
+  t.after(() => fs.rm(dir, { recursive: true, force: true }));
+  const gamesFile = path.join(dir, 'chessle.json');
+  const stateFile = path.join(dir, 'chessle-live-state.json');
+  const dailyCacheFile = path.join(dir, 'daily-origin-cache.json');
+  const guild = '987654321098765432', channelA = '987654321098765431', channelB = '987654321098765430';
+  const user = '123456789012345678';
+  const day = '2026-11-13', next = '2026-11-14';
+  const winningBoard = {
+    guildId: guild, channelId: channelA, date: day, mode: 'normal',
+    players: { [user]: { attempt: 1, solved: true, finished: true, rows: [Array(6).fill('green')] } },
+  };
+  const idleBoard = {
+    guildId: guild, channelId: channelB, date: day, mode: 'normal',
+    players: { [user]: { attempt: 0, solved: false, rows: [] } },
+  };
+  await fs.writeFile(gamesFile, JSON.stringify({ liveEvents: [] }));
+  await fs.writeFile(stateFile, JSON.stringify({
+    version: 1, processed: {}, guildWins: { [guild]: { [day]: [user] } },
+    boards: {
+      [guild + ':' + channelA + ':' + day + ':normal']: winningBoard,
+      [guild + ':' + channelB + ':' + day + ':normal']: idleBoard,
+    },
+  }));
+  const writeCache = async date => fs.writeFile(dailyCacheFile, JSON.stringify({
+    version: 1, activeDate: date, records: {
+      [day]: { id: 1735, date: day },
+      [next]: { id: 1736, date: next },
+    }, fallbacks: {},
+  }));
+  await writeCache(day);
+  const sent = [];
+  const client = {
+    guilds: { cache: { has: id => id === guild } },
+    channels: { fetch: async id => ({
+      guildId: guild,
+      send: async payload => {
+        sent.push({ channel: id, payload });
+        return { id: String(111111111111111111n + BigInt(sent.length)) };
+      },
+    }) },
+  };
+  const create = () => createChessleLiveMonitor({
+    client, botToken: 'fake', applicationId: '777777777777777777',
+    gamesFile, stateFile, dailyCacheFile, now: () => Date.now(),
+  });
+  const monitor = create();
+  await monitor.tick(); // First observation establishes baseline; do not alert retroactively.
+  assert.equal(sent.length, 0);
+  await writeCache(next);
+  await monitor.tick();
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].channel, channelA);
+  assert.match(sent[0].payload.content, /체슬이 리셋되었습니다/);
+  assert.match(sent[0].payload.content, /1736/);
+  assert.match(sent[0].payload.content, /1일 연속 성공/);
+  await monitor.tick();
+  await create().tick(); // Reconnect/restart should not send duplicates.
+  assert.equal(sent.length, 1);
+  const state = JSON.parse(await fs.readFile(stateFile, 'utf8'));
+  assert.equal(state.lastObservedOriginalDate, next);
+  assert.ok(state.resetAlerts[next].channels[guild + ':' + channelA].messageId);
+  assert.equal(state.resetAlerts[next].channels[guild + ':' + channelB], undefined);
+});
+
+test('switching local to official on the same date archives old rows instead of mixing answers', async t => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'chessle-source-cutover-'));
+  t.after(() => fs.rm(dir, { recursive: true, force: true }));
+  const gamesFile = path.join(dir, 'chessle.json');
+  const stateFile = path.join(dir, 'chessle-live-state.json');
+  const guild = '987654321098765432', channel = '987654321098765431';
+  const first = '123456789012345678', newcomer = '123456789012345679';
+  const date = '2026-11-13';
+  const instanceId = 'i-1234567890-gc-987654321098765432-987654321098765431';
+  const key = guild + ':' + channel + ':' + date + ':expert';
+  const createdAt = Date.now();
+  await fs.writeFile(stateFile, JSON.stringify({
+    version: 1, processed: {}, guildWins: { [guild]: { [date]: [first] } },
+    boards: {
+      [key]: {
+        guildId: guild, channelId: channel, date, mode: 'expert', messageId: '111111111111111111',
+        players: { [first]: { solved: true, attempt: 1, rows: [Array(10).fill('green')] } },
+      },
+    },
+  }));
+  await fs.writeFile(gamesFile, JSON.stringify({
+    liveEvents: [{ id: 'start:new-official', type: 'start', userId: newcomer, date, mode: 'expert',
+      instanceId, createdAt, puzzleId: 1735 }],
+  }));
+  let deleted = 0, sent = 0;
+  const channelObj = {
+    guildId: guild,
+    messages: { fetch: async () => ({ delete: async () => { deleted++; } }) },
+    send: async () => ({ id: String(111111111111111112n + BigInt(sent++)) }),
+  };
+  const client = {
+    guilds: { cache: { has: id => id === guild } },
+    channels: { fetch: async id => id === channel ? channelObj : null },
+  };
+  const monitor = createChessleLiveMonitor({
+    client, botToken: 'fake', applicationId: '777777777777777777',
+    gamesFile, stateFile, now: () => createdAt,
+    fetchImpl: async () => ({ ok: true, json: async () => ({
+      instance_id: instanceId, users: [newcomer],
+      location: { guild_id: guild, channel_id: channel },
+    }) }),
+  });
+  await monitor.tick();
+  const state = JSON.parse(await fs.readFile(stateFile, 'utf8'));
+  assert.equal(deleted, 1);
+  assert.equal(sent, 1);
+  assert.equal(state.boards[key].puzzleId, 1735);
+  assert.equal(Object.keys(state.boards[key].players).length, 1);
+  assert.equal(state.boards[key].players[newcomer].attempt, 0);
+  assert.equal(state.archivedBoards[key + ':archive:legacy'].players[first].solved, true);
+  assert.deepEqual(state.guildWins[guild][date], [first]);
 });
