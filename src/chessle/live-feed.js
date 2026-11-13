@@ -23,6 +23,25 @@ export function guildStreak(winningDates, date) {
   return count;
 }
 
+// A channel is eligible only if it actually solved the preceding official puzzle.
+// Normal and Expert successes on the same date count as one successful day.
+export function streakedChannelsForReset(boards, previousPuzzleDate) {
+  const won = new Map();
+  for (const board of Object.values(boards || {})) {
+    if (!board || !snowflake.test(board.guildId || '') || !snowflake.test(board.channelId || '')) continue;
+    if (!Object.values(board.players || {}).some(player => player?.solved)) continue;
+    const key = `${board.guildId}:${board.channelId}`;
+    if (!won.has(key)) won.set(key, { guildId: board.guildId, channelId: board.channelId, dates: new Set() });
+    won.get(key).dates.add(board.date);
+  }
+  return [...won.values()].map(({ guildId, channelId, dates }) => ({
+    guildId, channelId, streak: guildStreak([...dates], previousPuzzleDate),
+  })).filter(channel => channel.streak > 0 && datesAreAdjacent(channel, previousPuzzleDate, won));
+}
+
+function datesAreAdjacent(channel, date, groups) {
+  return groups.get(`${channel.guildId}:${channel.channelId}`).dates.has(date);
+}
 export function renderChessleLiveBoard(board, winningDates = []) {
   const streak = guildStreak(winningDates, board.date);
   const users = Object.entries(board.players || {})
@@ -56,6 +75,7 @@ export function isChessleLiveEvent(event) {
     && /^\d{4}-\d{2}-\d{2}$/.test(event.date)
     && Object.hasOwn(modes, event.mode)
     && /^[\w-]{8,240}$/.test(event.instanceId)
+    && (event.puzzleId === undefined || (Number.isSafeInteger(event.puzzleId) && event.puzzleId > 0))
     && Number.isFinite(event.createdAt));
   if (!common) return false;
   if (event.type === 'start') return true;
@@ -87,6 +107,7 @@ async function atomicJson(file, value) {
 export function createChessleLiveMonitor({
   client, botToken, applicationId, gamesFile, stateFile,
   fetchImpl = fetch, intervalMs = 2500, now = () => Date.now(),
+  dailyCacheFile = path.join(path.dirname(gamesFile || '.'), 'daily-origin-cache.json'),
 } = {}) {
   if (!gamesFile || !stateFile || !botToken || !applicationId) {
     return { enabled: false, async tick() {}, start() {}, stop() {} };
@@ -140,6 +161,57 @@ export function createChessleLiveMonitor({
     board.messageId = posted.id;
   }
 
+  async function announceResets() {
+    const cache = await readJson(dailyCacheFile, null);
+    const date = cache?.activeDate;
+    const original = cache?.records?.[date];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '') || !Number.isSafeInteger(original?.id)) return;
+
+    const seen = state.lastObservedOriginalDate;
+    if (!seen) {
+      // Deployment or a first-ever monitor start is not itself a daily reset.
+      state.lastObservedOriginalDate = date;
+      await atomicJson(stateFile, state);
+      return;
+    }
+    if (date > seen) {
+      state.lastObservedOriginalDate = date;
+      state.resetAlerts ||= {};
+      if (previousDate(date) === seen) {
+        const targets = streakedChannelsForReset(state.boards, seen);
+        state.resetAlerts[date] ||= { puzzleId: original.id, channels: Object.fromEntries(
+          targets.map(target => [`${target.guildId}:${target.channelId}`, { ...target, attempts: 0 }])
+        ) };
+      }
+      await atomicJson(stateFile, state);
+    }
+    if (date !== state.lastObservedOriginalDate) return;
+    const alert = state.resetAlerts?.[date];
+    if (!alert) return;
+    for (const target of Object.values(alert.channels || {})) {
+      if (target.messageId || target.skipped) continue;
+      try {
+        if (!client.guilds.cache.has(target.guildId)) { target.skipped = true; continue; }
+        const channel = await client.channels.fetch(target.channelId).catch(() => null);
+        if (!channel || channel.guildId !== target.guildId || typeof channel.send !== 'function') {
+          target.skipped = true;
+          continue;
+        }
+        const message = await channel.send({
+          content: `♟️ **체슬이 리셋되었습니다!**\n공식 Chessle **#${alert.puzzleId}** · ${date}\n🔥 이 채널은 이전 문제까지 **${target.streak}일 연속 성공**했어요. 오늘도 도전해 보세요!\n/체슬`,
+          allowedMentions: { parse: [] },
+        });
+        target.messageId = message.id;
+        target.sentAt = now();
+      } catch (error) {
+        target.attempts = (target.attempts || 0) + 1;
+        if (target.attempts >= 3) target.skipped = true;
+        console.error('[CHESSLE RESET] notification:', error.message);
+      } finally {
+        await atomicJson(stateFile, state); // Persistence prevents restart duplicates.
+      }
+    }
+  }
   async function tick() {
     if (busy) return;
     busy = true;
@@ -162,6 +234,14 @@ export function createChessleLiveMonitor({
         const { guildId, channelId } = location;
         const key = `${guildId}:${channelId}:${event.date}:${event.mode}`;
         const board = state.boards[key] ||= { guildId, channelId, date: event.date, mode: event.mode, players: {} };
+        const switchingSource = Number.isSafeInteger(event.puzzleId) && board.puzzleId !== event.puzzleId;
+        if (switchingSource) {
+          // Archive local-date guesses instead of mixing them with a new official answer.
+          state.archivedBoards ||= {};
+          state.archivedBoards[`${key}:archive:${board.puzzleId || 'legacy'}`] ||= { ...board, messageId: null };
+          board.players = {};
+          board.puzzleId = event.puzzleId;
+        }
         const player = board.players[event.userId] ||= { rows: [], attempt: 0, solved: false, finished: false };
         const isStart = event.type === 'start';
         if (isStart) {
@@ -186,7 +266,7 @@ export function createChessleLiveMonitor({
         // this event will retry without incrementing win counts twice.
         await atomicJson(stateFile, state);
         try {
-          await post(board, wins, { rotate: isStart });
+          await post(board, wins, { rotate: isStart || switchingSource });
           await atomicJson(stateFile, state);
         }
         catch (error) { console.error('[CHESSLE LIVE] Discord message:', error.message); continue; }
@@ -198,6 +278,7 @@ export function createChessleLiveMonitor({
         await atomicJson(stateFile, state);
         processed++;
       }
+      await announceResets();
     } finally { busy = false; }
   }
 
