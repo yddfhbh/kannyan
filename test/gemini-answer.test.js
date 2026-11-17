@@ -116,13 +116,22 @@ test('parseGeminiAnswerPayload repairs single-backslash LaTeX commands', () => {
   });
 });
 
-test('parseGeminiAnswerPayload does not expose an unparseable answer wrapper', () => {
+test('parseGeminiAnswerPayload repairs trailing commas without exposing the wrapper', () => {
   const malformedWrapper = '```json\n{"answer":"답변","emotion":"neutral",}\n```';
 
   const result = parseGeminiAnswerPayload(malformedWrapper);
 
-  assert.equal(result.answer, '답변을 읽지 못했다냥.');
+  assert.equal(result.answer, '답변');
   assert.equal(result.emotion, 'neutral');
+  assert.equal(result.answer.includes('"answer"'), false);
+  assert.equal(result.parseStrategy, 'trailing-comma-repaired');
+});
+
+test('parseGeminiAnswerPayload marks an unrecoverable answer wrapper without exposing it', () => {
+  const result = parseGeminiAnswerPayload('{"answer":"끝나지 않은 답변","emotion":');
+
+  assert.equal(result.answer, '답변을 읽지 못했다냥.');
+  assert.equal(result.parseFailure, 'invalid-answer-json');
   assert.equal(result.answer.includes('"answer"'), false);
 });
 

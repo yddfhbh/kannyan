@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createNativeSearchTools, nativeToolDeclarations, nativeToolGuidance, runGeminiNativeTools } from '../src/gemini-native-tools.js';
 import { requestChatWithFallback } from '../src/gemini-chat-request.js';
+import { parseGeminiAnswerPayload } from '../src/gemini-answer.js';
 
 const call = (name, args, id) => ({ candidates: [{ content: { role: 'model', parts: [{ functionCall: { name, args, id }, thoughtSignature: `signature-${id}` }] } }] });
 const final = (answer = '확인했다냥') => ({ candidates: [{ content: { role: 'model', parts: [{ text: JSON.stringify({ answer, emotion: 'neutral' }) }] } }] });
@@ -18,6 +19,23 @@ test('인사, 고민 상담, 일반 대화는 모델이 선택하면 조회 없�
     const { result, requests } = await replay([final(answer)]);
     assert.equal(result.status, 'complete'); assert.equal(result.calls.length, 0); assert.equal(requests.length, 1);
   }
+});
+
+test('Native Function Calling의 깨진 최종 JSON은 도구를 다시 호출하지 않고 한 번만 복구 요청한다', async () => {
+  const malformed = { candidates: [{ finishReason: 'STOP', content: { role: 'model', parts: [{ text: '{"answer":"깨진 최종 응답","emotion":' }] } }] };
+  const { result, requests } = await replay([malformed, final('복구된 최종 답변이다냥')], {}, {
+    finalResponseValidator: (response) => {
+      const text = response.candidates[0].content.parts[0].text;
+      return parseGeminiAnswerPayload(text).parseFailure ? { retry: true } : null;
+    },
+  });
+  assert.equal(result.status, 'complete');
+  assert.equal(result.finalResponseRetries, 1);
+  assert.equal(result.calls.length, 0);
+  assert.equal(requests.length, 2);
+  assert.equal(requests[1].toolConfig.functionCallingConfig.mode, 'NONE');
+  assert.match(requests[1].system_instruction.parts[0].text, /형식 복구/);
+  assert.match(result.response.candidates[0].content.parts[0].text, /복구된 최종 답변/);
 });
 
 test('최신 정보 검색, 위키 인물 검색, 외부 링크 읽기는 선언된 실제 도구로 실행된다', async () => {
