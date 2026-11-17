@@ -75,18 +75,33 @@ export function createNativeSearchTools(options = {}) {
 
 // The model content is returned intact: Gemini 3 thought signatures and call IDs
 // are opaque and must survive every subsequent generateContent request.
-export async function runGeminiNativeTools({ contents, payload, request, tools, maxCalls = 6, deadlineMs = 30000, toolTimeoutMs = 7000, now = Date.now }) {
+export async function runGeminiNativeTools({ contents, payload, request, tools, maxCalls = 6, deadlineMs = 30000, toolTimeoutMs = 7000, finalResponseValidator = null, now = Date.now }) {
   const started = now();
   const history = [...contents];
   const seen = new Set();
   const calls = [];
+  let finalResponseRetries = 0;
   let response;
   for (let round = 0; round <= maxCalls + 1; round += 1) {
     if (now() - started >= deadlineMs) return { status: 'timeout', response, calls };
     response = await request({ ...payload, contents: history });
     const content = response?.candidates?.[0]?.content;
     const requested = (content?.parts ?? []).filter((part) => part.functionCall).map((part) => part.functionCall);
-    if (!requested.length) return { status: 'complete', response, calls };
+    if (!requested.length) {
+      const validation = finalResponseValidator?.(response);
+      if (validation?.retry && finalResponseRetries < 1 && now() - started < deadlineMs - 1500) {
+        finalResponseRetries += 1;
+        payload = {
+          ...payload,
+          toolConfig: { functionCallingConfig: { mode: 'NONE' } },
+          system_instruction: {
+            parts: [{ text: `${payload.system_instruction?.parts?.[0]?.text ?? ''}\n\n[형식 복구]\n직전 최종 출력은 JSON으로 읽을 수 없었다. 내용을 반복하지 말고, 지정된 JSON 객체 하나만 새로 반환하라.` }],
+          },
+        };
+        continue;
+      }
+      return { status: 'complete', response, calls, finalResponseRetries, finalResponseValidation: validation ?? null };
+    }
     if (!content || !['model', undefined].includes(content.role)) throw new Error('Invalid Gemini function call content');
     history.push(content);
     const resultParts = [];

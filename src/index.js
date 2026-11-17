@@ -9131,6 +9131,10 @@ async function generateNativeToolAnswer(prompt, options = {}) {
   try {
     result = await runGeminiNativeTools({ contents, payload, tools: createNativeSearchTools({ wikiConfig: pyhokWikiSearchConfig }),
     deadlineMs,
+    finalResponseValidator: (nativeResponse) => {
+      const parsed = parseGeminiAnswerPayload(extractGeminiResponseText(nativeResponse));
+      return parsed.parseFailure ? { retry: true, failure: parsed.parseFailure, strategy: parsed.parseStrategy } : null;
+    },
     request: async (body) => {
       modelRequests += 1;
       if (!pinned) {
@@ -9156,10 +9160,16 @@ async function generateNativeToolAnswer(prompt, options = {}) {
     throw error;
   }
   for (const call of result.calls) logGeminiTiming(`native-tool name=${call.name} status=${call.status} duration=${call.durationMs}ms${call.errorType ? ` errorType=${call.errorType}` : ''}`);
-  logGeminiTiming(`native-tools status=${result.status} modelRequests=${modelRequests} toolCalls=${result.calls.length} total=${Date.now() - startedAt}ms`);
+  logGeminiTiming(`native-tools status=${result.status} modelRequests=${modelRequests} toolCalls=${result.calls.length} jsonRetries=${result.finalResponseRetries ?? 0} total=${Date.now() - startedAt}ms`);
   if (result.status !== 'complete') throw Object.assign(new Error('Native tool conversation timed out'), { code: 'CHAT_STAGE_TIME_LIMIT' });
   const responseText = extractGeminiResponseText(result.response);
   const parsed = parseGeminiAnswerPayload(responseText);
+  if (parsed.parseFailure) {
+    const candidate = result.response?.candidates?.[0] ?? {};
+    logGeminiTiming(`native-tools json-fallback failure=${parsed.parseFailure} strategy=${parsed.parseStrategy} model=${result.response?._requestMeta?.model ?? 'unknown'} finishReason=${candidate.finishReason ?? 'unknown'}`);
+    return { answer: '답변 형식을 복구하지 못했다냥. 잠시 뒤 다시 물어봐달라냥.', emotion: 'neutral',
+      usedPermanentMemoryIds: [], requestMeta: result.response?._requestMeta ?? null, nativeToolCalls: result.calls };
+  }
   const guarded = classifyPromptControlResponse(parsed.answer || responseText, { promptRiskScore: options.promptControl?.score ?? 0 });
   const memoryUsage = extractPermanentMemoryUsage(guarded.blocked ? '' : parsed.answer || responseText,
     (options.permanentMemories ?? []).map((entry) => entry.id));
@@ -9241,39 +9251,40 @@ async function generateGeminiAnswer(prompt, options = {}) {
     `answer start stage=${answerStage} mode=${imageParts.length > 0 ? 'vision' : 'text'} models=${modelsToUse.join(',')} promptChars=${contextualPrompt.length} historyStored=${history.length} historySent=${contextSelection.stats.immediateHistoryCount + contextSelection.stats.olderRetrievedHistoryCount} immediateHistory=${contextSelection.stats.immediateHistoryCount} olderRetrieved=${contextSelection.stats.olderRetrievedHistoryCount} olderRecall=${contextSelection.stats.olderHistoryRecall} includedHistoryChars=${contextSelection.stats.includedHistoryChars} contextChars=${contextSelection.stats.finalTextualContextChars} images=${imageParts.length}`
   );
 
+  const answerRequestPayload = {
+    [Symbol.for('chat.finalVerification')]: Boolean(options.finalVerification),
+    system_instruction: {
+      parts: [
+        {
+          text: `${geminiSystemInstruction}\n\n${geminiAnswerJsonInstruction}\n\n${options.evidenceReview ? options.evidenceReviewInstructions || '' : ''}`,
+        },
+      ],
+    },
+    contents: createGeminiChatContents(contextualPrompt, imageParts),
+    generationConfig: {
+      maxOutputTokens: options.evidenceReview ? 2200 : geminiMaxOutputTokens,
+      temperature: options.evidenceReview ? 0.1 : 0.55,
+      topP: 0.9,
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: 'OBJECT',
+        properties: {
+          ...(!options.evidenceReview ? { answer: { type: 'STRING' }, emotion: { type: 'STRING' } } : {}),
+          ...(options.planSearch ? { sourcePlan: {
+            type: 'OBJECT', properties: {
+              mode: { type: 'STRING', enum: ['local', 'search'] },
+              query: { type: 'STRING' }, purpose: { type: 'STRING' }, externalPrompt: { type: 'STRING' }, localPrompt: { type: 'STRING' }, additionalExternalPrompt: { type: 'STRING' },
+            }, required: ['mode', 'query', 'purpose', 'externalPrompt', 'localPrompt', 'additionalExternalPrompt'],
+          } } : {}),
+            ...(options.evidenceReview ? { evidenceReviews: { type: 'ARRAY', items: { type: 'OBJECT', properties: { id: {type:'INTEGER'}, relevant:{type:'BOOLEAN'}, requestSatisfied:{type:'BOOLEAN'}, quote:{type:'STRING'}, reason:{type:'STRING'}, ...(options.feeReview ? { feeApplicability: {type:'OBJECT',properties:{...Object.fromEntries(['country','examType','validFrom','validThrough','quote'].map(key => [key,{type:'STRING'}])),scope:{type:'STRING',enum:['current','estimate','unknown']}},required:['country','examType','validFrom','validThrough','quote']} } : {}), ...(options.weatherReview ? { weatherFields:{type:'ARRAY',items:{type:'STRING'}}, dataType:{type:'STRING',enum:['weather','table','structured','prose']}, region:{type:'STRING'}, validTime:{type:'STRING'}, kind:{type:'STRING',enum:['observation','forecast','unknown']} } : {}) }, required:['id','relevant','requestSatisfied','quote','reason', ...(options.weatherReview ? ['region','validTime','kind','dataType','weatherFields'] : [])] } } } : {}),
+          ...(options.retrievalReview ? { searchRefinement: { type:'OBJECT', properties: { requestedSatisfied:{type:'BOOLEAN'}, aliases:{type:'ARRAY',items:{type:'OBJECT',properties:{from:{type:'STRING'},to:{type:'STRING'},sourceId:{type:'INTEGER'},quote:{type:'STRING'}},required:['from','to','sourceId','quote']}}, queries:{type:'ARRAY',items:{type:'STRING'}} }, required:['requestedSatisfied','aliases','queries'] } } : {}),
+        }, required: [...(!options.evidenceReview ? ['answer', 'emotion'] : []), ...(options.planSearch ? ['sourcePlan'] : []), ...(options.evidenceReview ? ['evidenceReviews'] : []), ...(options.retrievalReview ? ['searchRefinement'] : [])],
+      },
+    },
+  };
   let response;
   try {
-    response = await fetchGeminiGenerateContent({
-      [Symbol.for('chat.finalVerification')]: Boolean(options.finalVerification),
-      system_instruction: {
-        parts: [
-          {
-            text: `${geminiSystemInstruction}\n\n${geminiAnswerJsonInstruction}\n\n${options.evidenceReview ? options.evidenceReviewInstructions || '' : ''}`,
-          },
-        ],
-      },
-      contents: createGeminiChatContents(contextualPrompt, imageParts),
-      generationConfig: {
-        maxOutputTokens: options.evidenceReview ? 2200 : geminiMaxOutputTokens,
-        temperature: options.evidenceReview ? 0.1 : 0.55,
-        topP: 0.9,
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: 'OBJECT',
-          properties: {
-            ...(!options.evidenceReview ? { answer: { type: 'STRING' }, emotion: { type: 'STRING' } } : {}),
-            ...(options.planSearch ? { sourcePlan: {
-              type: 'OBJECT', properties: {
-                mode: { type: 'STRING', enum: ['local', 'search'] },
-                query: { type: 'STRING' }, purpose: { type: 'STRING' }, externalPrompt: { type: 'STRING' }, localPrompt: { type: 'STRING' }, additionalExternalPrompt: { type: 'STRING' },
-              }, required: ['mode', 'query', 'purpose', 'externalPrompt', 'localPrompt', 'additionalExternalPrompt'],
-            } } : {}),
-              ...(options.evidenceReview ? { evidenceReviews: { type: 'ARRAY', items: { type: 'OBJECT', properties: { id: {type:'INTEGER'}, relevant:{type:'BOOLEAN'}, requestSatisfied:{type:'BOOLEAN'}, quote:{type:'STRING'}, reason:{type:'STRING'}, ...(options.feeReview ? { feeApplicability: {type:'OBJECT',properties:{...Object.fromEntries(['country','examType','validFrom','validThrough','quote'].map(key => [key,{type:'STRING'}])),scope:{type:'STRING',enum:['current','estimate','unknown']}},required:['country','examType','validFrom','validThrough','quote']} } : {}), ...(options.weatherReview ? { weatherFields:{type:'ARRAY',items:{type:'STRING'}}, dataType:{type:'STRING',enum:['weather','table','structured','prose']}, region:{type:'STRING'}, validTime:{type:'STRING'}, kind:{type:'STRING',enum:['observation','forecast','unknown']} } : {}) }, required:['id','relevant','requestSatisfied','quote','reason', ...(options.weatherReview ? ['region','validTime','kind','dataType','weatherFields'] : [])] } } } : {}),
-            ...(options.retrievalReview ? { searchRefinement: { type:'OBJECT', properties: { requestedSatisfied:{type:'BOOLEAN'}, aliases:{type:'ARRAY',items:{type:'OBJECT',properties:{from:{type:'STRING'},to:{type:'STRING'},sourceId:{type:'INTEGER'},quote:{type:'STRING'}},required:['from','to','sourceId','quote']}}, queries:{type:'ARRAY',items:{type:'STRING'}} }, required:['requestedSatisfied','aliases','queries'] } } : {}),
-          }, required: [...(!options.evidenceReview ? ['answer', 'emotion'] : []), ...(options.planSearch ? ['sourcePlan'] : []), ...(options.evidenceReview ? ['evidenceReviews'] : []), ...(options.retrievalReview ? ['searchRefinement'] : [])],
-        },
-      },
-    }, {
+    response = await fetchGeminiGenerateContent(answerRequestPayload, {
       models: modelsToUse,
       chat: true,
       stage: answerStage,
@@ -9283,10 +9294,31 @@ async function generateGeminiAnswer(prompt, options = {}) {
     throw error;
   }
 
-  const text = extractGeminiResponseText(response);
+  let text = extractGeminiResponseText(response);
 
   if (text) {
-    const parsedAnswer = parseGeminiAnswerPayload(text);
+    let parsedAnswer = parseGeminiAnswerPayload(text);
+    if (parsedAnswer.parseFailure) {
+      // Never log the model text here: it can contain user context. The type,
+      // model and finish reason are enough to diagnose format reliability.
+      const candidate = response.candidates?.[0] ?? {};
+      logGeminiTiming(`answer json-retry stage=${answerStage} failure=${parsedAnswer.parseFailure} strategy=${parsedAnswer.parseStrategy} model=${response._requestMeta?.model ?? 'unknown'} finishReason=${candidate.finishReason ?? 'unknown'}`);
+      try {
+        response = await fetchGeminiGenerateContent({
+          ...answerRequestPayload,
+          system_instruction: { parts: [{ text: `${answerRequestPayload.system_instruction.parts[0].text}\n\n[형식 복구]\n직전 출력은 JSON으로 읽을 수 없었다. 내용을 반복하지 말고, 지정된 JSON 객체 하나만 새로 반환하라.` }] },
+        }, { models: modelsToUse, chat: true, stage: `${answerStage}-json-retry` });
+        text = extractGeminiResponseText(response);
+        parsedAnswer = parseGeminiAnswerPayload(text);
+      } catch (error) {
+        logGeminiTiming(`answer json-retry-failed stage=${answerStage} status=${formatGeminiErrorStatus(error)}`);
+      }
+    }
+    if (parsedAnswer.parseFailure) {
+      const candidate = response?.candidates?.[0] ?? {};
+      logGeminiTiming(`answer json-fallback stage=${answerStage} failure=${parsedAnswer.parseFailure} strategy=${parsedAnswer.parseStrategy} model=${response?._requestMeta?.model ?? 'unknown'} finishReason=${candidate.finishReason ?? 'unknown'}`);
+      return { answer: '답변 형식을 복구하지 못했다냥. 잠시 뒤 다시 물어봐달라냥.', emotion: 'neutral', requestMeta: response?._requestMeta ?? null, usedPermanentMemoryIds: [] };
+    }
     if (options.evidenceReview) {
       if (!Array.isArray(parsedAnswer.evidenceReviews)) throw Object.assign(new Error('Expected evidenceReviews array in model result'), {
         name: 'EvidenceReviewFormatError', code: 'EVIDENCE_REVIEW_SCHEMA', origin: 'generateGeminiAnswer', outputType: 'missing-or-non-array',

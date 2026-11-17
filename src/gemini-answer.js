@@ -152,38 +152,73 @@ function repairInvalidJsonStringEscapes(text) {
   return repaired;
 }
 
-function parseJsonObjectText(text) {
-  const cleaned = String(text ?? '')
+function removeTrailingJsonCommas(text) {
+  let repaired = '';
+  let insideString = false;
+  let escaped = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+    if (insideString) {
+      repaired += character;
+      if (escaped) escaped = false;
+      else if (character === '\\') escaped = true;
+      else if (character === '"') insideString = false;
+      continue;
+    }
+    if (character === '"') {
+      insideString = true;
+      repaired += character;
+      continue;
+    }
+    if (character === ',') {
+      const next = text.slice(index + 1).match(/^\s*([}\]])/);
+      if (next) continue;
+    }
+    repaired += character;
+  }
+  return repaired;
+}
+
+function cleanJsonObjectText(text) {
+  return String(text ?? '')
+    .replace(/^\uFEFF/, '')
     .trim()
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
     .replace(/```$/i, '')
     .trim();
+}
 
-  try {
-    return JSON.parse(cleaned);
-  } catch {
+function tryParseJsonObject(text) {
+  const variants = [
+    ['strict', text],
+    ['invalid-escape-repaired', repairInvalidJsonStringEscapes(text)],
+    ['trailing-comma-repaired', removeTrailingJsonCommas(text)],
+    ['invalid-escape-and-trailing-comma-repaired', removeTrailingJsonCommas(repairInvalidJsonStringEscapes(text))],
+  ];
+  for (const [strategy, value] of variants) {
     try {
-      return JSON.parse(repairInvalidJsonStringEscapes(cleaned));
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return { parsed, strategy };
     } catch {
-      // Continue with the object-shaped portion below.
+      // Try the next non-destructive recovery strategy.
     }
   }
+  return null;
+}
+
+function parseJsonObjectText(text) {
+  const cleaned = cleanJsonObjectText(text);
+  const whole = tryParseJsonObject(cleaned);
+  if (whole) return whole;
 
   const match = cleaned.match(/\{[\s\S]*\}/);
   if (!match) {
     return null;
   }
-
-  try {
-    return JSON.parse(match[0]);
-  } catch {
-    try {
-      return JSON.parse(repairInvalidJsonStringEscapes(match[0]));
-    } catch {
-      return null;
-    }
-  }
+  const extracted = tryParseJsonObject(match[0]);
+  return extracted ? { ...extracted, strategy: `extracted-${extracted.strategy}` } : null;
 }
 
 function looksLikeGeminiAnswerWrapper(text) {
@@ -246,20 +281,28 @@ export function shouldAttachGeminiEmotionAsset(emotion, options = {}) {
 }
 
 export function parseGeminiAnswerPayload(text) {
-  const parsed = parseJsonObjectText(text);
+  const parseResult = parseJsonObjectText(text);
+  const parsed = parseResult?.parsed ?? null;
   const isUnparseableAnswerWrapper = !parsed && looksLikeGeminiAnswerWrapper(text);
   const rawAnswer = typeof parsed?.answer === 'string'
     ? parsed.answer
     : (isUnparseableAnswerWrapper ? '답변을 읽지 못했다냥.' : String(text ?? ''));
   const answer = rawAnswer.trim();
 
-  return {
+  const result = {
     answer,
     emotion: normalizeGeminiEmotionLabel(parsed?.emotion),
     ...(parsed && Object.hasOwn(parsed, 'sourcePlan') ? { sourcePlan: parsed.sourcePlan } : {}),
     ...(parsed?.searchRefinement ? { searchRefinement: parsed.searchRefinement } : {}),
     ...(Array.isArray(parsed?.evidenceReviews) ? { evidenceReviews: parsed.evidenceReviews } : {}),
   };
+  // These are intentionally non-enumerable: callers can make retry/logging
+  // decisions without exposing diagnostics through answer payloads or memory.
+  Object.defineProperties(result, {
+    parseFailure: { value: isUnparseableAnswerWrapper ? 'invalid-answer-json' : null },
+    parseStrategy: { value: parseResult?.strategy ?? (isUnparseableAnswerWrapper ? 'unparseable-wrapper' : 'raw-text') },
+  });
+  return result;
 }
 
 export function getGeminiEmotionAssetPath(emotion) {
