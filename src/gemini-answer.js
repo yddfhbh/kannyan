@@ -229,8 +229,9 @@ function looksLikeGeminiAnswerWrapper(text) {
     .replace(/```$/i, '')
     .trim();
 
-  return /^\s*\{[\s\S]*"answer"\s*:/.test(cleaned)
-    && /"emotion"\s*:/.test(cleaned);
+  // Detect incomplete JSON even when generation ends
+  // before the answer or emotion field is complete.
+  return cleaned.startsWith('{');
 }
 
 export function normalizeGeminiEmotionLabel(value) {
