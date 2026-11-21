@@ -397,7 +397,7 @@ new SlashCommandBuilder()
     .toJSON(),
   new SlashCommandBuilder()
     .setName('라이브레이팅')
-    .setDescription('2700chess 라이브레이팅 순위를 조회합니다.')
+    .setDescription('World Chess 라이브레이팅 순위를 조회합니다.')
     .addStringOption((option) =>
       option
         .setName('종류')

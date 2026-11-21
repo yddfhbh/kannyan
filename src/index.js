@@ -134,6 +134,7 @@ import {
   createTetolbLeaderboardReplyData,
 } from './tetrio-tetolb.js';
 import { renderLiveRatingCard } from './live-rating-card.js';
+import { fetchWorldChessLiveRatings } from './worldchess-live-ratings.js';
 import { respondToInteractionError } from './interaction-error.js';
 import { createVArchiveSongCard } from './varchive-song-card.js';
 import { createVArchivePerformanceCard } from './varchive-performance-card.js';
@@ -306,7 +307,6 @@ const geminiKeyRotation = createGeminiKeyRotation(geminiApiKeys);
 const port = Number(process.env.PORT) || 8080;
 const chessComBaseUrl = 'https://api.chess.com/pub/player';
 const lichessBaseUrl = 'https://lichess.org/api/user';
-const liveRatingsBaseUrl = 'https://2700-chess.netlify.app';
 const geminiApiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
 const geminiModel = getPreferredEnvValue(['GEMINI_MODEL', 'GEMMA_MODEL']) || 'gemini-3.6-flash';
 const geminiFallbackModels = getEnvModelList(
@@ -10296,7 +10296,7 @@ function getHelpMessage() {
     '`/체스비교 플랫폼:<체닷|리체스> 타임컨트롤:<래피드|블리츠|불렛> 닉네임1:<이름> 닉네임2:<이름>` - 두 사람의 점수와 예상 승률을 비교한다냥.',
     '`/승률예측 점수1:<점수> 점수2:<점수>` - Elo 기준 예상 승률을 계산한다냥.',
     '`/알람 내용:<알람 내용> 분:<1~10080>` - 지정한 분 뒤에 멘션으로 알려준다냥.',
-    '`/라이브레이팅 종류:<클래시컬|블리츠|래피드> 사람수:<1~50>` - 2700chess 라이브레이팅을 이미지 카드로 보여준다냥.',
+    '`/라이브레이팅 종류:<클래시컬|블리츠|래피드> 사람수:<1~50>` - World Chess 라이브레이팅을 이미지 카드로 보여준다냥.',
     '`/브아카 닉네임:<V-ARCHIVE 닉네임>` - 내 디스코드 계정에 V-ARCHIVE 닉네임을 영구 저장한다냥.',
     '`/b10`, `/b30`, `/b50`은 닉네임을 생략하면 저장된 V-ARCHIVE 닉네임을 쓰고, `%b10 4`, `%b30 6`, `%b50 Hebi 8`처럼 `%` 명령도 바로 쓸 수 있다냥.',
     '`/서열표 곡명:<곡명>`, `/서열표 서열표레벨:15.2 버튼:4`, `/곡정보 곡명:<곡명>`, `%서열표 곡명`, `%서열표 15.2 4`, `%서열표 hd13 4`, `%곡정보 곡명` - V-ARCHIVE 기준 4B/5B/6B/8B 난이도를 보여준다냥.',
@@ -13729,7 +13729,7 @@ async function showLiveRatings(interaction) {
   await interaction.deferReply();
 
   try {
-    const entries = await fetchLiveRatings(typeInfo);
+    const entries = await fetchWorldChessLiveRatings(type);
     const selectedEntries = entries.slice(0, count);
 
     if (selectedEntries.length === 0) {
@@ -13743,7 +13743,7 @@ async function showLiveRatings(interaction) {
       generatedAt: new Date().toISOString(),
     });
     const attachment = new AttachmentBuilder(image, {
-      name: `2700chess-live-${type}.png`,
+      name: `worldchess-live-${type}.png`,
     });
     const notice = selectedEntries.length < count
       ? `요청한 ${count}명 중 현재 표에 있는 ${selectedEntries.length}명만 표시한다냥.`
@@ -14590,54 +14590,6 @@ async function fetchComparableRating(platform, input, timeControlInfo) {
   }
 
   throw new Error(`Unsupported platform: ${platform}`);
-}
-
-async function fetchLiveRatings(typeInfo) {
-  const url = new URL(typeInfo.path, liveRatingsBaseUrl);
-  const response = await fetch(url, {
-    headers: {
-      accept: 'text/html',
-      'user-agent': 'discord-bot/1.0 live ratings lookup',
-    },
-  });
-
-  if (!response.ok) {
-    const error = new Error(`Live ratings source responded with ${response.status}`);
-    error.status = response.status;
-    throw error;
-  }
-
-  return parseLiveRatingRows(await response.text());
-}
-
-function parseLiveRatingRows(html) {
-  const rows = [];
-  const rowMatches = html.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi);
-
-  for (const rowMatch of rowMatches) {
-    const cells = [...rowMatch[1].matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)]
-      .map((cellMatch) => stripHtml(cellMatch[1]));
-
-    if (cells.length < 6) {
-      continue;
-    }
-
-    const rank = Number.parseInt(cells[0], 10);
-    const rating = Number.parseFloat(cells[4]);
-
-    if (!Number.isInteger(rank) || !Number.isFinite(rating)) {
-      continue;
-    }
-
-    rows.push({
-      rank,
-      name: cells[2],
-      rating,
-      change: cells[5] || '-',
-    });
-  }
-
-  return rows;
 }
 
 function formatChessComRatings(username, stats) {

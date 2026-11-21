@@ -138,7 +138,7 @@ export function renderLiveRatingCardSvg(view) {
 
   <rect x="${contentX}" y="${rowsY + rows.length * rowHeight}" width="${contentWidth}" height="${footerHeight}" class="headerBox"/>
   <text x="${contentX + 18}" y="${rowsY + rows.length * rowHeight + 23}" class="footer">${escapeXml(`GENERATED ${formatGeneratedAt(view.generatedAt)}`)}</text>
-  <text x="${contentX + contentWidth - 18}" y="${rowsY + rows.length * rowHeight + 23}" text-anchor="end" class="footer">2700CHESS.LIVE</text>
+  <text x="${contentX + contentWidth - 18}" y="${rowsY + rows.length * rowHeight + 23}" text-anchor="end" class="footer">WORLDCHESS.COM / LIVE</text>
 </svg>`;
 }
 
@@ -188,7 +188,7 @@ function truncatePlayerName(value) {
 function formatRating(value) {
   const rating = Number(value);
   return Number.isFinite(rating)
-    ? rating.toFixed(1)
+    ? (Number.isInteger(rating) ? String(rating) : rating.toFixed(1))
     : '-';
 }
 
