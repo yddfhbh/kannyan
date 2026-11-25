@@ -83,6 +83,7 @@ import {
   parseTetrioAverageRankToken,
   parseDiscordMentionUserId,
   parseTetrioGraphInput,
+  parseTetrioRecentGraphInput,
   parseTetrioStatsMetricInput,
 } from './tetrio-graph-input.js';
 import { createMinomuncherAnalysis } from './minomuncher-analysis.js';
@@ -10286,9 +10287,9 @@ function getHelpMessage() {
     '`/리체스 멤버이름:<Lichess 멤버 이름>` 또는 `%리체스 멤버이름` - Lichess 래피드, 블리츠, 불렛 레이팅을 보여준다냥.',
     '`/테토 닉네임:[TETR.IO 닉네임]` 또는 `%teto 닉네임` - TETR.IO 프로필 카드를 보여준다냥.',
     '`/ts 닉네임:[TETR.IO 닉네임] 숫자:[1~20]` 또는 `%ts 닉네임 [1~20]` - TETR.IO 전체 스탯 카드 또는 최근 N경기 평균 스탯 카드를 보여준다냥. 닉네임을 생략하면 디코 연동 계정을 사용한다냥.',
-    '`/그래프 닉네임:[TETR.IO 닉네임]` 또는 `%psq 닉네임` - Opener/Plonk/Stride/Inf DS 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그린다냥. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있다냥.',
+    '`/그래프 닉네임:[TETR.IO 닉네임]` 또는 `%psq 닉네임` - Opener/Plonk/Stride/Inf DS 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그린다냥. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있다냥. `%psq 5`처럼 숫자만 입력하면 최근 1~20경기 평균 그래프를 보여준다냥.',
     '`/스타일 닉네임:[입력]` 또는 `%sq 입력` - ATTACK/SPEED/DEFENSE/CHEESE 스타일 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그린다냥. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있다냥.',
-    '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시한다냥.',
+    '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시한다냥. `%vs 5`처럼 숫자만 입력하면 최근 1~20경기 평균 그래프를 보여준다냥.',
     '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석한다냥.',
     '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여준다냥.',
     '`/전적 닉네임:[TETR.IO 닉네임] 숫자:[경기 번호]` 또는 `%tetra 닉네임 [경기 번호]`, `%tetra10 닉네임` - TETRA LEAGUE 최근 경기 전적이나 최근 N경기 목록을 이미지로 보여준다냥.',
@@ -12940,7 +12941,23 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
     await safeSendTyping(message.channel, 'showTetrioPlaystyleGraphMessage');
     const target = String(input ?? '').trim();
 
-    const parsedInput = parseTetrioGraphInput(target);
+    const parsedInput = parseTetrioRecentGraphInput(target);
+
+    if (parsedInput.kind === 'recent_mixed') {
+      await message.reply({
+        content: '최근 경기 스탯을 보려면 숫자만 적어달라냥! 예: `%psq 5`',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (parsedInput.kind === 'recent_invalid') {
+      await message.reply({
+        content: '최근 전적 숫자는 1~20만 입력해달라냥.',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
     if (parsedInput.kind === 'invalid') {
       await message.reply({
         content: '분탕치지 말라냥!',
@@ -12960,7 +12977,9 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
 
     const graphData = metricInput
       ? { cards: [createCustomTetrioStatsCardData(metricInput)], missingTargets: [] }
-      : await fetchTetrioStatsCardDataForMessage(message, parsedInput.targets);
+      : await fetchTetrioStatsCardDataForMessage(
+          message, parsedInput.targets, parsedInput.recentCount
+        );
     const cards = graphData?.cards ?? [];
     const missingTargets = graphData?.missingTargets ?? [];
     const unavailableTargets = graphData?.unavailableTargets ?? [];
@@ -12989,6 +13008,9 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
     });
 
     await message.reply({
+      ...(parsedInput.recentCount ? {
+        content: `최근 ${cards[0].sampleCount}/${cards[0].recentCount}경기 평균 스탯 그래프다냥.`,
+      } : {}),
       files: [attachment],
       allowedMentions: { repliedUser: false },
     });
@@ -12996,6 +13018,14 @@ async function showTetrioPlaystyleGraphMessage(message, input) {
   } catch (error) {
     console.error('Failed to render TETR.IO playstyle graph:');
     console.error(error);
+
+    if (error.code === 'NO_RECENT_LEAGUE_STATS') {
+      await message.reply({
+        content: '최근 전적에서 사용할 스탯을 찾지 못했다냥.',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
 
     if (error.code === 'NO_LEAGUE_STATS') {
       await message.reply({
@@ -13126,7 +13156,23 @@ async function showTetrioVersusGraphMessage(message, input) {
     await safeSendTyping(message.channel, 'showTetrioVersusGraphMessage');
     const target = String(input ?? '').trim();
 
-    const parsedInput = parseTetrioGraphInput(target);
+    const parsedInput = parseTetrioRecentGraphInput(target);
+
+    if (parsedInput.kind === 'recent_mixed') {
+      await message.reply({
+        content: '최근 경기 스탯을 보려면 숫자만 적어달라냥! 예: `%vs 5`',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
+
+    if (parsedInput.kind === 'recent_invalid') {
+      await message.reply({
+        content: '최근 전적 숫자는 1~20만 입력해달라냥.',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
     if (parsedInput.kind === 'invalid') {
       await message.reply({
         content: '분탕치지 말라냥!',
@@ -13146,7 +13192,9 @@ async function showTetrioVersusGraphMessage(message, input) {
 
     const graphData = metricInput
       ? { cards: [createCustomTetrioStatsCardData(metricInput)], missingTargets: [] }
-      : await fetchTetrioStatsCardDataForMessage(message, parsedInput.targets);
+      : await fetchTetrioStatsCardDataForMessage(
+          message, parsedInput.targets, parsedInput.recentCount
+        );
     const cards = graphData?.cards ?? [];
     const missingTargets = graphData?.missingTargets ?? [];
     const unavailableTargets = graphData?.unavailableTargets ?? [];
@@ -13178,7 +13226,9 @@ async function showTetrioVersusGraphMessage(message, input) {
       files: [attachment],
       allowedMentions: { repliedUser: false },
     };
-    if (winSummary) {
+    if (parsedInput.recentCount) {
+      replyPayload.content = `최근 ${cards[0].sampleCount}/${cards[0].recentCount}경기 평균 스탯 그래프다냥.`;
+    } else if (winSummary) {
       replyPayload.content = winSummary;
     }
 
@@ -13187,6 +13237,14 @@ async function showTetrioVersusGraphMessage(message, input) {
   } catch (error) {
     console.error('Failed to render TETR.IO versus graph:');
     console.error(error);
+
+    if (error.code === 'NO_RECENT_LEAGUE_STATS') {
+      await message.reply({
+        content: '최근 전적에서 사용할 스탯을 찾지 못했다냥.',
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
 
     if (error.code === 'NO_LEAGUE_STATS') {
       await message.reply({
@@ -13219,7 +13277,7 @@ async function showTetrioVersusGraphMessage(message, input) {
   }
 }
 
-async function fetchTetrioStatsCardDataForMessage(message, targets) {
+async function fetchTetrioStatsCardDataForMessage(message, targets, recentCount = null) {
   if (targets?.length) {
     return fetchTetrioStatsCardDataForTargets(targets);
   }
@@ -13235,7 +13293,11 @@ async function fetchTetrioStatsCardDataForMessage(message, targets) {
       : await findTetrioUsernameByDiscordId(message.author.id);
 
   if (username) {
-    return { cards: [await fetchTetrioStatsCardData(username)], missingTargets: [], unavailableTargets: [], bannedTargets: [] };
+    const card = recentCount
+      ? await createRecentTetrioStatsCardData(username, recentCount)
+      : await fetchTetrioStatsCardData(username);
+
+    return { cards: [card], missingTargets: [], unavailableTargets: [], bannedTargets: [] };
   }
 
   return target

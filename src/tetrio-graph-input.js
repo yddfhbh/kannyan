@@ -35,6 +35,44 @@ function parseTetrioGraphInput(input) {
   return { kind: 'invalid' };
 }
 
+
+function parseTetrioRecentGraphInput(input) {
+  const trimmed = String(input ?? '').trim();
+  const parsed = parseTetrioGraphInput(trimmed);
+
+  // Preserve direct APM/PPS/VS input.
+  if (parsed.kind === 'metric') {
+    return parsed;
+  }
+
+  if (/^(0|[1-9]\d*)$/.test(trimmed)) {
+    const count = Number(trimmed);
+
+    if (count >= 1 && count <= 20) {
+      return {
+        kind: 'recent',
+        recentCount: count,
+        targets: null,
+      };
+    }
+
+    if (count <= 100) {
+      return { kind: 'recent_invalid' };
+    }
+  }
+
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
+
+  if (
+    tokens.length > 1 &&
+    tokens.some(token => /^(?:[0-9]|1[0-9]|20)$/.test(token))
+  ) {
+    return { kind: 'recent_mixed' };
+  }
+
+  return parsed;
+}
+
 function isTetrioGraphTargetToken(token) {
   return /^[A-Za-z0-9_-]+$/.test(String(token ?? ''))
     || Boolean(parseTetrioAverageRankToken(token))
@@ -108,5 +146,6 @@ export {
   parseTetrioAverageRankToken,
   parseDiscordMentionUserId,
   parseTetrioGraphInput,
+  parseTetrioRecentGraphInput,
   parseTetrioStatsMetricInput,
 };
