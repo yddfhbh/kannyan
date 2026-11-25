@@ -63,6 +63,21 @@ function parseTetrioRecentGraphInput(input) {
 
   const tokens = trimmed.split(/\s+/).filter(Boolean);
 
+  // Username followed by a recent match count.
+  if (
+    tokens.length === 2 &&
+    isTetrioGraphTargetToken(tokens[0]) &&
+    !parseTetrioAverageRankToken(tokens[0]) &&
+    !/^\d{1,2}$|^100$/.test(tokens[0]) &&
+    /^(?:[1-9]|1[0-9]|20)$/.test(tokens[1])
+  ) {
+    return {
+      kind: 'recent',
+      recentCount: Number(tokens[1]),
+      targets: [tokens[0]],
+    };
+  }
+
   if (
     tokens.length > 1 &&
     tokens.some(token => /^(?:[0-9]|1[0-9]|20)$/.test(token))

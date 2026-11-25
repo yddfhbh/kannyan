@@ -63,10 +63,11 @@ test('recent graph supports all counts from 1 to 20', () => {
 
 test('recent graph rejects mixed count and target input', () => {
   for (const input of [
-    'hebi_ 5', '5 hebi_', 'hebi_ 10',
-    '20 hebi_', 'hebi_ kannyan 3',
-    '5 6', '0 hebi_',
-    '<@123456789012345678> 5',
+    '5 hebi_', '20 hebi_',
+    'hebi_ kannyan 3', '5 6',
+    '0 hebi_', 'hebi_ 0',
+    '5 <@123456789012345678>',
+    '$avgx 5',
   ]) {
     assert.equal(
       parseTetrioRecentGraphInput(input).kind,
@@ -104,4 +105,40 @@ test('original graph parser remains unchanged for sq', () => {
     kind: 'targets',
     targets: ['5'],
   });
+});
+
+
+test('recent graph accepts username followed by match count', () => {
+  for (let n = 1; n <= 20; n++) {
+    assert.deepEqual(
+      parseTetrioRecentGraphInput(`hebi_ ${n}`),
+      {
+        kind: 'recent',
+        recentCount: n,
+        targets: ['hebi_'],
+      }
+    );
+  }
+});
+
+test('recent graph accepts numeric usernames and mentions', () => {
+  for (const target of ['12345', '<@123456789012345678>']) {
+    assert.deepEqual(
+      parseTetrioRecentGraphInput(`${target} 5`),
+      {
+        kind: 'recent',
+        recentCount: 5,
+        targets: [target],
+      }
+    );
+  }
+});
+
+test('recent graph rejects count before username', () => {
+  for (let n = 1; n <= 20; n++) {
+    assert.equal(
+      parseTetrioRecentGraphInput(`${n} hebi_`).kind,
+      'recent_mixed'
+    );
+  }
 });

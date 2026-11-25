@@ -10287,9 +10287,9 @@ function getHelpMessage() {
     '`/리체스 멤버이름:<Lichess 멤버 이름>` 또는 `%리체스 멤버이름` - Lichess 래피드, 블리츠, 불렛 레이팅을 보여준다냥.',
     '`/테토 닉네임:[TETR.IO 닉네임]` 또는 `%teto 닉네임` - TETR.IO 프로필 카드를 보여준다냥.',
     '`/ts 닉네임:[TETR.IO 닉네임] 숫자:[1~20]` 또는 `%ts 닉네임 [1~20]` - TETR.IO 전체 스탯 카드 또는 최근 N경기 평균 스탯 카드를 보여준다냥. 닉네임을 생략하면 디코 연동 계정을 사용한다냥.',
-    '`/그래프 닉네임:[TETR.IO 닉네임]` 또는 `%psq 닉네임` - Opener/Plonk/Stride/Inf DS 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그린다냥. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있다냥. `%psq 5`처럼 숫자만 입력하면 최근 1~20경기 평균 그래프를 보여준다냥.',
+    '`/그래프 닉네임:[TETR.IO 닉네임]` 또는 `%psq 닉네임` - Opener/Plonk/Stride/Inf DS 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그린다냥. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있다냥. `%psq 5` 또는 `%psq 닉네임 5`처럼 입력하면 최근 1~20경기 평균 그래프를 보여준다냥.',
     '`/스타일 닉네임:[입력]` 또는 `%sq 입력` - ATTACK/SPEED/DEFENSE/CHEESE 스타일 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그린다냥. `60 2.0 120`처럼 APM/PPS/VS를 직접 넣을 수도 있다냥.',
-    '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시한다냥. `%vs 5`처럼 숫자만 입력하면 최근 1~20경기 평균 그래프를 보여준다냥.',
+    '`/비교 닉네임:[TETR.IO 닉네임]` 또는 `%vs 닉네임` - APM/PPS/VS 등 주요 스탯 비교 그래프를 보여준다냥. 닉네임을 여러 개 입력하면 겹쳐 그리고, 앞의 두 명은 점수/스탯 기반 승률을 채팅에 같이 표시한다냥. `%vs 5` 또는 `%vs 닉네임 5`처럼 입력하면 최근 1~20경기 평균 그래프를 보여준다냥.',
     '`/분석 파일:[.ttrm]` 또는 `%munch` + `.ttrm` 첨부 - TETR.IO 리플레이 파일을 MinoMuncher 그래프로 분석한다냥.',
     '`/랭크컷`, `%tetr`, `%tetoranks` - TETRA LEAGUE 랭크컷 이미지를 보여준다냥.',
     '`/전적 닉네임:[TETR.IO 닉네임] 숫자:[경기 번호]` 또는 `%tetra 닉네임 [경기 번호]`, `%tetra10 닉네임` - TETRA LEAGUE 최근 경기 전적이나 최근 N경기 목록을 이미지로 보여준다냥.',
@@ -13278,7 +13278,7 @@ async function showTetrioVersusGraphMessage(message, input) {
 }
 
 async function fetchTetrioStatsCardDataForMessage(message, targets, recentCount = null) {
-  if (targets?.length) {
+  if (targets?.length && !recentCount) {
     return fetchTetrioStatsCardDataForTargets(targets);
   }
 
